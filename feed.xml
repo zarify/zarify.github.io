@@ -3,12 +3,38 @@
     <title>Headtilt</title>
     <link href="https://zarify.github.io/feed.xml" rel="self" />
     <link href="https://zarify.github.io" />
-    <updated>2018-08-18T21:07:06+08:00</updated>
+    <updated>2018-08-18T21:14:22+08:00</updated>
     <author>
         <name>Rob</name>
     </author>
     <id>https://zarify.github.io</id>
 
+    <entry>
+        <title>Migrating from Squarespace</title>
+        <author>
+            <name>Rob</name>
+        </author>
+        <link href="https://zarify.github.io/migrating-from-squarespace/"/>
+        <id>https://zarify.github.io/migrating-from-squarespace/</id>
+            <category term="ramble"/>
+
+        <updated>2018-08-18T21:10:38+08:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://zarify.github.io/media/posts/8/" alt="" />
+                    I've been getting a bit antsy about continuing to pay Squarespace to&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <img src="https://zarify.github.io/media/posts/8/" alt="" />
+                <p>I've been getting a bit antsy about continuing to pay Squarespace to host Headtilt, mostly due to the infrequent updates that I seem to be doing over the last couple of years, and partly because I think I feel the need to tinker with stuff.</p>
+<p>For ages I've liked the idea of static site generators, and occasionally I'll go and play with one for a while before falling out of love with the idea of writing up posts in Markdown, having to remember its syntax for links, images, etc, and then go running back to the arms of a regular CMS.</p>
+<p>Recently I started checking out Publii. It generates static pages, but has a nice CMS style GUI editor that you can create posts in and manage the site before pushing it out to a hosting platform (in this instance Github Pages).</p>
+<p>The downside is of course, migrating content out of Squarespace. Although they offer exporting to WordPress style XML, actually importing that content anywhere has been a less than ideal experience. Publii includes a tool to do this automatically, but nicely sorting those imported posts into tag categories is less fun, since you have to manually edit each post (lucky I'm a lazy writer!) and add relevant tags, and the automatic image downloading failed due some screwy file naming in the Squarespace export. This would be ok if images were stored in a central repository, but unfortunately, Publii stores posts in individual folders in the root directory, with images stored within those folders, meaning lots of manual fiddling with file locations, editing HTML in individual posts, etc.</p>
+            ]]>
+        </content>
+    </entry>
     <entry>
         <title>Publii to Microblog</title>
         <author>
@@ -71,7 +97,7 @@
         <id>https://zarify.github.io/playing-with-affinity-designer-brushes/</id>
             <category term="ramble"/>
 
-        <updated>2018-08-18T18:34:41+08:00</updated>
+        <updated>2018-08-18T21:13:53+08:00</updated>
             <summary>
                 <![CDATA[
                         <img src="https://zarify.github.io/media/posts/64/" alt="" />
@@ -84,8 +110,12 @@
                 <h1>The Backstory</h1>
 <p>Before Christmas I was noodling around with Affinity Designer in an attempt to be a bit better at design. Part of this has been getting more familiar with the tools by working through a bunch of the <a target="_blank" href="https://design.tutsplus.com" rel="noopener noreferrer">tutorials at Tuts+</a>. Tuts+ hosts some tutorials aimed at <a target="_blank" href="https://design.tutsplus.com/categories/affinity-designer" rel="noopener noreferrer">Designer</a>, but working through the ones aimed at other software like Illustrator has been an interesting exercise in figuring out Designer's tools.</p>
 <p>While I was making a robot face, I was trying to make wires by putting a gradient on a stroke, but it seems Designer won't allow you to have a gradient which follows parallel to the stroke. Instead it will apply the gradient to the stroke colour in the same manner as filling.</p>
-<p><img src="https://zarify.github.io/media/posts/64/wire1.png" alt=" What I wanted "> What I wanted</p>
-<p><img src="https://zarify.github.io/media/posts/64/wire2.png" alt=" What I got "> What I got</p>
+<figure class="post__image post__image--center" ><img src="https://zarify.github.io/media/posts/64/wire1.png" alt=" What I wanted ">
+<figcaption >What I wanted</figcaption>
+</figure>
+<figure class="post__image post__image--center" ><img src="https://zarify.github.io/media/posts/64/wire2.png" alt=" What I got ">
+<figcaption >What I got</figcaption>
+</figure>
 <p>I went digging around the Affinity forums, and apparently this is A Thing, there were some other requests for it, but no real solutions. I got sidetracked by tutorials on making smoke brushes before thinking that I could maybe just make my own wire brush. Turns out, this is pretty easy, and lead to some other interesting stuff.</p>
 <p>There are some other things that don't seem work the way I'd like them to (scatter brushes), but let's look at what worked for the time being.</p>
 <h1>Actually Doing Stuff</h1>
@@ -93,28 +123,41 @@
 <p>(Note that I don't actually understand the difference between "textured intensity" and "textured image", and couldn't find any info about them, but the intensity brush option didn't do what I wanted.)</p>
 <h2>Wire Gradient</h2>
 <p>To start with, I just wanted the gradient so that I could draw wires. This is pretty straightforward: Just draw a rectangle containing the gradient you want, and export is as a PNG, and then re-import it as an image brush.</p>
-<p><img src="https://zarify.github.io/media/posts/64/template1.png" alt=" Rectangle filled with a gradient. Easy. "> Rectangle filled with a gradient. Easy.</p>
+<figure class="post__image post__image--center" ><img src="https://zarify.github.io/media/posts/64/template1.png" alt=" Rectangle filled with a gradient. Easy. ">
+<figcaption >Rectangle filled with a gradient. Easy.</figcaption>
+</figure>
 <p>This let me make nice looking wires in a range of colours and weights:</p>
-<p><img src="https://zarify.github.io/media/posts/64/different_strokes.png" alt=" Wires of different stroke weights and colours based on the new Textured Image Brush. "> Wires of different stroke weights and colours based on the new Textured Image Brush.</p>
+<figure class="post__image post__image--center" ><img src="https://zarify.github.io/media/posts/64/different_strokes.png" alt=" Wires of different stroke weights and colours based on the new Textured Image Brush. ">
+<figcaption >Wires of different stroke weights and colours based on the new Textured Image Brush.</figcaption>
+</figure>
 <h2>Bundles of Wires</h2>
 <p>While browsing through the Tuts+ articles I saw one which was just a big bunch of resources, one of which was a plugin for Illustrator for making fairy lights, so naturally I wondered if I could do that with a brush in Designer.</p>
 <p>The first step was to get a nicely tiling bundle of wires. I looked at the sample in the article, and they didn't do anything fancy like overlapping wires, just a pair of curves, which looked pretty easy.</p>
 <p>I used my wire brush to stroke a pair of Christmassy pen curves, which was the easy bit. Getting them to tile wasn't especially difficult, just a case of duplicating both wires, and shifting each half left and right by half the canvas width (in my case 400px for an 800px canvas). I then joined the curves of the same colour in the middle using the Node tool and the Join Curves function (after selecting the two end points I wanted to join), deleting one of the two nodes, and cleaning up the curve.</p>
-<p><img src="https://zarify.github.io/media/posts/64/join1.png"></p>
-<p><img src="https://zarify.github.io/media/posts/64/join2.png"></p>
-<p><img src="https://zarify.github.io/media/posts/64/join3.png"></p>
-<p><img src="https://zarify.github.io/media/posts/64/join4.png"></p>
+<p><img class="post__image--center" src="https://zarify.github.io/media/posts/64/join1.png"></p>
+<p><img class="post__image--center" src="https://zarify.github.io/media/posts/64/join2.png"></p>
+<p><img class="post__image--center" src="https://zarify.github.io/media/posts/64/join3.png" width="661" height="282"></p>
+<p><img class="post__image--center" src="https://zarify.github.io/media/posts/64/join4.png" width="661" height="257"></p>
 <p>The last step is creating a slice using the Export Persona so that only the parts of the wire within the canvas bounds are exported (I was working with lots of extra vertical space, so just exporting the selected objects would be no good).</p>
-<p><img src="https://zarify.github.io/media/posts/64/brush_group.png" alt=""></p>
+<p><img class="post__image--center" src="https://zarify.github.io/media/posts/64/brush_group.png" width="661" height="113"></p>
 <p>Import the selected PNG as a brush to see if it worked, which it did after choosing 'repeat' instead of the 'stretch' option in the brush's settings.</p>
-<p><img src="https://zarify.github.io/media/posts/64/brush_edit.png" alt=" Editing the Brush Settings "> Editing the Brush Settings</p>
+<figure class="post__image post__image--center" ><img src="https://zarify.github.io/media/posts/64/brush_edit.png" alt=" Editing the Brush Settings " width="661" height="614">
+<figcaption >Editing the Brush Settings</figcaption>
+</figure>
+<p> </p>
 <p>One thing to be aware of is if you want to use colours from the original image instead of colourising based on the stroke colour, you need to choose 'None' from the stroke colour, which I found to be a bit counter-intuitive.</p>
 <h2>The Lights</h2>
-<p><img src="https://zarify.github.io/media/posts/64/pretty_lights.png" alt=" My not very exciting fairy light "> My not very exciting fairy light</p>
+<figure class="post__image post__image--center" ><img src="https://zarify.github.io/media/posts/64/pretty_lights.png" alt=" My not very exciting fairy light ">
+<figcaption >My not very exciting fairy light</figcaption>
+</figure>
 <p>The last step was adding the lights (also the bit I'm least happy with, but it still looks ok with some judicious editing of curves afterwards). I attached something that looked vaguely like a fairy light onto my bundle of wires in the original brush file, added in a halo and some radiant lines, and exported a new image file.</p>
-<p><img src="https://zarify.github.io/media/posts/64/light_success.png" alt=" Fairy Light Success "> Fairy Light Success</p>
+<figure class="post__image post__image--center" ><img src="https://zarify.github.io/media/posts/64/light_success.png" alt=" Fairy Light Success ">
+<figcaption >Fairy Light Success</figcaption>
+</figure>
 <p>All in all it worked pretty well. On tight curves the rays get twisted up, so the curves need a bit of fiddlng. It works best on gentle curves.</p>
-<p><img src="https://zarify.github.io/media/posts/64/light_fail.png" alt=" Fairy Light Fail! "> Fairy Light Fail!</p>
+<figure class="post__image post__image--center" ><img src="https://zarify.github.io/media/posts/64/light_fail.png" alt=" Fairy Light Fail! ">
+<figcaption >Fairy Light Fail!</figcaption>
+</figure>
             ]]>
         </content>
     </entry>
@@ -407,37 +450,6 @@
 <figcaption >Spinning Dancer Nobuyuki Kayahara CC BY-SA 3.0</figcaption>
 </figure>
 <p>So anyway, while I've been listening and reading the opinions about chat bots everywhere (Facebook) and now Smart Reply (Google) and people and either insisting that this is The Future of eCommerce or some such, I'm left wondering whether they'll have a subtle effect on our thinking when they get to the point of actually being reliable enough to be plausibly accurate. </p>
-            ]]>
-        </content>
-    </entry>
-    <entry>
-        <title>Pebble Health</title>
-        <author>
-            <name>Rob</name>
-        </author>
-        <link href="https://zarify.github.io/pebble-health/"/>
-        <id>https://zarify.github.io/pebble-health/</id>
-            <category term="ramble"/>
-
-        <updated>2018-08-18T20:10:40+08:00</updated>
-            <summary>
-                <![CDATA[
-                        <img src="https://zarify.github.io/media/posts/57/" alt="" />
-                     I've written about my Pebble before and the things that I&hellip;
-                ]]>
-            </summary>
-        <content type="html">
-            <![CDATA[
-                    <img src="https://zarify.github.io/media/posts/57/" alt="" />
-                <p><img class="post__image--right" src="https://zarify.github.io/media/posts/57/pebble_health.png" width="500" height="857"></p>
-<p>I've written about my Pebble before and the things that I like about it.</p>
-<p>This week a new firmware and app version got pushed out and I noticed that after tracking health data for some time (steps and sleep), the iOS app finally got a reporting screen for it.</p>
-<p>I thought it was worthwhile looking at, since it has a really nice reporting graph. Rather than simply reporting the number of steps and sleep hours, it gives an area plot showing current and typical data.</p>
-<p>This is a big improvement over the iOS Health app reporting, which shows you the daily average, but doesn't give you anywhere near the level of comparison between your typical activity and current activity.</p>
-<p>Additionally, the health settings has an "Insights" section, which presumably gives you feedback on your habits.</p>
-<figure class="post__image post__image--center" ><img src="https://zarify.github.io/media/posts/57/insights.jpg" alt=" Pebble Health Insights Settings ">
-<figcaption >Pebble Health Insights Settings</figcaption>
-</figure>
             ]]>
         </content>
     </entry>
