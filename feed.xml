@@ -3,7 +3,7 @@
     <title>Headtilt</title>
     <link href="https://zarify.github.io/feed.xml" rel="self" />
     <link href="https://zarify.github.io" />
-    <updated>2018-08-18T16:34:53+08:00</updated>
+    <updated>2018-08-18T21:07:06+08:00</updated>
     <author>
         <name>Rob</name>
     </author>
@@ -63,25 +63,381 @@
         </content>
     </entry>
     <entry>
-        <title>Classroom test #2</title>
+        <title>Playing with Affinity Designer Brushes</title>
         <author>
             <name>Rob</name>
         </author>
-        <link href="https://zarify.github.io/Classroom-test-2/"/>
-        <id>https://zarify.github.io/Classroom-test-2/</id>
-            <category term="classroom"/>
+        <link href="https://zarify.github.io/playing-with-affinity-designer-brushes/"/>
+        <id>https://zarify.github.io/playing-with-affinity-designer-brushes/</id>
+            <category term="ramble"/>
 
-        <updated>2018-08-18T15:07:41+08:00</updated>
+        <updated>2018-08-18T18:34:41+08:00</updated>
             <summary>
                 <![CDATA[
-                        <img src="https://zarify.github.io/media/posts/3/" alt="" />
-                    And another test of the classroom tag.
+                        <img src="https://zarify.github.io/media/posts/64/" alt="" />
+                    The BackstoryBefore Christmas I was noodling around with Affinity Designer in an&hellip;
                 ]]>
             </summary>
         <content type="html">
             <![CDATA[
-                    <img src="https://zarify.github.io/media/posts/3/" alt="" />
-                And another test of the classroom tag.
+                    <img src="https://zarify.github.io/media/posts/64/" alt="" />
+                <h1>The Backstory</h1>
+<p>Before Christmas I was noodling around with Affinity Designer in an attempt to be a bit better at design. Part of this has been getting more familiar with the tools by working through a bunch of the <a target="_blank" href="https://design.tutsplus.com" rel="noopener noreferrer">tutorials at Tuts+</a>. Tuts+ hosts some tutorials aimed at <a target="_blank" href="https://design.tutsplus.com/categories/affinity-designer" rel="noopener noreferrer">Designer</a>, but working through the ones aimed at other software like Illustrator has been an interesting exercise in figuring out Designer's tools.</p>
+<p>While I was making a robot face, I was trying to make wires by putting a gradient on a stroke, but it seems Designer won't allow you to have a gradient which follows parallel to the stroke. Instead it will apply the gradient to the stroke colour in the same manner as filling.</p>
+<p><img src="https://zarify.github.io/media/posts/64/wire1.png" alt=" What I wanted "> What I wanted</p>
+<p><img src="https://zarify.github.io/media/posts/64/wire2.png" alt=" What I got "> What I got</p>
+<p>I went digging around the Affinity forums, and apparently this is A Thing, there were some other requests for it, but no real solutions. I got sidetracked by tutorials on making smoke brushes before thinking that I could maybe just make my own wire brush. Turns out, this is pretty easy, and lead to some other interesting stuff.</p>
+<p>There are some other things that don't seem work the way I'd like them to (scatter brushes), but let's look at what worked for the time being.</p>
+<h1>Actually Doing Stuff</h1>
+<p>You can make "Textured Intensity" and "Textured Image" brushes in Designer quite easily - basically just make the image, export it as a PNG, and then create a new brush from it. The wire brush uses the Textured Image style brush, and allows you to either use the original colours in the source image, or colourised according to the selected stroke colour.</p>
+<p>(Note that I don't actually understand the difference between "textured intensity" and "textured image", and couldn't find any info about them, but the intensity brush option didn't do what I wanted.)</p>
+<h2>Wire Gradient</h2>
+<p>To start with, I just wanted the gradient so that I could draw wires. This is pretty straightforward: Just draw a rectangle containing the gradient you want, and export is as a PNG, and then re-import it as an image brush.</p>
+<p><img src="https://zarify.github.io/media/posts/64/template1.png" alt=" Rectangle filled with a gradient. Easy. "> Rectangle filled with a gradient. Easy.</p>
+<p>This let me make nice looking wires in a range of colours and weights:</p>
+<p><img src="https://zarify.github.io/media/posts/64/different_strokes.png" alt=" Wires of different stroke weights and colours based on the new Textured Image Brush. "> Wires of different stroke weights and colours based on the new Textured Image Brush.</p>
+<h2>Bundles of Wires</h2>
+<p>While browsing through the Tuts+ articles I saw one which was just a big bunch of resources, one of which was a plugin for Illustrator for making fairy lights, so naturally I wondered if I could do that with a brush in Designer.</p>
+<p>The first step was to get a nicely tiling bundle of wires. I looked at the sample in the article, and they didn't do anything fancy like overlapping wires, just a pair of curves, which looked pretty easy.</p>
+<p>I used my wire brush to stroke a pair of Christmassy pen curves, which was the easy bit. Getting them to tile wasn't especially difficult, just a case of duplicating both wires, and shifting each half left and right by half the canvas width (in my case 400px for an 800px canvas). I then joined the curves of the same colour in the middle using the Node tool and the Join Curves function (after selecting the two end points I wanted to join), deleting one of the two nodes, and cleaning up the curve.</p>
+<p><img src="https://zarify.github.io/media/posts/64/join1.png"></p>
+<p><img src="https://zarify.github.io/media/posts/64/join2.png"></p>
+<p><img src="https://zarify.github.io/media/posts/64/join3.png"></p>
+<p><img src="https://zarify.github.io/media/posts/64/join4.png"></p>
+<p>The last step is creating a slice using the Export Persona so that only the parts of the wire within the canvas bounds are exported (I was working with lots of extra vertical space, so just exporting the selected objects would be no good).</p>
+<p><img src="https://zarify.github.io/media/posts/64/brush_group.png" alt=""></p>
+<p>Import the selected PNG as a brush to see if it worked, which it did after choosing 'repeat' instead of the 'stretch' option in the brush's settings.</p>
+<p><img src="https://zarify.github.io/media/posts/64/brush_edit.png" alt=" Editing the Brush Settings "> Editing the Brush Settings</p>
+<p>One thing to be aware of is if you want to use colours from the original image instead of colourising based on the stroke colour, you need to choose 'None' from the stroke colour, which I found to be a bit counter-intuitive.</p>
+<h2>The Lights</h2>
+<p><img src="https://zarify.github.io/media/posts/64/pretty_lights.png" alt=" My not very exciting fairy light "> My not very exciting fairy light</p>
+<p>The last step was adding the lights (also the bit I'm least happy with, but it still looks ok with some judicious editing of curves afterwards). I attached something that looked vaguely like a fairy light onto my bundle of wires in the original brush file, added in a halo and some radiant lines, and exported a new image file.</p>
+<p><img src="https://zarify.github.io/media/posts/64/light_success.png" alt=" Fairy Light Success "> Fairy Light Success</p>
+<p>All in all it worked pretty well. On tight curves the rays get twisted up, so the curves need a bit of fiddlng. It works best on gentle curves.</p>
+<p><img src="https://zarify.github.io/media/posts/64/light_fail.png" alt=" Fairy Light Fail! "> Fairy Light Fail!</p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>Real Heroes of the Touch Bar</title>
+        <author>
+            <name>Rob</name>
+        </author>
+        <link href="https://zarify.github.io/real-heroes-of-the-touch-bar/"/>
+        <id>https://zarify.github.io/real-heroes-of-the-touch-bar/</id>
+            <category term="ramble"/>
+
+        <updated>2018-08-18T19:56:38+08:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://zarify.github.io/media/posts/63/" alt="" />
+                    After using the new MBP for a week, I’m coming to appreciate&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <img src="https://zarify.github.io/media/posts/63/" alt="" />
+                <p>After using the new MBP for a week, I’m coming to appreciate the apps that do a good job with their Touch Bar behaviour. I wrote about Affinity Designer before. Pixelmator uses a similar approach, although it seems to be a bit inconsistent, since it allows you to choose tools, but not all of them.</p>
+<figure class="post__image undefined" ><img src="https://zarify.github.io/media/posts/63/Pixelmator+Touch+Bar+tool+choice.png" alt=" Pixelmator: Touch Bar tool options ">
+<figcaption > Pixelmator: Touch Bar tool options</figcaption>
+</figure>
+<p>The real heroes that I’ve found so far are Terminal, Preview, and whatever the app is that takes screenshots behind the scenes based on ⌘-Shift-3/4/6 keyboard shortcuts. The default (and optional) buttons for these mostly seem to have been provided to give actual value to a software button, rather than just be there to show that there’s support.</p>
+<p>I’m a long time user of <a target="_blank" href="http://iterm2.com" rel="noopener noreferrer">iTerm2</a> (and occasionally <a target="_blank" href="https://totalterminal.binaryage.com" rel="noopener noreferrer">Total Terminal</a>), but figured that I’d look at Terminal to see what support was like. The bookmark feature is one that I assume was present before, but I’d never used it, and seems helpful if you are going to want to jump backwards and forwards between terminal history (and don’t want to scroll back either with the mouse, trackpad or something like screen). The real gem is the ‘man page’ button, which will populate itself with whatever you have selected (ho hum, more work clicking) or whatever you are currently typing (win!). I’m useless at remembering command line switches, and so this seems awesome! It opens up the man page in a new window, and so you can be part way through typing up a set of commands and refer to man pages on the fly.</p>
+<p><img src="https://zarify.github.io/media/posts/63/Touch+Bar+Shot+2016-12-14+at+4.31.55+pm.png"><br> <img src="https://zarify.github.io/media/posts/63/Screen+Shot+2016-12-14+at+4.54.34+pm.png"></p>
+<p>I generally use the ⌘-Shift-4 option for screenshots to capture a region, and I noticed that while I was putting together screenshots for this post, the Touch Bar lit up with buttons. You can switch between different types of capture, and choose different destinations for the screenshots to go (including Mail and Messages which are interesting options). Of course, you can also take a screenshot (⌘-Shift-6 of the Touch Bar while taking a screenshot of a region of the main screen 😆).</p>
+<figure class="post__image undefined" ><img src="https://zarify.github.io/media/posts/63/Touch+Bar.png" alt=" Screenshot options ">
+<figcaption >Screenshot options</figcaption>
+</figure>
+<figure class="post__image undefined" ><img src="https://zarify.github.io/media/posts/63/Screenshot+Destinations.png" alt=" Screenshot destinations ">
+<figcaption >Screenshot destinations</figcaption>
+</figure>
+<p>Ultimately I think Preview is the winner for sensible Touch Bar buttons. I’ve loved Preview for quite a while as an app. It’s surprisingly powerful, but keeps out of your way enough to do what it says on the tin: view files (although ever since I discovered Quick Look that has taken over that role). One thing that I’ve always disliked about Preview is getting to the annotation functions, with some (I’m looking at you signatures) being three levels deep if you don’t turn on the annotation toolbar, and keyboard shortcuts that aren't particularly easy to remember when you don't use them often.</p>
+<p>Preview takes away this problem by giving you the options of switching between the three main annotation options (adjustments, selection, markup - although sadly no signature), with intuitive icons (I didn't realise Preview had background removal!).</p>
+<p><img src="https://zarify.github.io/media/posts/63/Touch+Bar+Shot+2016-12-14+at+4.49.17+pm.png"><br> <img src="https://zarify.github.io/media/posts/63/Touch+Bar+Shot+2016-12-14+at+4.49.13+pm.png"><br> <img src="https://zarify.github.io/media/posts/63/Touch+Bar+Shot+2016-12-14+at+4.49.20+pm.png"><br> <img src="https://zarify.github.io/media/posts/63/Touch+Bar+Shot+2016-12-14+at+4.49.23+pm.png"></p>
+<p>One thing which will need some work is consistency in customisation options for the Touch Bar, since there are some apps which don’t have the “Customise Touch Bar” menu item (Preview being one of them).</p>
+<p>The downside is that I keep trying to follow up a selection on the Touch Bar with stabbing at the screen with my finger, although this could be a side effect of using a Surface Pro for work.</p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>So a horse walks into a Touch Bar...</title>
+        <author>
+            <name>Rob</name>
+        </author>
+        <link href="https://zarify.github.io/so-a-horse-walks-into-a-touch-bar/"/>
+        <id>https://zarify.github.io/so-a-horse-walks-into-a-touch-bar/</id>
+            <category term="ramble"/>
+
+        <updated>2018-08-18T19:59:33+08:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://zarify.github.io/media/posts/62/" alt="" />
+                    Obligatory New Toy PostBecause I have no self control, I managed to&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <img src="https://zarify.github.io/media/posts/62/" alt="" />
+                <h1>Obligatory New Toy Post</h1>
+<p>Because I have no self control, I managed to justify to myself that I needed an update on my 2012 13" Macbook Air, and bought a 13" Macbook Pro with Touch Bar (hats off to Apple for making the product names roll off the tongue on that one, by the way). 512GB SSD because I spent the last two years trying to juggle space on my Air, and 16GB of RAM because I'm not an animal.</p>
+<p>Everyone talks about specs (it's fine), the clackiness of the keyboard (it's fine), and where the Escape touch zone is (jury's still out on that one as far as I'm concerned - I'll reserve judgement until I've spent some quality time in Vim).</p>
+<p>So I want to talk about the Touch Bar and the non-clicky Trackpad.</p>
+<h2>The Touch Bar</h2>
+<p>My initial reaction to the Touch Bar is pretty unimpressed, given the hype around it, and the initial implementation of support in the apps that I use (Finder, Safari, Affinity Designer, Pixelmator, Calculator, Pages, Keynote, Numbers).</p>
+<p>I have a couple of problems with the Touch Bar: one as a concept, and the other on the way that it's implemented.</p>
+<p>My biggest concern with the Touch Bar is the loss of the concept of the tooltip. With unfamiliar icons on the screen I can move the cursor over them and get a description of what the button is all about. With the icons on the Touch Bar there's no option for that; the best I can do is to go the View menu to customise the buttons on the Touch Bar, where it provides labels for each of the buttons. Obviously this is a bit of a barrier to discovering behaviour of default icons that appear, and to be honest, apart from having icons that are designed to be more intuitive I don't see that there's much to be done about it. I know plenty of people (adults and kids that I interact with in my day job of teaching at a high school) who, when presented with an unfamiliar button, won't press it for fear that it will do something wrong (which I try to combat by fostering an 'undo culture', but it can be an uphill battle).</p>
+<p>As an aside, VoiceOver is a thing with the Touch Bar, although I don't think this really counts as a realistic method of function discovery if you're not reliant on it for general use.</p>
+<p>The other concern I have with the Touch Bar is the rather uninspired default actions that seem to come with most software. Safari defaults to thumbnails of tabs, search, and creating new tabs. Thumbnails of tabs sounds sensible until you look at where the names of tabs are: up the top of the window. To see both the (tiny tiny) contents and the title of the page, your eyes are navigating the entire height of the screen if you browse maximised (like a civilised human being).</p>
+<figure class="post__image undefined" ><img src="https://zarify.github.io/media/posts/62/designer_bar.png" alt=" Affinity Designer: Thumbnails of recent documents. ">
+<figcaption >Affinity Designer: Thumbnails of recent documents.</figcaption>
+</figure>
+<p>As one of the few third party apps that I use with support, Affinity Designer actually does an ok job. On app launch, before opening any documents, the Touch Bar is used to display thumbnails of recently edited documents, which is a great idea, since they can be located in different directories and so opening them via the Touch Bar saves time assuming the files are significantly different in appearance. Additionally the shortcuts change with selected tools (with mixed success, for the reasons outlined above about tooltips) with some real standout successes like adding a smooth radius to corners, and some that I doubt I'll use (changing brush thickness by swiping).</p>
+<figure class="post__image undefined" ><img src="https://zarify.github.io/media/posts/62/calculator_touch.png" alt=" Calculator: A surprisingly useful set of default buttons considering the proximity to the number row. ">
+<figcaption >Calculator: A surprisingly useful set of default buttons considering the proximity to the number row.</figcaption>
+</figure>
+<p>The Calculator app that comes with macOS is surprisingly good. The proximity of the number line on the keyboard to the Touch Bar means that it can be used almost like a traditional number pad for doing relatively quick calculations without having to move the cursor on the screen. You'll get nowhere near the capability that people who are scarily good at using number pads are (as an accountant, my wife falls into that category) but it's better than what we had with laptop keyboards before: either suffering through shifting the cursor around, or occasionally missing modifier keys and hitting = instead of +, 8 instead of *.</p>
+<figure class="post__image undefined" ><img src="https://zarify.github.io/media/posts/62/finder_touch.png" alt=" Finder: Mostly useless. The ">
+<figcaption >Finder: Mostly useless. The "Move To" could be useful if the list of destinations wasn't just the Favourites folder list from the sidebar.</figcaption>
+</figure>
+<p>Where apps have really dropped the ball with what to put on the Touch Bar is by either duplicating a button that is almost always on the screen <em>where your attention is anyway</em> such as the view changing or tag buttons in Finder, or by using buttons that have functions more easily done through keyboard shortcuts that don't require switching attention down to the top of the keyboard, such as Safari's New Tab button. The good side of this is that this is easily fixed, either through user customisation of the Touch Bar buttons, or by developers finding better uses.</p>
+<p>For the issue of buttons that are either already easily accessible or more easily used by shortcuts, I feel that Apple is suffering from the same problem as Force... I mean 3D Touch on the iPhone. With not all devices having the same hardware capabilities, you couldn't design software that relied on forceful presses, and instead have to use it as a shortcut for functions that can be achieved through other means. As such, I think developers have been somewhat unimaginative with what they try to achieve with the blend of software and hardware as an input device.</p>
+<h2>The Trackpad</h2>
+<p>I am a trackpad addict. I've bought two Magic Trackpads (although I converted my wife a bit to effectively and she stole my newer one) and am a shameless tap-to-clicker, often eschewing the use of a mouse to use the trackpad instead. Being able to scroll in any direction through multi touch swipes, activate whatever they call exposé now easily, I'm all for it.</p>
+<p>The non-mechanical trackpad is great: it's bigger, it continues to feel lovely, it's as responsive as Mac trackpads have ever been, but there's one glaring exception: not all areas of the trackpad click. As someone who, when clicking and dragging, uses my thumb to click and my index finger to drag, I often find that my thumb sits in the area of the trackpad that doesn't click. If I know I have to do a lot of dragging, I'll use both index fingers, so one will click and the other will drag; because of this I tend to try to keep my clicking finger as close to the edge as possible.</p>
+<figure class="post__image post__image--center" ><img src="https://zarify.github.io/media/posts/62/trackpad_zones.png" alt=" The red zones along the sides of the trackpad don't seem to respond to clicks. ">
+<figcaption >The red zones along the sides of the trackpad don't seem to respond to clicks.</figcaption>
+</figure>
+<p>One of the things I thought we were getting away from with the non-hinge (unhinged?) trackpad was that we wouldn't be as reliant on where we tried to click as we are when things have moving parts. Hopefully this is something they fix in subsequent models but that's not much use for something I'm going to try and hang onto for as long as possible.</p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>Typefaces, Fonts, Licensing</title>
+        <author>
+            <name>Rob</name>
+        </author>
+        <link href="https://zarify.github.io/typefaces-fonts-licensing/"/>
+        <id>https://zarify.github.io/typefaces-fonts-licensing/</id>
+            <category term="ramble"/>
+            <category term="classroom"/>
+
+        <updated>2018-08-18T20:00:37+08:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://zarify.github.io/media/posts/61/" alt="" />
+                    Preface: Since there's so much seemingly conflicting information out there, I've quite&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <img src="https://zarify.github.io/media/posts/61/" alt="" />
+                <p><strong>Preface:</strong> <em>Since there's so much seemingly conflicting information out there, I've quite possibly gotten it wrong. If so, please let me know so I can correct this!</em></p>
+<p>End Use License Agreements are confusing. Most people don't read them, even when they occasionally <a target="_blank" href="http://arstechnica.com/gaming/2016/02/yes-you-can-rely-on-amazons-new-game-engine-during-the-zombie-apocalypse/" rel="noopener noreferrer">embed easter eggs</a>, (<a target="_blank" href="http://www.howdesign.com/design-career/on-the-job/top-5-ways-designers-get-trouble-fonts/" rel="noopener noreferrer">according to this site</a>, most <em>designers</em> don't regularly read them when it comes to the typefaces they use), and when they do probably don't understand them (or else why would sites like <a target="_blank" href="https://tosdr.org" rel="noopener noreferrer">ToS;DR</a> exist?).</p>
+<p>Since part of my job is to teach kids about not just applications of technology but also the legalities and ethics of doing so, obviously I need to (try to) understand this stuff myself. We look at the different topics like copyright, alternative licenses such as Creative Commons and releasing content into the public domain, and dip into the murkiness of Fair Use/Fair Dealing. When it comes to the use of images, sound etc although it often isn't easy to understand, there has been enough focus on it that good resources exist and students can usually wrap their heads around it (I once subjected my students to <a target="_blank" href="http://cyberlaw.stanford.edu/documentary-film-program/film/a-fair-y-use-tale" rel="noopener noreferrer">A Fair(y) Use Tale</a>, but won't try that twice - nice in theory, more difficult to follow).</p>
+<p>Software licensing is generally pretty clear-cut and easy for students to understand (although I think the rise of the freemium model is actually making it much harder to grasp, considering the distinction between <em>licensing</em> and <em>owning</em>), but something that I've never really dived into is the use of typefaces. Recently (as in, this year) I've been thinking about this more, prompted by an <a target="_blank" href="https://www.relay.fm/presentable/3" rel="noopener noreferrer">episode of Jeff Veen's Presentable</a> podcast. It finally hit the front of my playlist around the time that my wife was starting up her own business and we were thinking about logo design, and I was hit with the realisation that I didn't actually understand that much about typefaces and their licensing.</p>
+<p>A few different situations exist in the use of a typeface (probably more than is in this list):</p>
+<ol>
+<li>I want to use a typeface as part of a design for publication (as part of an image, in a PDF/ePub for printing etc). At some point it will be rasterised/converted to a path for either display on screen or printing.</li>
+<li>For use in a web site so that visitors do not need to have it installed on their computer and can see your design (hosted on your server or linked from a collection such as <a target="_blank" href="https://fonts.google.com" rel="noopener noreferrer">Google Fonts</a> or <a target="_blank" href="https://typekit.com" rel="noopener noreferrer">TypeKit</a>.</li>
+<li>Installed as part of an application.</li>
+<li>For future use in design material.</li>
+<li>Modification of the typeface for a derived design.</li>
+</ol>
+<p>When reading up on this, there seems to be a lot of confusion in what uses fit into the different categories, particularly the first and fourth. This isn't helped by the third category, and how typefaces are installed onto computers (i.e. into a central repository).</p>
+<p>First of all, fonts are software, and as such are licensed, not purchased. This includes all the per-computer licensing woes that plague much of the software world, you don't buy a license for yourself, you buy a license for it to be installed on <strong><em>n</em></strong> computers at once. So what about all those fonts already installed on your computer? Those are part of a bundle (see #3 in the list above) such as the operating system or another piece of software like a word processor or design tool.</p>
+<p>As part of this ordeal, I discovered (through <a target="_blank" href="http://www.keystonelaw.co.uk/keynotes/a-simple-introduction-to-font-licensing" rel="noopener noreferrer">Keystone Law's article on font use</a>) that Mac OS's Font Book has licensing information included, as well as information on the storage location and origin of fonts installed. It distinguishes between fonts you have installed manually, and those which have been installed system-wide (such as through MS Office).</p>
+<figure class="post__image post__image--center" ><img src="https://zarify.github.io/media/posts/61/macOS_font_book.png" alt=" Mac OS Font Book ">
+<figcaption >Mac OS Font Book</figcaption>
+</figure>
+<p>One of the things which I found confusing trawling questions on StackExchange is who needs to own the license for use of a font in some sort of visual design. My understanding of it is that, unless specified in the EULA, a desktop license is sufficient for this (the difficulty is that some EULAs require a different license for commercial use). That is, I either use a font installed on my computer, or purchase a font for this use. If I then use this font as part of a design that will be printed or otherwise digitally published (in a form that doesn't require the font to be installed) then that's sufficient. Where it gets more complicated is if the client wants to use that font themselves to produce other material, in which case they need a license themselves for however many computers it will be installed on (or I could purchase a license on their behalf during design and then remove the font from any computers I used at the end of the job).</p>
+<p>There seems to be a bit of confusion about the need for extra licenses when sending off work to be published, but the consensus appears to be that this is allowed (print shops that I've dealt with ask that type be converted to curves before being sent - this is the case outlined by <a target="_blank" href="http://meta.myfonts.com/post/86217566043/usage-in-a-logo" rel="noopener noreferrer">this MyFonts article</a>, although this doesn't seem very practical when dealing with larger works like books and other larger print documents).</p>
+<hr>
+<p>Here's a list of articles which I fount useful reading up on this topic.</p>
+<ul dir="ltr">
+<li><a target="_blank" href="https://designshack.net/articles/typography/what-is-a-font-license-and-do-i-need-one/" rel="noopener noreferrer">DesignShack - What is a font license? (And do I need one?)</a></li>
+<li><a target="_blank" href="http://www.typography.com/faq/category.php?topicID=10" rel="noopener noreferrer">Typography.com - Introduction to Licensing &amp; Usage</a></li>
+<li><a target="_blank" href="http://www.keystonelaw.co.uk/keynotes/a-simple-introduction-to-font-licensing" rel="noopener noreferrer">Keystone Law - A simple introduction to Font Licensing</a></li>
+<li><a target="_blank" href="http://imjustcreative.com/brief-summary-font-licensing/2014/06/12" rel="noopener noreferrer">The Logo Smith - A brief summary on font licensing: Some do's and dont's</a></li>
+<li><a target="_blank" href="http://meta.myfonts.com/post/86217566043/usage-in-a-logo" rel="noopener noreferrer">MyFonts - Usage in a logo</a></li>
+<li><a target="_blank" href="http://www.howdesign.com/design-career/on-the-job/top-5-ways-designers-get-trouble-fonts/" rel="noopener noreferrer">HOW Design - Top 5 ways designers get themselves in trouble with fonts</a></li>
+</ul>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>Teaching Digital Technologies</title>
+        <author>
+            <name>Rob</name>
+        </author>
+        <link href="https://zarify.github.io/teaching-digital-technologies/"/>
+        <id>https://zarify.github.io/teaching-digital-technologies/</id>
+            <category term="classroom"/>
+
+        <updated>2018-08-18T20:03:22+08:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://zarify.github.io/media/posts/60/" alt="" />
+                    The Australian Curriculum has been going through the "everything is changing" part&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <img src="https://zarify.github.io/media/posts/60/" alt="" />
+                <p>The Australian Curriculum has been going through the "everything is changing" part of the ten-yearly cycle recently. As a teacher of technologies[1] it's been both exciting (and gut-wrenching) to see how the draft curriculum has evolved to the point where it is required for implementation in 2018.</p>
+<p>I won't go into the design of the digital technologies curriculum itself (you can <a target="_blank" href="http://www.australiancurriculum.edu.au/technologies/digital-technologies/curriculum/f-10?layout=1" rel="noopener noreferrer">see the details at the ACARA site</a>) but did want to look at some of the ways people have been talking about implementing the mandatory section (up to and including year 8).</p>
+<p>As anyone who is familiar with the Internet and nerds would know, people love arguing about programming languages and platforms. Since I started teaching Computer Science as a year 11/12 course (then called Information Systems) in 2005 I remember reading arguments over what programming languages and databases to use, how to assess them, and so on. Fast forward a decade or so, and sit down with a couple of teachers, and you can have the same argument about how to teach programming (or more specifically 'algorithmic thinking'), this time to students 5-6 years younger.</p>
+<figure class="post__image post__image--right" ><img src="https://zarify.github.io/media/posts/60/align_cats.jpg" alt=" In the fine tradition of cats on the web. ">
+<figcaption >In the fine tradition of cats on the web.</figcaption>
+</figure>
+<h2>The Web</h2>
+<p>As an example, I was recently at a moderation session for a year 11/12 course and got to talking to a couple of other teachers there about how they were appoaching Digital Technologies for younger kids. One of the teachers was talking about website design, and learning HTML/CSS/JS. This bothered me on a couple of levels. Firstly, I've never had a lot of success with doing much that's useful with the fundamentals of web design in the classroom. There are usually a few students that really run with it, but there's often a lot of frustration at HTML elements not working as expected (which I'm sure would be shared by anyone who has worked with the web before) as well as with juggling content, presentation and the mish-mash of adding programming into the mix. Secondly, I wonder what the point is. Content creation has largely moved away from requiring an understanding of the underlying technology, we have a bunch of free or cheap platforms to build on like <a target="_blank" href="https://wordpress.com/" rel="noopener noreferrer">WordPress</a>, <a target="_blank" href="https://www.squarespace.com/" rel="noopener noreferrer">SquareSpace</a>, <a target="_blank" href="http://www.wix.com/" rel="noopener noreferrer">Wix</a>, <a target="_blank" href="https://www.weebly.com/" rel="noopener noreferrer">Weebly</a> and so on, and other tiers as you get further toward the HTML/CSS stage like the various Markdown converters (which admittedly get closer to needing to care about styling for templates).</p>
+<p>If we look at understanding for web usage in business, then unless students are going into web development, then again they'll probably be looking at content management systems with integrated editors rather than needing to know (or have much advantage from knowing about) the nuts and bolts.</p>
+<figure class="post__image post__image--right" ><img src="https://zarify.github.io/media/posts/60/arduino.jpg" alt=" Arduino. Credit  Wikipedia  ">
+<figcaption >Arduino. Credit Wikipedia</figcaption>
+</figure>
+<h2>Hardware</h2>
+<p>With the Maker movement in full swing in schools there has been a lot of enthusiasm behind the various microprocessor platforms like <a target="_blank" href="https://www.arduino.cc/" rel="noopener noreferrer">Arduino</a>. I've had a conflicted relationship with Arduino with my students since I find it difficult to bridge the gap between electronics and programming, and since programs are compiled and then run on device, programming is usually done in C++, which I think is a very unfriendly learning language, partly due to syntax and partly due to the typically obscure debugging information that you get from C style languages. Earlier this year I was shown <a target="_blank" href="http://scratchx.org/" rel="noopener noreferrer">ScratchX</a>, which can allow you to plug the lovely Scratch interface into other stuff, like Arduino and its variants (my favourite one so far is <a target="_blank" href="http://www.hummingbirdkit.com/" rel="noopener noreferrer">Hummingbird</a>). The trouble is that this goes from on-device execution to running code on an attached computer, meaning you're stuck trailing wires around. At a recent conference I was found out about <a target="_blank" href="http://blog.ardublock.com/" rel="noopener noreferrer">ArduBlock</a> and <a target="_blank" href="https://www.visuino.com/" rel="noopener noreferrer">Visuino</a>, both of which are visual, block-style programming environments but which compile down to Arduino binaries which can then be run on-device. I think these styles of programming interfaces are going to go into my toolbox for my guinea pig classes to test suitability in the near future.</p>
+<figure class="post__image post__image--right" ><img src="https://zarify.github.io/media/posts/60/scratch.png" alt=" Scratch Logo. Credit:  Scratch.mit.edu  ">
+<figcaption >Scratch Logo. Credit: Scratch.mit.edu</figcaption>
+</figure>
+<h2>Scratch</h2>
+<p>Speaking of <a target="_blank" href="https://scratch.mit.edu/" rel="noopener noreferrer">Scratch</a>, at the 2016 <a target="_blank" href="https://ecawa.wa.edu.au/" rel="noopener noreferrer">ECAWA</a> conference I had the pleasure of going to a session by <a target="_blank" href="https://au.linkedin.com/in/zedman350" rel="noopener noreferrer">Brett Clarke</a> and <a target="_blank" href="https://au.linkedin.com/in/mark-stephens-1126b043" rel="noopener noreferrer">Mark Stephens</a> (I tried to find something that wasn't LinkedIn, honest), which looked at adapting materials which Brett wrote for the computing curriculum back in the early 1990s. The session looked at using turtle graphics style commands built as Scratch extension blocks to build complex shapes from primitives, which then extended to scaling and the introduction of parameters to extensions. It was a really nice, accessible way of looking at problem decomposition and encouraging experimentation in an environment which is very fault-tolerant (that is, no syntax errors, colour categorisation of code blocks, and immediate visual feedback).</p>
+<p>They went on to look at extending the same principles to build a series of methods for drawing letters (essentially a vector font), straight, curved and mirrored text, and then looking at how this could be applied to lettering on a sewing machine with a zig-zag pattern.</p>
+<h2>My Classroom</h2>
+<p>I've been looking at different vectors for teaching parts of the new curriculum this year with my Year 7 and 8 students (neither group really has the time available to cover the lot yet). I've been having a fair bit of success with Scratch, and I'll probably incorporate some of the ideas which were covered in the session with Brett and Mark. I'd like to add a bit more visual design into the mix, which allows some investigation into vector and raster image manipulation, but I'm not sure how much time I'll have. Scratch has an inbuilt editor which allows for both vector and raster tools, but it isn't particularly powerful and I'd like to use something that is a bit more flexible.</p>
+<p>I am pretty excited to look at the visual Arduino interfaces. I think there's so much potential for hardware hacking and a huge number of startups using them for prototyping of real world projects which students can be pointed to for inspiration and motivation. One of my projects is to put together a program where I can devote a significant chunk of time to using Arduino in the classroom to address a nice wide swathe of the Digital Technologies curriculum descriptors.</p>
+<p>[1] - Side story, when I was enrolling in my teaching diploma I was looking for majors which fit in with my Computer Science background. Only one university offered a computing major, so I signed up for it, with "design and technology" being my second preference. There was no description about what this "design and technology" entailed but I figured it had technology in the name, so would be fine.</p>
+<p>Only later did I find out that "design and technology" was the catch-all for woodwork, metalwork, and so on; areas that when I started in schools were definitely not technology-focused, although in the era of cheaper 3D printing, CNC routers and so on this is becoming less of the case.</p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>Institutional blocking as a service</title>
+        <author>
+            <name>Rob</name>
+        </author>
+        <link href="https://zarify.github.io/institutional-blocking-as-a-service/"/>
+        <id>https://zarify.github.io/institutional-blocking-as-a-service/</id>
+            <category term="ramble"/>
+            <category term="classroom"/>
+
+        <updated>2018-08-18T20:06:18+08:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://zarify.github.io/media/posts/58/" alt="" />
+                    I teach a lot of different students this year - the entire&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <img src="https://zarify.github.io/media/posts/58/" alt="" />
+                <p>I teach a lot of different students this year - the entire year 9 cohort, most of the year 7s and 8s (spread over the year), and a few classes of year 10s. Seeing all of them regularly gives me a pretty good look at how they use technology (with the exception of mobile since, like many schools, students are prohibited from using their phones during the day), which makes for some interesting conversations.</p>
+<p>During last term I was thinking about streaming music services, partly because my Apple Music trial had run out and I was thinking about whether I listened to enough music to pay for it, and partly because students are usually pretty sneaky about getting what they want and so if their regular streaming sites are blocked (like YouTube or Spotify) they'll keep looking until they find a replacement. This got me to thinking about whether the blocking of services by institutions like schools, universities and workplaces could contribute to the growth of companies that for some reason do not fall into the blocking black hole. Additionally, is that usage sticky enough that it could persist outside of the institution and translate into long term support for a service.</p>
+<p>I figured music would be a good avenue to pursue here since there are so many streaming services, and all but a couple are blocked on the school network. The service which I focused on was SoundCloud, since it seems to be the one that is most popular with students when they can get away with it.</p>
+<p>Since I have so many guinea pigs to ask about this sort of thing, I put together a quick survey to ask my year 9s about how they consumed music. The questions I put together were:</p>
+<ul>
+<li>Do you regularly listen to music?<br>Options for what sort of device is used (desktop/laptop, mobile device, non-cellular portable)</li>
+<li>If you listen to music at school, what method do you use?<br>Options for downloaded files, streaming music, streaming video, no use</li>
+<li>If you listen to music at home, what method do you use?</li>
+<li>Again, downloaded files, streaming music, streaming video, no use</li>
+<li>Select which streaming music services you have used<br>Options for all the main services I could find in Australia, plus an 'other' option</li>
+<li>Which streaming music service do you use most at home?<br>Options for the previous list plus not listening at home</li>
+<li>What is the main reason for using this service at home?</li>
+<li>Repeat of the last two questions in a school context</li>
+</ul>
+<p>I got about 50 responses back, which isn't bad considering I forgot to send the survey link to two of my classes since when I decided to do this I was also hounding them to get a project handed in and I was a little distracted in class.</p>
+<p>The first thing I noticed once I started getting a significant number of responses back is that students don't read questions (although to be honest, I learned that one in my first year of teaching). When asked to choose streaming music services (specifically mentioning this was audio and no video in the question), there were a significant number of responses which were streaming video 🙄.</p>
+<h2>Overall Usage</h2>
+<p>Unsurprisingly, the majority of students said that they mostly listened to music on their mobile phones. 82% of respondents used their mobile, 18% a non-cellular mobile device, and 12% on a laptop or tablet.</p>
+<h2>School Usage</h2>
+<p>Of the students who listened to music at school, 57% of them used some sort of streaming service, 27% used downloaded media, and 16% used a video streaming service.</p>
+<h2>Home Usage</h2>
+<p>Of the students who listened to music at home, 47% of them used some sort of music streaming service, 38% used downloaded media, and 15% used a video streaming service.</p>
+<figure class="post__image post__image--center" ><img src="https://zarify.github.io/media/posts/58/music_consumption.png" alt=" Music Consumption Methods ">
+<figcaption >Music Consumption Methods</figcaption>
+</figure>
+<h2>Streaming Services</h2>
+<p dir="ltr">When it comes to services which are being used, there was a surprising spread of services out there, although the fact that Apple Music and Spotify were the highest used services wasn't too surprising. I suspect that the Apple Music figure is a bit inflated since I think some students might have (quite understandably) mistaken music being played throught he Music app with music being streamed.</p>
+<figure class="post__image post__image--center" ><img src="https://zarify.github.io/media/posts/58/music_services.png" alt=" Music Services Used ">
+<figcaption >Music Services Used</figcaption>
+</figure>
+<p>When looking at the <em>most</em> used music streaming services at home and at school in the chart below, there's the bit of data which I'm mostly interested in. Eight respondents used SoundCloud in preference to other services at home. I'll have to run another survey or two in the future to see how this changes.</p>
+<figure class="post__image post__image--center" ><img src="https://zarify.github.io/media/posts/58/most_used.png" alt=" Music Services Most Used ">
+<figcaption >Music Services Most Used</figcaption>
+</figure>
+<p>Most of this is pretty hand-wavey. Without looking at a wider range of ages at school and doing some longitudinal study to see how sticky some of these services are (which is made more difficult by the volatility of online business), there isn't much point speculating as to what it means.</p>
+<p>Anyway, just something for the giggles.</p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>Machine Learning and Intellectual Laziness</title>
+        <author>
+            <name>Rob</name>
+        </author>
+        <link href="https://zarify.github.io/machine-learning-and-intellectual-laziness/"/>
+        <id>https://zarify.github.io/machine-learning-and-intellectual-laziness/</id>
+            <category term="ramble"/>
+
+        <updated>2018-08-18T20:09:23+08:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://zarify.github.io/media/posts/59/" alt="" />
+                    So there's a certain element of hyperbole coming up. Just saying. Google&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <img src="https://zarify.github.io/media/posts/59/" alt="" />
+                <p>So there's a certain element of hyperbole coming up. Just saying.</p>
+<p>Google Allo (which of course makes me think of the classically cheesy <a target="_blank" href="https://en.wikipedia.org/wiki/'Allo_'Allo!" rel="noopener noreferrer">'Allo 'Allo</a>) was outlined in the recent <a target="_blank" href="https://events.google.com/io2016/" rel="noopener noreferrer">Google IO</a> keynote. One of the features which bears some consideration is Smart Reply which suggests replies to messaging and learns from your responses over time (and I assume also does learning on the aggregate, playing to Google's strengths in large scale data analysis.</p>
+<p>Over at the <a href="https://googleblog.blogspot.com.au/2016/05/allo-duo-apps-messaging-video.html">Google blog</a> they have this to say about Smart Reply</p>
+<p><em>Smart Reply learns over time and will show suggestions that are in your style. For example, it will learn whether you’re more of a “haha” vs. “lol” kind of person. The more you use Allo the more “you” the suggestions will become. Smart Reply also works with photos, providing intelligent suggestions related to the content of the photo. If your friend sends you a photo of tacos, for example, you may see Smart Reply suggestions like “yummy” or “I love tacos.”</em></p>
+<p>This sort of suggested reply scheme has existed for a while. Google Inbox has done this for a while. iOS has had suggested words above the keyboard for a while now as well (although I doubt anyone uses it in the predictive sense as opposed to suggestions once you start typing, except for entertainment purposes).</p>
+<p>One of the things I worry about is the problem we already have with the idea of <a href="https://en.m.wikipedia.org/wiki/Filter_bubble">filter bubbles</a>: The content which algorithms predict we will want is preferentially shown to us based on what we have viewed, liked, tweeted about and so on.</p>
+<p>While the idea of filter bubbles is a bit more extreme than suggested replies, the concept is pretty much the same: an algorithm suggests ideas to us which, although some would be based on how we have reacted to similar content before, Google's strength has always been analysis of aggregate data, so some aspects are always going to be taken from how other users have reacted and trained the system. As a result there will probably some homogeneity to the suggested context for the reply.</p>
+<p>Assuming that Smart Reply gets good enough to actually use day to day, at what point do we as users start thinking of these replies as "good enough" and stop thinking about the nuance of the language we use? A parallel situation that I think already shows this sort of effect is the use of emoji in text messages, tweets and so on. We often use a "good enough" glyph in place of articulating our thoughts more thoroughly.  (Full disclosure: I adore the shocked face emoji and use it at every opportunity 😱)</p>
+<p>So what I wonder is, if we allow machine learning algorithms to suggest responses for us, do we reach the point where we actually stop thinking about the content we view as thoroughly as we might otherwise do (or perhaps as much as we <em>should</em> do)?</p>
+<figure class="post__image post__image--right" ><img src="https://zarify.github.io/media/posts/59/wife_and_mother_in_law.jpg" alt="My Wife and My Mother in Law painting">
+<figcaption ><a href="http://www.loc.gov/pictures/item/2010652001/">"My Wife and my Mother-In-Law"</a>  William Ely Hil</figcaption>
+</figure>
+<p>As a relatively unimportant example, let's look at images which demonstrate <a href="https://en.m.wikipedia.org/wiki/Ambiguous_image">perceptual ambiguity</a>, such as the one which I'm sure everyone has seen, the old woman/young woman. In one case, we look at a picture and respond with that it's a young woman and in another an old woman, or perhaps we think about it more and see both and comment on that. On the other hand, what if Google's image analysis kicks in and suggests that it's a photo of a young woman, do we accept this suggestion and not see the old woman?</p>
+<p>It's highly likely that Google's software has already identified something like this and is ready to provide an accurate analysis of what the image is, so what about something that is more difficult to un-see once it has been viewed in a particular way? Whilst on holiday recently my wife and I were watching afternoon TV while waiting for the car to charge and a show on optical illusions came on. Many of the examples were tricks of perspective, but the one that stuck with me was the spinning dancer, which could appear to be spinning either clockwise or anticlockwise. With the right suggestion, it was possible to perceive it as spinning either way, but once we saw it it was quite difficult to switch to the opposite direction. In this instance my wife initially saw it as spinning anticlockwise and I saw it the other way. A simple suggestion can go a long way in the way this is perceived.</p>
+<figure class="post__image post__image--center" ><img src="https://zarify.github.io/media/posts/59/ambiguous.gif" alt="  Spinning Dancer   Nobuyuki Kayahara CC BY-SA 3.0 ">
+<figcaption >Spinning Dancer Nobuyuki Kayahara CC BY-SA 3.0</figcaption>
+</figure>
+<p>So anyway, while I've been listening and reading the opinions about chat bots everywhere (Facebook) and now Smart Reply (Google) and people and either insisting that this is The Future of eCommerce or some such, I'm left wondering whether they'll have a subtle effect on our thinking when they get to the point of actually being reliable enough to be plausibly accurate. </p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>Pebble Health</title>
+        <author>
+            <name>Rob</name>
+        </author>
+        <link href="https://zarify.github.io/pebble-health/"/>
+        <id>https://zarify.github.io/pebble-health/</id>
+            <category term="ramble"/>
+
+        <updated>2018-08-18T20:10:40+08:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://zarify.github.io/media/posts/57/" alt="" />
+                     I've written about my Pebble before and the things that I&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <img src="https://zarify.github.io/media/posts/57/" alt="" />
+                <p><img class="post__image--right" src="https://zarify.github.io/media/posts/57/pebble_health.png" width="500" height="857"></p>
+<p>I've written about my Pebble before and the things that I like about it.</p>
+<p>This week a new firmware and app version got pushed out and I noticed that after tracking health data for some time (steps and sleep), the iOS app finally got a reporting screen for it.</p>
+<p>I thought it was worthwhile looking at, since it has a really nice reporting graph. Rather than simply reporting the number of steps and sleep hours, it gives an area plot showing current and typical data.</p>
+<p>This is a big improvement over the iOS Health app reporting, which shows you the daily average, but doesn't give you anywhere near the level of comparison between your typical activity and current activity.</p>
+<p>Additionally, the health settings has an "Insights" section, which presumably gives you feedback on your habits.</p>
+<figure class="post__image post__image--center" ><img src="https://zarify.github.io/media/posts/57/insights.jpg" alt=" Pebble Health Insights Settings ">
+<figcaption >Pebble Health Insights Settings</figcaption>
+</figure>
             ]]>
         </content>
     </entry>
