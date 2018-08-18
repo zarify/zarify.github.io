@@ -3,12 +3,42 @@
     <title>Headtilt</title>
     <link href="https://zarify.github.io/feed.xml" rel="self" />
     <link href="https://zarify.github.io" />
-    <updated>2018-08-18T15:29:52+08:00</updated>
+    <updated>2018-08-18T16:34:53+08:00</updated>
     <author>
         <name>Rob</name>
     </author>
     <id>https://zarify.github.io</id>
 
+    <entry>
+        <title>Publii to Microblog</title>
+        <author>
+            <name>Rob</name>
+        </author>
+        <link href="https://zarify.github.io/Publii-to-Microblog/"/>
+        <id>https://zarify.github.io/Publii-to-Microblog/</id>
+            <category term="ramble"/>
+
+        <updated>2018-08-18T16:32:29+08:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://zarify.github.io/media/posts/7/" alt="" />
+                    When deciding to play around with Publii (after taking a dislike to&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <img src="https://zarify.github.io/media/posts/7/" alt="" />
+                <p>When deciding to play around with Publii (after taking a dislike to Jekyll, and not finding anything else that tickled my fancy), the first problem seemed to be that despite supporting tags for posts, there was no way to create an RSS or JSON feed based on a tag. Publii creates a feed, but it contains all posts regardless of the category.</p>
+<p>Two alternatives presented themselves, neither particularly nice:</p>
+<ol>
+<li>'hide' all posts except Microblog tagged posts from the feed. This is both kludgy, and not pleasant looking, since only Microblog posts would then appear on the front page of the site.</li>
+<li>Write a script to create a new feed from the main one with everything except Microblog tagged posts filtered out. Not very hard, but requires running the feed filter after each post.<br>This wouldn't be a big deal if Publii followed most other static site generators in running with command-line scripts, since I could just add another script to the chain of posting, but since it all runs through a GUI program with a shiny "sync changes" button, it means then manually (or on a schedule to check for changes with a cron job maybe) pulling the JSON feed, filtering posts, and then pushing the new file to the site again.</li>
+<li>(not a real option) figure out how to modify Publii to do what I wanted.</li>
+</ol>
+<p>Anyhow, I guess option 2 seems like the way to go since it's gross but simple to do. If it turns out I care (or post!) enough, I'll automate it later.</p>
+            ]]>
+        </content>
+    </entry>
     <entry>
         <title>Test post to microblog tag</title>
         <author>
@@ -52,53 +82,6 @@
             <![CDATA[
                     <img src="https://zarify.github.io/media/posts/3/" alt="" />
                 And another test of the classroom tag.
-            ]]>
-        </content>
-    </entry>
-    <entry>
-        <title>Testing Classroom</title>
-        <author>
-            <name>Rob</name>
-        </author>
-        <link href="https://zarify.github.io/Testing-Classroom/"/>
-        <id>https://zarify.github.io/Testing-Classroom/</id>
-            <category term="classroom"/>
-
-        <updated>2018-08-18T15:07:23+08:00</updated>
-            <summary>
-                <![CDATA[
-                        <img src="https://zarify.github.io/media/posts/2/" alt="" />
-                    Just a test of the classroom tag. Nothing else to see here.
-                ]]>
-            </summary>
-        <content type="html">
-            <![CDATA[
-                    <img src="https://zarify.github.io/media/posts/2/" alt="" />
-                <p>Just a test of the classroom tag.</p>
-<p>Nothing else to see here.</p>
-            ]]>
-        </content>
-    </entry>
-    <entry>
-        <title>Testing</title>
-        <author>
-            <name>Rob</name>
-        </author>
-        <link href="https://zarify.github.io/testing/"/>
-        <id>https://zarify.github.io/testing/</id>
-            <category term="ramble"/>
-
-        <updated>2018-08-18T15:06:25+08:00</updated>
-            <summary>
-                <![CDATA[
-                        <img src="https://zarify.github.io/media/posts/1/" alt="" />
-                    Just a test of the Ramble tag.
-                ]]>
-            </summary>
-        <content type="html">
-            <![CDATA[
-                    <img src="https://zarify.github.io/media/posts/1/" alt="" />
-                Just a test of the Ramble tag.
             ]]>
         </content>
     </entry>
