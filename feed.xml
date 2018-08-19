@@ -3,7 +3,7 @@
     <title>Headtilt</title>
     <link href="https://headtilt.me/feed.xml" rel="self" />
     <link href="https://headtilt.me" />
-    <updated>2018-08-19T09:39:53+08:00</updated>
+    <updated>2018-08-19T09:45:18+08:00</updated>
     <author>
         <name>Rob</name>
     </author>
@@ -95,8 +95,9 @@
         </author>
         <link href="https://headtilt.me/year-7-8-bad-crypto-with-microbits/"/>
         <id>https://headtilt.me/year-7-8-bad-crypto-with-microbits/</id>
+            <category term="classroom"/>
 
-        <updated>2018-08-19T09:38:51+08:00</updated>
+        <updated>2018-08-19T09:44:50+08:00</updated>
             <summary>
                 <![CDATA[
                         <img src="https://headtilt.me/media/posts/68/" alt="" />
@@ -137,8 +138,9 @@
         </author>
         <link href="https://headtilt.me/year-7-8-wireless-network-concepts-with-microbits/"/>
         <id>https://headtilt.me/year-7-8-wireless-network-concepts-with-microbits/</id>
+            <category term="classroom"/>
 
-        <updated>2018-08-19T09:36:20+08:00</updated>
+        <updated>2018-08-19T09:44:57+08:00</updated>
             <summary>
                 <![CDATA[
                         <img src="https://headtilt.me/media/posts/67/" alt="" />
@@ -187,8 +189,9 @@
         </author>
         <link href="https://headtilt.me/year-7-data-representation-and-algorithms/"/>
         <id>https://headtilt.me/year-7-data-representation-and-algorithms/</id>
+            <category term="classroom"/>
 
-        <updated>2018-08-19T09:35:45+08:00</updated>
+        <updated>2018-08-19T09:45:05+08:00</updated>
             <summary>
                 <![CDATA[
                         <img src="https://headtilt.me/media/posts/66/" alt="" />
