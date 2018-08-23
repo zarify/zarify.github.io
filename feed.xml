@@ -3,12 +3,67 @@
     <title>Headtilt</title>
     <link href="https://headtilt.me/feed.xml" rel="self" />
     <link href="https://headtilt.me" />
-    <updated>2018-08-19T14:26:57+08:00</updated>
+    <updated>2018-08-23T20:21:06+08:00</updated>
     <author>
         <name>Rob</name>
     </author>
     <id>https://headtilt.me</id>
 
+    <entry>
+        <title>Minecraft Edu Edition: Geological Surveys</title>
+        <author>
+            <name>Rob</name>
+        </author>
+        <link href="https://headtilt.me/minecraft-edu-edition-geological-surveys/"/>
+        <id>https://headtilt.me/minecraft-edu-edition-geological-surveys/</id>
+            <category term="classroom"/>
+
+        <updated>2018-08-23T20:14:34+08:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://headtilt.me/media/posts/70/geology_cover.PNG" alt="Minecraft Geological Survey" />
+                    BackgroundI've been using Minecraft Education Edition with Code Connection in my Year&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <img src="https://headtilt.me/media/posts/70/geology_cover.PNG" alt="Minecraft Geological Survey" />
+                <h2>Background</h2>
+<p>I've been using <a href="https://education.minecraft.net/" target="_blank" rel="noopener noreferrer">Minecraft Education Edition with Code Connection</a> in my Year 7 classes this term to teach programming principles, which has been a blast* (i.e. I spend a lot of time trying to encourage students to write programs rather than run around building stuff themselves).</p>
+<figure class="post__image post__image--right" ><img src="https://headtilt.me/media/posts/70/agent.PNG" alt="" width="191" height="241">
+<figcaption >The Agent</figcaption>
+</figure>
+<p>Code Connection comes with a <a href="https://minecraft.makecode.com/courses/csintro" target="_blank" rel="noopener noreferrer">ton of interesting tutorials</a> to get started with, but I've been writing a few things for myself to try out different features, two of which are the Agent and the Builder. The Agent is a code-controlled character that can build from its inventory, attack and destroy surrounding blocks, and do basic sensing of its environment. The builder is an invisible constructor which is used for raising structures fairly quickly; it doesn't have an inventory and can't interact with its environment beyond placing blocks.</p>
+<p>An example of the two interacting could be using the Builder to construct a house shape (e.g. walls and ceiling) and then using the Agent to dig out and place doors and windows.</p>
+<h2>Geology</h2>
+<p><iframe width="640" height="360" src="https://player.vimeo.com/video/286263292" frameborder="0" webkitallowfullscreen="webkitallowfullscreen" mozallowfullscreen="mozallowfullscreen" allowfullscreen="allowfullscreen" ></iframe></p>
+<p>I wanted to try out something a bit different, and so I got to thinking about core samples. The Agent can dig, so why not use that ability for something interesting like looking at what it digs through (one of my lessons with my students was using <strong>if</strong> statements to dig out diamonds from rock).</p>
+<p>The Agent can pick up the blocks it digs through, so I decided to build a core sampler. It would dig down until it hit bedrock (the indestructable blocks at the bottom of the Minecraft world), and then I could use those blocks to analyse the composition of the earth it dug through.</p>
+<p>One of the issues I ran into straight away is that the Agent and the Builder both have a maximum operating range away from the player, and so I often had to teleport the player to them in order to continue processing.</p>
+<p>Otherwise this worked pretty well. Here are the commands I used for the program.</p>
+<div class="gallery"   >
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/70/gallery/tp_snap.PNG" ><img src="https://headtilt.me/media/posts/70/gallery/tp_snap-thumbnail.PNG" alt="Teleport Initialisation" width="413" height="236"></a>
+<figcaption class="gallery-description">Grabbing agent and storing coordinates.</figcaption>
+</figure>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/70/gallery/core_snap.PNG" ><img src="https://headtilt.me/media/posts/70/gallery/core_snap-thumbnail.PNG" alt="Digging the core sample" width="240" height="240"></a>
+<figcaption class="gallery-description">Digs until it hits bedrock, collecting blocks and recording IDs.</figcaption>
+</figure>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/70/gallery/buildcore_snap.PNG" ><img src="https://headtilt.me/media/posts/70/gallery/buildcore_snap-thumbnail.PNG" alt="Building the core sample" width="240" height="240"></a>
+<figcaption class="gallery-description">The core sample just recreates an array of block IDs.</figcaption>
+</figure>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/70/gallery/graph_1_snap.PNG" ><img src="https://headtilt.me/media/posts/70/gallery/graph_1_snap-thumbnail.PNG" alt="Building the graph" width="240" height="240"></a>
+<figcaption class="gallery-description">Use the Agent inventory to build the graph.</figcaption>
+</figure>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/70/gallery/graph_2_snap.PNG" ><img src="https://headtilt.me/media/posts/70/gallery/graph_2_snap-thumbnail.PNG" alt="Last bit of building the graph" width="240" height="240"></a>
+<figcaption class="gallery-description">Lots of special cases for blocks which don't drop themselves.</figcaption>
+</figure>
+</div>
+<p>I thought about using the <strong>lastBlock</strong> array of the blocks that had been encountered for building the frequency graph, but didn't really like the idea of implementing a sorting algorithm in MakeCode and in the end figured that since the Agent collects the same block together in its inventory anyway, that would make a nice shortcut.</p>
+<p>The main issue with using the Agent inventory is many blocks do not drop themselves when broken and picked up. For example each of the ore types (coal, iron, gold, diamond, lapis lazuli, redstone, and emerald) drop non-buildable blocks, resulting in a long and rather ugly selection sequence translating the dropped material into the original block (and conveniently ignoring what happens if a single block drops more than one item!).</p>
+<p>If you would like to try this out and don't want to spend forever dragging blocks around yourself, feel free to <a href="../../../../../media/files/minecraft-Geological Survey.mkcd">download my MakeCode file here</a> and load it into Code Connection yourself.</p>
+            ]]>
+        </content>
+    </entry>
     <entry>
         <title>Migrating from Squarespace</title>
         <author>
@@ -62,29 +117,6 @@
 <li>(not a real option) figure out how to modify Publii to do what I wanted.</li>
 </ol>
 <p>Anyhow, I guess option 2 seems like the way to go since it's gross but simple to do. If it turns out I care (or post!) enough, I'll automate it later.</p>
-            ]]>
-        </content>
-    </entry>
-    <entry>
-        <title>Test post to microblog tag</title>
-        <author>
-            <name>Rob</name>
-        </author>
-        <link href="https://headtilt.me/Test-post-to-microblog-tag/"/>
-        <id>https://headtilt.me/Test-post-to-microblog-tag/</id>
-            <category term="microblog"/>
-
-        <updated>2018-08-18T15:19:49+08:00</updated>
-            <summary>
-                <![CDATA[
-                        <img src="https://headtilt.me/media/posts/6/" alt="" />
-                    Nothing to see here.
-                ]]>
-            </summary>
-        <content type="html">
-            <![CDATA[
-                    <img src="https://headtilt.me/media/posts/6/" alt="" />
-                Nothing to see here.
             ]]>
         </content>
     </entry>
