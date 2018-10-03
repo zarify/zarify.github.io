@@ -1,0 +1,188 @@
+@charset "utf-8";
+
+/* GENERAL */
+
+body {
+	background-color: hsla(0, 0%, 30%, 100%);
+	font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+h1 {
+	text-align: center;
+	font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+	font-size: 300%;
+}
+
+.container {
+	width: 510px;
+	margin: 0 auto 0 auto;
+	border: 1px solid black;
+	border-radius: 5px;
+	padding: 10px;
+	background-color: white;
+}
+
+/* SETUP FORM */
+
+#controls {
+	display: none;
+}
+
+#setup_form label {
+	font-weight: bold;
+	font-size: 105%;
+}
+
+#setup_form input {
+	background-color: hsl(209, 84%, 80%);
+	border: 1px solid grey;
+	border-radius: 5px;
+	padding: 2px;
+	font-size: 105%;
+}
+
+/* CONTROLS */
+
+button {
+	width: 100%;
+	margin: 3px 0 3px 0;
+	padding: 2px;
+	font-size: 110%;
+	border: 1px solid black;
+	border-radius: 15px;
+	color: black;
+	background-color: hsla(0, 100%, 100%, 1);
+}
+
+button:hover {
+	box-shadow: 2px 2px 3px 2px hsla(0, 0%, 50%, 0.3),
+	0px 0px 3px 3px hsla(0, 0%, 90%, 0.5);
+}
+
+#button_reset {
+	/* background-color: hsl(0, 73%, 22%); */
+	color: hsl(0, 73%, 22%);
+	font-weight: bolder;
+}
+
+#button_reset:hover {
+	background-color: hsl(0, 80%, 30%);
+	color: white;
+}
+
+#button_done {
+	/* background-color: hsl(121, 67%, 16%); */
+	background-color: hsla(0, 100%, 100%, 1);
+	font-weight: bolder;
+}
+
+#button_start {
+	/* background-color: hsl(121, 67%, 16%); */
+	background-color: hsla(0, 100%, 100%, 1);
+	color: hsl(121, 67%, 16%);
+	font-weight: bolder;
+}
+
+#button_start:hover {
+	background-color: green;
+	color: white;
+}
+
+/* DIVS FOR TIMER */
+
+#timer {
+	width: 100%;
+	display: none;
+}
+
+#timer div {
+	width: 100%;
+	display: table-row;
+}
+
+#timer div div {
+	display: table-cell;
+}
+
+.time {
+	text-align: right;
+	font-size: 150%;
+	padding-right: 10px;
+}
+
+.perc {
+	text-align: right;
+	font-size: 150%;
+	padding-right: 10px;
+	padding-left: 50px;
+}
+
+.emoji {
+	text-align: center;
+	font-size: 150%;
+	padding-right: 70px;
+	padding-left: 50px;
+}
+
+.active_slot {
+	background-color: hsl(23, 76%, 59%);
+}
+
+.passed_slot {
+	background-color: hsl(0, 0%, 80%);
+}
+
+.passed_slot div {
+	opacity: 0.5;
+}
+
+#clock {
+	text-align: center;
+	font-size: 300%;
+	border-top: 1px solid black;
+	border-bottom: 1px solid black;
+	margin-bottom: 5px;
+	margin-top: 5px;
+}
+
+#clock span {
+	-webkit-animation: blink 1000ms infinite;
+	animation: blink 1000ms infinite;
+}
+
+@keyframes blink {
+	from { opacity: 1; } to { opacity: 0.5; }
+}
+@-webkit-keyframes blink {
+	from { opacity: 0.5; } to { opacity: 0.3; }
+}
+
+#time_up {
+	display: none;
+	border: 1px solid black;
+	z-index: 999;
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	top: 0%;
+	left: 0%;
+	background-color: hsla(0, 65%, 23%, 90%);
+	color: white;
+	font-size: 300%;
+}
+
+#time_up div {
+	text-align: center;
+	position: absolute;
+	top: 50%;
+	width: 100%;
+	margin-top: -5%;
+}
+
+#start .time {
+	font-weight: bold;
+}
+
+#p10 .time {
+	font-weight: bold;
+}
