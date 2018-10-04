@@ -60,7 +60,7 @@ function startTimer() {
     var frag = duration / 10 * 60; // seconds in duration of test in tenths
     interval = frag * 1000; // interval between slots in ms
     for (var i = 0; i < slots.length; i++) {
-        var target = new Date(d.getTime() + 1000 * (i+1) * frag); // time from start plus how many fragments
+        var target = new Date(d.getTime() + 1000 * (i) * frag); // time from start plus how many fragments
         var th = target.getHours();
         var tm = target.getMinutes();
         var bits = fmtTime(th, tm);
