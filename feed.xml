@@ -3,7 +3,7 @@
     <title>Headtilt</title>
     <link href="https://headtilt.me/feed.xml" rel="self" />
     <link href="https://headtilt.me" />
-    <updated>2018-11-05T20:57:38+08:00</updated>
+    <updated>2019-04-06T07:32:09+08:00</updated>
     <author>
         <name>Rob</name>
     </author>
@@ -16,10 +16,12 @@
         </author>
         <link href="https://headtilt.me/microbit-haunted-house/"/>
         <id>https://headtilt.me/microbit-haunted-house/</id>
+            <category term="robotics"/>
             <category term="ramble"/>
+            <category term="microbit"/>
             <category term="classroom"/>
 
-        <updated>2018-11-05T20:56:46+08:00</updated>
+        <updated>2019-01-10T16:27:43+08:00</updated>
             <summary>
                 <![CDATA[
                         <img src="https://headtilt.me/media/posts/74/File-5-11-18-8-05-24-pm.jpeg" alt="Haunted House internals" />
@@ -67,7 +69,7 @@
 <figure class="post__image undefined" ><img src="https://headtilt.me/media/posts/74/IMG_1459.JPG" alt="Assembled and tested" width="4032" height="3024">
 <figcaption >Haunted House assembled and tested</figcaption>
 </figure>
-<h2>Design and Creation</h2>
+<h2 id="mcetoc_1d0rduh350">Design and Creation</h2>
 <p> There were three distinct phases for this project:</p>
 <ul>
 <li>Physical design (concept, vector design, laser cut and assembly)</li>
@@ -79,7 +81,7 @@
 <p>I was expecting the code to be the easiest part of the whole exercise, since that is what I'm most familiar with. The basic idea for the two Micro:bits took a couple of hours to hash out in my head and roughly debug without having access to the boards. The wrinkle came when I actually loaded the code - or rather when I tried to.</p>
 <p>Initially, my relatively simple model of a two-class program with a basic event loop was rejected as being too big to parse! I trimmed it down a bit (goodbye docstrings!) and tried again, only to encounter a memory error. Occasionally, the Micro:bit was even nice enough to tell me a number after the memory error, which I ended up guessing referred to how much of my code it failed to load, since it went down as I trimmed out functions, shortened strings, shifted dictionaries to lists, collapsed multiple objects to a singleton, and so on. The joys of programming on microcontrollers in interpreted languages!</p>
 <p>Eventually I ended up with some plain old runtime errors, and I don't think I've ever been so happy to see one, since it meant at least my code was running on the board. Coding was still the least time-consuming part of the process, but ended up being a surprisingly challenging exercise.</p>
-<h2>Reflection</h2>
+<h2 id="mcetoc_1d0rduh351">Reflection</h2>
 <p>The whole process was really enjoyable - it ended up looking great, and works just as I envisioned it (although I didn't imagine the noisy servos in my head 😐). I haven't gotten around to building the light gun yet, since I'm having a lot of trouble figuring out how to get a nice tight beam from an LED without expensive optics or shifting to a laser, but for now a torch is sufficient.</p>
 <p>I'm planning on adding a score board using a third Micro:bit sitting on the top of the structure (maybe when I design and cut out a tiled roof), and since I already have all the radio messages from the other two boards, I shouldn't need to add very much code to the others. This is a good thing, since I was getting to the point where adding in debugging messages to the servo board was pushing me over the memory limit!</p>
 <p>I learned a fair bit about mixing different power levels in circuits along the way which I'll be able to use in my teaching, and I'll certainly have a few gotchas to look out for if any of my students start putting together complex programs.</p>
@@ -256,9 +258,10 @@
         </author>
         <link href="https://headtilt.me/year-7-8-bad-crypto-with-microbits/"/>
         <id>https://headtilt.me/year-7-8-bad-crypto-with-microbits/</id>
+            <category term="microbit"/>
             <category term="classroom"/>
 
-        <updated>2018-08-19T09:44:50+08:00</updated>
+        <updated>2019-01-10T16:28:05+08:00</updated>
             <summary>
                 <![CDATA[
                         <img src="https://headtilt.me/media/posts/68/" alt="" />
@@ -268,7 +271,7 @@
         <content type="html">
             <![CDATA[
                     <img src="https://headtilt.me/media/posts/68/" alt="" />
-                <h1>Security of Wireless Networks</h1>
+                <h1 id="mcetoc_1d0rdvsr00">Security of Wireless Networks</h1>
 <p>My <a href="#INTERNAL_LINK#/post/67">previous lesson</a> looking at wireless networks used Microbits and their Bluetooth networking to illustrate some of the problems with local wireless networks (as opposed to general internet connectivity, which we mostly did by doing speed tests and complaining about the school's net connection :).</p>
 <p>At the end I wrote a bit about what I wanted to do with the next lesson, which was look at some basic crypto to handle the eavesdropping problem we had when someone else listened to the same channel we were communicating on.</p>
 <p>(<strong>Note for anyone who wants to yell at me through the internet:</strong> I'm well aware that this is not anything approaching real crypto, and I'll be the first to tell my kids that if they want to know more about how modern crypto really works, the first thing they need to do is go and find someone who really understands it - this is about what it does, not how it works.)</p>
@@ -276,14 +279,14 @@
 <figcaption >The Almighty XOR and his hammer MjollNOR</figcaption>
 </figure>
 <p>After running into a bit of a wall trying to get a <a target="_blank" href="https://en.wikipedia.org/wiki/XOR_cipher" rel="noopener noreferrer">XOR cipher</a> working in the block coding interface, I started to dig into the MicroPython interface instead. Along the way I discovered that there was a <a target="_blank" href="https://codewith.mu" rel="noopener noreferrer">rather nice basic IDE called Mu</a>, which lets you flash your code straight to the device, as well as running a REPL (Run-Evaluate-Print-Loop) to do easy code testing (which also works breaking into running code, so you can load functions onto the Microbit, then run and test them in the REPL interface).</p>
-<h1>The Results</h1>
+<h1 id="mcetoc_1d0rdvsr01">The Results</h1>
 <p>I haven't used this with my classes yet, but I'll edit this post at the end of the week and add in how things went.</p>
 <p>This version uses a shake of the Microbit to choose a random image, mostly because getting A+B button presses working was annoying - see the Issues section later on, but also because I wanted to play with accelerometer gestures in Python. The A button transmits the image over whatever channel the device is listening to.</p>
 <p>The B button switches channels, but I also made it switch between clear text and cipher text modes. You will see in the video when I press the B button for a second time on a channel the top-right LED lights up and the channel number stays the same. This indicates cipher text mode. It still listens on the same channel, but uses its cipher bitstring to decode any communication it receives (whether or not it's actually encrypted :).</p>
 <p>Below is a short video showing how this version of the program works.</p>
 <p><iframe width="540" height="360" src="https://player.vimeo.com/video/217366606?wmode=opaque&amp;api=1" frameborder="0" title="Dodgy Crypto with Networked Microbits" webkitallowfullscreen="webkitallowfullscreen" mozallowfullscreen="mozallowfullscreen" allowfullscreen="allowfullscreen"></iframe></p>
 <p>Again, if you want to look at the Python code, or download the .hex file to load onto a Microbit via copying, you can grab them from <a target="_blank" href="https://github.com/zarify/microbit/tree/master/bad_crypto" rel="noopener noreferrer">the github repo</a>.</p>
-<h1>Issues</h1>
+<h1 id="mcetoc_1d0rdvsr02">Issues</h1>
 <p>As usual, there were some issues I ran into along the way.</p>
 <p>Event-driven programming in MicroPython just isn't there. With the block interface it <em>seems</em> that event listeners get their own processes, so you can break into say a radio's receive section using a button's code. With Python the lack of event listeners is slightly mitigated with things like buttons keeping track of whether they have been pressed since you last examined them (<strong>button_a.is_pressed()</strong> vs <strong>button_a.was_pressed()</strong> for example). This is fine for a simple main loop, but you still need to be careful not to lock yourself out with delays, particularly since I found a few situations where I had to build in delays just to cope with the length of time it takes to un-depress a button.</p>
 <p>Debugging is still annoying. Let's say there's a syntax error in your code, because you're just not paying attention. The Microbit will try and be helpful and, when it flashes and restarts, will tell you about any errors using the LED array. However, trying to read an error message scrolling across the LED array is just plain painful, since it is quite bright, and also only shows you about a character and a half at a time. If you're lucky, opening a REPL will also give you the error message in a way that preserves your eyes and your sanity, but I didn't have this work all the time. I just tried to ignore the bright lights, and focus on the bit where it told you the line number of the error.</p>
@@ -299,9 +302,10 @@
         </author>
         <link href="https://headtilt.me/year-7-8-wireless-network-concepts-with-microbits/"/>
         <id>https://headtilt.me/year-7-8-wireless-network-concepts-with-microbits/</id>
+            <category term="microbit"/>
             <category term="classroom"/>
 
-        <updated>2018-08-19T09:44:57+08:00</updated>
+        <updated>2019-01-10T16:28:29+08:00</updated>
             <summary>
                 <![CDATA[
                         <img src="https://headtilt.me/media/posts/67/" alt="" />
@@ -311,9 +315,9 @@
         <content type="html">
             <![CDATA[
                     <img src="https://headtilt.me/media/posts/67/" alt="" />
-                <h1>Overview</h1>
+                <h1 id="mcetoc_1d0re0qbd0">Overview</h1>
 <p>Part of the new Digital Technologies curriculum for year 7 and 8 involves students learning about wired and wireless networks, and methods of data transmission and security. There are activities from the Digital Technologies Learning Hub that deal with <a target="_blank" href="https://www.digitaltechnologieshub.edu.au/teachers/lesson-ideas/computer-chatter-1" rel="noopener noreferrer">routing</a> and <a target="_blank" href="https://www.digitaltechnologieshub.edu.au/teachers/lesson-ideas/computer-chatter-2" rel="noopener noreferrer">issues with performance</a> (that are pretty good unplugged activities). I use these or variations on these when I teach those concepts, but I wanted to put together something that actually involved technology in the classroom, and dealt with ideas a bit lower down the network stack.</p>
-<h1>Playing with Microbits</h1>
+<h1 id="mcetoc_1d0re0qbd1">Playing with Microbits</h1>
 <p>This year we got some <a target="_blank" href="http://microbit.org" rel="noopener noreferrer">BBC Microbits</a>, and I've been looking at how to use them with my classes in an effective (and manageable) way. After playing around with some basic communication via Bluetooth with the Microbits, I thought I'd have a crack at writing some simple programs for students to use to encounter some of the problems with wireless networking, and use it as a hook for looking at ways that we've fixed those problems.</p>
 <p>Microbits can broadcast messages via Bluetooth Low Energy, and allow you to choose the channel that they transmit/listen on per device. I wrote a (slightly tedious) program in the blocks interface (link here: <a target="_blank" href="https://pxt.microbit.org/06484-09741-52714-91595" rel="noopener noreferrer">feel free to use/abuse it</a>) that did the following:</p>
 <ul>
@@ -323,20 +327,20 @@
 </ul>
 <p>The video below shows two of them in action.</p>
 <p><iframe width="540" height="360" src="https://player.vimeo.com/video/217261990?wmode=opaque&amp;api=1" frameborder="0" title="Wireless Picture Transmission with Microbits" webkitallowfullscreen="webkitallowfullscreen" mozallowfullscreen="mozallowfullscreen" allowfullscreen="allowfullscreen"></iframe></p>
-<h1>Lesson ideas</h1>
+<h1 id="mcetoc_1d0re0qbd2">Lesson ideas</h1>
 <p>If you dig through the code for the program, you'll see there are artificial pauses between the transmission of each 'pixel'/LED state. I ran into speed issues when transmitting them as fast as I could, where a number of pixels would not light up. This sort of worked out for the best, since it gave me an artificial latency figure I could manipulate, as well as giving students the idea that not just the lit up LED states were being transmitted, but also the state of the unlit ones.</p>
 <p>I didn't want to send the state of the entire board at once, since two of the concepts I wanted students to discover were those of attenuation and interference from signal-absorbing materials (mostly from, in my words: "giant sacks of water", i.e. lots of students standing in between the transmitter and receiver). Since pixels were being transmitted one at a time, there was plenty of opportunity for images to be corrupted in transmission. I had kids hiding behind metal doors of cabinets, calling to each other across the courtyard asking what picture popped up on the receiver, and basically seeing what broke when. It was chaotic but pretty neat.</p>
 <p>I have two other teachers who deliver at the same time as me, and I had prepped them with their own Microbits for that lesson. I didn't realise that one of them was in the next room however, which made the fact that all devices started transmitting on Channel 1 entertaining at the start of the lesson, but also a good jumping off point for why we need different channels, and rules for effective transmission in crowded networks.</p>
-<h1>Where to next</h1>
+<h1 id="mcetoc_1d0re0qbd3">Where to next</h1>
 <p>The block code is really quite limiting for this sort of program. It involved all sorts of horrible attempts at type casting, and was both fun to write (in the end!) and quite frustrating. At the same time it was good to see how complex a solution to my problem I could get without having to switch to Python.</p>
-<h2>Some take-aways</h2>
+<h2 id="mcetoc_1d0re0qbd4">Some take-aways</h2>
 <ul>
 <li>I'm not sure if it's an feature of the block code or not, but you can't set the radios up to listen for different types of messages. For example you can't have integers, strings, and key/value pairs being broadcast and figure out what to do with them based on the type of message. This is why I ended up having the horrible reset method in there which checked the length of the value in the key/value pair.</li>
 <li>The block code has a method for changing strings to integers, but doesn't seem to have a way to change integers to strings. This is relevant because I had a go at transmitting the entire state of the LED array as a bit string (see the bit at the end on next lesson) to avoid having to process each LED individually (which worked well for this lesson anyway, but isn't ideal).</li>
 <li>The block interface handles if-else if-else if-...etc really nicely. Hit the config button in an if block, and then drag in as many else-if blocks as you need. Huge improvement on the way something like Scratch works.</li>
 <li>The simulator is just rubbish for any moderately complicated radio transmission. I got an incredibly basic program to work in the simulator and was briefly impressed, but this one just refused to work at all, despite working fine on the real hardware.</li>
 </ul>
-<h2>Encryption</h2>
+<h2 id="mcetoc_1d0re0qbd5">Encryption</h2>
 <p>We ended the lesson with the problems of clear text communication, with lots of students suggesting that we need a "different language" so that eavesdroppers don't know what we're saying to each other. I've had mixed success looking at encryption with this level of students before, so want to try something different this time around.</p>
 <p>Usually there's lots of historical navel gazing at Caesar Ciphers, moving onto columnar ciphers and the like, and then we run out of time and move on. This time I want to look at one time pads (well, actually multi time pads, but I don't want to have to figure out how to transcribe a one time pad into each Microbit using two physical buttons each time - <em>sorry serious security people!</em>) using XOR, and then try and find a good way of ending up at the idea of public/private keys, if not an actual implementation.</p>
 <p>My plan is to implement the program I used for this class in Python, and then, with better control over the actual data, set up the devices with their own pads in pairs to use, so we can see how this affects others ability to eavesdrop on the transmitted pictures, despite still using the same channel.</p>
