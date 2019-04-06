@@ -3,138 +3,12 @@
     <title>Headtilt</title>
     <link href="https://headtilt.me/feed.xml" rel="self" />
     <link href="https://headtilt.me" />
-    <updated>2019-04-06T08:07:01+08:00</updated>
+    <updated>2019-04-06T08:11:57+08:00</updated>
     <author>
         <name>Rob</name>
     </author>
     <id>https://headtilt.me</id>
 
-    <entry>
-        <title>Micro:bit Haunted House</title>
-        <author>
-            <name>Rob</name>
-        </author>
-        <link href="https://headtilt.me/microbit-haunted-house/"/>
-        <id>https://headtilt.me/microbit-haunted-house/</id>
-
-        <updated>2019-01-10T16:27:43+08:00</updated>
-            <summary>
-                <![CDATA[
-                        <img src="https://headtilt.me/media/posts/74/File-5-11-18-8-05-24-pm.jpeg" alt="Haunted House internals" />
-                    This year I have been teaching robotics to Year 8s for the&hellip;
-                ]]>
-            </summary>
-        <content type="html">
-            <![CDATA[
-                    <img src="https://headtilt.me/media/posts/74/File-5-11-18-8-05-24-pm.jpeg" alt="Haunted House internals" />
-                <p>This year I have been teaching robotics to Year 8s for the first time. I've mainly been using BBC Micro:bits, since they are quite affordable, robust, are easy to hook up to a range of widely available components, and are easy to program in a few different environments (MicroPython being my weapon of choice).</p>
-<p>To keep myself entertained, and to provide my students with a sample project (although more complex code-wise than they're likely to accomplish) I decided to make something myself this term while my class worked on their own group projects (theirs are themed after the UN Global Goals). I had ideas for either building a carousel or a light gun game, and settled on the latter so I didn't have to <em>also</em> tackle 3D printing out cams and gears and the like.</p>
-<p><iframe width="640" height="360" src="https://player.vimeo.com/video/298976485" frameborder="0" webkitallowfullscreen="webkitallowfullscreen" mozallowfullscreen="mozallowfullscreen" allowfullscreen="allowfullscreen"></iframe></p>
-<p><iframe width="640" height="360" src="https://player.vimeo.com/video/298976806" frameborder="0" webkitallowfullscreen="webkitallowfullscreen" mozallowfullscreen="mozallowfullscreen" allowfullscreen="allowfullscreen"></iframe></p>
-<p>I have designs and code in a <a href="https://github.com/zarify/microbit/tree/master/Haunted%20House" target="_blank" rel="noopener noreferrer">GitHub repo</a> if anyone wants to have a look or use any of my ideas - there is also a list of components I used. The laser cutter designs are a bit of a mixed bag of formats at time of posting, but I'll endeavour to standardise them to SVG or something more portable later. Be aware that the Kitronik servo code used in the servo controller is MIT licensed - I have links to original repositories in the repo readme.</p>
-<p>Below is a series of in-progress photos of the build.</p>
-<div class="gallery"   >
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-00-25-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-00-25-pm-thumbnail.jpeg" alt="Laser cutouts of the spooks" width="240" height="240"></a>
-<figcaption class="gallery-description">Ghost prototype (top) and final designs</figcaption>
-</figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-01-53-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-01-53-pm-thumbnail.jpeg" alt="Laser engraving" width="240" height="240"></a>
-<figcaption class="gallery-description">Testing out low power cutting for engraving</figcaption>
-</figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-02-24-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-02-24-pm-thumbnail.jpeg" alt="Spooks all cut out" width="240" height="240"></a>
-<figcaption class="gallery-description">My spooky lineup</figcaption>
-</figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-02-49-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-02-49-pm-thumbnail.jpeg" alt="Cutouts laid out for assembly" width="240" height="240"></a>
-<figcaption class="gallery-description">Early assembly of all the pieces</figcaption>
-</figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-03-13-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-03-13-pm-thumbnail.jpeg" alt="Early assembly of servos" width="240" height="240"></a>
-<figcaption class="gallery-description">Attaching servos and spooks</figcaption>
-</figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-03-45-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-03-45-pm-thumbnail.jpeg" alt="First lot of wiring a spook" width="240" height="240"></a>
-<figcaption class="gallery-description">Wiring up the LEDs and LDR</figcaption>
-</figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-04-08-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-04-08-pm-thumbnail.jpeg" alt="Front of spook post wiring" width="240" height="240"></a>
-<figcaption class="gallery-description">All wired up and ready to go</figcaption>
-</figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-04-59-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-04-59-pm-thumbnail.jpeg" alt="Cabling internals of house" width="240" height="240"></a>
-<figcaption class="gallery-description">Things get messy</figcaption>
-</figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-05-24-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-05-24-pm-thumbnail.jpeg" alt="Testing LED and LDR components" width="240" height="240"></a>
-<figcaption class="gallery-description">Running test code to ensure LDRs are working as expected</figcaption>
-</figure>
-</div>
-<figure class="post__image undefined" ><img src="https://headtilt.me/media/posts/74/IMG_1459.JPG" alt="Assembled and tested" width="4032" height="3024">
-<figcaption >Haunted House assembled and tested</figcaption>
-</figure>
-<h2 id="mcetoc_1d0rduh350">Design and Creation</h2>
-<p> There were three distinct phases for this project:</p>
-<ul>
-<li>Physical design (concept, vector design, laser cut and assembly)</li>
-<li>Circuit design</li>
-<li>Code</li>
-</ul>
-<p>The circuits were conceptually pretty simple: LEDs turn on and off, as well as detect and take action based off amount of light received from a photoresistor (LDR). Since the LEDs drew more power than was available from the Micro:bit itself (particularly since it also had to supply power to the LDRs) I decided to use transistors to switch power from an external battery pack to the LEDs. Since the servos were plugged into a dedicated servo controller board, they too were very straightforward.</p>
-<p>I've been getting more interested in laser cutting recently, and so the physical design was really enjoyable. I mocked up my designs by hand before drawing the pieces up in Affinity Designer (not really the right tool for the job, but it works). I had used <a href="http://www.makercase.com/" target="_blank" rel="noopener noreferrer">MakerCase </a>with my students before to design simple boxes with cutouts, so I had some idea of how to design finger joints for some structure, and the main challenge was making the design big enough to house the components and allow a decent level of detail in the extras like the dead tree and the spooks inside. Apart from a couple of stuff-ups where my mental model didn't translate to the real world that well resulting in re-cuts, this went pretty smoothly, although it took about a week, mostly due to only being able to cut at work (and when I wasn't teaching 😅).</p>
-<p>I was expecting the code to be the easiest part of the whole exercise, since that is what I'm most familiar with. The basic idea for the two Micro:bits took a couple of hours to hash out in my head and roughly debug without having access to the boards. The wrinkle came when I actually loaded the code - or rather when I tried to.</p>
-<p>Initially, my relatively simple model of a two-class program with a basic event loop was rejected as being too big to parse! I trimmed it down a bit (goodbye docstrings!) and tried again, only to encounter a memory error. Occasionally, the Micro:bit was even nice enough to tell me a number after the memory error, which I ended up guessing referred to how much of my code it failed to load, since it went down as I trimmed out functions, shortened strings, shifted dictionaries to lists, collapsed multiple objects to a singleton, and so on. The joys of programming on microcontrollers in interpreted languages!</p>
-<p>Eventually I ended up with some plain old runtime errors, and I don't think I've ever been so happy to see one, since it meant at least my code was running on the board. Coding was still the least time-consuming part of the process, but ended up being a surprisingly challenging exercise.</p>
-<h2 id="mcetoc_1d0rduh351">Reflection</h2>
-<p>The whole process was really enjoyable - it ended up looking great, and works just as I envisioned it (although I didn't imagine the noisy servos in my head 😐). I haven't gotten around to building the light gun yet, since I'm having a lot of trouble figuring out how to get a nice tight beam from an LED without expensive optics or shifting to a laser, but for now a torch is sufficient.</p>
-<p>I'm planning on adding a score board using a third Micro:bit sitting on the top of the structure (maybe when I design and cut out a tiled roof), and since I already have all the radio messages from the other two boards, I shouldn't need to add very much code to the others. This is a good thing, since I was getting to the point where adding in debugging messages to the servo board was pushing me over the memory limit!</p>
-<p>I learned a fair bit about mixing different power levels in circuits along the way which I'll be able to use in my teaching, and I'll certainly have a few gotchas to look out for if any of my students start putting together complex programs.</p>
-            ]]>
-        </content>
-    </entry>
-    <entry>
-        <title>Year 7: Minecraft: EE and Programming</title>
-        <author>
-            <name>Rob</name>
-        </author>
-        <link href="https://headtilt.me/year-7-minecraft-ee-and-programming/"/>
-        <id>https://headtilt.me/year-7-minecraft-ee-and-programming/</id>
-
-        <updated>2018-09-24T14:13:43+08:00</updated>
-            <summary>
-                <![CDATA[
-                        <img src="https://headtilt.me/media/posts/71/chess_landscape.png" alt="Chess Landscape" />
-                    This is the first year that Digital Technologies has been a mandatory&hellip;
-                ]]>
-            </summary>
-        <content type="html">
-            <![CDATA[
-                    <img src="https://headtilt.me/media/posts/71/chess_landscape.png" alt="Chess Landscape" />
-                <p>This is the first year that Digital Technologies has been a mandatory part of the Australian curriculum through to Year 8. Whilst the subject area contains a <a href="https://k10outline.scsa.wa.edu.au/home/teaching/curriculum-browser/technologies/digital-technologies2#year-7-syllabus" target="_blank" rel="noopener noreferrer">number of different topics</a>, the one that generally comes to mind (helped in no small part by our politicians and media 🙄 banging on about 'coding' this, and 'coding' that) is programming and algorithmic thinking.</p>
-<p>Since our education sector has a fairly comprehensive set of licenses to all things Microsoft, we have Minecraft: Education Edition licenses for all of our students and staff. While I am not that big of a fan of Minecraft's system of switches and redstone wiring (I prefer my programming higher level and less clunky), I do quite like plugging in external programming through Code Connection, as I've written about before in toying with <a href="#INTERNAL_LINK#/post/70" title="Minecraft Edu Edition: Geological Surveys">core sampling</a>.</p>
-<p>With my Year 7s I thought I'd try out covering the programming component with <a href="https://education.minecraft.net/" target="_blank" rel="noopener noreferrer">Minecraft: EE</a> and <a href="https://education.minecraft.net/trainings/code-builder-for-minecraft-education-edition" target="_blank" rel="noopener noreferrer">Code Connection</a>. It gives students some nice ways to visualise problems they need to solve, as they can build/prototype a solution and then design a program which creates that solution for them.</p>
-<h2>Aim</h2>
-<p>I've been kicking around this idea since attending a workshop on Minecraft: EE with <a href="https://twitter.com/kieranbailey" target="_blank" rel="noopener noreferrer">Kieran Bailey</a> at the <a href="https://ecawa.wa.edu.au/conferences/2018-state-conference/" target="_blank" rel="noopener noreferrer">ECAWA State Conference</a> earlier this year. Initially I was thinking about pursuing a series of lessons looking at automated agriculture (and probably will revisit that later on), but ended up with some more disjointed ideas building off Code Connection tutorials (so that students had somewhere to start in a self-paced fashion, and more importantly someone else had written the material!) and examining programming fundamentals like looping, conditionals, and variables.</p>
-<p>At the end of the series of lessons, I got students to build a few programs for me. There was some mixed success, and I'll discuss the successes and failures a bit further down.</p>
-<p><img class="post__image--right" src="https://headtilt.me/media/posts/71/my_head_final.PNG" alt="Heads" width="880" height="621">When designing the tasks, I had a few aims in mind:</p>
-<ul>
-<li>Get students to create something engaging where they wanted to solve the problem for themselves, not because it was an assessment.</li>
-<li>Have a range of different ways of solving the problems.</li>
-<li>Involve physical prototypes so that students could build the solution themselves to help them visualise the outcome and assist with programming in 3D space.</li>
-<li>Make it difficult or impossible to share answers, whilst still allowing students to learn techniques off each other.</li>
-</ul>
-<p><img class="post__image--right" src="https://headtilt.me/media/posts/71/signatures.png" alt="Lava Signatures" width="964" height="303">My tasks were to create programs that:</p>
-<ul>
-<li>Build a blocky version of the student's own head.</li>
-<li>Sign their initials in lava in a trench in the ground.</li>
-<li>Build chess boards of a specified size.</li>
-</ul>
-<p>The first two tasks I'm fairly happy with, but the last one, although I like the problem in itself as there are multiple ways to solve it, obviously doesn't satisfy my last aim.</p>
-<h2>Failures</h2>
-<p>The first group through a new course is always the hardest, as it's difficult to pitch assessments at the right level to challenge but still include all students. My expectations were definitely too high with this set of tasks, and will need adjustments to both how I teach the content and in the difficulty of the assessment next year.</p>
-<p><img class="post__image--right" src="https://headtilt.me/media/posts/71/tutorial_snipped.PNG" alt="OneNote tutorial snippet" width="573" height="433">One of the failures of Minecraft: EE is that since everything is kept in local storage for each student, and the process of switching programs is quite cumbersome (involving a lot of external resource loading, despite programs and Minecraft server being on the local machine), it can be quite tough to ensure students are on track rather than merrily running about doing their own thing. My lesson format for this topic is typically a step by step tutorial (with explanations and screenshots) in OneNote for students to follow, along with 2-3 extension activities at the end which use the concept in a different setting. In future I'll get students to add their own screenshots to a table at the end showing their code and results from the extension activities in order to keep them a bit more accountable.</p>
-<p>As the subject is mandatory now rather than an elective, there are many different literacy (and numeracy - particularly involving 3D space) levels who need to be catered for. Although I try to differentiate instruction in a number of ways (demo and explain verbally, self-paced written and graphical tutorials, teach by the side), it is always surprising who struggles with some concepts or learning methods. Whilst it is incredibly time consuming, next time around I'll add some video tutorials to the mix as well as some smaller explainers and demos to cover some more bases.</p>
-<p> </p>
-<h2>Successes</h2>
-<p>In 2018, Minecraft is an ancient beast, but I've been impressed at the coverage of students who, whilst initially complaining about it, have gotten right into the platform and a lot of the coding problems. Minecraft: EE has been a win on the engagement front.</p>
-<p>Although it's by far the hardest of the three problems I gave students (and stupidly, I put it first in the task list) the "build your own head" problem has proven to be a win for getting students to really think about the task in a number of different ways. With some tweaking and more targeted introductory lessons, I think this has a lot of potential for future assessment.</p>
-<p>Minecraft: EE and Code Connection has a range of really nice tutorials to build from, which provides a nice gentle introduction for both students and teachers, and they are general enough that I have been able to introduce several different concepts using them as a base.</p>
-<p>Using a Minecraft world as a prototyping playground is often hilarious. There have been a number of nightmare hellscapes of half-formed heads that my students have created while debugging their programs.</p>
-            ]]>
-        </content>
-    </entry>
     <entry>
         <title>Micro:bit robotics</title>
         <author>
@@ -143,9 +17,10 @@
         <link href="https://headtilt.me/year-8-microbit-robotics/"/>
         <id>https://headtilt.me/year-8-microbit-robotics/</id>
 
-        <updated>2019-04-06T08:06:46+08:00</updated>
+        <updated>2019-04-06T08:11:41+08:00</updated>
             <summary>
                 <![CDATA[
+                        <img src="https://headtilt.me/media/posts/72/top_view.jpg" alt="" />
                     <p>This post is intended to be a bit of a primer for teachers interested in getting into more varied use of the BBC Micro:bit beyond the inbuilt basics. My intention is to put together two posts: this one on the hardware and the ecosystem, and another on approaches in the classroom (which will mostly be a list of mistakes I've made and thoughts on doing things beter).</p>
 <p>This is by no means an exhaustive list of things you can do or components available. I've generally experimented with cheap and cheerful parts that I can source myself for a few dollars to see if it's worth implementing in the classroom. I still have a long list of things I want to try! The components listed here I've generally had good success with.</p>
 <p>Lastly, I don't have a background in electronics, so apologies for anything I've gotten wrong! If you have Feelings about any errors and want to let me know, ping me at rob at this domain and I'll fix things up.</p>
@@ -154,6 +29,7 @@
             </summary>
         <content type="html">
             <![CDATA[
+                    <img src="https://headtilt.me/media/posts/72/top_view.jpg" alt="" />
                 <p>This post is intended to be a bit of a primer for teachers interested in getting into more varied use of the BBC Micro:bit beyond the inbuilt basics. My intention is to put together two posts: this one on the hardware and the ecosystem, and another on approaches in the classroom (which will mostly be a list of mistakes I've made and thoughts on doing things beter).</p>
 <p>This is by no means an exhaustive list of things you can do or components available. I've generally experimented with cheap and cheerful parts that I can source myself for a few dollars to see if it's worth implementing in the classroom. I still have a long list of things I want to try! The components listed here I've generally had good success with.</p>
 <p>Lastly, I don't have a background in electronics, so apologies for anything I've gotten wrong! If you have Feelings about any errors and want to let me know, ping me at rob at this domain and I'll fix things up.</p>
@@ -293,6 +169,132 @@
 <p>I still have only a really hazy understanding of I2C and SPI. I know what they do, but the <strong>how</strong> is pretty vague. I still need to get my head around this.</p>
 <p>The Micro:bits are great to work with in the classroom, but you pretty quickly hit a ceiling of what they can do with complex systems since there is only so much memory to go around. For example my Haunted House project's servo code ran into the wall on numerous occasions when I was developing it (and the error messages you get for that are <strong>not</strong> helpful).</p>
 <p>I've bought myself a couple of ESP32 boards to look at how practical they are to use (much cheaper than the Micro:bits, more resources, but not as much built in). The MicroPython environment is quite similar, you can get 802.11 and Bluetooth built in, threading and more. The downside is they don't act as a USB storage device like the Micro:bit does, so flashing programs and firmware involves fiddling with COM ports, potentially install drivers, etc. There is an IDE which helps with this from DFRobot (<a href="https://github.com/DFRobot/uPyCraft">https://github.com/DFRobot/uPyCraft</a>) but I haven't used it much yet.</p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>Micro:bit Haunted House</title>
+        <author>
+            <name>Rob</name>
+        </author>
+        <link href="https://headtilt.me/microbit-haunted-house/"/>
+        <id>https://headtilt.me/microbit-haunted-house/</id>
+
+        <updated>2019-01-10T16:27:43+08:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://headtilt.me/media/posts/74/File-5-11-18-8-05-24-pm.jpeg" alt="Haunted House internals" />
+                    This year I have been teaching robotics to Year 8s for the&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <img src="https://headtilt.me/media/posts/74/File-5-11-18-8-05-24-pm.jpeg" alt="Haunted House internals" />
+                <p>This year I have been teaching robotics to Year 8s for the first time. I've mainly been using BBC Micro:bits, since they are quite affordable, robust, are easy to hook up to a range of widely available components, and are easy to program in a few different environments (MicroPython being my weapon of choice).</p>
+<p>To keep myself entertained, and to provide my students with a sample project (although more complex code-wise than they're likely to accomplish) I decided to make something myself this term while my class worked on their own group projects (theirs are themed after the UN Global Goals). I had ideas for either building a carousel or a light gun game, and settled on the latter so I didn't have to <em>also</em> tackle 3D printing out cams and gears and the like.</p>
+<p><iframe width="640" height="360" src="https://player.vimeo.com/video/298976485" frameborder="0" webkitallowfullscreen="webkitallowfullscreen" mozallowfullscreen="mozallowfullscreen" allowfullscreen="allowfullscreen"></iframe></p>
+<p><iframe width="640" height="360" src="https://player.vimeo.com/video/298976806" frameborder="0" webkitallowfullscreen="webkitallowfullscreen" mozallowfullscreen="mozallowfullscreen" allowfullscreen="allowfullscreen"></iframe></p>
+<p>I have designs and code in a <a href="https://github.com/zarify/microbit/tree/master/Haunted%20House" target="_blank" rel="noopener noreferrer">GitHub repo</a> if anyone wants to have a look or use any of my ideas - there is also a list of components I used. The laser cutter designs are a bit of a mixed bag of formats at time of posting, but I'll endeavour to standardise them to SVG or something more portable later. Be aware that the Kitronik servo code used in the servo controller is MIT licensed - I have links to original repositories in the repo readme.</p>
+<p>Below is a series of in-progress photos of the build.</p>
+<div class="gallery"   >
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-00-25-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-00-25-pm-thumbnail.jpeg" alt="Laser cutouts of the spooks" width="240" height="240"></a>
+<figcaption class="gallery-description">Ghost prototype (top) and final designs</figcaption>
+</figure>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-01-53-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-01-53-pm-thumbnail.jpeg" alt="Laser engraving" width="240" height="240"></a>
+<figcaption class="gallery-description">Testing out low power cutting for engraving</figcaption>
+</figure>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-02-24-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-02-24-pm-thumbnail.jpeg" alt="Spooks all cut out" width="240" height="240"></a>
+<figcaption class="gallery-description">My spooky lineup</figcaption>
+</figure>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-02-49-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-02-49-pm-thumbnail.jpeg" alt="Cutouts laid out for assembly" width="240" height="240"></a>
+<figcaption class="gallery-description">Early assembly of all the pieces</figcaption>
+</figure>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-03-13-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-03-13-pm-thumbnail.jpeg" alt="Early assembly of servos" width="240" height="240"></a>
+<figcaption class="gallery-description">Attaching servos and spooks</figcaption>
+</figure>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-03-45-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-03-45-pm-thumbnail.jpeg" alt="First lot of wiring a spook" width="240" height="240"></a>
+<figcaption class="gallery-description">Wiring up the LEDs and LDR</figcaption>
+</figure>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-04-08-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-04-08-pm-thumbnail.jpeg" alt="Front of spook post wiring" width="240" height="240"></a>
+<figcaption class="gallery-description">All wired up and ready to go</figcaption>
+</figure>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-04-59-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-04-59-pm-thumbnail.jpeg" alt="Cabling internals of house" width="240" height="240"></a>
+<figcaption class="gallery-description">Things get messy</figcaption>
+</figure>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-05-24-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-05-24-pm-thumbnail.jpeg" alt="Testing LED and LDR components" width="240" height="240"></a>
+<figcaption class="gallery-description">Running test code to ensure LDRs are working as expected</figcaption>
+</figure>
+</div>
+<figure class="post__image undefined" ><img src="https://headtilt.me/media/posts/74/IMG_1459.JPG" alt="Assembled and tested" width="4032" height="3024">
+<figcaption >Haunted House assembled and tested</figcaption>
+</figure>
+<h2 id="mcetoc_1d0rduh350">Design and Creation</h2>
+<p> There were three distinct phases for this project:</p>
+<ul>
+<li>Physical design (concept, vector design, laser cut and assembly)</li>
+<li>Circuit design</li>
+<li>Code</li>
+</ul>
+<p>The circuits were conceptually pretty simple: LEDs turn on and off, as well as detect and take action based off amount of light received from a photoresistor (LDR). Since the LEDs drew more power than was available from the Micro:bit itself (particularly since it also had to supply power to the LDRs) I decided to use transistors to switch power from an external battery pack to the LEDs. Since the servos were plugged into a dedicated servo controller board, they too were very straightforward.</p>
+<p>I've been getting more interested in laser cutting recently, and so the physical design was really enjoyable. I mocked up my designs by hand before drawing the pieces up in Affinity Designer (not really the right tool for the job, but it works). I had used <a href="http://www.makercase.com/" target="_blank" rel="noopener noreferrer">MakerCase </a>with my students before to design simple boxes with cutouts, so I had some idea of how to design finger joints for some structure, and the main challenge was making the design big enough to house the components and allow a decent level of detail in the extras like the dead tree and the spooks inside. Apart from a couple of stuff-ups where my mental model didn't translate to the real world that well resulting in re-cuts, this went pretty smoothly, although it took about a week, mostly due to only being able to cut at work (and when I wasn't teaching 😅).</p>
+<p>I was expecting the code to be the easiest part of the whole exercise, since that is what I'm most familiar with. The basic idea for the two Micro:bits took a couple of hours to hash out in my head and roughly debug without having access to the boards. The wrinkle came when I actually loaded the code - or rather when I tried to.</p>
+<p>Initially, my relatively simple model of a two-class program with a basic event loop was rejected as being too big to parse! I trimmed it down a bit (goodbye docstrings!) and tried again, only to encounter a memory error. Occasionally, the Micro:bit was even nice enough to tell me a number after the memory error, which I ended up guessing referred to how much of my code it failed to load, since it went down as I trimmed out functions, shortened strings, shifted dictionaries to lists, collapsed multiple objects to a singleton, and so on. The joys of programming on microcontrollers in interpreted languages!</p>
+<p>Eventually I ended up with some plain old runtime errors, and I don't think I've ever been so happy to see one, since it meant at least my code was running on the board. Coding was still the least time-consuming part of the process, but ended up being a surprisingly challenging exercise.</p>
+<h2 id="mcetoc_1d0rduh351">Reflection</h2>
+<p>The whole process was really enjoyable - it ended up looking great, and works just as I envisioned it (although I didn't imagine the noisy servos in my head 😐). I haven't gotten around to building the light gun yet, since I'm having a lot of trouble figuring out how to get a nice tight beam from an LED without expensive optics or shifting to a laser, but for now a torch is sufficient.</p>
+<p>I'm planning on adding a score board using a third Micro:bit sitting on the top of the structure (maybe when I design and cut out a tiled roof), and since I already have all the radio messages from the other two boards, I shouldn't need to add very much code to the others. This is a good thing, since I was getting to the point where adding in debugging messages to the servo board was pushing me over the memory limit!</p>
+<p>I learned a fair bit about mixing different power levels in circuits along the way which I'll be able to use in my teaching, and I'll certainly have a few gotchas to look out for if any of my students start putting together complex programs.</p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>Year 7: Minecraft: EE and Programming</title>
+        <author>
+            <name>Rob</name>
+        </author>
+        <link href="https://headtilt.me/year-7-minecraft-ee-and-programming/"/>
+        <id>https://headtilt.me/year-7-minecraft-ee-and-programming/</id>
+
+        <updated>2018-09-24T14:13:43+08:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://headtilt.me/media/posts/71/chess_landscape.png" alt="Chess Landscape" />
+                    This is the first year that Digital Technologies has been a mandatory&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <img src="https://headtilt.me/media/posts/71/chess_landscape.png" alt="Chess Landscape" />
+                <p>This is the first year that Digital Technologies has been a mandatory part of the Australian curriculum through to Year 8. Whilst the subject area contains a <a href="https://k10outline.scsa.wa.edu.au/home/teaching/curriculum-browser/technologies/digital-technologies2#year-7-syllabus" target="_blank" rel="noopener noreferrer">number of different topics</a>, the one that generally comes to mind (helped in no small part by our politicians and media 🙄 banging on about 'coding' this, and 'coding' that) is programming and algorithmic thinking.</p>
+<p>Since our education sector has a fairly comprehensive set of licenses to all things Microsoft, we have Minecraft: Education Edition licenses for all of our students and staff. While I am not that big of a fan of Minecraft's system of switches and redstone wiring (I prefer my programming higher level and less clunky), I do quite like plugging in external programming through Code Connection, as I've written about before in toying with <a href="#INTERNAL_LINK#/post/70" title="Minecraft Edu Edition: Geological Surveys">core sampling</a>.</p>
+<p>With my Year 7s I thought I'd try out covering the programming component with <a href="https://education.minecraft.net/" target="_blank" rel="noopener noreferrer">Minecraft: EE</a> and <a href="https://education.minecraft.net/trainings/code-builder-for-minecraft-education-edition" target="_blank" rel="noopener noreferrer">Code Connection</a>. It gives students some nice ways to visualise problems they need to solve, as they can build/prototype a solution and then design a program which creates that solution for them.</p>
+<h2>Aim</h2>
+<p>I've been kicking around this idea since attending a workshop on Minecraft: EE with <a href="https://twitter.com/kieranbailey" target="_blank" rel="noopener noreferrer">Kieran Bailey</a> at the <a href="https://ecawa.wa.edu.au/conferences/2018-state-conference/" target="_blank" rel="noopener noreferrer">ECAWA State Conference</a> earlier this year. Initially I was thinking about pursuing a series of lessons looking at automated agriculture (and probably will revisit that later on), but ended up with some more disjointed ideas building off Code Connection tutorials (so that students had somewhere to start in a self-paced fashion, and more importantly someone else had written the material!) and examining programming fundamentals like looping, conditionals, and variables.</p>
+<p>At the end of the series of lessons, I got students to build a few programs for me. There was some mixed success, and I'll discuss the successes and failures a bit further down.</p>
+<p><img class="post__image--right" src="https://headtilt.me/media/posts/71/my_head_final.PNG" alt="Heads" width="880" height="621">When designing the tasks, I had a few aims in mind:</p>
+<ul>
+<li>Get students to create something engaging where they wanted to solve the problem for themselves, not because it was an assessment.</li>
+<li>Have a range of different ways of solving the problems.</li>
+<li>Involve physical prototypes so that students could build the solution themselves to help them visualise the outcome and assist with programming in 3D space.</li>
+<li>Make it difficult or impossible to share answers, whilst still allowing students to learn techniques off each other.</li>
+</ul>
+<p><img class="post__image--right" src="https://headtilt.me/media/posts/71/signatures.png" alt="Lava Signatures" width="964" height="303">My tasks were to create programs that:</p>
+<ul>
+<li>Build a blocky version of the student's own head.</li>
+<li>Sign their initials in lava in a trench in the ground.</li>
+<li>Build chess boards of a specified size.</li>
+</ul>
+<p>The first two tasks I'm fairly happy with, but the last one, although I like the problem in itself as there are multiple ways to solve it, obviously doesn't satisfy my last aim.</p>
+<h2>Failures</h2>
+<p>The first group through a new course is always the hardest, as it's difficult to pitch assessments at the right level to challenge but still include all students. My expectations were definitely too high with this set of tasks, and will need adjustments to both how I teach the content and in the difficulty of the assessment next year.</p>
+<p><img class="post__image--right" src="https://headtilt.me/media/posts/71/tutorial_snipped.PNG" alt="OneNote tutorial snippet" width="573" height="433">One of the failures of Minecraft: EE is that since everything is kept in local storage for each student, and the process of switching programs is quite cumbersome (involving a lot of external resource loading, despite programs and Minecraft server being on the local machine), it can be quite tough to ensure students are on track rather than merrily running about doing their own thing. My lesson format for this topic is typically a step by step tutorial (with explanations and screenshots) in OneNote for students to follow, along with 2-3 extension activities at the end which use the concept in a different setting. In future I'll get students to add their own screenshots to a table at the end showing their code and results from the extension activities in order to keep them a bit more accountable.</p>
+<p>As the subject is mandatory now rather than an elective, there are many different literacy (and numeracy - particularly involving 3D space) levels who need to be catered for. Although I try to differentiate instruction in a number of ways (demo and explain verbally, self-paced written and graphical tutorials, teach by the side), it is always surprising who struggles with some concepts or learning methods. Whilst it is incredibly time consuming, next time around I'll add some video tutorials to the mix as well as some smaller explainers and demos to cover some more bases.</p>
+<p> </p>
+<h2>Successes</h2>
+<p>In 2018, Minecraft is an ancient beast, but I've been impressed at the coverage of students who, whilst initially complaining about it, have gotten right into the platform and a lot of the coding problems. Minecraft: EE has been a win on the engagement front.</p>
+<p>Although it's by far the hardest of the three problems I gave students (and stupidly, I put it first in the task list) the "build your own head" problem has proven to be a win for getting students to really think about the task in a number of different ways. With some tweaking and more targeted introductory lessons, I think this has a lot of potential for future assessment.</p>
+<p>Minecraft: EE and Code Connection has a range of really nice tutorials to build from, which provides a nice gentle introduction for both students and teachers, and they are general enough that I have been able to introduce several different concepts using them as a base.</p>
+<p>Using a Minecraft world as a prototyping playground is often hilarious. There have been a number of nightmare hellscapes of half-formed heads that my students have created while debugging their programs.</p>
             ]]>
         </content>
     </entry>
