@@ -3,7 +3,7 @@
     <title>Headtilt</title>
     <link href="https://headtilt.me/feed.xml" rel="self" />
     <link href="https://headtilt.me" />
-    <updated>2019-04-19T14:07:49+08:00</updated>
+    <updated>2019-04-19T14:21:45+08:00</updated>
     <author>
         <name>Rob</name>
     </author>
@@ -17,7 +17,7 @@
         <link href="https://headtilt.me/dowsing-for-radio/"/>
         <id>https://headtilt.me/dowsing-for-radio/</id>
 
-        <updated>2019-04-19T14:07:40+08:00</updated>
+        <updated>2019-04-19T14:21:39+08:00</updated>
             <summary>
                 <![CDATA[
                         <img src="https://headtilt.me/media/posts/76/IMG_2246.jpg" alt="" />
@@ -40,6 +40,7 @@
 </figure>
 <p>However, in the spirit of cheesy sci-fi I wanted to build a hand-held detector that had glowy lights and moving parts. Although I didn't recognise it at the time, what I had in my head was the Psycho-Kinetic Energy (P.K.E.) Meter from Ghost Busters.</p>
 <p>Although I initially wanted to have acrylic arms which could be bottom-lit using RGB LEDs, I ended up just using MDF parts, and embedding a single RGB LED in the face of the housing. If I revisit the design later on I'll see about making a fancier version, but I ran out of prototyping time for this design.</p>
+<p class="msg msg--info">Another idea which would be good (and thinking about accessibility) is incorporating a piezo or larger speaker into the design so that there could be some audio as well as visual feedback on signal strength.</p>
 <p>I used a cheap USB power bank for the power supply, and the excellent DFRobot Micro:mate to break out the pins for my LED and servos. </p>
 <div class="gallery"   >
 <figure class="gallery__item"><a href="https://headtilt.me/media/posts/76/gallery/IMG_2248.jpg" ><img src="https://headtilt.me/media/posts/76/gallery/IMG_2248-thumbnail.jpg" alt="Low signal" width="240" height="240"></a>
@@ -53,7 +54,7 @@
 </figure>
 </div>
 <h2 id="mcetoc_1d823l48k2">Technical Stuff</h2>
-<p>The signal strength (RSSI, measured in dBm) theoretically is measured from -255 to 0, with 0 being the strongest. In my testing however, I rarely saw values outside of -30 to -100, so when converting the received signal strength into a percentage for use as an angle and hue, any readings outside of this space got compressed to the extremes.</p>
+<p>The signal strength (RSSI, measured in dBm) theoretically is measured from -255 to 0, with 0 being the strongest (<a href="https://microbit-micropython.readthedocs.io/en/latest/radio.html#radio.receive_full">MicroPython docs</a> on using receive_full() with the Micro:bit). In my testing however, I rarely saw values outside of -30 to -100, so when converting the received signal strength into a percentage for use as an angle and hue, any readings outside of this space got compressed to the extremes.</p>
 <pre><code class="language-python">
   rssi = abs(rssi) - 30
   if rssi &lt; 0:
@@ -72,6 +73,7 @@
       del last[0]
   perc_avg = sum(last) / len(last)
   </code></pre>
+<p id="mcetoc_1d8q3tuqq0" class="msg msg--highlight ">Using the average could potentially be an issue if sitting between a pair of transmitters, but generally students moved around enough that it wasn't a problem of two equally strong signals interfering with the readings, and set the signal strength low enough that messages were not received beyond 3-4 meters, so judicious placement of beacons sorted this fairly well.</p>
 <h2 id="mcetoc_1d823l7nd3">Review</h2>
 <p>Short range radio strength is quite finnicky, and so no matter how much fiddling I do with the code it will never work exactly how I want it due to interference, the direction of the antennas, and what I had for breakfast. However, I think the finished product works passably well, the physical design for the housing gives it a nice theatrical (if boxy) air, and it's a fun activity for the kids to do while learning about some of the properties of wireless communication.</p>
 <p>If anyone is interested in the code or laser cut designs, they are in my <a href="https://github.com/zarify/microbit/tree/master/Radio_Dowsing">Microbit Github repo</a> along with the other things I make.</p>
