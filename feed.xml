@@ -3,7 +3,7 @@
     <title>Headtilt</title>
     <link href="https://headtilt.me/feed.xml" rel="self" />
     <link href="https://headtilt.me" />
-    <updated>2019-12-23T16:19:39+08:00</updated>
+    <updated>2019-12-23T17:03:26+08:00</updated>
     <author>
         <name>Rob</name>
     </author>
@@ -17,7 +17,7 @@
         <link href="https://headtilt.me/microbit-robotics-review-2019/"/>
         <id>https://headtilt.me/microbit-robotics-review-2019/</id>
 
-        <updated>2019-12-23T16:19:08+08:00</updated>
+        <updated>2019-12-23T16:59:28+08:00</updated>
             <summary>
                 <![CDATA[
                         <img src="https://headtilt.me/media/posts/78/pong_early.png" alt="" />
@@ -69,14 +69,14 @@
 <li><a href="https://twitter.com/robpoulter/status/1201597395525668866">Thread 1</a></li>
 <li><a href="https://twitter.com/robpoulter/status/1204999455935582208">Thread 2</a></li>
 </ul>
-<p>...as well as some of the projects from first semester.</p>
-<p> </p>
-<figure class="post__video"><video width="300" height="150" controls="controls" >
-<source src="https://headtilt.me/media/files/robo_2019_ufo.m4v" /></video></figure>
-<figure class="post__video"><video width="300" height="150" controls="controls" >
-<source src="https://headtilt.me/media/files/robo_2019_dog.m4v" /></video></figure>
-<h2 id="mcetoc_1dsoi7dja0"> Navel Gazing</h2>
+<h2 id="mcetoc_1dsoi7dja0">Navel Gazing</h2>
 <p>I really like Robotics as a teaching area; it incorporates a lot of the Digital Technologies curriculum in an effortless manner (such as evaluating designs, designing for user interaction, the role of hardware and constraints of speed and memory and so on) which can be difficult in other settings where these ideas sometimes need be put into a quite contrived context. This isn't without drawbacks however, since to run an effective Robotics class I am constantly trying to balance teaching the three main topics of algorithms, electronics, and design (since many final projects are 3D objects laser cut to fit components), which is a real challenge given the limited timeframe.</p>
+<p>Just to finish things off, here are a couple of short videos from a pair of my favourite projects from the first half of the year, a cow being abducted bya UFO (the pulley system just never really worked out sadly) and a papercraft corgi that shakes its head and woofs (and by 'woof' I mean uses the speech module in MicroPython to say 'woof woof' :).</p>
+<figure class="post__video"><video width="300" height="300" controls="controls" >
+<source src="https://headtilt.me/media/files/robo_2019_ufo.m4v" /></video></figure>
+<figure class="post__video"><video width="300" height="300" controls="controls" >
+<source src="https://headtilt.me/media/files/robo_2019_dog.m4v" /></video></figure>
+<h2 id="mcetoc_1dsoi7dja0"> </h2>
 <p> </p>
             ]]>
         </content>
