@@ -3,12 +3,84 @@
     <title>Headtilt</title>
     <link href="https://headtilt.me/feed.xml" rel="self" />
     <link href="https://headtilt.me" />
-    <updated>2019-04-19T14:21:45+08:00</updated>
+    <updated>2019-12-23T16:19:39+08:00</updated>
     <author>
         <name>Rob</name>
     </author>
     <id>https://headtilt.me</id>
 
+    <entry>
+        <title>Micro:bit Robotics Review 2019</title>
+        <author>
+            <name>Rob</name>
+        </author>
+        <link href="https://headtilt.me/microbit-robotics-review-2019/"/>
+        <id>https://headtilt.me/microbit-robotics-review-2019/</id>
+
+        <updated>2019-12-23T16:19:08+08:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://headtilt.me/media/posts/78/pong_early.png" alt="" />
+                    This is a bit of a retrospective of teaching Robotics as a&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <img src="https://headtilt.me/media/posts/78/pong_early.png" alt="" />
+                <p><img class="post__image--right" src="https://headtilt.me/media/posts/78/cowterpillar_snap.png" alt="Cowterpillar robot" width="485" height="491">This is a bit of a retrospective of teaching Robotics as a subject to Year 8 students this year. A bit of a theme for my newish subjects tends to be a reduction in expectations as I filter out what I would have liked to have worked into what actually worked and variations on a theme.</p>
+<p>The three themes I've really thought about since I started teaching this subject are:</p>
+<ol>
+<li>Programming environment</li>
+<li>Inputs and outputs</li>
+<li>Project freedom and complexity</li>
+</ol>
+<p>My typical course runs something like this:</p>
+<ul>
+<li>Spend some time looking at what robots are and their variations (inputs and some form of output affecting their environment) like robotic systems (~2 lessons).</li>
+<li>Programming crash course using different sensors and outputs as a theme (single sensor or output at a time) (~half a term).</li>
+<li>Electronics crash course in building simple circuits, and understanding digital and analog systems (~half a aterm).</li>
+<li>Personal or group project (~6 weeks with some post project evaluation).</li>
+</ul>
+<p class="msg msg--success">I currently get 2 lessons (of 45-50 minutes each) per week over around 20 weeks (1 semester). Assuming I lose students for around 6 lessons due to absences, public holidays, excursions etc, this means I have about 22 hours with them in total.</p>
+<h2 id="mcetoc_1dsnv8n9i0">Programming Environment</h2>
+<p>There are two options which students have (with easy access anyway): <a href="https://microbit-micropython.readthedocs.io/en/latest/">MicroPython </a>and <a href="https://www.microsoft.com/en-us/makecode">Microsoft MakeCode</a>. Being a fan of Python on the desktop/server I have always leaned towards MicroPython as my language of choice when programming Micro:bits, since you're using the fundamentals of a general purpose programming language and complex programs are much easier to manage than block-based programming. However there are a couple of significant downsides: there is very little memory available for your program, and events and signals aren't a thing, meaning you need to poll for events, making interactive programs quite tricky in some cases, and any work with SPI or I2C modules mean you're trolling Github for libraries or learning about their arcane rites.</p>
+<p><img class="post__image--right" src="https://headtilt.me/media/posts/78/microbit-screenshot-pong-server-small.png" alt="Pong Server MakeCode" width="1024" height="462">MakeCode on the other hand benefits from a decent library management system that's easy to search through for kids, a lack of syntax errors (although occasionally my students get burnt by trying to compare integers to strings), being able to fit quite complex programs onto the Micro:bit, and most importantly events, although these can be a double edged sword. The downside is that complex programs end in you panning around the program canvas continuously at tiny zoom levels, and rearranging your code chunks all the time so they don't overlap (or taking your life into your own hands and asking the browser to format your code and then spending the next few minutes finding all your chunks again).</p>
+<h2 id="mcetoc_1dsnv8poc1">Electronics</h2>
+<p>When I started out with the Robotics subject in 2018 there were a pretty large array of sensors and outputs that I wanted to use so that students could really build a range of diverse projects. Unfortunately, even though these all worked in very similar ways (analog, digital, or through a protocol like SPI/I2C) lots of students struggled because they either didn't have the time to practice and get comfortable, or had trouble deciding on a direction because of an All The Things problem.</p>
+<p>This year I cut down my set of explicit instruction and practice to a few different components:</p>
+<ul>
+<li>Servos (continuous and standard)</li>
+<li>WS2812B LEDs ("Neopixels")</li>
+<li>Speakers</li>
+<li>Passive InfraRed sensors</li>
+<li>InfraRed line followers<br><em>(These were without fail used as proximity switches rather than their intended purpose)</em></li>
+<li>Potentiometers</li>
+<li>Light Dependent Resistors</li>
+</ul>
+<p>This gives students a few options for different methods of input in addition to the accelerometer, buttons, etc built into the Micro:bit, and a range of outputs that can exhibit different behaviours (stationary, moving, visual, audible).</p>
+<p>Most students this year created projects involving servos, RGB LEDs, and PIR sensors, and they ended up with some fairly diverse sets of features, so I'm pretty happy to work with that set of tools going forward.</p>
+<p class="msg msg--success"><img class="post__image--right" src="https://headtilt.me/media/posts/78/ws2812b.png" alt="" width="864" height="490">I soldered up a whole bunch (~50) of RGB LEDs to 3 port plugs to make them easier to use and practice with. This worked really well, except next time I'll cross over the voltage and data pins so the plugs can go straight onto the pins on the Micro:mate boards in the standard Ground-Volage-Data order. Normally I just pull the male ends off some of my male-female dupont jumper leads and solder the ends which were crimped into the plug onto whatever I'm working with. Saves me doing up dupont plugs myself and doesn't cost a lot.</p>
+<h2 id="mcetoc_1dsnv8s7c2">Projects</h2>
+<p>My biggest lesson from eight groups of student projects, is that a reduction in the freedom to choose is a Good Thing. Extension kids will roam free without my encouragement (or in most cases event explicit permission), and the reduced scope tends to make it easier for the students who struggle.</p>
+<p>My first set of projects focused on the <a href="https://www.globalgoals.org/">UN Global Goals</a>, and although these gave some good real world focus areas, there is still an intimidating array of different paths which could be pursued. There's good scope for building interesting (yet fairly simple) environmental monitoring tools such as water quality, data logging of temperature, soil moisture monitoring and so on, but reading through each of the goals and their associated targets is quite time consuming.</p>
+<p>This year I have predominately focused on animatronics. Whilst it's a bit light and fluffy compared with getting students to think Deep Thoughts (in a <a href="https://hitchhikers.fandom.com/wiki/Deep_Thought">Douglas Adams sense</a>) about solving global problems with robotics, it's also much more achievable in the timeframe that I have available to me. In the future I intend to build some learning resources around environmental monitoring as an aid for students in understanding how different types of sensors operate.</p>
+<p>Here are a couple of short Twitter threads with some of the projects my students have built in the latter half of this year:</p>
+<ul>
+<li><a href="https://twitter.com/robpoulter/status/1201597395525668866">Thread 1</a></li>
+<li><a href="https://twitter.com/robpoulter/status/1204999455935582208">Thread 2</a></li>
+</ul>
+<p>...as well as some of the projects from first semester.</p>
+<p> </p>
+<figure class="post__video"><video width="300" height="150" controls="controls" >
+<source src="https://headtilt.me/media/files/robo_2019_ufo.m4v" /></video></figure>
+<figure class="post__video"><video width="300" height="150" controls="controls" >
+<source src="https://headtilt.me/media/files/robo_2019_dog.m4v" /></video></figure>
+<h2 id="mcetoc_1dsoi7dja0"> Navel Gazing</h2>
+<p>I really like Robotics as a teaching area; it incorporates a lot of the Digital Technologies curriculum in an effortless manner (such as evaluating designs, designing for user interaction, the role of hardware and constraints of speed and memory and so on) which can be difficult in other settings where these ideas sometimes need be put into a quite contrived context. This isn't without drawbacks however, since to run an effective Robotics class I am constantly trying to balance teaching the three main topics of algorithms, electronics, and design (since many final projects are 3D objects laser cut to fit components), which is a real challenge given the limited timeframe.</p>
+<p> </p>
+            ]]>
+        </content>
+    </entry>
     <entry>
         <title>Dowsing for Radio</title>
         <author>
@@ -321,7 +393,7 @@
 <ul>
 <li>Detect whether a door has been opened.</li>
 <li>Turn on/off lights based on ambient light level (digital behaviour) or change light brightness or colour (analog behaviour).</li>
-<li>Sensors for 'light guns' (see my <a href="#INTERNAL_LINK#/post/74">haunted house project</a>).</li>
+<li>Sensors for 'light guns' (see my <a href="https://headtilt.me/microbit-haunted-house/">haunted house project</a>).</li>
 <li>Particlulate sensor for liquids (shine a known intensity light through sample, detect amount that gets through).</li>
 </ul>
 <p class="msg msg--success">I've been meaning to have a go at building a sun tracker using a series of LDRs set into the rim of a disk mounted on a servo, potentially for adjusting a solar panel to follow the sun.</p>
@@ -499,7 +571,7 @@
             <![CDATA[
                     <img src="https://headtilt.me/media/posts/71/chess_landscape.png" alt="Chess Landscape" />
                 <p>This is the first year that Digital Technologies has been a mandatory part of the Australian curriculum through to Year 8. Whilst the subject area contains a <a href="https://k10outline.scsa.wa.edu.au/home/teaching/curriculum-browser/technologies/digital-technologies2#year-7-syllabus" target="_blank" rel="noopener noreferrer">number of different topics</a>, the one that generally comes to mind (helped in no small part by our politicians and media 🙄 banging on about 'coding' this, and 'coding' that) is programming and algorithmic thinking.</p>
-<p>Since our education sector has a fairly comprehensive set of licenses to all things Microsoft, we have Minecraft: Education Edition licenses for all of our students and staff. While I am not that big of a fan of Minecraft's system of switches and redstone wiring (I prefer my programming higher level and less clunky), I do quite like plugging in external programming through Code Connection, as I've written about before in toying with <a href="#INTERNAL_LINK#/post/70" title="Minecraft Edu Edition: Geological Surveys">core sampling</a>.</p>
+<p>Since our education sector has a fairly comprehensive set of licenses to all things Microsoft, we have Minecraft: Education Edition licenses for all of our students and staff. While I am not that big of a fan of Minecraft's system of switches and redstone wiring (I prefer my programming higher level and less clunky), I do quite like plugging in external programming through Code Connection, as I've written about before in toying with <a href="https://headtilt.me/minecraft-edu-edition-geological-surveys/" title="Minecraft Edu Edition: Geological Surveys">core sampling</a>.</p>
 <p>With my Year 7s I thought I'd try out covering the programming component with <a href="https://education.minecraft.net/" target="_blank" rel="noopener noreferrer">Minecraft: EE</a> and <a href="https://education.minecraft.net/trainings/code-builder-for-minecraft-education-edition" target="_blank" rel="noopener noreferrer">Code Connection</a>. It gives students some nice ways to visualise problems they need to solve, as they can build/prototype a solution and then design a program which creates that solution for them.</p>
 <h2>Aim</h2>
 <p>I've been kicking around this idea since attending a workshop on Minecraft: EE with <a href="https://twitter.com/kieranbailey" target="_blank" rel="noopener noreferrer">Kieran Bailey</a> at the <a href="https://ecawa.wa.edu.au/conferences/2018-state-conference/" target="_blank" rel="noopener noreferrer">ECAWA State Conference</a> earlier this year. Initially I was thinking about pursuing a series of lessons looking at automated agriculture (and probably will revisit that later on), but ended up with some more disjointed ideas building off Code Connection tutorials (so that students had somewhere to start in a self-paced fashion, and more importantly someone else had written the material!) and examining programming fundamentals like looping, conditionals, and variables.</p>
@@ -652,7 +724,7 @@
         <content type="html">
             <![CDATA[
                 <h1 id="mcetoc_1d0rdvsr00">Security of Wireless Networks</h1>
-<p>My <a href="#INTERNAL_LINK#/post/67">previous lesson</a> looking at wireless networks used Microbits and their Bluetooth networking to illustrate some of the problems with local wireless networks (as opposed to general internet connectivity, which we mostly did by doing speed tests and complaining about the school's net connection :).</p>
+<p>My <a href="https://headtilt.me/year-7-8-wireless-network-concepts-with-microbits/">previous lesson</a> looking at wireless networks used Microbits and their Bluetooth networking to illustrate some of the problems with local wireless networks (as opposed to general internet connectivity, which we mostly did by doing speed tests and complaining about the school's net connection :).</p>
 <p>At the end I wrote a bit about what I wanted to do with the next lesson, which was look at some basic crypto to handle the eavesdropping problem we had when someone else listened to the same channel we were communicating on.</p>
 <p>(<strong>Note for anyone who wants to yell at me through the internet:</strong> I'm well aware that this is not anything approaching real crypto, and I'll be the first to tell my kids that if they want to know more about how modern crypto really works, the first thing they need to do is go and find someone who really understands it - this is about what it does, not how it works.)</p>
 <figure class="post__image post__image--right" ><img src="https://headtilt.me/media/posts/68/Almighty+XOR.png" alt=" The Almighty XOR ">
@@ -672,54 +744,6 @@
 <p>Debugging is still annoying. Let's say there's a syntax error in your code, because you're just not paying attention. The Microbit will try and be helpful and, when it flashes and restarts, will tell you about any errors using the LED array. However, trying to read an error message scrolling across the LED array is just plain painful, since it is quite bright, and also only shows you about a character and a half at a time. If you're lucky, opening a REPL will also give you the error message in a way that preserves your eyes and your sanity, but I didn't have this work all the time. I just tried to ignore the bright lights, and focus on the bit where it told you the line number of the error.</p>
 <p>I quite like Mu. It's clean, simple, has (slightly overzealous) code completion, and it's nice getting to the REPL and being able to do code introspection. BUT Mu's 'check syntax' function checks syntax, but also highlights lines that don't obey its style guidelines. So this means if you're somewhat lazy about putting spaces after commas in argument lists or list definitions, you'll get exactly the same red indicator at the start of the line as a genuine syntax error (and it is <strong>very</strong> opinionated about coding style, oh, and not being able to find an EOF at the end of the file).</p>
 <p>Lastly, writing code which you can only interface with using two buttons and some basic gestures is hard. Talk about minimalism in UI design.</p>
-            ]]>
-        </content>
-    </entry>
-    <entry>
-        <title>Year 7-8: Wireless Network Concepts with Microbits</title>
-        <author>
-            <name>Rob</name>
-        </author>
-        <link href="https://headtilt.me/year-7-8-wireless-network-concepts-with-microbits/"/>
-        <id>https://headtilt.me/year-7-8-wireless-network-concepts-with-microbits/</id>
-
-        <updated>2019-01-10T16:28:29+08:00</updated>
-            <summary>
-                <![CDATA[
-                    OverviewPart of the new Digital Technologies curriculum for year 7 and 8&hellip;
-                ]]>
-            </summary>
-        <content type="html">
-            <![CDATA[
-                <h1 id="mcetoc_1d0re0qbd0">Overview</h1>
-<p>Part of the new Digital Technologies curriculum for year 7 and 8 involves students learning about wired and wireless networks, and methods of data transmission and security. There are activities from the Digital Technologies Learning Hub that deal with <a target="_blank" href="https://www.digitaltechnologieshub.edu.au/teachers/lesson-ideas/computer-chatter-1" rel="noopener noreferrer">routing</a> and <a target="_blank" href="https://www.digitaltechnologieshub.edu.au/teachers/lesson-ideas/computer-chatter-2" rel="noopener noreferrer">issues with performance</a> (that are pretty good unplugged activities). I use these or variations on these when I teach those concepts, but I wanted to put together something that actually involved technology in the classroom, and dealt with ideas a bit lower down the network stack.</p>
-<h1 id="mcetoc_1d0re0qbd1">Playing with Microbits</h1>
-<p>This year we got some <a target="_blank" href="http://microbit.org" rel="noopener noreferrer">BBC Microbits</a>, and I've been looking at how to use them with my classes in an effective (and manageable) way. After playing around with some basic communication via Bluetooth with the Microbits, I thought I'd have a crack at writing some simple programs for students to use to encounter some of the problems with wireless networking, and use it as a hook for looking at ways that we've fixed those problems.</p>
-<p>Microbits can broadcast messages via Bluetooth Low Energy, and allow you to choose the channel that they transmit/listen on per device. I wrote a (slightly tedious) program in the blocks interface (link here: <a target="_blank" href="https://pxt.microbit.org/06484-09741-52714-91595" rel="noopener noreferrer">feel free to use/abuse it</a>) that did the following:</p>
-<ul>
-<li>A button: choose a random picture to display on the screen</li>
-<li>B button: broadcast the picture, pixel by pixel, to any listening Microbits</li>
-<li>A+B buttons: switch to the next channel (cycle through 7 channels)</li>
-</ul>
-<p>The video below shows two of them in action.</p>
-<p><iframe width="540" height="360" src="https://player.vimeo.com/video/217261990?wmode=opaque&amp;api=1" frameborder="0" title="Wireless Picture Transmission with Microbits" webkitallowfullscreen="webkitallowfullscreen" mozallowfullscreen="mozallowfullscreen" allowfullscreen="allowfullscreen"></iframe></p>
-<h1 id="mcetoc_1d0re0qbd2">Lesson ideas</h1>
-<p>If you dig through the code for the program, you'll see there are artificial pauses between the transmission of each 'pixel'/LED state. I ran into speed issues when transmitting them as fast as I could, where a number of pixels would not light up. This sort of worked out for the best, since it gave me an artificial latency figure I could manipulate, as well as giving students the idea that not just the lit up LED states were being transmitted, but also the state of the unlit ones.</p>
-<p>I didn't want to send the state of the entire board at once, since two of the concepts I wanted students to discover were those of attenuation and interference from signal-absorbing materials (mostly from, in my words: "giant sacks of water", i.e. lots of students standing in between the transmitter and receiver). Since pixels were being transmitted one at a time, there was plenty of opportunity for images to be corrupted in transmission. I had kids hiding behind metal doors of cabinets, calling to each other across the courtyard asking what picture popped up on the receiver, and basically seeing what broke when. It was chaotic but pretty neat.</p>
-<p>I have two other teachers who deliver at the same time as me, and I had prepped them with their own Microbits for that lesson. I didn't realise that one of them was in the next room however, which made the fact that all devices started transmitting on Channel 1 entertaining at the start of the lesson, but also a good jumping off point for why we need different channels, and rules for effective transmission in crowded networks.</p>
-<h1 id="mcetoc_1d0re0qbd3">Where to next</h1>
-<p>The block code is really quite limiting for this sort of program. It involved all sorts of horrible attempts at type casting, and was both fun to write (in the end!) and quite frustrating. At the same time it was good to see how complex a solution to my problem I could get without having to switch to Python.</p>
-<h2 id="mcetoc_1d0re0qbd4">Some take-aways</h2>
-<ul>
-<li>I'm not sure if it's an feature of the block code or not, but you can't set the radios up to listen for different types of messages. For example you can't have integers, strings, and key/value pairs being broadcast and figure out what to do with them based on the type of message. This is why I ended up having the horrible reset method in there which checked the length of the value in the key/value pair.</li>
-<li>The block code has a method for changing strings to integers, but doesn't seem to have a way to change integers to strings. This is relevant because I had a go at transmitting the entire state of the LED array as a bit string (see the bit at the end on next lesson) to avoid having to process each LED individually (which worked well for this lesson anyway, but isn't ideal).</li>
-<li>The block interface handles if-else if-else if-...etc really nicely. Hit the config button in an if block, and then drag in as many else-if blocks as you need. Huge improvement on the way something like Scratch works.</li>
-<li>The simulator is just rubbish for any moderately complicated radio transmission. I got an incredibly basic program to work in the simulator and was briefly impressed, but this one just refused to work at all, despite working fine on the real hardware.</li>
-</ul>
-<h2 id="mcetoc_1d0re0qbd5">Encryption</h2>
-<p>We ended the lesson with the problems of clear text communication, with lots of students suggesting that we need a "different language" so that eavesdroppers don't know what we're saying to each other. I've had mixed success looking at encryption with this level of students before, so want to try something different this time around.</p>
-<p>Usually there's lots of historical navel gazing at Caesar Ciphers, moving onto columnar ciphers and the like, and then we run out of time and move on. This time I want to look at one time pads (well, actually multi time pads, but I don't want to have to figure out how to transcribe a one time pad into each Microbit using two physical buttons each time - <em>sorry serious security people!</em>) using XOR, and then try and find a good way of ending up at the idea of public/private keys, if not an actual implementation.</p>
-<p>My plan is to implement the program I used for this class in Python, and then, with better control over the actual data, set up the devices with their own pads in pairs to use, so we can see how this affects others ability to eavesdrop on the transmitted pictures, despite still using the same channel.</p>
             ]]>
         </content>
     </entry>

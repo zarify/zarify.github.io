@@ -1,114 +1,468 @@
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://headtilt.me/sitemap.xsl"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 <url>
 <loc>https://headtilt.me/</loc>
 </url>
 <url>
 <loc>https://headtilt.me/11-update-to-repeat/</loc>
+<lastmod>2018-08-18T20:19:56+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\47/calendar_view.png</image:loc>
+<image:title><![CDATA[ Calendar View for task history ]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/About/</loc>
+<lastmod>2018-08-18T16:01:03+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\5/rob.jpg</image:loc>
+<image:title><![CDATA[Rob Poulter]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/adventures-in-auto-layout/</loc>
+<lastmod>2018-08-18T20:25:33+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\41/anyany.png</image:loc>
+<image:title><![CDATA[ For limited values of ]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/app-discovery-and-ratings/</loc>
+<lastmod>2018-08-18T20:21:33+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\45/8267591031_bd43b71992_z.jpg</image:loc>
+<image:title><![CDATA[  Pond Scum  Texture X (CC-BY 2.0) ]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/at-what-price-freedom/</loc>
+<lastmod>2018-08-18T18:13:50+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/carekit/</loc>
+<lastmod>2018-08-18T18:13:57+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/changelogs-in-the-app-store/</loc>
+<lastmod>2018-08-18T20:31:01+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\23/youtube.jpg</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\23/pinterest.jpg</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\23/facebook.jpg</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\23/messenger.jpg</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\23/facebook_grounds.jpg</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/computing-as-a-subject/</loc>
+<lastmod>2018-08-18T18:20:03+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/content-advertising/</loc>
+<lastmod>2018-08-18T18:17:43+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/content-blocking/</loc>
+<lastmod>2018-08-18T18:17:53+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/dead-or-just-sleeping/</loc>
+<lastmod>2018-08-18T18:13:36+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/deferred-attention/</loc>
+<lastmod>2018-08-18T20:17:15+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\54/workflow.png</image:loc>
+<image:title><![CDATA[ My super-basic email Workflow ]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\54/workflow2.png</image:loc>
+<image:title><![CDATA[ Workflow to send things to Reminders ]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/delivery-or-garbage-truck/</loc>
+<lastmod>2018-08-18T20:20:43+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\46/download.png</image:loc>
+<image:title><![CDATA[ Some of the quality Role Playing Games in the Explore section of the iOS App Store. ]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/designing-a-microbit-robot/</loc>
+<lastmod>2019-04-11T06:17:18+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75/front_view.jpg</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75//gallery/IMG_2191-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Linear actuator design]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75//gallery/IMG_2192-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Motion ideas for linear movement]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75//gallery/IMG_2193-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Ideas about elevation and steering]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75//gallery/IMG_2194-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Closing in on the final design]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75/gallery/IMG_2220-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Six robots (16 mins cutting time)]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75/gallery/IMG_2222-thumbnail.jpg</image:loc>
+<image:title><![CDATA[One robot, ready to assemble]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75/gallery/IMG_2223-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Actuator rod and attachment to base]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75/gallery/IMG_2224-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Rod attached to lifter base]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75/gallery/IMG_2225-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Gear fits snugly onto servo]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75/gallery/IMG_2226-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Servos held in place by slots and cabling]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75/gallery/IMG_2228-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Bottom view of cabling]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75/gallery/IMG_2229-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Rod supports in place]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75/gallery/IMG_2231-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Rod inserted to just below top plate height]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75/gallery/IMG_2232-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Top plate attached]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75/gallery/IMG_2233-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Read side supports hold frame together]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75/gallery/IMG_2234-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Top view of partial assembly]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75/gallery/IMG_2235-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Attach one front support]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75/gallery/IMG_2236-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Attach Micro:bit platform]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75/gallery/IMG_2237-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Slide support into platform first]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75/gallery/IMG_2238-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Push wheels on after servo alignment]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75/gallery/IMG_2239-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Work complete]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75//gallery/front_view-thumbnail.jpg</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75//gallery/side_view-thumbnail.jpg</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\75//gallery/top_view-thumbnail.jpg</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/designing-on-the-mac/</loc>
+<lastmod>2018-08-18T18:16:45+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/dowsing-for-radio/</loc>
+<lastmod>2019-04-19T14:21:39+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\76/IMG_2246.jpg</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\76/pke_meter_by_teletran.jpg</image:loc>
+<image:title><![CDATA[PKE Meter - Teletran@Deviantart]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\76/gallery/IMG_2248-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Low signal]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\76/gallery/IMG_2249-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Medium signal]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\76/gallery/IMG_2250-thumbnail.jpg</image:loc>
+<image:title><![CDATA[Strong signal]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/dumb-analogue-ports/</loc>
+<lastmod>2018-08-18T18:17:32+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/electric-horses/</loc>
+<lastmod>2018-08-18T20:15:43+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\56/staticmap.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\56/stations.png</image:loc>
+<image:title><![CDATA[ ChargePoint locations on Kangaroo Island ]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\56/ECQQ9770.jpg</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\56/2016-04-21+15_33_06.gif</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/exactly/</loc>
+<lastmod>2018-08-18T18:15:25+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/first-time-development/</loc>
+<lastmod>2018-08-18T18:16:03+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/in-which-wired-both-gets-and-misses-the-point/</loc>
+<lastmod>2018-08-18T18:16:36+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/inspiration-or-depression/</loc>
+<lastmod>2018-08-18T18:22:10+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/institutional-blocking-as-a-service/</loc>
+<lastmod>2018-08-18T20:06:18+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\58/music_consumption.png</image:loc>
+<image:title><![CDATA[ Music Consumption Methods ]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\58/music_services.png</image:loc>
+<image:title><![CDATA[ Music Services Used ]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\58/most_used.png</image:loc>
+<image:title><![CDATA[ Music Services Most Used ]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/join-the-conversation/</loc>
+<lastmod>2018-08-18T18:17:20+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/liftoff/</loc>
+<lastmod>2018-08-18T20:24:51+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/machine-learning-and-intellectual-laziness/</loc>
+<lastmod>2018-08-18T20:09:23+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\59/wife_and_mother_in_law.jpg</image:loc>
+<image:title><![CDATA[My Wife and My Mother in Law painting]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\59/ambiguous.gif</image:loc>
+<image:title><![CDATA[  Spinning Dancer   Nobuyuki Kayahara CC BY-SA 3.0 ]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/maps-weirdness-aka-at-the-roundabout/</loc>
+<lastmod>2018-08-18T18:21:51+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/microbit-haunted-house/</loc>
+<lastmod>2019-01-10T16:27:43+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\74/File-5-11-18-8-05-24-pm.jpeg</image:loc>
+<image:title><![CDATA[Haunted House internals]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\74/gallery/File-5-11-18-8-00-25-pm-thumbnail.jpeg</image:loc>
+<image:title><![CDATA[Laser cutouts of the spooks]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\74/gallery/File-5-11-18-8-01-53-pm-thumbnail.jpeg</image:loc>
+<image:title><![CDATA[Laser engraving]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\74/gallery/File-5-11-18-8-02-24-pm-thumbnail.jpeg</image:loc>
+<image:title><![CDATA[Spooks all cut out]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\74/gallery/File-5-11-18-8-02-49-pm-thumbnail.jpeg</image:loc>
+<image:title><![CDATA[Cutouts laid out for assembly]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\74/gallery/File-5-11-18-8-03-13-pm-thumbnail.jpeg</image:loc>
+<image:title><![CDATA[Early assembly of servos]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\74/gallery/File-5-11-18-8-03-45-pm-thumbnail.jpeg</image:loc>
+<image:title><![CDATA[First lot of wiring a spook]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\74/gallery/File-5-11-18-8-04-08-pm-thumbnail.jpeg</image:loc>
+<image:title><![CDATA[Front of spook post wiring]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\74/gallery/File-5-11-18-8-04-59-pm-thumbnail.jpeg</image:loc>
+<image:title><![CDATA[Cabling internals of house]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\74/gallery/File-5-11-18-8-05-24-pm-thumbnail.jpeg</image:loc>
+<image:title><![CDATA[Testing LED and LDR components]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\74/IMG_1459.JPG</image:loc>
+<image:title><![CDATA[Assembled and tested]]></image:title>
+</image:image>
+</url>
+<url>
+<loc>https://headtilt.me/microbit-robotics-review-2019/</loc>
+<lastmod>2019-12-23T16:19:08+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\78/pong_early.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\78/cowterpillar_snap.png</image:loc>
+<image:title><![CDATA[Cowterpillar robot]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\78/microbit-screenshot-pong-server-small.png</image:loc>
+<image:title><![CDATA[Pong Server MakeCode]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\78/ws2812b.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/migrating-from-squarespace/</loc>
+<lastmod>2018-08-18T21:10:38+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/minecraft-edu-edition-geological-surveys/</loc>
+<lastmod>2018-08-23T20:14:34+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\70/geology_cover.PNG</image:loc>
+<image:title><![CDATA[Minecraft Geological Survey]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\70/agent.PNG</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\70/gallery/tp_snap-thumbnail.PNG</image:loc>
+<image:title><![CDATA[Teleport Initialisation]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\70/gallery/core_snap-thumbnail.PNG</image:loc>
+<image:title><![CDATA[Digging the core sample]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\70/gallery/buildcore_snap-thumbnail.PNG</image:loc>
+<image:title><![CDATA[Building the core sample]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\70/gallery/graph_1_snap-thumbnail.PNG</image:loc>
+<image:title><![CDATA[Building the graph]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\70/gallery/graph_2_snap-thumbnail.PNG</image:loc>
+<image:title><![CDATA[Last bit of building the graph]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/more-changelog-more-fun/</loc>
+<lastmod>2018-08-18T20:28:37+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\18/download.jpg</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/my-ad-blocker-didnt-catch-this-one/</loc>
+<lastmod>2018-08-18T18:16:10+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/naturally/</loc>
+<lastmod>2018-08-18T18:21:35+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/nifty-automation/</loc>
+<lastmod>2018-08-18T18:18:48+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/non-obnoxious-app-rating-appeals/</loc>
+<lastmod>2018-08-18T20:23:27+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\44/mocking_birds.jpg</image:loc>
+<image:title><![CDATA[ Mocking Bird Argument Chiltepinster @ Wikimedia [CC SA-BY 3.0] ]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\44/toolbar_no_heart.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\44/toolbar_heart.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\44/rate_popover.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/optionalworking-as-intended/</loc>
+<lastmod>2018-08-18T18:16:28+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/page/2/</loc>
@@ -127,95 +481,382 @@
 </url>
 <url>
 <loc>https://headtilt.me/pebble-health/</loc>
+<lastmod>2018-08-18T20:10:40+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\57/pebble_health.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\57/insights.jpg</image:loc>
+<image:title><![CDATA[ Pebble Health Insights Settings ]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/playing-with-affinity-designer-brushes/</loc>
+<lastmod>2018-08-18T21:13:53+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\64/wire1.png</image:loc>
+<image:title><![CDATA[ What I wanted ]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\64/wire2.png</image:loc>
+<image:title><![CDATA[ What I got ]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\64/template1.png</image:loc>
+<image:title><![CDATA[ Rectangle filled with a gradient. Easy. ]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\64/different_strokes.png</image:loc>
+<image:title><![CDATA[ Wires of different stroke weights and colours based on the new Textured Image Brush. ]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\64/join1.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\64/join2.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\64/join3.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\64/join4.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\64/brush_group.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\64/brush_edit.png</image:loc>
+<image:title><![CDATA[ Editing the Brush Settings ]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\64/pretty_lights.png</image:loc>
+<image:title><![CDATA[ My not very exciting fairy light ]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\64/light_success.png</image:loc>
+<image:title><![CDATA[ Fairy Light Success ]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\64/light_fail.png</image:loc>
+<image:title><![CDATA[ Fairy Light Fail! ]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/Publii-to-Microblog/</loc>
+<lastmod>2018-08-18T16:32:29+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/real-heroes-of-the-touch-bar/</loc>
+<lastmod>2018-08-18T19:56:38+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\63/Pixelmator+Touch+Bar+tool+choice.png</image:loc>
+<image:title><![CDATA[ Pixelmator: Touch Bar tool options ]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\63/Touch+Bar+Shot+2016-12-14+at+4.31.55+pm.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\63/Screen+Shot+2016-12-14+at+4.54.34+pm.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\63/Touch+Bar.png</image:loc>
+<image:title><![CDATA[ Screenshot options ]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\63/Screenshot+Destinations.png</image:loc>
+<image:title><![CDATA[ Screenshot destinations ]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\63/Touch+Bar+Shot+2016-12-14+at+4.49.17+pm.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\63/Touch+Bar+Shot+2016-12-14+at+4.49.13+pm.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\63/Touch+Bar+Shot+2016-12-14+at+4.49.20+pm.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\63/Touch+Bar+Shot+2016-12-14+at+4.49.23+pm.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/release-notes-slack-vs-box/</loc>
+<lastmod>2018-08-18T20:17:52+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\53/download.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/repeat/</loc>
+<lastmod>2018-08-18T15:53:35+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\4/repeat_logo.png</image:loc>
+<image:title><![CDATA[Repeat: iOS reminders for daily routines]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\4/app_store_logo.png</image:loc>
+<image:title><![CDATA[Get Repeat on the iOS App Store]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/smart-watches-and-fitness-bands/</loc>
+<lastmod>2018-08-18T18:18:00+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/smarter-text/</loc>
+<lastmod>2018-08-18T18:20:57+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/smile-acrobatics/</loc>
+<lastmod>2018-08-18T18:12:59+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/so-a-horse-walks-into-a-touch-bar/</loc>
+<lastmod>2018-08-18T19:59:33+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\62/designer_bar.png</image:loc>
+<image:title><![CDATA[ Affinity Designer: Thumbnails of recent documents. ]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\62/calculator_touch.png</image:loc>
+<image:title><![CDATA[ Calculator: A surprisingly useful set of default buttons considering the proximity to the number row. ]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\62/finder_touch.png</image:loc>
+<image:title><![CDATA[ Finder: Mostly useless. The ]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\62/trackpad_zones.png</image:loc>
+<image:title><![CDATA[ The red zones along the sides of the trackpad don't seem to respond to clicks. ]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/social-engineering-and-charitable-donations/</loc>
+<lastmod>2018-08-18T18:19:21+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/subscriptions-and-personal-value/</loc>
+<lastmod>2018-08-18T18:13:42+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/swift-and-learning-new-languages/</loc>
+<lastmod>2018-08-18T18:20:36+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/swiftly-passing-holidays/</loc>
+<lastmod>2018-08-18T18:19:12+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/teaching-digital-technologies/</loc>
+<lastmod>2018-08-18T20:03:22+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\60/align_cats.jpg</image:loc>
+<image:title><![CDATA[ In the fine tradition of cats on the web. ]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\60/arduino.jpg</image:loc>
+<image:title><![CDATA[ Arduino. Credit  Wikipedia  ]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\60/scratch.png</image:loc>
+<image:title><![CDATA[ Scratch Logo. Credit:  Scratch.mit.edu  ]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/test-post-to-microblog-tag/</loc>
+<lastmod>2018-08-23T20:17:58+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/the-case-for-software-eating-journalism/</loc>
+<lastmod>2018-08-18T18:18:34+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/the-future/</loc>
+<lastmod>2018-08-18T18:20:15+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/the-salmon-mousse1/</loc>
+<lastmod>2018-08-18T20:34:14+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\21/gallery/act-thumbnail.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\21/gallery/nsw-thumbnail.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\21/gallery/nt-thumbnail.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\21/gallery/qld-thumbnail.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\21/gallery/sa-thumbnail.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\21/gallery/tas-thumbnail.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\21/gallery/vic-thumbnail.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\21/gallery/wa-thumbnail.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\21/download.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/time/</loc>
+<lastmod>2018-08-18T18:18:22+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/tools/</loc>
+<lastmod>2018-08-18T20:26:31+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\38/seaotter.jpg</image:loc>
+<image:title><![CDATA[ Sea Otter with Shells  Brocken Inaglory (CC BY-SA 3.0)  ]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/toots-update/</loc>
+<lastmod>2018-08-18T18:20:46+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/typefaces-fonts-licensing/</loc>
+<lastmod>2018-08-18T20:00:37+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\61/macOS_font_book.png</image:loc>
+<image:title><![CDATA[ Mac OS Font Book ]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/useful-unsolved-practical-pick-two/</loc>
+<lastmod>2018-08-18T18:13:28+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/windows-10-and-the-sad-state-of-touch/</loc>
+<lastmod>2018-08-18T18:19:02+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/wwdc-talk-show-with-phil-schiller/</loc>
+<lastmod>2018-08-18T18:19:41+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/year-7-8-bad-crypto-with-microbits/</loc>
+<lastmod>2019-01-10T16:28:05+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\68/Almighty+XOR.png</image:loc>
+<image:title><![CDATA[ The Almighty XOR ]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/year-7-8-wireless-network-concepts-with-microbits/</loc>
+<lastmod>2019-01-10T16:28:29+08:00</lastmod>
 </url>
 <url>
 <loc>https://headtilt.me/year-7-data-representation-and-algorithms/</loc>
+<lastmod>2018-08-19T09:45:05+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\66/bunny.png</image:loc>
+<image:title><![CDATA[ Bunny, nay! ART! ]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/year-7-minecraft-ee-and-programming/</loc>
+<lastmod>2018-09-24T14:13:43+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\71/chess_landscape.png</image:loc>
+<image:title><![CDATA[Chess Landscape]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\71/my_head_final.PNG</image:loc>
+<image:title><![CDATA[Heads]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\71/signatures.png</image:loc>
+<image:title><![CDATA[Lava Signatures]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\71/tutorial_snipped.PNG</image:loc>
+<image:title><![CDATA[OneNote tutorial snippet]]></image:title>
+</image:image>
 </url>
 <url>
 <loc>https://headtilt.me/year-8-microbit-robotics/</loc>
+<lastmod>2019-04-06T08:11:41+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\72/top_view.jpg</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\72/dog-1310545_1280.jpg</image:loc>
+<image:title><![CDATA[Binary signals are either on or off]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\72/water-815475_1280.jpg</image:loc>
+<image:title><![CDATA[Water partially being restricted]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\72/sprinkler-1209900_1280.jpg</image:loc>
+<image:title><![CDATA[This sprinkler puts out some water in bursts.]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\72/ldr-resistor-40611_1280.png</image:loc>
+<image:title><![CDATA[Light Dependent Resistor]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\72/led-1715226_1280.png</image:loc>
+<image:title><![CDATA[Light Emitting Diodes]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\72/Screen-Shot-2019-01-10-at-1.35.59-pm.png</image:loc>
+<image:title><![CDATA[RGB LED]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\72/digital-led-strip-lights-2103020_1280.jpg</image:loc>
+<image:title><![CDATA[RGB LED strip]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\72/servo.jpg</image:loc>
+<image:title><![CDATA[Servo motors]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\72/potentiometer.jpg</image:loc>
+<image:title><![CDATA[Potentiometer]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\72/jack-861512_1280.jpg</image:loc>
+<image:title><![CDATA[3.5mm jack]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\72/Screen-Shot-2019-01-10-at-4.10.42-pm.png</image:loc>
+<image:title><![CDATA[AM312 InfraRed Sensor]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\72/Screen-Shot-2019-01-10-at-4.19.19-pm.png</image:loc>
+<image:title><![CDATA[IR Line Follower Module]]></image:title>
+</image:image>
 </url>
 </urlset>
