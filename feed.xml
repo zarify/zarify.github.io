@@ -3,7 +3,7 @@
     <title>Headtilt</title>
     <link href="https://headtilt.me/feed.xml" rel="self" />
     <link href="https://headtilt.me" />
-    <updated>2019-12-23T17:05:42+08:00</updated>
+    <updated>2019-12-23T17:12:36+08:00</updated>
     <author>
         <name>Rob</name>
     </author>
@@ -17,7 +17,7 @@
         <link href="https://headtilt.me/microbit-robotics-review-2019/"/>
         <id>https://headtilt.me/microbit-robotics-review-2019/</id>
 
-        <updated>2019-12-23T16:59:28+08:00</updated>
+        <updated>2019-12-23T17:12:27+08:00</updated>
             <summary>
                 <![CDATA[
                         <img src="https://headtilt.me/media/posts/78/pong_early.png" alt="" />
@@ -43,8 +43,9 @@
 </ul>
 <p class="msg msg--success">I currently get 2 lessons (of 45-50 minutes each) per week over around 20 weeks (1 semester). Assuming I lose students for around 6 lessons due to absences, public holidays, excursions etc, this means I have about 22 hours with them in total.</p>
 <h2 id="mcetoc_1dsnv8n9i0">Programming Environment</h2>
-<p>There are two options which students have (with easy access anyway): <a href="https://microbit-micropython.readthedocs.io/en/latest/">MicroPython </a>and <a href="https://www.microsoft.com/en-us/makecode">Microsoft MakeCode</a>. Being a fan of Python on the desktop/server I have always leaned towards MicroPython as my language of choice when programming Micro:bits, since you're using the fundamentals of a general purpose programming language and complex programs are much easier to manage than block-based programming. However there are a couple of significant downsides: there is very little memory available for your program, and events and signals aren't a thing, meaning you need to poll for events, making interactive programs quite tricky in some cases, and any work with SPI or I2C modules mean you're trolling Github for libraries or learning about their arcane rites.</p>
-<p><img class="post__image--right" src="https://headtilt.me/media/posts/78/microbit-screenshot-pong-server-small.png" alt="Pong Server MakeCode" width="1024" height="462">MakeCode on the other hand benefits from a decent library management system that's easy to search through for kids, a lack of syntax errors (although occasionally my students get burnt by trying to compare integers to strings), being able to fit quite complex programs onto the Micro:bit, and most importantly events, although these can be a double edged sword. The downside is that complex programs end in you panning around the program canvas continuously at tiny zoom levels, and rearranging your code chunks all the time so they don't overlap (or taking your life into your own hands and asking the browser to format your code and then spending the next few minutes finding all your chunks again).</p>
+<p>There are two options which students have (with easy access anyway): <a href="https://microbit-micropython.readthedocs.io/en/latest/">MicroPython </a>and <a href="https://www.microsoft.com/en-us/makecode">Microsoft MakeCode</a>. Being a fan of Python on the desktop/server I have always leaned towards MicroPython as my language of choice when programming Micro:bits, since you're using the fundamentals of a general purpose programming language and complex programs are much easier to manage than block-based programming. However there are a couple of significant downsides: there is very little memory available for your program, and events and signals aren't a thing, meaning you need to poll for events, making interactive programs quite tricky in some cases, and any work with SPI or I2C modules mean you're trawling Github for libraries or learning about their arcane implementation rites.</p>
+<p>MakeCode on the other hand benefits from a decent library management system that's easy to search through for kids, a lack of syntax errors (although occasionally my students get burnt by trying to compare integers to strings), being able to fit quite complex programs onto the Micro:bit, and most importantly events, although these can be a double edged sword. One of the issues some of my students run into is multiple Forever loops or button inputs with pauses accessing and causing race conditions with variables.</p>
+<p><img class="post__image--right" src="https://headtilt.me/media/posts/78/microbit-screenshot-pong-server-small.png" alt="" width="1024" height="462">The downside is that complex programs end in you panning around the program canvas continuously at tiny zoom levels, and rearranging your code chunks all the time so they don't overlap (or taking your life into your own hands and asking the browser to format your code and then spending the next few minutes finding all your chunks again).</p>
 <h2 id="mcetoc_1dsnv8poc1">Electronics</h2>
 <p>When I started out with the Robotics subject in 2018 there were a pretty large array of sensors and outputs that I wanted to use so that students could really build a range of diverse projects. Unfortunately, even though these all worked in very similar ways (analog, digital, or through a protocol like SPI/I2C) lots of students struggled because they either didn't have the time to practice and get comfortable, or had trouble deciding on a direction because of an All The Things problem.</p>
 <p>This year I cut down my set of explicit instruction and practice to a few different components:</p>
