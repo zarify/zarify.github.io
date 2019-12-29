@@ -11,6 +11,24 @@
     },
     "items": [
         {
+            "id": "https://headtilt.me/year-10s-sentiment-analysis/",
+            "url": "https://headtilt.me/year-10s-sentiment-analysis/",
+            "title": "Year 10s: Sentiment Analysis",
+            "summary": "In 2019 I startes up a programming-oriented Data Science class with my&hellip;",
+            "content_html": "<p>In 2019 I startes up a programming-oriented Data Science class with my Year 10s. I ran two classes during the year, each spanning a semester. My aim for the course is to introduce students to different ways of storing, retrieving, and working with data, as well as give some coverage over different types of data and some operations that you can perform with it (e.g. numeric, text, spatial).</p>\n<p>I ran a different main project with each class: during the first semester I looked at analysing data from the <a href=\"https://www.aph.gov.au/Parliamentary_Business/Hansard\">Australian Federal Government Hansard</a>. Unfortunately, the students in the group weren't very interested in it, and (like many of my first time projects) the scope turned out to be overly broad, meaning students had trouble figuring out what they <em>would</em> do from all the alternatives of what they <em>could</em> do. Tangentially, working with the XML from the Hansard is a great (or terrible, depending on your perspective) activity in data cleaning - they've made some... interesting decisions about how to format their data inside the XML structure.</p>\n<p><img class=\"post__image post__image--center\" src=\"https://headtilt.me/media/posts/77/1_hansard_snip.png\" alt=\"\" width=\"2160\" height=\"828\"></p>\n<p>The second project was processing text to determine sentiment. This worked a lot better, and the project had a nice natural flow from the basic concepts of <a href=\"https://en.wikipedia.org/wiki/Lexical_analysis#Tokenization\">tokenisation</a> and weighting, to some concepts like <a href=\"https://en.wikipedia.org/wiki/Stop_words\">stop words</a>, before throwing in some (large) real world data sets to test out our algorithm. It's worthwhile noting here that it is <em>very</em> naive, and only gauges positive or negative sentiment, with no other categorisation like angry, sad, etc.</p>\n<h2 id=\"mcetoc_1dt7v188b0\">Progression of Sentiment Analysis</h2>\n<p><img class=\"post__image post__image--right\" src=\"https://headtilt.me/media/posts/77/2_sentiment_samples.png\" alt=\"\" width=\"836\" height=\"310\">We start out by looking at some very basic examples and developing an algorithm. This might be some identification of simple tokens, or to start with just ordering the sentences from most positive to most negative and articulating what differentiates each sentence from its neighbours.</p>\n<p>During the ranking process it becomes apparent that not all sentiment tokens are created equal, and so some sort of weighting system should come into play, meaning we can develop a scoring algorithm which we can apply to each sentence. I threw in a couple of ambiguous cases so that we also had to think about things like modifier words and symbols (e.g. 'not' coming before a sentiment token, shouty caps, or exclamation marks). </p>\n<p>This is where we can start bringing in how to tackle programming the algorithm and process the simple sentences to see how it fares and whether or not the results match our expectations discussed at the start of the project. This is as simple as initialising a score variable, splitting the sentence on spaces, and normalising by stripping punctuation and changing to a standard case (typically lower). We can then examine each word, checking for membership in our lists of sentiment tokens (in class we grouped them to <strong>v_bad</strong>, <strong>bad</strong>, <strong>good</strong>, and <strong>v_good</strong> with anything not being in these lists not contributing to the score.</p>\n<p>This worked pretty well with the sample sentences, but it was obvious that it did not deal with modifiers at all, so \"not good\" was counted as a positive sentiment in the same way that \"good\" was. In the previous code snippet, the enumerate function was used to get the position of each word in the sentence along with the word itself, so that we could examine the preceding word as well. This had the added benefit of being able to check for amplifying words like \"very\" at the same time. Modifying or inverting was simply a case of adding to, subtracting from, or multiplying (e.g. x2 for a boost, or x -1 for an inversion) the score for the current word.</p>\n<p>From here we looked at the importance of stop words. For example our modifier words were sometimes separated by stop words, such as in one of the examples \"but <strong>not</strong> in a <strong>good</strong> way\". Filtering out any stop words prior to analysis and weighting made it possible to invert or amplify words which were not next to each other, but still related. This list of stop words we used can be found here: <a href=\"http://xpo6.com/list-of-english-stop-words/\">http://xpo6.com/list-of-english-stop-words/</a></p>\n<pre class=\"line-numbers\" style=\"white-space: pre-wrap;\" > </pre>\n<p>Once we played with the values to get to the point where we were happy with the (somewhat arbitrary) scores, all that was left to do was try it out with some real world data.</p>\n<p>The <a href=\"http://mpqa.cs.pitt.edu\">University of Pittsburgh Mult-Question Perspective Answering</a> site has a few interesting sets of data for download, and we grabbed a copy of the <a href=\"http://mpqa.cs.pitt.edu/lexicons/subj_lexicon/\">Subjectivity Lexicon</a> (which is available for free, but you need to supply contact details), split it up for use in our program. This gave use a huge list of words, along with a strong or weak associate with positive or negative use (and more practice splitting strings in Python :).</p>\n<pre class=\"line-numbers\" style=\"white-space: pre-wrap;\" > </pre>\n<p class=\"msg msg--info\">In retrospect one of their other data sets might have been more suitable, but this was the one I found initially and didn't bother exploring the others since it seemed good enough in the time I had available to investigate.</p>\n<p>Lastly we needed some real world data which we could use to compare our results, and to stop using our toy data set of contrived sentences. Since the initial premise for the program was analysis of product reviews, what better place to look than Amazon. I found a set of <a href=\"https://nijianmo.github.io/amazon/index.html\">Amazon reviews that had been collected</a> for analysis by Jianmo Ni from the University of California San Diego. Unlike the previous sets of data, this was nicely formatted as JSON, and there was a large range of different review categories, all of which were suitably huge (definitely from a student perspective, used to dealing with tens of data points). As the smallest set was more than enough for our purposes, I chose the Amazon Instant Video category, weighing in at a mere 37126 entries.</p>\n<pre class=\"line-numbers\" style=\"white-space: pre-wrap;\" > </pre>\n<p> Working with JSON let us look at working with libraries (although we had done some work with CSV prior to this) and the dictionary data structure.</p>\n<p>One of the great things about this data set, is that whilst we could analyse the review text and see how our algorithm scored each one, each review also contained the star rating given by the reviewer, which meant that we could compare the implicit review sentiment based on the text to the explicit review rating and use this as a method for determining either the honesty of the review, or as a metric for evaluating the accuracy of our algorithm.</p>\n<p>We ended up running out of time to do the final analysis, but I'll manage our time better next time I run with this project. Here's a quick program containing the work we did in class that I put together to look at accuracy, comparing the extremes of sentiment scores to star ratings, which turned out to be 73% accurate. Not too bad for a toy program that simplifies the problem quite a lot.</p>\n<h2 id=\"mcetoc_1dt88eprq0\">What worked and what didn't</h2>\n<p>As far as engagement goes, I think this worked really well - students followed the flow most of the way and I think the complexity of the main ideas were about right. Splitting, scoring, stop words, iterating through a list of words: all of these worked out fine.</p>\n<p>Where things tended to fall apart a bit is when we got to importing the larger files. Even though the sentiment words and the JSON reviews were quite simple as individual entries, somehow the idea of processing tens of thousands of them was a bit intimidating.</p>\n<h2 id=\"mcetoc_1dt88ll121\">Some final code</h2>\n<p>Although we ran out of time in class, I put together a bit of code which compares Amazon review star ratings with calculated sentiment and tries to figure out how accurate the simple scoring algorithm is. It isn't quite finished, but I doubt that will change for a while.</p>\n<pre class=\"line-numbers\" style=\"white-space: pre-wrap;\" > </pre>",
+            "image": "https://headtilt.me/media/posts/77/2_sentiment_samples.png",
+            "author": {
+                "name": "Rob"
+            },
+            "tags": [
+                   "datascience",
+                   "compsci",
+                   "classroom"
+            ],
+            "date_published": "2019-12-29T15:46:19+08:00",
+            "date_modified": "2019-12-29T15:46:19+08:00"
+        },
+        {
             "id": "https://headtilt.me/microbit-robotics-review-2019/",
             "url": "https://headtilt.me/microbit-robotics-review-2019/",
             "title": "Micro:bit Robotics Review 2019",
@@ -21,6 +39,9 @@
                 "name": "Rob"
             },
             "tags": [
+                   "robotics",
+                   "microbit",
+                   "classroom"
             ],
             "date_published": "2019-12-23T16:07:13+08:00",
             "date_modified": "2019-12-23T17:12:27+08:00"
@@ -36,6 +57,8 @@
                 "name": "Rob"
             },
             "tags": [
+                   "microbit",
+                   "classroom"
             ],
             "date_published": "2019-04-19T14:02:52+08:00",
             "date_modified": "2019-04-19T14:21:39+08:00"
@@ -51,6 +74,9 @@
                 "name": "Rob"
             },
             "tags": [
+                   "robotics",
+                   "microbit",
+                   "classroom"
             ],
             "date_published": "2019-04-11T06:17:18+08:00",
             "date_modified": "2019-04-11T06:17:18+08:00"
@@ -66,6 +92,9 @@
                 "name": "Rob"
             },
             "tags": [
+                   "robotics",
+                   "microbit",
+                   "classroom"
             ],
             "date_published": "2019-04-06T08:01:00+08:00",
             "date_modified": "2019-04-06T08:11:41+08:00"
@@ -81,6 +110,10 @@
                 "name": "Rob"
             },
             "tags": [
+                   "robotics",
+                   "ramble",
+                   "microbit",
+                   "classroom"
             ],
             "date_published": "2018-11-05T20:56:46+08:00",
             "date_modified": "2019-01-10T16:27:43+08:00"
@@ -96,6 +129,7 @@
                 "name": "Rob"
             },
             "tags": [
+                   "classroom"
             ],
             "date_published": "2018-09-24T14:13:43+08:00",
             "date_modified": "2018-09-24T14:13:43+08:00"
@@ -111,6 +145,7 @@
                 "name": "Rob"
             },
             "tags": [
+                   "classroom"
             ],
             "date_published": "2018-08-23T20:14:34+08:00",
             "date_modified": "2018-08-23T20:14:34+08:00"
@@ -125,6 +160,7 @@
                 "name": "Rob"
             },
             "tags": [
+                   "ramble"
             ],
             "date_published": "2018-08-18T21:10:38+08:00",
             "date_modified": "2018-08-18T21:10:38+08:00"
@@ -139,23 +175,10 @@
                 "name": "Rob"
             },
             "tags": [
+                   "ramble"
             ],
             "date_published": "2018-08-18T16:32:29+08:00",
             "date_modified": "2018-08-18T16:32:29+08:00"
-        },
-        {
-            "id": "https://headtilt.me/year-7-8-bad-crypto-with-microbits/",
-            "url": "https://headtilt.me/year-7-8-bad-crypto-with-microbits/",
-            "title": "Year 7-8: Bad Crypto with Microbits",
-            "summary": "Security of Wireless NetworksMy previous lesson looking at wireless networks used Microbits&hellip;",
-            "content_html": "<h1 id=\"mcetoc_1d0rdvsr00\">Security of Wireless Networks</h1>\n<p>My <a href=\"https://headtilt.me/year-7-8-wireless-network-concepts-with-microbits/\">previous lesson</a> looking at wireless networks used Microbits and their Bluetooth networking to illustrate some of the problems with local wireless networks (as opposed to general internet connectivity, which we mostly did by doing speed tests and complaining about the school's net connection :).</p>\n<p>At the end I wrote a bit about what I wanted to do with the next lesson, which was look at some basic crypto to handle the eavesdropping problem we had when someone else listened to the same channel we were communicating on.</p>\n<p>(<strong>Note for anyone who wants to yell at me through the internet:</strong> I'm well aware that this is not anything approaching real crypto, and I'll be the first to tell my kids that if they want to know more about how modern crypto really works, the first thing they need to do is go and find someone who really understands it - this is about what it does, not how it works.)</p>\n<figure class=\"post__image post__image--right\" ><img src=\"https://headtilt.me/media/posts/68/Almighty+XOR.png\" alt=\" The Almighty XOR \">\n<figcaption >The Almighty XOR and his hammer MjollNOR</figcaption>\n</figure>\n<p>After running into a bit of a wall trying to get a <a target=\"_blank\" href=\"https://en.wikipedia.org/wiki/XOR_cipher\" rel=\"noopener noreferrer\">XOR cipher</a> working in the block coding interface, I started to dig into the MicroPython interface instead. Along the way I discovered that there was a <a target=\"_blank\" href=\"https://codewith.mu\" rel=\"noopener noreferrer\">rather nice basic IDE called Mu</a>, which lets you flash your code straight to the device, as well as running a REPL (Run-Evaluate-Print-Loop) to do easy code testing (which also works breaking into running code, so you can load functions onto the Microbit, then run and test them in the REPL interface).</p>\n<h1 id=\"mcetoc_1d0rdvsr01\">The Results</h1>\n<p>I haven't used this with my classes yet, but I'll edit this post at the end of the week and add in how things went.</p>\n<p>This version uses a shake of the Microbit to choose a random image, mostly because getting A+B button presses working was annoying - see the Issues section later on, but also because I wanted to play with accelerometer gestures in Python. The A button transmits the image over whatever channel the device is listening to.</p>\n<p>The B button switches channels, but I also made it switch between clear text and cipher text modes. You will see in the video when I press the B button for a second time on a channel the top-right LED lights up and the channel number stays the same. This indicates cipher text mode. It still listens on the same channel, but uses its cipher bitstring to decode any communication it receives (whether or not it's actually encrypted :).</p>\n<p>Below is a short video showing how this version of the program works.</p>\n<p><iframe width=\"540\" height=\"360\" src=\"https://player.vimeo.com/video/217366606?wmode=opaque&amp;api=1\" frameborder=\"0\" title=\"Dodgy Crypto with Networked Microbits\" webkitallowfullscreen=\"webkitallowfullscreen\" mozallowfullscreen=\"mozallowfullscreen\" allowfullscreen=\"allowfullscreen\"></iframe></p>\n<p>Again, if you want to look at the Python code, or download the .hex file to load onto a Microbit via copying, you can grab them from <a target=\"_blank\" href=\"https://github.com/zarify/microbit/tree/master/bad_crypto\" rel=\"noopener noreferrer\">the github repo</a>.</p>\n<h1 id=\"mcetoc_1d0rdvsr02\">Issues</h1>\n<p>As usual, there were some issues I ran into along the way.</p>\n<p>Event-driven programming in MicroPython just isn't there. With the block interface it <em>seems</em> that event listeners get their own processes, so you can break into say a radio's receive section using a button's code. With Python the lack of event listeners is slightly mitigated with things like buttons keeping track of whether they have been pressed since you last examined them (<strong>button_a.is_pressed()</strong> vs <strong>button_a.was_pressed()</strong> for example). This is fine for a simple main loop, but you still need to be careful not to lock yourself out with delays, particularly since I found a few situations where I had to build in delays just to cope with the length of time it takes to un-depress a button.</p>\n<p>Debugging is still annoying. Let's say there's a syntax error in your code, because you're just not paying attention. The Microbit will try and be helpful and, when it flashes and restarts, will tell you about any errors using the LED array. However, trying to read an error message scrolling across the LED array is just plain painful, since it is quite bright, and also only shows you about a character and a half at a time. If you're lucky, opening a REPL will also give you the error message in a way that preserves your eyes and your sanity, but I didn't have this work all the time. I just tried to ignore the bright lights, and focus on the bit where it told you the line number of the error.</p>\n<p>I quite like Mu. It's clean, simple, has (slightly overzealous) code completion, and it's nice getting to the REPL and being able to do code introspection. BUT Mu's 'check syntax' function checks syntax, but also highlights lines that don't obey its style guidelines. So this means if you're somewhat lazy about putting spaces after commas in argument lists or list definitions, you'll get exactly the same red indicator at the start of the line as a genuine syntax error (and it is <strong>very</strong> opinionated about coding style, oh, and not being able to find an EOF at the end of the file).</p>\n<p>Lastly, writing code which you can only interface with using two buttons and some basic gestures is hard. Talk about minimalism in UI design.</p>",
-            "author": {
-                "name": "Rob"
-            },
-            "tags": [
-            ],
-            "date_published": "2017-05-14T11:45:21+08:00",
-            "date_modified": "2019-01-10T16:28:05+08:00"
         }
     ]
 }
