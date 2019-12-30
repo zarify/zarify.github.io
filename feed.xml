@@ -3,7 +3,7 @@
     <title>Headtilt</title>
     <link href="https://headtilt.me/feed.xml" rel="self" />
     <link href="https://headtilt.me" />
-    <updated>2019-12-30T08:33:29+08:00</updated>
+    <updated>2019-12-30T08:40:43+08:00</updated>
     <author>
         <name>Rob</name>
     </author>
@@ -20,7 +20,7 @@
             <category term="compsci"/>
             <category term="classroom"/>
 
-        <updated>2019-12-30T08:33:19+08:00</updated>
+        <updated>2019-12-30T08:40:36+08:00</updated>
             <summary>
                 <![CDATA[
                         <img src="https://headtilt.me/media/posts/77/2_sentiment_samples.png" alt="" />
@@ -41,12 +41,15 @@
 <p>This worked pretty well with the sample sentences, but it was obvious that it did not deal with modifiers at all, so "not good" was counted as a positive sentiment in the same way that "good" was. In the previous code snippet, the enumerate function was used to get the position of each word in the sentence along with the word itself, so that we could examine the preceding word as well. This had the added benefit of being able to check for amplifying words like "very" at the same time. Modifying or inverting was simply a case of adding to, subtracting from, or multiplying (e.g. x2 for a boost, or x -1 for an inversion) the score for the current word.</p>
 <p>From here we looked at the importance of stop words. For example our modifier words were sometimes separated by stop words, such as in one of the examples "but <strong>not</strong> in a <strong>good</strong> way". Filtering out any stop words prior to analysis and weighting made it possible to invert or amplify words which were not next to each other, but still related. This list of stop words we used can be found here: <a href="http://xpo6.com/list-of-english-stop-words/">http://xpo6.com/list-of-english-stop-words/</a></p>
 <pre class="line-numbers" style="white-space: pre-wrap;" > </pre>
+<p class="msg msg--highlight"> An extract of the code showing the implementation of the scoring algorithm.</p>
 <p>Once we played with the values to get to the point where we were happy with the (somewhat arbitrary) scores, all that was left to do was try it out with some real world data.</p>
-<p>The <a href="http://mpqa.cs.pitt.edu">University of Pittsburgh Mult-Question Perspective Answering</a> site has a few interesting sets of data for download, and we grabbed a copy of the <a href="http://mpqa.cs.pitt.edu/lexicons/subj_lexicon/">Subjectivity Lexicon</a> (which is available for free, but you need to supply contact details), split it up for use in our program. This gave use a huge list of words, along with a strong or weak associate with positive or negative use (and more practice splitting strings in Python :).</p>
+<p>The <a href="http://mpqa.cs.pitt.edu">University of Pittsburgh Mult-Question Perspective Answering</a> site has a few interesting sets of data for download, and we grabbed a copy of the <a href="http://mpqa.cs.pitt.edu/lexicons/subj_lexicon/">Subjectivity Lexicon</a> (which is available for free, but you need to supply contact details), and split it up for use in our program. This gave use a huge list of words, along with a strong or weak associate with positive or negative use (and more practice splitting strings in Python :).</p>
 <pre class="line-numbers" style="white-space: pre-wrap;" > </pre>
+<p class="msg msg--highlight "> A sample of the University of Pittsburgh data. We only used the <strong>type</strong>, <strong>word1</strong>, and <strong>priorpolarity</strong> key value pairs.</p>
 <p class="msg msg--info">In retrospect one of their other data sets might have been more suitable, but this was the one I found initially and didn't bother exploring the others since it seemed good enough in the time I had available to investigate.</p>
 <p>Lastly we needed some real world data which we could use to compare our results, and to stop using our toy data set of contrived sentences. Since the initial premise for the program was analysis of product reviews, what better place to look than Amazon. I found a set of <a href="https://nijianmo.github.io/amazon/index.html">Amazon reviews that had been collected</a> for analysis by Jianmo Ni from the University of California San Diego. Unlike the previous sets of data, this was nicely formatted as JSON, and there was a large range of different review categories, all of which were suitably huge (definitely from a student perspective, used to dealing with tens of data points). As the smallest set was more than enough for our purposes, I chose the Amazon Instant Video category, weighing in at a mere 37126 entries.</p>
 <pre class="line-numbers" style="white-space: pre-wrap;" > </pre>
+<p class="msg msg--highlight "> A sample of the Amazon Instant Video data. "<strong>overall</strong>" gives the star rating, and we also looked at the "<strong>reviewText</strong>" field. It would be interesting to see how useful the "<strong>helpful</strong>" data was in the future too.</p>
 <p> Working with JSON let us look at working with libraries (although we had done some work with CSV prior to this) and the dictionary data structure.</p>
 <p>One of the great things about this data set, is that whilst we could analyse the review text and see how our algorithm scored each one, each review also contained the star rating given by the reviewer, which meant that we could compare the implicit review sentiment based on the text to the explicit review rating and use this as a method for determining either the honesty of the review, or as a metric for evaluating the accuracy of our algorithm.</p>
 <p>We ended up running out of time to do the final analysis, but I'll manage our time better next time I run with this project. Here's a quick program containing the work we did in class that I put together to look at accuracy, comparing the extremes of sentiment scores to star ratings, which turned out to be 73% accurate. Not too bad for a toy program that simplifies the problem quite a lot.</p>
