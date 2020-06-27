@@ -3,12 +3,70 @@
     <title>Headtilt</title>
     <link href="https://headtilt.me/feed.xml" rel="self" />
     <link href="https://headtilt.me" />
-    <updated>2020-05-25T06:48:06+08:00</updated>
+    <updated>2020-06-27T13:17:59+08:00</updated>
     <author>
         <name>Rob</name>
     </author>
     <id>https://headtilt.me</id>
 
+    <entry>
+        <title>Year 7-8 Networking Concepts Mk 2</title>
+        <author>
+            <name>Rob</name>
+        </author>
+        <link href="https://headtilt.me/year-7-8-networking-concepts-mk-2/"/>
+        <id>https://headtilt.me/year-7-8-networking-concepts-mk-2/</id>
+            <category term="networking"/>
+            <category term="microbit"/>
+            <category term="compsci"/>
+            <category term="classroom"/>
+
+        <updated>2020-06-27T13:17:48+08:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://headtilt.me/media/posts/81/pair_microbit.png" alt="" />
+                    Back in 2017 when I was first thinking about how I could&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <img src="https://headtilt.me/media/posts/81/pair_microbit.png" alt="" />
+                <p><a href="https://headtilt.me/year-7-8-wireless-network-concepts-with-microbits/">Back in 2017</a> when I was first thinking about how I could use physical computing like Micro:bits in my classroom, I wrote some quick some nasty programs to demonstrate networking concepts like attenuation and latency in wireless connections as well as adapting some ideas from the <a href="https://microbit.nominetresearch.uk/networking-book-online-python/">Networking with the micro:bit book</a>, and <a href="https://learnlearn.uk/microbit/topics/networking-two-microbits/">using basic wired networks for Morse Code</a> (the linked site is not the original project I used the idea from, but there are only so many permutations).</p>
+<p>Through a series of short activities we crammed in:</p>
+<ul>
+<li>Calculating throughput</li>
+<li>Asymmetric speeds in networks (albeit in a slightly clumsy way)</li>
+<li>Wired vs wireless communication</li>
+<li>Broadcast and unicast wireless transmission</li>
+<li>Attenuation and interference</li>
+<li>Noisy channels and collisions</li>
+<li>Latency</li>
+<li>Privacy of communication on networks (still trying to come up with a better way of introducing crypto in a hands on way, <a href="https://headtilt.me/year-7-8-bad-crypto-with-microbits/">my previous attempt was not great</a>)</li>
+</ul>
+<p>Whilst I still think the ideas are good ones, it was a classic case of plans not surviving contact with the enemy: my students found all the ways to break my programs, misunderstand how they worked, and otherwise turn the exercise into a hassle for a significant minority of the class.</p>
+<h2 id="mcetoc_1ebpcd7jt0">Multiple Pairs of Clients</h2>
+<p>The basic problem boiled down to that whilst it was a great prompt for discussing a lot of the problems with busy wireless networks as well as privacy, having up to 15 pairs of clients all trying to communicate at once is a nightmare.</p>
+<p>My original solution was to allocate each pair a wireless group/channel which they manually navigated to via button presses, and then sat blissfully operating in their own little slice of spectrum. Of course this is predicated on students following instructions, not being malicious, not running past their allocated group because they pressed the button too many times (an issue when you hit group 10+ as the display starts slowly scrolling the group number and students get impatient), etc.</p>
+<p>For a number of pairs of students, this then turns into a festival of resetting their device to return to the default group and incrementing their group once again, this time with the additional chatter of existing communication flying past on their screens as they waltz through other students' channels.</p>
+<p>My first solution to this problem was to have a toggle switch for the radio, so devices started out in the off state, you change the group up to yours without network activity to distract you, and then off you go. Seasoned teachers will no doubt predict how much that helped; students didn't pay attention to the fact their radios were off by default, and complained their program wasn't working, got to the correct channel tried it out with the radio turned off and reset their device, etc.</p>
+<h2 id="mcetoc_1ebpclm6k1">Enter Pairing</h2>
+<p>Over the last year I've been playing around with writing programs based on wireless signal strength, such as my <a href="https://headtilt.me/dowsing-for-radio/">PKE Meter</a> and <a href="https://headtilt.me/robotics-showcase-epidemic/">virus simulator</a>. Whilst thinking about modifying my latency program to artificially introduce range-based latency, it hit me that I could use the wireless RSSI value to initially pair Micro:bits for other activities, exchanging device IDs and allowing me to sidestep the annoying problem of changing groups and malicious actors. The Micro:bit already sort of <a href="https://support.microbit.org/support/solutions/articles/19000030849-how-to-use-radio-group-codes-with-the-makecode-editor">does pairing via group numbers</a> (interestingly, using a hash of your code to determine a group number if it is not explicity set!) so I was already doing this, but as a manual step rather than as an automatic process based on proximity.</p>
+<p>I whipped up a basic three way handshake pairing system with an RSSI threshold that required the devices to be almost right next to each other and incorporated it into my programs. It remains to be seen how well this will work with 30-odd devices running at once (I've had issues with the short message queue on Micro:bits before) but I live in hope. Sadly I always have my ideas right at the end of a topic, so I'm either going to have to shoe-horn this into another class for testing, co-opt some 'volunteers', or wait until next year.</p>
+<p>Below is the MakeCode pairing code I'm currently using (and feels super clumsy and no doubt I'll refine next year when it's too late to use the changes in class again 🤣).</p>
+<div class="gallery"   >
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/81//gallery/pair_request.png" ><img src="https://headtilt.me/media/posts/81//gallery/pair_request-thumbnail.png" alt="" width="240" height="240"></a>
+<figcaption class="gallery-description">Send out a pair request with a 2 second timeout.</figcaption>
+</figure>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/81//gallery/pair_radio_1.png" ><img src="https://headtilt.me/media/posts/81//gallery/pair_radio_1-thumbnail.png" alt="" width="240" height="240"></a>
+<figcaption class="gallery-description">Capture a pair request, check for strong signal, increment state, and send reply.</figcaption>
+</figure>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/81//gallery/pair_radio_2.png" ><img src="https://headtilt.me/media/posts/81//gallery/pair_radio_2-thumbnail.png" alt="" width="240" height="240"></a>
+<figcaption class="gallery-description">Receive reply, respond with success and pair, or receive response and pair, incrementing state and capturing device ID.</figcaption>
+</figure>
+</div>
+            ]]>
+        </content>
+    </entry>
     <entry>
         <title>Micro:bit Epidemic</title>
         <author>
@@ -812,30 +870,6 @@
 <p>I thought about using the <strong>lastBlock</strong> array of the blocks that had been encountered for building the frequency graph, but didn't really like the idea of implementing a sorting algorithm in MakeCode and in the end figured that since the Agent collects the same block together in its inventory anyway, that would make a nice shortcut.</p>
 <p>The main issue with using the Agent inventory is many blocks do not drop themselves when broken and picked up. For example each of the ore types (coal, iron, gold, diamond, lapis lazuli, redstone, and emerald) drop non-buildable blocks, resulting in a long and rather ugly selection sequence translating the dropped material into the original block (and conveniently ignoring what happens if a single block drops more than one item!).</p>
 <p>If you would like to try this out and don't want to spend forever dragging blocks around yourself, feel free to <a href="../../../../../media/files/minecraft-Geological Survey.mkcd">download my MakeCode file here</a> and load it into Code Connection yourself.</p>
-            ]]>
-        </content>
-    </entry>
-    <entry>
-        <title>Migrating from Squarespace</title>
-        <author>
-            <name>Rob</name>
-        </author>
-        <link href="https://headtilt.me/migrating-from-squarespace/"/>
-        <id>https://headtilt.me/migrating-from-squarespace/</id>
-            <category term="ramble"/>
-
-        <updated>2018-08-18T21:10:38+08:00</updated>
-            <summary>
-                <![CDATA[
-                    I've been getting a bit antsy about continuing to pay Squarespace to&hellip;
-                ]]>
-            </summary>
-        <content type="html">
-            <![CDATA[
-                <p>I've been getting a bit antsy about continuing to pay Squarespace to host Headtilt, mostly due to the infrequent updates that I seem to be doing over the last couple of years, and partly because I think I feel the need to tinker with stuff.</p>
-<p>For ages I've liked the idea of static site generators, and occasionally I'll go and play with one for a while before falling out of love with the idea of writing up posts in Markdown, having to remember its syntax for links, images, etc, and then go running back to the arms of a regular CMS.</p>
-<p>Recently I started checking out Publii. It generates static pages, but has a nice CMS style GUI editor that you can create posts in and manage the site before pushing it out to a hosting platform (in this instance Github Pages).</p>
-<p>The downside is of course, migrating content out of Squarespace. Although they offer exporting to WordPress style XML, actually importing that content anywhere has been a less than ideal experience. Publii includes a tool to do this automatically, but nicely sorting those imported posts into tag categories is less fun, since you have to manually edit each post (lucky I'm a lazy writer!) and add relevant tags, and the automatic image downloading failed due some screwy file naming in the Squarespace export. This would be ok if images were stored in a central repository, but unfortunately, Publii stores posts in individual folders in the root directory, with images stored within those folders, meaning lots of manual fiddling with file locations, editing HTML in individual posts, etc.</p>
             ]]>
         </content>
     </entry>
