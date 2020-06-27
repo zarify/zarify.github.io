@@ -3,7 +3,7 @@
     <title>Headtilt</title>
     <link href="https://headtilt.me/feed.xml" rel="self" />
     <link href="https://headtilt.me" />
-    <updated>2020-06-27T13:17:59+08:00</updated>
+    <updated>2020-06-27T13:21:13+08:00</updated>
     <author>
         <name>Rob</name>
     </author>
@@ -21,7 +21,7 @@
             <category term="compsci"/>
             <category term="classroom"/>
 
-        <updated>2020-06-27T13:17:48+08:00</updated>
+        <updated>2020-06-27T13:21:07+08:00</updated>
             <summary>
                 <![CDATA[
                         <img src="https://headtilt.me/media/posts/81/pair_microbit.png" alt="" />
@@ -31,7 +31,7 @@
         <content type="html">
             <![CDATA[
                     <img src="https://headtilt.me/media/posts/81/pair_microbit.png" alt="" />
-                <p><a href="https://headtilt.me/year-7-8-wireless-network-concepts-with-microbits/">Back in 2017</a> when I was first thinking about how I could use physical computing like Micro:bits in my classroom, I wrote some quick some nasty programs to demonstrate networking concepts like attenuation and latency in wireless connections as well as adapting some ideas from the <a href="https://microbit.nominetresearch.uk/networking-book-online-python/">Networking with the micro:bit book</a>, and <a href="https://learnlearn.uk/microbit/topics/networking-two-microbits/">using basic wired networks for Morse Code</a> (the linked site is not the original project I used the idea from, but there are only so many permutations).</p>
+                <p><a href="https://headtilt.me/year-7-8-wireless-network-concepts-with-microbits/">Back in 2017</a> when I was first thinking about how I could use physical computing like Micro:bits in my classroom, I wrote some quick and nasty programs to demonstrate networking concepts like attenuation and latency in wireless connections as well as adapting some ideas from the <a href="https://microbit.nominetresearch.uk/networking-book-online-python/">Networking with the micro:bit book</a>, and <a href="https://learnlearn.uk/microbit/topics/networking-two-microbits/">using basic wired networks for Morse Code</a> (the linked site is not the original project I used the idea from, but there are only so many permutations).</p>
 <p>Through a series of short activities we crammed in:</p>
 <ul>
 <li>Calculating throughput</li>
