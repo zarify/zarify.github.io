@@ -3,12 +3,118 @@
     <title>Headtilt</title>
     <link href="https://headtilt.me/feed.xml" rel="self" />
     <link href="https://headtilt.me" />
-    <updated>2020-06-27T13:40:54+08:00</updated>
+    <updated>2020-11-17T06:30:45+08:00</updated>
     <author>
         <name>Rob</name>
     </author>
     <id>https://headtilt.me</id>
 
+    <entry>
+        <title>Code Introspection in Minecraft and Python</title>
+        <author>
+            <name>Rob</name>
+        </author>
+        <link href="https://headtilt.me/code-introspection-in-minecraft-and-python/"/>
+        <id>https://headtilt.me/code-introspection-in-minecraft-and-python/</id>
+            <category term="python"/>
+            <category term="minecraft"/>
+            <category term="classroom"/>
+
+        <updated>2020-11-17T06:30:45+08:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://headtilt.me/media/posts/82/intro.png" alt="" />
+                    I recently got around to trying out the new-ish Python mode for&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <img src="https://headtilt.me/media/posts/82/intro.png" alt="" />
+                <p>I recently got around to trying out the new-ish Python mode for coding within Minecraft: Education Edition, and whilst it is refreshing to be able to <strong>write</strong> code, the lack of a code library to be able to refer to made learning the Minecraft-specific commands somewhat difficult.</p>
+<p>Enter code introspection, which is the ability to look inside classes and methods from within Python to list them and see what is available, or to show their docstring and discover their arguments.</p>
+<div class="gallery-wrapper gallery-wrapper--full"><div class="gallery"  data-is-empty="false" data-columns="2">
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/82/gallery/dir_str.png" data-size="912x220"><img loading="lazy" src="https://headtilt.me/media/posts/82/gallery/dir_str-thumbnail.png" alt="dir(str) displaying inbuilt methods and properties." width="240" height="220"></a>
+<figcaption>Using dir to show the inbuilt methods and properties of the string class.</figcaption>
+</figure>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/82/gallery/help_strip.png" data-size="714x145"><img loading="lazy" src="https://headtilt.me/media/posts/82/gallery/help_strip-thumbnail.png" alt="help(str.strip) output" width="240" height="145"></a>
+<figcaption>Using help to show the docstring for the strip method of strings.</figcaption>
+</figure>
+</div></div>
+<p>Unfortunately, although the <strong>dir</strong> function works within Minecraft the same way as in regular Python, the <strong>help </strong>function does not seem to.</p>
+<h2>Text Output in Minecraft</h2>
+<p>Ordinarily, the interactive shell would be the place to do this, as in the screenshots above, however Minecraft doesn't have an interactive shell for Python. In places I have no shell (for example in Processing's Python mode) you could <strong>print</strong> the output of the the <strong>dir</strong> or <strong>help</strong>, but Minecraft doesn't show the output of the print function. However it does have a method for speaking text: the <strong>say</strong> function!</p>
+<div class="gallery-wrapper"><div class="gallery"  data-is-empty="false" data-columns="2">
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/82/gallery/say_code.png" data-size="312x287"><img loading="lazy" src="https://headtilt.me/media/posts/82/gallery/say_code-thumbnail.png" alt="Python code for the say function" width="240" height="240"></a>
+<figcaption>Printing using say.</figcaption>
+</figure>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/82/gallery/say_output.png" data-size="760x223"><img loading="lazy" src="https://headtilt.me/media/posts/82/gallery/say_output-thumbnail.png" alt="Output from the say function" width="240" height="223"></a>
+<figcaption>The output of the say code.</figcaption>
+</figure>
+</div></div>
+<h2>Combining say() and dir()</h2>
+<p>The naive way (because <strong>print</strong> in regular Python lets you) of showing available commands for an object like the <strong>agent</strong> would be to run code like this:</p>
+<pre><code>say(dir(agent))</code></pre>
+<p>However, this will fail to run, with the possibly unhelpful error message:</p>
+<pre><code>Error: _minecraft_builtins.MinecraftError: Syntax error: Unexpected "[": at "~ ~ ~ say &gt;&gt;[&lt;&lt;'__class__" (Code: 0x80000000)</code></pre>
+<p>which basically boils down to the output of <strong>dir</strong> being a list of strings, and the <strong>say</strong> function expecting just one string. The print function will happily give you a string representation of anything, but say is not so flexible.</p>
+<p>The solution is to <strong>join</strong> the list into one string separated by something useful like a line break:</p>
+<pre><code style="font-weight: var(--font-weight-normal);">say("\n".join(dir(agent)))</code></pre>
+<p>This may look a bit arcane, so let's break it down:</p>
+<ul>
+<li>"\n" is the string we would like to join together the individual list items with.<br>This is a <strong>newline</strong> character, which creates a line break, so every item will be on its own line.</li>
+<li><strong>join</strong> is a string function we call <em>on</em> the newline character, and takes as an argument a list of strings.</li>
+<li>dir(agent) gets us the name of every attribute and method which belongs to the agent object as a list of strings.</li>
+</ul>
+<figure class="post__image" ><img loading="lazy" src="https://headtilt.me/media/posts/82/dir_output_part.png" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/82/responsive/dir_output_part-xs.png 300w ,https://headtilt.me/media/posts/82/responsive/dir_output_part-sm.png 480w ,https://headtilt.me/media/posts/82/responsive/dir_output_part-md.png 768w ,https://headtilt.me/media/posts/82/responsive/dir_output_part-lg.png 1024w"  alt="Partial output of the dir(agent) call." width="757" height="364">
+<figcaption >Here is the last part of the output of this code, showing what we can do with the Agent.</figcaption>
+</figure>
+<p>This works nicely. The list is long, and so only shows part of it in the world chat view, but we can open up the chat window (by pressing <strong>t</strong> or <strong>Enter)</strong> to be able to scroll through the whole list:</p>
+<ul>
+<li>attack</li>
+<li>collect</li>
+<li>destroy</li>
+<li>drop</li>
+<li>get_item</li>
+<li>get_item_count</li>
+<li>give</li>
+<li>inspect</li>
+<li>inspect_data</li>
+<li>interact</li>
+<li>move</li>
+<li>place</li>
+<li>position</li>
+<li>rotation</li>
+<li>say</li>
+<li>teleport</li>
+<li>till</li>
+<li>transfer</li>
+<li>turn</li>
+</ul>
+<p>You will also see a number of listings with __ or _ prepended. These are internal methods and attributes, which you generally don't want to fiddle with.</p>
+<p>We can also use a similar technique to look at the contents of the <strong>globals</strong> dictionary, which is the collection of variables currently defined in the global scope. This gives us an idea of what objects have been created which we can poke at using the <strong>dir</strong> function (not everything is an object though).</p>
+<pre><code style="font-weight: var(--font-weight-normal);">say("\n".join(globals()))</code></pre>
+<p>This gives us interesting things to look at like the <strong>player</strong>, <strong>world</strong>, and <strong>user</strong>, as well as globally defined functions like <strong>spawn</strong>, and <strong>summon</strong>.</p>
+<h2>Help</h2>
+<p>Unfortunately, although there is a help function available, it doesn't seem to work the same way as the standard Python one, so the way to figure out how many of the functions and methods work is through trial and error. Generally the Python editor within Minecraft will give you useful enough errors to know how many and what type of arguments something needs to run when you get it wrong, and that combined with liberal use of good old print debugging using the <strong>say</strong> function should get you where you need to go.</p>
+<p>For example I spent a little while poking at the agent's <strong>inspect</strong> method trying to solve one of this year's Hour of Code problems in a manner that wasn't in the instructions (didn't work, but led to this post as <strong>inspect</strong> wasn't advertised anywhere in the instructions).</p>
+<p>First I can just try the inspect method by itself (even though knowing what it does I should expect a direction):</p>
+<div>
+<pre><code>agent.inspect()</code></pre>
+</div>
+<p>This gives me an error when I run it and return to Code Builder:</p>
+<figure class="post__image post__image--center" ><img loading="lazy" src="https://headtilt.me/media/posts/82/inspect_error.png" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/82/responsive/inspect_error-xs.png 300w ,https://headtilt.me/media/posts/82/responsive/inspect_error-sm.png 480w ,https://headtilt.me/media/posts/82/responsive/inspect_error-md.png 768w ,https://headtilt.me/media/posts/82/responsive/inspect_error-lg.png 1024w"  alt="An inspect error" width="611" height="69">
+<figcaption >An error indicating that I need to give inspect a single argument</figcaption>
+</figure>
+<p>Now I can add in a directional argument, save the return value of that method call to a variable, and say it to determine what information the agent is actually receiving.</p>
+<pre><code>d = agent.inspect("down")
+say(d)</code></pre>
+<figure class="post__image post__image--center" ><img loading="lazy" src="https://headtilt.me/media/posts/82/inspect_output.png" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/82/responsive/inspect_output-xs.png 300w ,https://headtilt.me/media/posts/82/responsive/inspect_output-sm.png 480w ,https://headtilt.me/media/posts/82/responsive/inspect_output-md.png 768w ,https://headtilt.me/media/posts/82/responsive/inspect_output-lg.png 1024w"  alt="Output of the inspect command" width="1198" height="638">
+<figcaption >"grass" is what is under my Agent!</figcaption>
+</figure>
+<p>With a bit of perseverance, you should be able to figure out most of the undocumented features through this method.</p>
+            ]]>
+        </content>
+    </entry>
     <entry>
         <title>Year 7-8 Networking Concepts Mk 2</title>
         <author>
@@ -21,7 +127,7 @@
             <category term="compsci"/>
             <category term="classroom"/>
 
-        <updated>2020-06-27T13:40:05+08:00</updated>
+        <updated>2020-11-17T05:58:38+08:00</updated>
             <summary>
                 <![CDATA[
                         <img src="https://headtilt.me/media/posts/81/pair_microbit.png" alt="" />
@@ -44,26 +150,26 @@
 <li>Privacy of communication on networks (still trying to come up with a better way of introducing crypto in a hands on way, <a href="https://headtilt.me/year-7-8-bad-crypto-with-microbits/">my previous attempt was not great</a>)</li>
 </ul>
 <p>Whilst I still think the ideas are good ones, it was a classic case of plans not surviving contact with the enemy: my students found all the ways to break my programs, misunderstand how they worked, and otherwise turn the exercise into a hassle for a significant minority of the class.</p>
-<h2 id="mcetoc_1ebpcd7jt0">Multiple Pairs of Clients</h2>
+<h2>Multiple Pairs of Clients</h2>
 <p>The basic problem boiled down to that whilst it was a great prompt for discussing a lot of the problems with busy wireless networks as well as privacy, having up to 15 pairs of clients all trying to communicate at once is a nightmare.</p>
 <p>My original solution was to allocate each pair a wireless group/channel which they manually navigated to via button presses, and then sat blissfully operating in their own little slice of spectrum. Of course this is predicated on students following instructions, not being malicious, not running past their allocated group because they pressed the button too many times (an issue when you hit group 10+ as the display starts slowly scrolling the group number and students get impatient), etc.</p>
 <p>For a number of pairs of students, this then turns into a festival of resetting their device to return to the default group and incrementing their group once again, this time with the additional chatter of existing communication flying past on their screens as they waltz through other students' channels.</p>
 <p>My first solution to this problem was to have a toggle switch for the radio, so devices started out in the off state, you change the group up to yours without network activity to distract you, and then off you go. Seasoned teachers will no doubt predict how much that helped; students didn't pay attention to the fact their radios were off by default, and complained their program wasn't working, got to the correct channel tried it out with the radio turned off and reset their device, etc.</p>
-<h2 id="mcetoc_1ebpclm6k1">Enter Pairing</h2>
+<h2>Enter Pairing</h2>
 <p>Over the last year I've been playing around with writing programs based on wireless signal strength, such as my <a href="https://headtilt.me/dowsing-for-radio/">PKE Meter</a> and <a href="https://headtilt.me/robotics-showcase-epidemic/">virus simulator</a>. Whilst thinking about modifying my latency program to artificially introduce range-based latency, it hit me that I could use the wireless RSSI value to initially pair Micro:bits for other activities, exchanging device IDs and allowing me to sidestep the annoying problem of changing groups and malicious actors. The Micro:bit already sort of <a href="https://support.microbit.org/support/solutions/articles/19000030849-how-to-use-radio-group-codes-with-the-makecode-editor">does pairing via group numbers</a> (interestingly, using a hash of your code to determine a group number if it is not explicity set!) so I was already doing this, but as a manual step rather than as an automatic process based on proximity.</p>
 <p>I whipped up a basic three way handshake pairing system with an RSSI threshold that required the devices to be almost right next to each other and incorporated it into my programs. It remains to be seen how well this will work with 30-odd devices running at once (I've had issues with the short message queue on Micro:bits before) but I live in hope. Sadly I always have my ideas right at the end of a topic, so I'm either going to have to shoe-horn this into another class for testing, co-opt some 'volunteers', or wait until next year.</p>
 <p>Below is the MakeCode pairing code I'm currently using (and feels super clumsy and no doubt I'll refine next year when it's too late to use the changes in class again 🤣).</p>
-<div class="gallery"   >
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/81//gallery/pair_request.png" ><img src="https://headtilt.me/media/posts/81//gallery/pair_request-thumbnail.png" alt="" width="240" height="240"></a>
+<div class="gallery-wrapper"><div class="gallery"  data-is-empty="false" data-columns="3">
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/81//gallery/pair_request.png" data-size="247x377"><img loading="lazy" src="https://headtilt.me/media/posts/81//gallery/pair_request-thumbnail.png" alt="" width="240" height="240"></a>
 <figcaption class="gallery-description">Send out a pair request with a 2 second timeout.</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/81//gallery/pair_radio_1.png" ><img src="https://headtilt.me/media/posts/81//gallery/pair_radio_1-thumbnail.png" alt="" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/81//gallery/pair_radio_1.png" data-size="573x436"><img loading="lazy" src="https://headtilt.me/media/posts/81//gallery/pair_radio_1-thumbnail.png" alt="" width="240" height="240"></a>
 <figcaption class="gallery-description">Capture a pair request, check for strong signal, increment state, and send reply.</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/81//gallery/pair_radio_2.png" ><img src="https://headtilt.me/media/posts/81//gallery/pair_radio_2-thumbnail.png" alt="" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/81//gallery/pair_radio_2.png" data-size="573x510"><img loading="lazy" src="https://headtilt.me/media/posts/81//gallery/pair_radio_2-thumbnail.png" alt="" width="240" height="240"></a>
 <figcaption class="gallery-description">Receive reply, respond with success and pair, or receive response and pair, incrementing state and capturing device ID.</figcaption>
 </figure>
-</div>
+</div></div>
 <p> Here's a <a href="https://makecode.microbit.org/_H1c47MbUceCh">copy of the latency program</a> incorporating the new pairing code (there's a small logic bug to do with the 5 second response timeout on pings I'll figure out eventually - I really dislike debugging block code :( )</p>
             ]]>
         </content>
@@ -101,35 +207,35 @@
 <li>In the event of someone testing positive for COVID-19 contacts could be uploaded to local health services to enable more efficient contact tracing (with the method for this varying by implementation)</li>
 </ul>
 <p>The typical values for $DANGER_DISTANCE and $DANGER_TIME have been around 2 meters and 15 minutes respectively.</p>
-<h2 id="mcetoc_1e94bpvkm2">Using Micro:bits</h2>
+<h2>Using Micro:bits</h2>
 <p>Since the Micro:bit has a Bluetooth radio and can easily monitor signal strength and signal device IDs, it was fairly straightforward to implement some code (written in Microsoft's MakeCode this time, whereas I used Python for the PKE meter).</p>
 <p>I'd like to do up a version of this that uses a speaker as well for some audio feedback about symptom status - some bleeps and bloops for coughing perhaps, or even just for some basic tactile feedback of vibration from a piezo to alert students that their device is sick.</p>
 <p>I've included links to the code and discussion of the algorithm further down the page.</p>
-<h2 id="mcetoc_1e94as7p91">Video</h2>
+<h2>Video</h2>
 <p>Here's a video of my first test run of more than a pair of clients. There's one mistake in my discussion as it plays where I say more than 10 infection messages in a 30 second period, which should be a 40 second period - since infection messages are broadcast every 2 seconds, it would make it hard to get infected otherwise!</p>
-<p><iframe width="640" height="1138" src="https://player.vimeo.com/video/420545881" frameborder="0" allow="autoplay; fullscreen" allowfullscreen="allowfullscreen"></iframe></p>
-<h2 id="mcetoc_1e94as1ts0">The Code</h2>
+<div class="post__iframe"><iframe loading="lazy" width="640" height="1138" src="https://player.vimeo.com/video/420545881" frameborder="0" allow="autoplay; fullscreen" allowfullscreen="allowfullscreen"></iframe></div>
+<h2>The Code</h2>
 <p> Since this section will be a bit lengthy, here are links to the code. I've tried to comment most of the important blocks so hopefully most of it will be pretty self-explanatory.</p>
 <p><a href="https://makecode.microbit.org/27344-13737-35905-04849">MakeCode - Virus Client</a></p>
 <p><a href="https://makecode.microbit.org/34820-54217-59128-00273">MakeCode - Virus Master</a></p>
-<h3 id="mcetoc_1e94chkdt3">Virus Master</h3>
+<h3>Virus Master</h3>
 <p>The virus master device is responsible for monitoring of the client devices, and also initial infection of a client device so that I have a known infection time and get an opportunity to prime students for the activity (which I'm planning on running twice - once unaware, and once with intentional physical distancing).</p>
 <p>The code is pretty straightforward - it just monitors radio traffic and collects device IDs and infection messages to keep track of total and infected devices.</p>
-<div class="gallery"   >
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/80/gallery/master_setup.png" ><img src="https://headtilt.me/media/posts/80/gallery/master_setup-thumbnail.png" alt="" width="240" height="151"></a>
+<div class="gallery-wrapper"><div class="gallery"  data-is-empty="false" data-columns="2">
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/80/gallery/master_setup.png" data-size="306x151"><img loading="lazy" src="https://headtilt.me/media/posts/80/gallery/master_setup-thumbnail.png" alt="" width="240" height="151"></a>
 <figcaption class="gallery-description">Set the radio group and create arrays for keeping device IDs of nearby Micro:bits and infected devices.</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/80/gallery/master_discovery.png" ><img src="https://headtilt.me/media/posts/80/gallery/master_discovery-thumbnail.png" alt="" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/80/gallery/master_discovery.png" data-size="781x298"><img loading="lazy" src="https://headtilt.me/media/posts/80/gallery/master_discovery-thumbnail.png" alt="" width="240" height="240"></a>
 <figcaption class="gallery-description">Incoming messages will either be discovery messages or infection messages. Capture device IDs and put into relevant arrays if not already present.</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/80/gallery/master_client_monitoring.png" ><img src="https://headtilt.me/media/posts/80/gallery/master_client_monitoring-thumbnail.png" alt="" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/80/gallery/master_client_monitoring.png" data-size="812x342"><img loading="lazy" src="https://headtilt.me/media/posts/80/gallery/master_client_monitoring-thumbnail.png" alt="" width="240" height="240"></a>
 <figcaption class="gallery-description">Use the captured device IDs to report on number of devices seen and infected using A or B.</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/80/gallery/master_infection.png" ><img src="https://headtilt.me/media/posts/80/gallery/master_infection-thumbnail.png" alt="" width="240" height="204"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/80/gallery/master_infection.png" data-size="839x204"><img loading="lazy" src="https://headtilt.me/media/posts/80/gallery/master_infection-thumbnail.png" alt="" width="240" height="204"></a>
 <figcaption class="gallery-description">Pick a random device ID to send an infection message to as Patient Zero.</figcaption>
 </figure>
-</div>
-<h3 id="mcetoc_1e94cihcc4">Virus Client</h3>
+</div></div>
+<h3>Virus Client</h3>
 <p>The virus client maintains arrays of infected devices around itself based on the RSSI (signal strength) values of incoming messages. Each incoming message also contains the device ID of the sender, which can be used for determining whether enough infection messages have been received to merit being infected itself.</p>
 <p>If sufficient time (40s in this case) passes without enough infection messages from a seen device, that device's info is purged from the lists. This has a couple of purposes:</p>
 <ol>
@@ -137,20 +243,20 @@
 <li>If it isn't there, we're preserving that device's privacy by not keeping its info on our device</li>
 </ol>
 <p>When devices are infected, they remain asymptomatic for 60 seconds, so only show the sad face on the screen after they've been merrily infecting other close devices for some time. </p>
-<div class="gallery"   >
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/80/gallery/client_setup.png" ><img src="https://headtilt.me/media/posts/80/gallery/client_setup-thumbnail.png" alt="" width="240" height="240"></a>
+<div class="gallery-wrapper"><div class="gallery"  data-is-empty="false" data-columns="2">
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/80/gallery/client_setup.png" data-size="355x440"><img loading="lazy" src="https://headtilt.me/media/posts/80/gallery/client_setup-thumbnail.png" alt="" width="240" height="240"></a>
 <figcaption class="gallery-description">The client needs to maintain arrays of other devices it has seen which are broadcasting infected messages, when it first saw an infected device, and how many messages it has seen. It also needs to know if it is infectious and displaying symptoms.</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/80/gallery/client_forever.png" ><img src="https://headtilt.me/media/posts/80/gallery/client_forever-thumbnail.png" alt="" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/80/gallery/client_forever.png" data-size="814x473"><img loading="lazy" src="https://headtilt.me/media/posts/80/gallery/client_forever-thumbnail.png" alt="" width="240" height="240"></a>
 <figcaption class="gallery-description">The clients broadcast discovery messages intended for the master device. If they are infected, they broadcast infect messages, and use the screen to displays whether or not they are symptomatic. Contacts are also pruned when they fall out of range for the infection window.</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/80/gallery/client_contact_monitoring.png" ><img src="https://headtilt.me/media/posts/80/gallery/client_contact_monitoring-thumbnail.png" alt="" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/80/gallery/client_contact_monitoring.png" data-size="889x832"><img loading="lazy" src="https://headtilt.me/media/posts/80/gallery/client_contact_monitoring-thumbnail.png" alt="" width="240" height="240"></a>
 <figcaption class="gallery-description">When radio packets are received, the client needs to determine if the device has been seen before, if the signal is strong enough to merit contributing to infection, and whether enough contact has occured to infect this device. This also listens for the master device to see if an infection message refers to this device ID.</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/80/gallery/client_pruning.png" ><img src="https://headtilt.me/media/posts/80/gallery/client_pruning-thumbnail.png" alt="" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/80/gallery/client_pruning.png" data-size="885x415"><img loading="lazy" src="https://headtilt.me/media/posts/80/gallery/client_pruning-thumbnail.png" alt="" width="240" height="240"></a>
 <figcaption class="gallery-description">I could probably get away without pruning and just maintain data for every device seen, but this keeps the list of infected devices easy to understand. If it's in the array, it's something to worry about. This also stays true to the idea of not keeping identifying data for devices which are not relevant.</figcaption>
 </figure>
-</div>
+</div></div>
             ]]>
         </content>
     </entry>
@@ -177,34 +283,34 @@
                     <img src="https://headtilt.me/media/posts/77/2_sentiment_samples.png" alt="" />
                 <p>In 2019 I started up a programming-oriented Data Science class with my Year 10s. I ran two classes during the year, each spanning a semester. My aim for the course was to introduce students to different ways of storing, retrieving, and working with data, as well as give some coverage over different types of data and some operations that you can perform with it (e.g. numeric, text, spatial).</p>
 <p>I ran a different main project with each class: during the first semester I looked at analysing data from the <a href="https://www.aph.gov.au/Parliamentary_Business/Hansard">Australian Federal Government Hansard</a>. Unfortunately, the students in the group weren't very interested in it, and (like many of my first time projects) the scope turned out to be overly broad, meaning students had trouble figuring out what they <em>would</em> do from all the alternatives of what they <em>could</em> do. Tangentially, working with the XML from the Hansard is a great (or terrible, depending on your perspective) activity in data cleaning - they've made some... interesting decisions about how to format their data inside the XML structure.</p>
-<p><img class="post__image post__image--center" src="https://headtilt.me/media/posts/77/1_hansard_snip.png" alt="" width="2160" height="828"></p>
+<figure class="post__image post__image--center"><img loading="lazy"  src="https://headtilt.me/media/posts/77/1_hansard_snip.png" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/77/responsive/1_hansard_snip-xs.png 300w ,https://headtilt.me/media/posts/77/responsive/1_hansard_snip-sm.png 480w ,https://headtilt.me/media/posts/77/responsive/1_hansard_snip-md.png 768w ,https://headtilt.me/media/posts/77/responsive/1_hansard_snip-lg.png 1024w"  alt="" width="2160" height="828"></figure>
 <p>The second project was processing text to determine sentiment. This worked a lot better, and the project had a nice natural flow from the basic concepts of <a href="https://en.wikipedia.org/wiki/Lexical_analysis#Tokenization">tokenisation</a> and weighting, to some concepts like <a href="https://en.wikipedia.org/wiki/Stop_words">stop words</a>, before throwing in some (large) real world data sets to test out our algorithm. It's worthwhile noting here that it is <em>very</em> naive, and only gauges positive or negative sentiment, with no other categorisation like angry, sad, etc.</p>
-<h2 id="mcetoc_1dt7v188b0">Progression of Sentiment Analysis</h2>
-<p><img class="post__image post__image--right" src="https://headtilt.me/media/posts/77/2_sentiment_samples.png" alt="" width="836" height="310">We start out by looking at some very basic examples and developing an algorithm. This might be some identification of simple tokens, or to start with just ordering the sentences from most positive to most negative and articulating what differentiates each sentence from its neighbours.</p>
+<h2>Progression of Sentiment Analysis</h2>
+<figure class="post__image post__image--right"><img loading="lazy"  src="https://headtilt.me/media/posts/77/2_sentiment_samples.png" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/77/responsive/2_sentiment_samples-xs.png 300w ,https://headtilt.me/media/posts/77/responsive/2_sentiment_samples-sm.png 480w ,https://headtilt.me/media/posts/77/responsive/2_sentiment_samples-md.png 768w ,https://headtilt.me/media/posts/77/responsive/2_sentiment_samples-lg.png 1024w"  alt="" width="836" height="310"></figure>We start out by looking at some very basic examples and developing an algorithm. This might be some identification of simple tokens, or to start with just ordering the sentences from most positive to most negative and articulating what differentiates each sentence from its neighbours.</p>
 <p>During the ranking process it becomes apparent that not all sentiment tokens are created equal, and so some sort of weighting system should come into play, meaning we can develop a scoring algorithm which we can apply to each sentence. I threw in a couple of ambiguous cases so that we also had to think about things like modifier words and symbols (e.g. 'not' coming before a sentiment token, shouty caps, or exclamation marks). </p>
 <p>This is where we can start bringing in how to tackle programming the algorithm and process the simple sentences to see how it fares and whether or not the results match our expectations discussed at the start of the project. This is as simple as initialising a score variable, splitting the sentence on spaces, and normalising by stripping punctuation and changing to a standard case (typically lower). We can then examine each word, checking for membership in our lists of sentiment tokens (in class we grouped them to <strong>v_bad</strong>, <strong>bad</strong>, <strong>good</strong>, and <strong>v_good</strong> with anything not being in these lists not contributing to the score.</p>
 <p>This worked pretty well with the sample sentences, but it was obvious that it did not deal with modifiers at all, so "not good" was counted as a positive sentiment in the same way that "good" was. In the previous code snippet, the enumerate function was used to get the position of each word in the sentence along with the word itself, so that we could examine the preceding word as well. This had the added benefit of being able to check for amplifying words like "very" at the same time. Modifying or inverting was simply a case of adding to, subtracting from, or multiplying (e.g. x2 for a boost, or x -1 for an inversion) the score for the current word.</p>
 <p>From here we looked at the importance of stop words. For example our modifier words were sometimes separated by stop words, such as in one of the examples "but <strong>not</strong> in a <strong>good</strong> way". Filtering out any stop words prior to analysis and weighting made it possible to invert or amplify words which were not next to each other, but still related. This list of stop words we used can be found here: <a href="http://xpo6.com/list-of-english-stop-words/">http://xpo6.com/list-of-english-stop-words/</a></p>
-<pre class="line-numbers" style="white-space: pre-wrap;" > </pre>
+<pre class="line-numbers" style="white-space: pre-wrap;" data-src="https://headtilt.me/media/files/10_sentiment_basic.py"> </pre>
 <p class="msg msg--highlight"> An extract of the code showing the implementation of the scoring algorithm.</p>
 <p>Once we played with the values to get to the point where we were happy with the (somewhat arbitrary) scores, all that was left to do was try it out with some real world data.</p>
 <p>The <a href="http://mpqa.cs.pitt.edu">University of Pittsburgh Mult-Question Perspective Answering</a> site has a few interesting sets of data for download, and we grabbed a copy of the <a href="http://mpqa.cs.pitt.edu/lexicons/subj_lexicon/">Subjectivity Lexicon</a> (which is available for free, but you need to supply contact details), and split it up for use in our program. This gave use a huge list of words, along with a strong or weak associate with positive or negative use (and more practice splitting strings in Python :).</p>
-<pre class="line-numbers" style="white-space: pre-wrap;" > </pre>
+<pre class="line-numbers" style="white-space: pre-wrap;" data-src="https://headtilt.me/media/files/10_sentiment_words.txt"> </pre>
 <p class="msg msg--highlight "> A sample of the University of Pittsburgh data. We only used the <strong>type</strong>, <strong>word1</strong>, and <strong>priorpolarity</strong> key value pairs.</p>
 <p class="msg msg--info">In retrospect one of their other data sets might have been more suitable, but this was the one I found initially and didn't bother exploring the others since it seemed good enough in the time I had available to investigate.</p>
 <p>Lastly we needed some real world data which we could use to compare our results, and to stop using our toy data set of contrived sentences. Since the initial premise for the program was analysis of product reviews, what better place to look than Amazon. I found a set of <a href="https://nijianmo.github.io/amazon/index.html">Amazon reviews that had been collected</a> for analysis by Jianmo Ni from the University of California San Diego. Unlike the previous sets of data, this was nicely formatted as JSON, and there was a large range of different review categories, all of which were suitably huge (definitely from a student perspective, used to dealing with tens of data points). As the smallest set was more than enough for our purposes, I chose the Amazon Instant Video category, weighing in at a mere 37126 entries.</p>
-<pre class="line-numbers" style="white-space: pre-wrap;" > </pre>
+<pre class="line-numbers" style="white-space: pre-wrap;" data-src="https://headtilt.me/media/files/10_sentiment_amazon.json"> </pre>
 <p class="msg msg--highlight "> A sample of the Amazon Instant Video data. "<strong>overall</strong>" gives the star rating, and we also looked at the "<strong>reviewText</strong>" field. It would be interesting to see how useful the "<strong>helpful</strong>" data was in the future too.</p>
 <p> Working with JSON let us look at working with libraries (although we had done some work with CSV prior to this) and the dictionary data structure.</p>
 <p>One of the great things about this data set, is that whilst we could analyse the review text and see how our algorithm scored each one, each review also contained the star rating given by the reviewer, which meant that we could compare the implicit review sentiment based on the text to the explicit review rating and use this as a method for determining either the honesty of the review, or as a metric for evaluating the accuracy of our algorithm.</p>
 <p>We ended up running out of time to do the final analysis, but I'll manage our time better next time I run with this project. Here's a quick program containing the work we did in class that I put together to look at accuracy, comparing the extremes of sentiment scores to star ratings, which turned out to be 73% accurate. Not too bad for a toy program that simplifies the problem quite a lot.</p>
-<h2 id="mcetoc_1dt88eprq0">What worked and what didn't</h2>
+<h2>What worked and what didn't</h2>
 <p>As far as engagement goes, I think this worked really well - students followed the flow most of the way and I think the complexity of the main ideas were about right. Splitting, scoring, stop words, iterating through a list of words: all of these worked out fine.</p>
 <p>Where things tended to fall apart a bit is when we got to importing the larger files. Even though the sentiment words and the JSON reviews were quite simple as individual entries, somehow the idea of processing tens of thousands of them was a bit intimidating.</p>
-<p class="msg msg--info"><img class="post__image post__image--center" src="https://headtilt.me/media/posts/77/sentiment_tweet.png" alt="" width="587" height="216">I was originally going to do an activity looking at identifying online chat behaviour, being inspired by <a href="https://twitter.com/DigTecInstitute/status/1163971165527785472">this tweet</a> from <a href="https://twitter.com/kkschulz">Karsten Schulz</a> (although taking a different approach). I ended up being put of by the difficulty of finding good sample data to work with that was real world but fairly tame. I might have another crack at it later on and maybe incorporate it into an IRC bot or something similar.</p>
-<h2 id="mcetoc_1dt88ll121">Some final code</h2>
+<figure class="post__image post__image--center"><img loading="lazy"  src="https://headtilt.me/media/posts/77/sentiment_tweet.png" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/77/responsive/sentiment_tweet-xs.png 300w ,https://headtilt.me/media/posts/77/responsive/sentiment_tweet-sm.png 480w ,https://headtilt.me/media/posts/77/responsive/sentiment_tweet-md.png 768w ,https://headtilt.me/media/posts/77/responsive/sentiment_tweet-lg.png 1024w"  alt="" width="587" height="216"></figure>I was originally going to do an activity looking at identifying online chat behaviour, being inspired by <a href="https://twitter.com/DigTecInstitute/status/1163971165527785472">this tweet</a> from <a href="https://twitter.com/kkschulz">Karsten Schulz</a> (although taking a different approach). I ended up being put of by the difficulty of finding good sample data to work with that was real world but fairly tame. I might have another crack at it later on and maybe incorporate it into an IRC bot or something similar.</p>
+<h2>Some final code</h2>
 <p>Although we ran out of time in class, I put together a bit of code which compares Amazon review star ratings with calculated sentiment and tries to figure out how accurate the simple scoring algorithm is. It isn't quite finished, but I doubt that will change for a while.</p>
-<pre class="line-numbers" style="white-space: pre-wrap;" > </pre>
+<pre class="line-numbers" style="white-space: pre-wrap;" data-src="https://headtilt.me/media/files/10_sentiment_final.py"> </pre>
             ]]>
         </content>
     </entry>
@@ -229,7 +335,7 @@
         <content type="html">
             <![CDATA[
                     <img src="https://headtilt.me/media/posts/78/pong_early.png" alt="" />
-                <p><img class="post__image--right" src="https://headtilt.me/media/posts/78/cowterpillar_snap.png" alt="Cowterpillar robot" width="485" height="491">This is a bit of a retrospective of teaching Robotics as a subject to Year 8 students this year. A bit of a theme for my newish subjects tends to be a reduction in expectations as I filter out what I would have liked to have worked into what actually worked and variations on a theme.</p>
+                <figure class="post__image--right"><img loading="lazy"  src="https://headtilt.me/media/posts/78/cowterpillar_snap.png" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/78/responsive/cowterpillar_snap-xs.png 300w ,https://headtilt.me/media/posts/78/responsive/cowterpillar_snap-sm.png 480w ,https://headtilt.me/media/posts/78/responsive/cowterpillar_snap-md.png 768w ,https://headtilt.me/media/posts/78/responsive/cowterpillar_snap-lg.png 1024w"  alt="Cowterpillar robot" width="485" height="491"></figure>This is a bit of a retrospective of teaching Robotics as a subject to Year 8 students this year. A bit of a theme for my newish subjects tends to be a reduction in expectations as I filter out what I would have liked to have worked into what actually worked and variations on a theme.</p>
 <p>The three themes I've really thought about since I started teaching this subject are:</p>
 <ol>
 <li>Programming environment</li>
@@ -244,11 +350,11 @@
 <li>Personal or group project (~6 weeks with some post project evaluation).</li>
 </ul>
 <p class="msg msg--success">I currently get 2 lessons (of 45-50 minutes each) per week over around 20 weeks (1 semester). Assuming I lose students for around 6 lessons due to absences, public holidays, excursions etc, this means I have about 22 hours with them in total.</p>
-<h2 id="mcetoc_1dsnv8n9i0">Programming Environment</h2>
+<h2>Programming Environment</h2>
 <p>There are two options which students have (with easy access anyway): <a href="https://microbit-micropython.readthedocs.io/en/latest/">MicroPython </a>and <a href="https://www.microsoft.com/en-us/makecode">Microsoft MakeCode</a>. Being a fan of Python on the desktop/server I have always leaned towards MicroPython as my language of choice when programming Micro:bits, since you're using the fundamentals of a general purpose programming language and complex programs are much easier to manage than block-based programming. However there are a couple of significant downsides: there is very little memory available for your program, and events and signals aren't a thing, meaning you need to poll for events, making interactive programs quite tricky in some cases, and any work with SPI or I2C modules mean you're trawling Github for libraries or learning about their arcane implementation rites.</p>
 <p>MakeCode on the other hand benefits from a decent library management system that's easy to search through for kids, a lack of syntax errors (although occasionally my students get burnt by trying to compare integers to strings), being able to fit quite complex programs onto the Micro:bit, and most importantly events, although these can be a double edged sword. One of the issues some of my students run into is multiple Forever loops or button inputs with pauses accessing and causing race conditions with variables.</p>
-<p><img class="post__image--right" src="https://headtilt.me/media/posts/78/microbit-screenshot-pong-server-small.png" alt="" width="1024" height="462">The downside is that complex programs end in you panning around the program canvas continuously at tiny zoom levels, and rearranging your code chunks all the time so they don't overlap (or taking your life into your own hands and asking the browser to format your code and then spending the next few minutes finding all your chunks again).</p>
-<h2 id="mcetoc_1dsnv8poc1">Electronics</h2>
+<figure class="post__image--right"><img loading="lazy"  src="https://headtilt.me/media/posts/78/microbit-screenshot-pong-server-small.png" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/78/responsive/microbit-screenshot-pong-server-small-xs.png 300w ,https://headtilt.me/media/posts/78/responsive/microbit-screenshot-pong-server-small-sm.png 480w ,https://headtilt.me/media/posts/78/responsive/microbit-screenshot-pong-server-small-md.png 768w ,https://headtilt.me/media/posts/78/responsive/microbit-screenshot-pong-server-small-lg.png 1024w"  alt="" width="1024" height="462"></figure>The downside is that complex programs end in you panning around the program canvas continuously at tiny zoom levels, and rearranging your code chunks all the time so they don't overlap (or taking your life into your own hands and asking the browser to format your code and then spending the next few minutes finding all your chunks again).</p>
+<h2>Electronics</h2>
 <p>When I started out with the Robotics subject in 2018 there were a pretty large array of sensors and outputs that I wanted to use so that students could really build a range of diverse projects. Unfortunately, even though these all worked in very similar ways (analog, digital, or through a protocol like SPI/I2C) lots of students struggled because they either didn't have the time to practice and get comfortable, or had trouble deciding on a direction because of an All The Things problem.</p>
 <p>This year I cut down my set of explicit instruction and practice to a few different components:</p>
 <ul>
@@ -262,8 +368,8 @@
 </ul>
 <p>This gives students a few options for different methods of input in addition to the accelerometer, buttons, etc built into the Micro:bit, and a range of outputs that can exhibit different behaviours (stationary, moving, visual, audible).</p>
 <p>Most students this year created projects involving servos, RGB LEDs, and PIR sensors, and they ended up with some fairly diverse sets of features, so I'm pretty happy to work with that set of tools going forward.</p>
-<p class="msg msg--success"><img class="post__image--right" src="https://headtilt.me/media/posts/78/ws2812b.png" alt="" width="864" height="490">I soldered up a whole bunch (~50) of RGB LEDs to 3 port plugs to make them easier to use and practice with. This worked really well, except next time I'll cross over the voltage and data pins so the plugs can go straight onto the pins on the Micro:mate boards in the standard Ground-Volage-Data order. Normally I just pull the male ends off some of my male-female dupont jumper leads and solder the ends which were crimped into the plug onto whatever I'm working with. Saves me doing up dupont plugs myself and doesn't cost a lot.</p>
-<h2 id="mcetoc_1dsnv8s7c2">Projects</h2>
+<figure class="post__image--right"><img loading="lazy"  src="https://headtilt.me/media/posts/78/ws2812b.png" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/78/responsive/ws2812b-xs.png 300w ,https://headtilt.me/media/posts/78/responsive/ws2812b-sm.png 480w ,https://headtilt.me/media/posts/78/responsive/ws2812b-md.png 768w ,https://headtilt.me/media/posts/78/responsive/ws2812b-lg.png 1024w"  alt="" width="864" height="490"></figure>I soldered up a whole bunch (~50) of RGB LEDs to 3 port plugs to make them easier to use and practice with. This worked really well, except next time I'll cross over the voltage and data pins so the plugs can go straight onto the pins on the Micro:mate boards in the standard Ground-Volage-Data order. Normally I just pull the male ends off some of my male-female dupont jumper leads and solder the ends which were crimped into the plug onto whatever I'm working with. Saves me doing up dupont plugs myself and doesn't cost a lot.</p>
+<h2>Projects</h2>
 <p>My biggest lesson from eight groups of student projects, is that a reduction in the freedom to choose is a Good Thing. Extension kids will roam free without my encouragement (or in most cases event explicit permission), and the reduced scope tends to make it easier for the students who struggle.</p>
 <p>My first set of projects focused on the <a href="https://www.globalgoals.org/">UN Global Goals</a>, and although these gave some good real world focus areas, there is still an intimidating array of different paths which could be pursued. There's good scope for building interesting (yet fairly simple) environmental monitoring tools such as water quality, data logging of temperature, soil moisture monitoring and so on, but reading through each of the goals and their associated targets is quite time consuming.</p>
 <p>This year I have predominately focused on animatronics. Whilst it's a bit light and fluffy compared with getting students to think Deep Thoughts (in a <a href="https://hitchhikers.fandom.com/wiki/Deep_Thought">Douglas Adams sense</a>) about solving global problems with robotics, it's also much more achievable in the timeframe that I have available to me. In the future I intend to build some learning resources around environmental monitoring as an aid for students in understanding how different types of sensors operate.</p>
@@ -272,14 +378,14 @@
 <li><a href="https://twitter.com/robpoulter/status/1201597395525668866">Thread 1</a></li>
 <li><a href="https://twitter.com/robpoulter/status/1204999455935582208">Thread 2</a></li>
 </ul>
-<h2 id="mcetoc_1dsoi7dja0">Navel Gazing</h2>
+<h2>Navel Gazing</h2>
 <p>I really like Robotics as a teaching area; it incorporates a lot of the Digital Technologies curriculum in an effortless manner (such as evaluating designs, designing for user interaction, the role of hardware and constraints of speed and memory and so on) which can be difficult in other settings where these ideas sometimes need be put into a quite contrived context. This isn't without drawbacks however, since to run an effective Robotics class I am constantly trying to balance teaching the three main topics of algorithms, electronics, and design (since many final projects are 3D objects laser cut to fit components), which is a real challenge given the limited timeframe.</p>
 <p>Just to finish things off, here are a couple of short videos from a pair of my favourite projects from the first half of the year, a cow being abducted bya UFO (the pulley system just never really worked out sadly) and a papercraft corgi that shakes its head and woofs (and by 'woof' I mean uses the speech module in MicroPython to say 'woof woof' :).</p>
-<figure class="post__video"><video width="300" height="300" controls="controls" >
+<figure class="post__video"><video loading="lazy" width="300" height="300" controls="controls" data-mce-fragment="1">
 <source src="https://headtilt.me/media/files/robo_2019_ufo.m4v" /></video></figure>
-<figure class="post__video"><video width="300" height="300" controls="controls" >
+<figure class="post__video"><video loading="lazy" width="300" height="300" controls="controls" data-mce-fragment="1">
 <source src="https://headtilt.me/media/files/robo_2019_dog.m4v" /></video></figure>
-<h2 id="mcetoc_1dsoi7dja0"> </h2>
+<h2> </h2>
 <p> </p>
             ]]>
         </content>
@@ -304,33 +410,33 @@
         <content type="html">
             <![CDATA[
                     <img src="https://headtilt.me/media/posts/76/IMG_2246.jpg" alt="" />
-                <h2 id="mcetoc_1d823l01t0">Motivation</h2>
+                <h2>Motivation</h2>
 <p>This term I've been working through Data Representation and some Networks concepts with my Year 8 students. I used Micro:bits extensively for both aspects of this for the hands-on approach and ready access to simple networking code. To finish off the term, after looking at things like network latency, I thought it'd be fun to do an activity built around attenuation of wireless signals.</p>
 <p>Previously I've had students group up in pairs and have the Micro:bits send an image back and forth pixel by pixel. This allows for students to see when messages have not arrived as they will have missing pixels from their displays.</p>
 <p>This year, coming up to Easter I thought I'd do an egg hunt by measuring signal strength of "beacon" Micro:bits and using different methods to relay that to the user of a detector Micro:bit. I've been meaning to do this sort of activity for a while after seeing the <a href="https://makecode.microbit.org/projects/hot-or-cold">Hot or Cold</a> activity.</p>
 <p class="msg msg--info">I think it would be interesting to do an orienteering activity based on this at some point where students could have their Micro:bit collect data on the beacons they have found and report back for scoring at the end. I'm keeping this idea for our next orientation day activity with our incoming Year 6 students.</p>
-<h2 id="mcetoc_1d8q1acsb0"> Physical Design</h2>
+<h2> Physical Design</h2>
 <p>The beacon itself is just a Micro:bit powered by a battery periodically broadcasting a message. The only interesting thing I incorporated into the beacon is being able to change the signal strength so that some beacons are easier to find than others. I found that a strength between 0 and 3 was pretty good for what I wanted.</p>
 <p>My initial designs for the detector simply used a horizontal line on the Micro:bit screen which moved up or down depending on the strength of received messages. It worked fine in a utilitarian kind of way, and since I only have so much space to store bigger housings, most students would use something like this.</p>
-<figure class="post__image post__image--right" ><img src="https://headtilt.me/media/posts/76/pke_meter_by_teletran.jpg" alt="PKE Meter - Teletran@Deviantart" width="1024" height="768">
+<figure class="post__image post__image--right" ><img loading="lazy" src="https://headtilt.me/media/posts/76/pke_meter_by_teletran.jpg" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/76/responsive/pke_meter_by_teletran-xs.jpg 300w ,https://headtilt.me/media/posts/76/responsive/pke_meter_by_teletran-sm.jpg 480w ,https://headtilt.me/media/posts/76/responsive/pke_meter_by_teletran-md.jpg 768w ,https://headtilt.me/media/posts/76/responsive/pke_meter_by_teletran-lg.jpg 1024w"  alt="PKE Meter - Teletran@Deviantart" width="1024" height="768">
 <figcaption >PKE Meter design created by <a href="https://www.deviantart.com/teletran/art/PKE-meter-163025300">Teletran (Deviantart)</a></figcaption>
 </figure>
 <p>However, in the spirit of cheesy sci-fi I wanted to build a hand-held detector that had glowy lights and moving parts. Although I didn't recognise it at the time, what I had in my head was the Psycho-Kinetic Energy (P.K.E.) Meter from Ghost Busters.</p>
 <p>Although I initially wanted to have acrylic arms which could be bottom-lit using RGB LEDs, I ended up just using MDF parts, and embedding a single RGB LED in the face of the housing. If I revisit the design later on I'll see about making a fancier version, but I ran out of prototyping time for this design.</p>
 <p class="msg msg--info">Another idea which would be good (and thinking about accessibility) is incorporating a piezo or larger speaker into the design so that there could be some audio as well as visual feedback on signal strength.</p>
 <p>I used a cheap USB power bank for the power supply, and the excellent DFRobot Micro:mate to break out the pins for my LED and servos. </p>
-<div class="gallery"   >
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/76/gallery/IMG_2248.jpg" ><img src="https://headtilt.me/media/posts/76/gallery/IMG_2248-thumbnail.jpg" alt="Low signal" width="240" height="240"></a>
+<div class="gallery-wrapper"><div class="gallery"  data-is-empty="false" data-columns="3">
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/76/gallery/IMG_2248.jpg" data-size="3024x4032"><img loading="lazy" src="https://headtilt.me/media/posts/76/gallery/IMG_2248-thumbnail.jpg" alt="Low signal" width="240" height="240"></a>
 <figcaption class="gallery-description">Low signal</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/76/gallery/IMG_2249.jpg" ><img src="https://headtilt.me/media/posts/76/gallery/IMG_2249-thumbnail.jpg" alt="Medium signal" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/76/gallery/IMG_2249.jpg" data-size="3024x4032"><img loading="lazy" src="https://headtilt.me/media/posts/76/gallery/IMG_2249-thumbnail.jpg" alt="Medium signal" width="240" height="240"></a>
 <figcaption class="gallery-description">Medium signal</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/76/gallery/IMG_2250.jpg" ><img src="https://headtilt.me/media/posts/76/gallery/IMG_2250-thumbnail.jpg" alt="Strong signal" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/76/gallery/IMG_2250.jpg" data-size="3024x4032"><img loading="lazy" src="https://headtilt.me/media/posts/76/gallery/IMG_2250-thumbnail.jpg" alt="Strong signal" width="240" height="240"></a>
 <figcaption class="gallery-description">Strong signal</figcaption>
 </figure>
-</div>
-<h2 id="mcetoc_1d823l48k2">Technical Stuff</h2>
+</div></div>
+<h2>Technical Stuff</h2>
 <p>The signal strength (RSSI, measured in dBm) theoretically is measured from -255 to 0, with 0 being the strongest (<a href="https://microbit-micropython.readthedocs.io/en/latest/radio.html#radio.receive_full">MicroPython docs</a> on using receive_full() with the Micro:bit). In my testing however, I rarely saw values outside of -30 to -100, so when converting the received signal strength into a percentage for use as an angle and hue, any readings outside of this space got compressed to the extremes.</p>
 <pre><code class="language-python">
   rssi = abs(rssi) - 30
@@ -350,12 +456,12 @@
       del last[0]
   perc_avg = sum(last) / len(last)
   </code></pre>
-<p id="mcetoc_1d8q3tuqq0" class="msg msg--highlight ">Using the average could potentially be an issue if sitting between a pair of transmitters, but generally students moved around enough that it wasn't a problem of two equally strong signals interfering with the readings, and set the signal strength low enough that messages were not received beyond 3-4 meters, so judicious placement of beacons sorted this fairly well.</p>
-<h2 id="mcetoc_1d823l7nd3">Review</h2>
+<p class="msg msg--highlight ">Using the average could potentially be an issue if sitting between a pair of transmitters, but generally students moved around enough that it wasn't a problem of two equally strong signals interfering with the readings, and set the signal strength low enough that messages were not received beyond 3-4 meters, so judicious placement of beacons sorted this fairly well.</p>
+<h2>Review</h2>
 <p>Short range radio strength is quite finnicky, and so no matter how much fiddling I do with the code it will never work exactly how I want it due to interference, the direction of the antennas, and what I had for breakfast. However, I think the finished product works passably well, the physical design for the housing gives it a nice theatrical (if boxy) air, and it's a fun activity for the kids to do while learning about some of the properties of wireless communication.</p>
 <p>If anyone is interested in the code or laser cut designs, they are in my <a href="https://github.com/zarify/microbit/tree/master/Radio_Dowsing">Microbit Github repo</a> along with the other things I make.</p>
 <p>I got to test this out with one of my Year 8 classes before school broke up for the holidays, hiding seven beacons behind books in our library and giving teams of three students a detector for each student, the short author code of the book each beacon was behind, and five minutes to match the books up with their title or the Dewey number. They all had a blast so this will definitely be on my list of things to do later on as an engagement activity (even through we didn't have the time to really dig into the details before break).</p>
-<p> <iframe width="640" height="1138" src="https://player.vimeo.com/video/331371137" frameborder="0" allow="autoplay; fullscreen" allowfullscreen="allowfullscreen" ></iframe></p>
+<p> <div class="post__iframe"><iframe loading="lazy" width="640" height="1138" src="https://player.vimeo.com/video/331371137" frameborder="0" allow="autoplay; fullscreen" allowfullscreen="allowfullscreen" data-mce-fragment="1"></iframe></div>
 <p><a href="https://vimeo.com/331371137">Radio Dowsing with Micro:bit</a> from <a href="https://vimeo.com/user57535714">Rob Poulter</a> on <a href="https://vimeo.com">Vimeo</a>.</p>
             ]]>
         </content>
@@ -381,31 +487,31 @@
         <content type="html">
             <![CDATA[
                     <img src="https://headtilt.me/media/posts/75/front_view.jpg" alt="" />
-                <h2 id="mcetoc_1d7o1qhd30">Motivation</h2>
+                <h2>Motivation</h2>
 <p>Ever since I bought some of <a href="https://www.kitronik.co.uk/5624-move-mini-buggy-kit-excl-microbit.html">Kitronik's :move buggies</a> I've been interested in making robots with the Micro:bit. They're simple to program, have a decent set of features, and the kids enjoy using them. However they're also a royal pain to assemble due to fiddly screw locations, quite expensive for what they are (we pay around $60AUD for what amounts to about $15-20AUD in components), and difficult to add on to due to cutting you off from all the additional pins the Micro:bit has to offer.</p>
 <p>This year I looked into alternatives. There some 3D printed designs on Thingiverse which also use the same <a href="https://www.kitronik.co.uk/5623-servolite-board-for-move-mini.html">servo:lite board</a>, but are much easier to assemble (<a href="https://www.thingiverse.com/thing:2534232">design 1</a>, <a href="https://www.thingiverse.com/thing:2485069">design 2</a>), but my main issue with 3D printing is how long it takes.</p>
 <p>I found an interesting <a href="https://www.thingiverse.com/thing:2746171">stick insect design</a> which looked like it would lend itself to laser cutting instead and as a bonus didn't use continuous rotation servos, and so my Year 9 class put together a few and had a go at writing some code to get them to move. Although they looked promising for simple linear movement, the added weight of using MDF instead of ABS/PLA meant they were not very successful, and traction was an issue, so we chalked it up to a learning experience, fiddled with LED code on the servo:lite boards, and practiced writing remote control code with the Micro:bit radios instead.</p>
 <p>I liked the idea of using standard servos instead of continuous rotation (because they're cheap!) so I sat down to design my own robot.</p>
-<h2 id="mcetoc_1d7o2isbv1">Design</h2>
+<h2>Design</h2>
 <p>Although I did technical drawing aeons ago at school, drafting is not really my strong suit (if I indeed have a strong suit). I drew up some rough plans, mostly while waiting for meetings to start.</p>
-<div class="gallery"   >
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75//gallery/IMG_2191.jpg" ><img src="https://headtilt.me/media/posts/75//gallery/IMG_2191-thumbnail.jpg" alt="Linear actuator design" width="240" height="240"></a>
+<div class="gallery-wrapper"><div class="gallery"  data-is-empty="false" data-columns="3">
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75//gallery/IMG_2191.jpg" data-size="1049x1473"><img loading="lazy" src="https://headtilt.me/media/posts/75//gallery/IMG_2191-thumbnail.jpg" alt="Linear actuator design" width="240" height="240"></a>
 <figcaption class="gallery-description">Linear actuator design</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75//gallery/IMG_2192.jpg" ><img src="https://headtilt.me/media/posts/75//gallery/IMG_2192-thumbnail.jpg" alt="Motion ideas for linear movement" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75//gallery/IMG_2192.jpg" data-size="1143x1663"><img loading="lazy" src="https://headtilt.me/media/posts/75//gallery/IMG_2192-thumbnail.jpg" alt="Motion ideas for linear movement" width="240" height="240"></a>
 <figcaption class="gallery-description">Motion ideas for linear movement</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75//gallery/IMG_2193.jpg" ><img src="https://headtilt.me/media/posts/75//gallery/IMG_2193-thumbnail.jpg" alt="Ideas about elevation and steering" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75//gallery/IMG_2193.jpg" data-size="1141x1627"><img loading="lazy" src="https://headtilt.me/media/posts/75//gallery/IMG_2193-thumbnail.jpg" alt="Ideas about elevation and steering" width="240" height="240"></a>
 <figcaption class="gallery-description">Ideas about elevation and steering</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75//gallery/IMG_2194.jpg" ><img src="https://headtilt.me/media/posts/75//gallery/IMG_2194-thumbnail.jpg" alt="Closing in on the final design" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75//gallery/IMG_2194.jpg" data-size="1073x1403"><img loading="lazy" src="https://headtilt.me/media/posts/75//gallery/IMG_2194-thumbnail.jpg" alt="Closing in on the final design" width="240" height="240"></a>
 <figcaption class="gallery-description">Closing in on the final design</figcaption>
 </figure>
-</div>
+</div></div>
 <p>I started from my <a href="https://github.com/zarify/microbit/tree/master/Linear_Actuator">linear actuator designs</a>, since there would need to be some linear movement - I initially imagined it as a pair of geared pontoons with a lifter underneath the robot, and played around with some ideas of having the lifter rotate so that the robot could steer. Although I still like this idea, keeping the cabling free and the interior robot layout nixed that idea and I went for a more traditional 'wheel' approach, each driven by a servo, and having a third servo to elevate the body so that the wheels could reset.</p>
 <p>The final design went through about six iterations due to issues with weight distribution of the mobile phone power bank I wanted to use for a battery and also the fiddliness of aligning the actuator rod and installing guides so that it moved in a straight line and didn't catch on the edges of the slot.</p>
 <p>Keeping the actuator rod running smoothly up and down without catching on any other part of the chassis was the hardest part of the design, and the trickiest to assemble once it was cut out. I originally had three pieces surrounding the rod which each had to fit into holes in the top and bottom plates, and it was incredibly difficult to align while also keeping the servos and rod in place. I ended up scrapping that design and going for a simple two support design instead. Utilising a cross shaped support for the actuator rod instead of an L shape also made building supports a lot easier.</p>
-<h2 id="mcetoc_1d7o35njn3">Assembly</h2>
+<h2>Assembly</h2>
 <p>Here's a step-by-step process for assembly of the robot.</p>
 <p>The main problem areas are:</p>
 <ul>
@@ -413,60 +519,60 @@
 <li>Holding the whole thing together while the top plate is attached can be a challenge, as can aligning the guide rods. The servos hold the top plate roughly in place, so you can poke a finger or some small object in to push the tops of the guides into their holes to snap into place.</li>
 <li>Align the wheel servos to their forward positions before attaching the wheels. I use 110 degrees for the right, and 40 degrees for the left servos (since my cheap servos have some funny working ranges).</li>
 </ul>
-<div class="gallery"   >
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2220.jpg" ><img src="https://headtilt.me/media/posts/75/gallery/IMG_2220-thumbnail.jpg" alt="Six robots (16 mins cutting time)" width="240" height="240"></a>
+<div class="gallery-wrapper"><div class="gallery"  data-is-empty="false" data-columns="3">
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2220.jpg" data-size="3739x2560"><img loading="lazy" src="https://headtilt.me/media/posts/75/gallery/IMG_2220-thumbnail.jpg" alt="Six robots (16 mins cutting time)" width="240" height="240"></a>
 <figcaption class="gallery-description">Six robots (16 mins cutting time)</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2222.jpg" ><img src="https://headtilt.me/media/posts/75/gallery/IMG_2222-thumbnail.jpg" alt="One robot, ready to assemble" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2222.jpg" data-size="3528x2079"><img loading="lazy" src="https://headtilt.me/media/posts/75/gallery/IMG_2222-thumbnail.jpg" alt="One robot, ready to assemble" width="240" height="240"></a>
 <figcaption class="gallery-description">One robot, ready to assemble</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2223.jpg" ><img src="https://headtilt.me/media/posts/75/gallery/IMG_2223-thumbnail.jpg" alt="Actuator rod and attachment to base" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2223.jpg" data-size="1747x2271"><img loading="lazy" src="https://headtilt.me/media/posts/75/gallery/IMG_2223-thumbnail.jpg" alt="Actuator rod and attachment to base" width="240" height="240"></a>
 <figcaption class="gallery-description">Actuator rod and attachment to base</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2224.jpg" ><img src="https://headtilt.me/media/posts/75/gallery/IMG_2224-thumbnail.jpg" alt="Rod attached to lifter base" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2224.jpg" data-size="2230x2385"><img loading="lazy" src="https://headtilt.me/media/posts/75/gallery/IMG_2224-thumbnail.jpg" alt="Rod attached to lifter base" width="240" height="240"></a>
 <figcaption class="gallery-description">Rod attached to lifter base</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2225.jpg" ><img src="https://headtilt.me/media/posts/75/gallery/IMG_2225-thumbnail.jpg" alt="Gear fits snugly onto servo" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2225.jpg" data-size="2102x1884"><img loading="lazy" src="https://headtilt.me/media/posts/75/gallery/IMG_2225-thumbnail.jpg" alt="Gear fits snugly onto servo" width="240" height="240"></a>
 <figcaption class="gallery-description">Gear fits snugly onto servo</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2226.jpg" ><img src="https://headtilt.me/media/posts/75/gallery/IMG_2226-thumbnail.jpg" alt="Servos held in place by slots and cabling" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2226.jpg" data-size="2199x2552"><img loading="lazy" src="https://headtilt.me/media/posts/75/gallery/IMG_2226-thumbnail.jpg" alt="Servos held in place by slots and cabling" width="240" height="240"></a>
 <figcaption class="gallery-description">Servos held in place by slots and cabling</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2228.jpg" ><img src="https://headtilt.me/media/posts/75/gallery/IMG_2228-thumbnail.jpg" alt="Bottom view of cabling" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2228.jpg" data-size="2493x2947"><img loading="lazy" src="https://headtilt.me/media/posts/75/gallery/IMG_2228-thumbnail.jpg" alt="Bottom view of cabling" width="240" height="240"></a>
 <figcaption class="gallery-description">Bottom view of cabling</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2229.jpg" ><img src="https://headtilt.me/media/posts/75/gallery/IMG_2229-thumbnail.jpg" alt="Rod supports in place" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2229.jpg" data-size="2717x2921"><img loading="lazy" src="https://headtilt.me/media/posts/75/gallery/IMG_2229-thumbnail.jpg" alt="Rod supports in place" width="240" height="240"></a>
 <figcaption class="gallery-description">Rod supports in place</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2231.jpg" ><img src="https://headtilt.me/media/posts/75/gallery/IMG_2231-thumbnail.jpg" alt="Rod inserted to just below top plate height" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2231.jpg" data-size="2717x2275"><img loading="lazy" src="https://headtilt.me/media/posts/75/gallery/IMG_2231-thumbnail.jpg" alt="Rod inserted to just below top plate height" width="240" height="240"></a>
 <figcaption class="gallery-description">Rod inserted to just below top plate height</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2232.jpg" ><img src="https://headtilt.me/media/posts/75/gallery/IMG_2232-thumbnail.jpg" alt="Top plate attached" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2232.jpg" data-size="2984x2372"><img loading="lazy" src="https://headtilt.me/media/posts/75/gallery/IMG_2232-thumbnail.jpg" alt="Top plate attached" width="240" height="240"></a>
 <figcaption class="gallery-description">Top plate attached</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2233.jpg" ><img src="https://headtilt.me/media/posts/75/gallery/IMG_2233-thumbnail.jpg" alt="Read side supports hold frame together" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2233.jpg" data-size="2418x2293"><img loading="lazy" src="https://headtilt.me/media/posts/75/gallery/IMG_2233-thumbnail.jpg" alt="Read side supports hold frame together" width="240" height="240"></a>
 <figcaption class="gallery-description">Read side supports hold frame together</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2234.jpg" ><img src="https://headtilt.me/media/posts/75/gallery/IMG_2234-thumbnail.jpg" alt="Top view of partial assembly" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2234.jpg" data-size="2778x2425"><img loading="lazy" src="https://headtilt.me/media/posts/75/gallery/IMG_2234-thumbnail.jpg" alt="Top view of partial assembly" width="240" height="240"></a>
 <figcaption class="gallery-description">Top view of partial assembly</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2235.jpg" ><img src="https://headtilt.me/media/posts/75/gallery/IMG_2235-thumbnail.jpg" alt="Attach one front support" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2235.jpg" data-size="2782x2583"><img loading="lazy" src="https://headtilt.me/media/posts/75/gallery/IMG_2235-thumbnail.jpg" alt="Attach one front support" width="240" height="240"></a>
 <figcaption class="gallery-description">Attach one front support</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2236.jpg" ><img src="https://headtilt.me/media/posts/75/gallery/IMG_2236-thumbnail.jpg" alt="Attach Micro:bit platform" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2236.jpg" data-size="2135x2174"><img loading="lazy" src="https://headtilt.me/media/posts/75/gallery/IMG_2236-thumbnail.jpg" alt="Attach Micro:bit platform" width="240" height="240"></a>
 <figcaption class="gallery-description">Attach Micro:bit platform</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2237.jpg" ><img src="https://headtilt.me/media/posts/75/gallery/IMG_2237-thumbnail.jpg" alt="Slide support into platform first" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2237.jpg" data-size="2642x2310"><img loading="lazy" src="https://headtilt.me/media/posts/75/gallery/IMG_2237-thumbnail.jpg" alt="Slide support into platform first" width="240" height="240"></a>
 <figcaption class="gallery-description">Slide support into platform first</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2238.jpg" ><img src="https://headtilt.me/media/posts/75/gallery/IMG_2238-thumbnail.jpg" alt="Push wheels on after servo alignment" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2238.jpg" data-size="2305x1800"><img loading="lazy" src="https://headtilt.me/media/posts/75/gallery/IMG_2238-thumbnail.jpg" alt="Push wheels on after servo alignment" width="240" height="240"></a>
 <figcaption class="gallery-description">Push wheels on after servo alignment</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2239.jpg" ><img src="https://headtilt.me/media/posts/75/gallery/IMG_2239-thumbnail.jpg" alt="Work complete" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75/gallery/IMG_2239.jpg" data-size="2238x2534"><img loading="lazy" src="https://headtilt.me/media/posts/75/gallery/IMG_2239-thumbnail.jpg" alt="Work complete" width="240" height="240"></a>
 <figcaption class="gallery-description">Work complete</figcaption>
 </figure>
-</div>
-<h2 id="mcetoc_1d84khmh80">Code</h2>
+</div></div>
+<h2>Code</h2>
 <p>I have some sample code for movement and a more fully functional remote control scheme sitting into <a href="https://github.com/zarify/microbit/tree/master/Knuckle_Dragger">Github repo for this project</a>.</p>
 <p>The movement itself is quite simple though, and just involves a series of these steps:</p>
 <ul>
@@ -505,20 +611,20 @@
 </tr>
 </tbody>
 </table>
-<h2 id="mcetoc_1d84l1rpb3"> Outcome</h2>
-<div class="gallery"   >
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75//gallery/front_view.jpg" ><img src="https://headtilt.me/media/posts/75//gallery/front_view-thumbnail.jpg" alt="" width="240" height="240"></a>
+<h2> Outcome</h2>
+<div class="gallery-wrapper"><div class="gallery"  data-is-empty="false" data-columns="3">
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75//gallery/front_view.jpg" data-size="800x858"><img loading="lazy" src="https://headtilt.me/media/posts/75//gallery/front_view-thumbnail.jpg" alt="" width="240" height="240"></a>
 <figcaption class="gallery-description">Front view through to actuator</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75//gallery/side_view.jpg" ><img src="https://headtilt.me/media/posts/75//gallery/side_view-thumbnail.jpg" alt="" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75//gallery/side_view.jpg" data-size="800x1028"><img loading="lazy" src="https://headtilt.me/media/posts/75//gallery/side_view-thumbnail.jpg" alt="" width="240" height="240"></a>
 <figcaption class="gallery-description">Side view</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75//gallery/top_view.jpg" ><img src="https://headtilt.me/media/posts/75//gallery/top_view-thumbnail.jpg" alt="" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/75//gallery/top_view.jpg" data-size="800x1176"><img loading="lazy" src="https://headtilt.me/media/posts/75//gallery/top_view-thumbnail.jpg" alt="" width="240" height="240"></a>
 <figcaption class="gallery-description">Top view</figcaption>
 </figure>
-</div>
+</div></div>
 <p>I ended up putting some mounting points for additional sensors and outputs like LEDs at the front. The whole thing snaps together and generally doesn't require glue to hold anything together (although occasionally due to slight warping of the MDF sheets some of the pegs end up looser than others).</p>
-<p><iframe width="640" height="1138" src="https://player.vimeo.com/video/328771926" frameborder="0" webkitallowfullscreen="webkitallowfullscreen" mozallowfullscreen="mozallowfullscreen" allowfullscreen="allowfullscreen"></iframe></p>
+<div class="post__iframe"><iframe loading="lazy" width="640" height="1138" src="https://player.vimeo.com/video/328771926" frameborder="0" webkitallowfullscreen="webkitallowfullscreen" mozallowfullscreen="mozallowfullscreen" allowfullscreen="allowfullscreen"></iframe></div>
             ]]>
         </content>
     </entry>
@@ -576,17 +682,17 @@
 <p>One of the things that pleasantly surprised me about figuring out basic sensors and outputs is the difference between digital and analog signals. Once you understand the difference between the two, the Micro:bit makes both types quite pleasant to work with (with the caveat of knowing what devices are 3.3V).</p>
 <p>Both Digital and Analog signals simply refer to the voltage being input or output on a pin.</p>
 <p>Digital devices are either on or off, so voltage is either low or high, which is mapped to either being a 0 or 1 when reported to whatever programming environment you are using (such as MakeCode or MicroPython). Devices such as infra-red motion sensors are general integrated circuits which generate a digital signal, as when they detect motion they set the voltage being deliverd to the data pin to full, and after a pre-set time the voltage sent to the pin will be set to off.</p>
-<figure class="post__image post__image--center" ><img src="https://headtilt.me/media/posts/72/dog-1310545_1280.jpg" alt="Binary signals are either on or off" width="872" height="872">
+<figure class="post__image post__image--center" ><img loading="lazy" src="https://headtilt.me/media/posts/72/dog-1310545_1280.jpg" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/72/responsive/dog-1310545_1280-xs.jpg 300w ,https://headtilt.me/media/posts/72/responsive/dog-1310545_1280-sm.jpg 480w ,https://headtilt.me/media/posts/72/responsive/dog-1310545_1280-md.jpg 768w ,https://headtilt.me/media/posts/72/responsive/dog-1310545_1280-lg.jpg 1024w"  alt="Binary signals are either on or off" width="872" height="872">
 <figcaption >Pupper only cares if the water is on or not.</figcaption>
 </figure>
 <p>Analog devices output or input a range between 0 and full voltage. Rather than dealing with real voltages, this is mapped to a range of integers. For the Micro:bit this is from 0-1023 (a 10 bit binary number) although you can customise this width for other platforms (such as the ESP32). Examples of analog input devices are light dependent resistors.</p>
 <p class="msg msg--info msg--success">One of the ah-ha moments I had was realising that these numbers being received from analog sensors didn't have any special meaning, and there was some analsys required to relate the amounts being reported to some real world information.</p>
-<figure class="post__image post__image--center" ><img src="https://headtilt.me/media/posts/72/water-815475_1280.jpg" alt="Water partially being restricted" width="788" height="788">
+<figure class="post__image post__image--center" ><img loading="lazy" src="https://headtilt.me/media/posts/72/water-815475_1280.jpg" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/72/responsive/water-815475_1280-xs.jpg 300w ,https://headtilt.me/media/posts/72/responsive/water-815475_1280-sm.jpg 480w ,https://headtilt.me/media/posts/72/responsive/water-815475_1280-md.jpg 768w ,https://headtilt.me/media/posts/72/responsive/water-815475_1280-lg.jpg 1024w"  alt="Water partially being restricted" width="788" height="788">
 <figcaption >An analog signal can be part of the whole potential signal.</figcaption>
 </figure>
 <p> Analog output with Micro:bits is done via Pulse Width Modulation (PWM) rather than by changing the voltage directly. What this means is that the Micro:bit splits its output into small slices of time, and turns the pin to high voltage for enough of each slice to average out the power to the desired amount (called a duty cycle). This works fine with some components, but not others which expect continuous power.</p>
 <p class="msg msg--highlight ">The <a href="https://microbit-micropython.readthedocs.io/en/latest/pin.html#pulse-width-modulation">MicroPython documentation on PWM</a> has some good information and diagrams.</p>
-<figure class="post__image post__image--center" ><img src="https://headtilt.me/media/posts/72/sprinkler-1209900_1280.jpg" alt="This sprinkler puts out some water in bursts." width="687" height="687">
+<figure class="post__image post__image--center" ><img loading="lazy" src="https://headtilt.me/media/posts/72/sprinkler-1209900_1280.jpg" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/72/responsive/sprinkler-1209900_1280-xs.jpg 300w ,https://headtilt.me/media/posts/72/responsive/sprinkler-1209900_1280-sm.jpg 480w ,https://headtilt.me/media/posts/72/responsive/sprinkler-1209900_1280-md.jpg 768w ,https://headtilt.me/media/posts/72/responsive/sprinkler-1209900_1280-lg.jpg 1024w"  alt="This sprinkler puts out some water in bursts." width="687" height="687">
 <figcaption >This sprinkler puts out bursts of water as it cycles.</figcaption>
 </figure>
 <h2 id="mcetoc_1d0r6hfsud"> Components</h2>
@@ -594,7 +700,7 @@
 <p>Most of these are pretty simple, but a few like the infrared sensors aren't just the basic sensor.</p>
 <p class="msg msg--highlight "><strong>Common Ground</strong><br><br>One of the things that took me a while to figure out (because in general I have been figuring things out as I go) is when using different power sources for higher power components such as the LED strips and servos, the ground pins of the Micro:bit and the extra power source need to be connected.</p>
 <h3 id="mcetoc_1d0qkaptu1">Light Dependent Resistors (LDR)</h3>
-<p><img class="post__image--right" src="https://headtilt.me/media/posts/72/ldr-resistor-40611_1280.png" alt="Light Dependent Resistor" width="174" height="300">LDRs are brilliant simple little sensors. You pass power through them, and they change the their resistance depending on how much light is being shone on them. When reading analog data from the LDR, the intensity maps to the number recorded. Although they're pretty consistent, I've had some LDRs from the same batch report slightly different numbers, so it's worthwhile doing some calibration before use.</p>
+<figure class="post__image--right"><img loading="lazy"  src="https://headtilt.me/media/posts/72/ldr-resistor-40611_1280.png" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/72/responsive/ldr-resistor-40611_1280-xs.png 300w ,https://headtilt.me/media/posts/72/responsive/ldr-resistor-40611_1280-sm.png 480w ,https://headtilt.me/media/posts/72/responsive/ldr-resistor-40611_1280-md.png 768w ,https://headtilt.me/media/posts/72/responsive/ldr-resistor-40611_1280-lg.png 1024w"  alt="Light Dependent Resistor" width="174" height="300"></figure>LDRs are brilliant simple little sensors. You pass power through them, and they change the their resistance depending on how much light is being shone on them. When reading analog data from the LDR, the intensity maps to the number recorded. Although they're pretty consistent, I've had some LDRs from the same batch report slightly different numbers, so it's worthwhile doing some calibration before use.</p>
 <p>Wiring is pretty straightforward:</p>
 <ul>
 <li>One leg is connected to voltage</li>
@@ -608,17 +714,17 @@
 <li>Particlulate sensor for liquids (shine a known intensity light through sample, detect amount that gets through).</li>
 </ul>
 <p class="msg msg--success">I've been meaning to have a go at building a sun tracker using a series of LDRs set into the rim of a disk mounted on a servo, potentially for adjusting a solar panel to follow the sun.</p>
-<h3 id="mcetoc_1d0qkata92"><img class="post__image--right" src="https://headtilt.me/media/posts/72/led-1715226_1280.png" alt="Light Emitting Diodes" width="141" height="300">Light Emitting Diodes (LED)</h3>
+<h3 id="mcetoc_1d0qkata92"><figure class="post__image--right"><img loading="lazy"  src="https://headtilt.me/media/posts/72/led-1715226_1280.png" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/72/responsive/led-1715226_1280-xs.png 300w ,https://headtilt.me/media/posts/72/responsive/led-1715226_1280-sm.png 480w ,https://headtilt.me/media/posts/72/responsive/led-1715226_1280-md.png 768w ,https://headtilt.me/media/posts/72/responsive/led-1715226_1280-lg.png 1024w"  alt="Light Emitting Diodes" width="141" height="300"></figure>Light Emitting Diodes (LED)</h3>
 <p>LEDs come in a few different flavours. Typically the vanilla LEDs will come in several different colours (while, blue, yellow, orange, red and green) and a couple of different sizes (5mm and 3mm diameter). They work well in both a digital (on/off) and analog (brightness, using PWM) context. Although there are slight differences in power requirements, using 100 Ohm resistors for all of them keeps things simple and works fine.</p>
-<figure class="post__image post__image--right" ><img src="https://headtilt.me/media/posts/72/Screen-Shot-2019-01-10-at-1.35.59-pm.png" alt="RGB LED" width="285" height="300">
+<figure class="post__image post__image--right" ><img loading="lazy" src="https://headtilt.me/media/posts/72/Screen-Shot-2019-01-10-at-1.35.59-pm.png" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/72/responsive/Screen-Shot-2019-01-10-at-1.35.59-pm-xs.png 300w ,https://headtilt.me/media/posts/72/responsive/Screen-Shot-2019-01-10-at-1.35.59-pm-sm.png 480w ,https://headtilt.me/media/posts/72/responsive/Screen-Shot-2019-01-10-at-1.35.59-pm-md.png 768w ,https://headtilt.me/media/posts/72/responsive/Screen-Shot-2019-01-10-at-1.35.59-pm-lg.png 1024w"  alt="RGB LED" width="285" height="300">
 <figcaption >Source: Flickr - Original author <a href="https://www.flickr.com/people/33504192@N00">Oomlout</a> CC-BY-SA</figcaption>
 </figure>
 <p>On the fancier side of things are RGB LEDs, which can be set to any colour by mixing red, green and blue amounts.  This comes with some extra overhead in terms of pins (which could still be used either as analog or digital, although more usefully as analog to control the intensity of each colour channel). I generally find these a bit too fiddly and prefer to have pins free to use for other purposes.</p>
-<p><img class="post__image--right" src="https://headtilt.me/media/posts/72/digital-led-strip-lights-2103020_1280.jpg" alt="RGB LED strip" width="124" height="300">Where LEDs get a bit more interesting are the collections bound up with individually controllers, so that each LED in a strip (or panel) can be individually addressed. There are a couple of common controllers that seem to be equivalent (and from what I've read, sometimes when you order one you get the other): WS2812 and SK6812. These often come under Adafruit's branding of Neopixel, but this is what they are under the hood, and they work the same way.</p>
+<figure class="post__image--right"><img loading="lazy"  src="https://headtilt.me/media/posts/72/digital-led-strip-lights-2103020_1280.jpg" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/72/responsive/digital-led-strip-lights-2103020_1280-xs.jpg 300w ,https://headtilt.me/media/posts/72/responsive/digital-led-strip-lights-2103020_1280-sm.jpg 480w ,https://headtilt.me/media/posts/72/responsive/digital-led-strip-lights-2103020_1280-md.jpg 768w ,https://headtilt.me/media/posts/72/responsive/digital-led-strip-lights-2103020_1280-lg.jpg 1024w"  alt="RGB LED strip" width="124" height="300"></figure>Where LEDs get a bit more interesting are the collections bound up with individually controllers, so that each LED in a strip (or panel) can be individually addressed. There are a couple of common controllers that seem to be equivalent (and from what I've read, sometimes when you order one you get the other): WS2812 and SK6812. These often come under Adafruit's branding of Neopixel, but this is what they are under the hood, and they work the same way.</p>
 <p>The beauty of these LED controllers is that you can chain them together and change their colour individually (as well as turning them on or off) with only one data pin and a power supply. The down side is that they are not rated for 3.3V and so you need to mix in an external power supply (I usually use 3xAA batteries for most of my projects that need more juice). You can buy these individually or in strips, but can always separate the strips in shorter ones and use them separately.</p>
 <p class="msg msg--success">I came across<a href="https://hackaday.com/2017/01/20/cheating-at-5v-ws2812-control-to-use-a-3-3v-data-line/"> this hack</a> for running these lights off 3.3V and will have to try it out with the Micro:bit.</p>
 <p class="msg msg--success">When running a single LED for learning about the components, these LEDs run Just Fine from the standard 3.3V output of the Micro:bit. I have soldered a bunch of single LEDs to 3 pin female headers and use them when teaching about colour theory and letting students practice the basics of setting them up and controlling them.</p>
-<h3 id="mcetoc_1d0qkb1ui3"><img class="post__image--right" src="https://headtilt.me/media/posts/72/servo.jpg" alt="Servo motors" width="162" height="300">Servos</h3>
+<h3 id="mcetoc_1d0qkb1ui3"><figure class="post__image--right"><img loading="lazy"  src="https://headtilt.me/media/posts/72/servo.jpg" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/72/responsive/servo-xs.jpg 300w ,https://headtilt.me/media/posts/72/responsive/servo-sm.jpg 480w ,https://headtilt.me/media/posts/72/responsive/servo-md.jpg 768w ,https://headtilt.me/media/posts/72/responsive/servo-lg.jpg 1024w"  alt="Servo motors" width="162" height="300"></figure>Servos</h3>
 <p>I have a love/hate relationship with servos. On one hand, they fulfil a huge role in so many interesting hobbyist electronics projects, and on the other hand I have had so many finnicky problems with them in terms of reliability when not controlled by addons like the <a href="https://www.kitronik.co.uk/5623-servolite-board-for-move-mini.html">Servo:Lite</a> board that presumably handle power regulation.</p>
 <p>Servos come in two varieties: continuous and standard. Continuous servos simply keep rotating in whatever direction and at whatever speed you tell them to (and thus are useful for [rather noisy] motors to drive wheels). Standard servos rotate to a specified angle and then stop, and are usually constrained to 180 degrees, although the cheaper varieties I use typically have a reliable range somewhere between 35 and 120 degrees.</p>
 <p>Both are very simple to program by sending an analog signal corresponding to the angle (or speed for continuous rotation) to move to. A value of 0 is typically off, but I believe this works slightly differently with MicroPython compared to MakeCode.</p>
@@ -632,7 +738,7 @@
 <li>Steering (standard) see my <a href="https://github.com/zarify/microbit/tree/master/Steering_servo">laser cut steering assembly</a></li>
 <li>Opening doors/windows (standard or continuous, depending if you wanted to rotate or drive a linear actuator to raise/lower something)</li>
 </ul>
-<h3 id="mcetoc_1d0qkc2i94"><img class="post__image--right" src="https://headtilt.me/media/posts/72/potentiometer.jpg" alt="Potentiometer" width="190" height="300">Potentiometer</h3>
+<h3 id="mcetoc_1d0qkc2i94"><figure class="post__image--right"><img loading="lazy"  src="https://headtilt.me/media/posts/72/potentiometer.jpg" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/72/responsive/potentiometer-xs.jpg 300w ,https://headtilt.me/media/posts/72/responsive/potentiometer-sm.jpg 480w ,https://headtilt.me/media/posts/72/responsive/potentiometer-md.jpg 768w ,https://headtilt.me/media/posts/72/responsive/potentiometer-lg.jpg 1024w"  alt="Potentiometer" width="190" height="300"></figure>Potentiometer</h3>
 <p>Potentiometers are a variable resistor where as you turn the knob there is more/less resistance applied. They are very simple to wire up, with voltage and ground hooked up to either side, and the central pin connected to a data pin.</p>
 <p>Potentiometers are quite useful for a number of different applications:</p>
 <ul>
@@ -642,15 +748,15 @@
 <li>Change red/green/blue component of LEDs.</li>
 </ul>
 <p class="msg msg--success">Be aware that there are different types of tapers for potentiometers: linear and logarithmic. Linear taper potentiometers change their resistance at a constant rate as they are turned, whilst logarithmic taper potentiometers do not. Linear taper potentiometers have a B before the resistance rating. e.g. B10K indicates a linear taper 10 kOhm potentiometer.<br><br><a href="https://en.wikipedia.org/wiki/Potentiometer#Resistance–position_relationship:_&quot;taper&quot;">More info on Wikipedia</a>.</p>
-<h3 id="mcetoc_1d0qkcnbp5"><img class="post__image--right" src="https://headtilt.me/media/posts/72/jack-861512_1280.jpg" alt="3.5mm jack" width="161" height="300">Speakers/Headphones</h3>
+<h3 id="mcetoc_1d0qkcnbp5"><figure class="post__image--right"><img loading="lazy"  src="https://headtilt.me/media/posts/72/jack-861512_1280.jpg" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/72/responsive/jack-861512_1280-xs.jpg 300w ,https://headtilt.me/media/posts/72/responsive/jack-861512_1280-sm.jpg 480w ,https://headtilt.me/media/posts/72/responsive/jack-861512_1280-md.jpg 768w ,https://headtilt.me/media/posts/72/responsive/jack-861512_1280-lg.jpg 1024w"  alt="3.5mm jack" width="161" height="300"></figure>Speakers/Headphones</h3>
 <p>One of the things I found surprising was MicroPython's speech library and how terrible-yet-quite-usable the quality was, considering how constrained the Micro:bit is. The tone generation in the music library is also quite usable in a few different ways (note, register, duration or by frequency).</p>
 <p>Sound output on the other hand, is not very pleasant. You can hook up headphones and basic speakers very easily (data pin and ground), but volume control is not something you get as part of the package. Headphones tend to be uncomfortably loud, while speakers are prohibitably soft (for a class of 20 or so students). You can amplify using addons like Proto-Pic's amp:bit board, but that also hides the rest of the Micro:bit's pins from use.</p>
 <p class="msg msg--success">I have been experimenting with some cheap amplifying boards like the PAM8403 with some success. They require hooking up a 5V power supply to the amp however, so it's more wiring. Sound quality has varied with the samples I've used, but it has been reasonable for something that costs less than $1 and some come with a pre-soldered potentiometer for volume control.</p>
-<h3 id="mcetoc_1d0ql0c0n9"><img class="post__image--right" src="https://headtilt.me/media/posts/72/Screen-Shot-2019-01-10-at-4.10.42-pm.png" alt="AM312 InfraRed Sensor" width="108" height="300">Mini InfraRed Sensors (Mini PIR - AS312/AM312)</h3>
+<h3 id="mcetoc_1d0ql0c0n9"><figure class="post__image--right"><img loading="lazy"  src="https://headtilt.me/media/posts/72/Screen-Shot-2019-01-10-at-4.10.42-pm.png" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/72/responsive/Screen-Shot-2019-01-10-at-4.10.42-pm-xs.png 300w ,https://headtilt.me/media/posts/72/responsive/Screen-Shot-2019-01-10-at-4.10.42-pm-sm.png 480w ,https://headtilt.me/media/posts/72/responsive/Screen-Shot-2019-01-10-at-4.10.42-pm-md.png 768w ,https://headtilt.me/media/posts/72/responsive/Screen-Shot-2019-01-10-at-4.10.42-pm-lg.png 1024w"  alt="AM312 InfraRed Sensor" width="108" height="300"></figure>Mini InfraRed Sensors (Mini PIR - AS312/AM312)</h3>
 <p>These PIR sensors are quite sensitive, in my testing triggering from about 3m away from the sensor for a human sized body. Unlike larger sensors there doesn't seem to be a way to change the amount of time the pin goes high for when it senses a heat source, with these triggering for about 2 seconds in my experience.</p>
 <p>These devices are used in a digital context, where 0 would indicate no motion sensed, and 1 that the sensor had been triggered. The 1 continues to be read for however long the triggered period is, so your code needs to cope with that (possibly waiting until the pin goes low to 0 again, depending on what else is happening in your execution loop).</p>
 <p class="msg msg--highlight ">Some IR sensors work with 3.3V logic while most are 5V. The larger units will have attached potentiometers for sensitivity and duration which they send a high voltage for. I haven't seen any of the 3.3V sensors which are customisable.</p>
-<h3 id="mcetoc_1d0rd8d51f"><img class="post__image--right" src="https://headtilt.me/media/posts/72/Screen-Shot-2019-01-10-at-4.19.19-pm.png" alt="IR Line Follower Module" width="108" height="300">Line Follower IR Sensors (TCRT5000 based)</h3>
+<h3 id="mcetoc_1d0rd8d51f"><figure class="post__image--right"><img loading="lazy"  src="https://headtilt.me/media/posts/72/Screen-Shot-2019-01-10-at-4.19.19-pm.png" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/72/responsive/Screen-Shot-2019-01-10-at-4.19.19-pm-xs.png 300w ,https://headtilt.me/media/posts/72/responsive/Screen-Shot-2019-01-10-at-4.19.19-pm-sm.png 480w ,https://headtilt.me/media/posts/72/responsive/Screen-Shot-2019-01-10-at-4.19.19-pm-md.png 768w ,https://headtilt.me/media/posts/72/responsive/Screen-Shot-2019-01-10-at-4.19.19-pm-lg.png 1024w"  alt="IR Line Follower Module" width="108" height="300"></figure>Line Follower IR Sensors (TCRT5000 based)</h3>
 <p>The line following sensor works in a similar way to the other IR sensor, but designed for reflected IR radiation at very short range. While it can be used for the intended purpose, I found this was also useful for detecting when items had been put into a container as well. One of my students created a donation box that thanked the donator when it detected something had passed the line sensor.</p>
 <p>I'm sure there are other unintended short range sensing uses for it as well (which is good because I accidentally ordered 20 of them instead of 2 because they were so cheap and I didn't read the item description carefully enough).</p>
 <h3 id="mcetoc_1d0ql73egb">Temperature Sensors</h3>
@@ -712,43 +818,43 @@
                     <img src="https://headtilt.me/media/posts/74/File-5-11-18-8-05-24-pm.jpeg" alt="Haunted House internals" />
                 <p>This year I have been teaching robotics to Year 8s for the first time. I've mainly been using BBC Micro:bits, since they are quite affordable, robust, are easy to hook up to a range of widely available components, and are easy to program in a few different environments (MicroPython being my weapon of choice).</p>
 <p>To keep myself entertained, and to provide my students with a sample project (although more complex code-wise than they're likely to accomplish) I decided to make something myself this term while my class worked on their own group projects (theirs are themed after the UN Global Goals). I had ideas for either building a carousel or a light gun game, and settled on the latter so I didn't have to <em>also</em> tackle 3D printing out cams and gears and the like.</p>
-<p><iframe width="640" height="360" src="https://player.vimeo.com/video/298976485" frameborder="0" webkitallowfullscreen="webkitallowfullscreen" mozallowfullscreen="mozallowfullscreen" allowfullscreen="allowfullscreen"></iframe></p>
-<p><iframe width="640" height="360" src="https://player.vimeo.com/video/298976806" frameborder="0" webkitallowfullscreen="webkitallowfullscreen" mozallowfullscreen="mozallowfullscreen" allowfullscreen="allowfullscreen"></iframe></p>
+<div class="post__iframe"><iframe loading="lazy" width="640" height="360" src="https://player.vimeo.com/video/298976485" frameborder="0" webkitallowfullscreen="webkitallowfullscreen" mozallowfullscreen="mozallowfullscreen" allowfullscreen="allowfullscreen"></iframe></div>
+<div class="post__iframe"><iframe loading="lazy" width="640" height="360" src="https://player.vimeo.com/video/298976806" frameborder="0" webkitallowfullscreen="webkitallowfullscreen" mozallowfullscreen="mozallowfullscreen" allowfullscreen="allowfullscreen"></iframe></div>
 <p>I have designs and code in a <a href="https://github.com/zarify/microbit/tree/master/Haunted%20House" target="_blank" rel="noopener noreferrer">GitHub repo</a> if anyone wants to have a look or use any of my ideas - there is also a list of components I used. The laser cutter designs are a bit of a mixed bag of formats at time of posting, but I'll endeavour to standardise them to SVG or something more portable later. Be aware that the Kitronik servo code used in the servo controller is MIT licensed - I have links to original repositories in the repo readme.</p>
 <p>Below is a series of in-progress photos of the build.</p>
-<div class="gallery"   >
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-00-25-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-00-25-pm-thumbnail.jpeg" alt="Laser cutouts of the spooks" width="240" height="240"></a>
+<div class="gallery-wrapper"><div class="gallery"  data-is-empty="false" data-columns="3">
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-00-25-pm.jpeg" data-size="1536x2048"><img loading="lazy" src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-00-25-pm-thumbnail.jpeg" alt="Laser cutouts of the spooks" width="240" height="240"></a>
 <figcaption class="gallery-description">Ghost prototype (top) and final designs</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-01-53-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-01-53-pm-thumbnail.jpeg" alt="Laser engraving" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-01-53-pm.jpeg" data-size="1536x2048"><img loading="lazy" src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-01-53-pm-thumbnail.jpeg" alt="Laser engraving" width="240" height="240"></a>
 <figcaption class="gallery-description">Testing out low power cutting for engraving</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-02-24-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-02-24-pm-thumbnail.jpeg" alt="Spooks all cut out" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-02-24-pm.jpeg" data-size="2048x1536"><img loading="lazy" src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-02-24-pm-thumbnail.jpeg" alt="Spooks all cut out" width="240" height="240"></a>
 <figcaption class="gallery-description">My spooky lineup</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-02-49-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-02-49-pm-thumbnail.jpeg" alt="Cutouts laid out for assembly" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-02-49-pm.jpeg" data-size="2048x1536"><img loading="lazy" src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-02-49-pm-thumbnail.jpeg" alt="Cutouts laid out for assembly" width="240" height="240"></a>
 <figcaption class="gallery-description">Early assembly of all the pieces</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-03-13-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-03-13-pm-thumbnail.jpeg" alt="Early assembly of servos" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-03-13-pm.jpeg" data-size="2048x1536"><img loading="lazy" src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-03-13-pm-thumbnail.jpeg" alt="Early assembly of servos" width="240" height="240"></a>
 <figcaption class="gallery-description">Attaching servos and spooks</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-03-45-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-03-45-pm-thumbnail.jpeg" alt="First lot of wiring a spook" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-03-45-pm.jpeg" data-size="1536x2048"><img loading="lazy" src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-03-45-pm-thumbnail.jpeg" alt="First lot of wiring a spook" width="240" height="240"></a>
 <figcaption class="gallery-description">Wiring up the LEDs and LDR</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-04-08-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-04-08-pm-thumbnail.jpeg" alt="Front of spook post wiring" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-04-08-pm.jpeg" data-size="1536x2048"><img loading="lazy" src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-04-08-pm-thumbnail.jpeg" alt="Front of spook post wiring" width="240" height="240"></a>
 <figcaption class="gallery-description">All wired up and ready to go</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-04-59-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-04-59-pm-thumbnail.jpeg" alt="Cabling internals of house" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-04-59-pm.jpeg" data-size="2048x1536"><img loading="lazy" src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-04-59-pm-thumbnail.jpeg" alt="Cabling internals of house" width="240" height="240"></a>
 <figcaption class="gallery-description">Things get messy</figcaption>
 </figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-05-24-pm.jpeg" ><img src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-05-24-pm-thumbnail.jpeg" alt="Testing LED and LDR components" width="240" height="240"></a>
+<figure class="gallery__item"><a href="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-05-24-pm.jpeg" data-size="2048x1536"><img loading="lazy" src="https://headtilt.me/media/posts/74/gallery/File-5-11-18-8-05-24-pm-thumbnail.jpeg" alt="Testing LED and LDR components" width="240" height="240"></a>
 <figcaption class="gallery-description">Running test code to ensure LDRs are working as expected</figcaption>
 </figure>
-</div>
-<figure class="post__image undefined" ><img src="https://headtilt.me/media/posts/74/IMG_1459.JPG" alt="Assembled and tested" width="4032" height="3024">
+</div></div>
+<figure class="post__image undefined" ><img loading="lazy" src="https://headtilt.me/media/posts/74/IMG_1459.JPG" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/74/responsive/IMG_1459-xs.JPG 300w ,https://headtilt.me/media/posts/74/responsive/IMG_1459-sm.JPG 480w ,https://headtilt.me/media/posts/74/responsive/IMG_1459-md.JPG 768w ,https://headtilt.me/media/posts/74/responsive/IMG_1459-lg.JPG 1024w"  alt="Assembled and tested" width="4032" height="3024">
 <figcaption >Haunted House assembled and tested</figcaption>
 </figure>
-<h2 id="mcetoc_1d0rduh350">Design and Creation</h2>
+<h2>Design and Creation</h2>
 <p> There were three distinct phases for this project:</p>
 <ul>
 <li>Physical design (concept, vector design, laser cut and assembly)</li>
@@ -760,7 +866,7 @@
 <p>I was expecting the code to be the easiest part of the whole exercise, since that is what I'm most familiar with. The basic idea for the two Micro:bits took a couple of hours to hash out in my head and roughly debug without having access to the boards. The wrinkle came when I actually loaded the code - or rather when I tried to.</p>
 <p>Initially, my relatively simple model of a two-class program with a basic event loop was rejected as being too big to parse! I trimmed it down a bit (goodbye docstrings!) and tried again, only to encounter a memory error. Occasionally, the Micro:bit was even nice enough to tell me a number after the memory error, which I ended up guessing referred to how much of my code it failed to load, since it went down as I trimmed out functions, shortened strings, shifted dictionaries to lists, collapsed multiple objects to a singleton, and so on. The joys of programming on microcontrollers in interpreted languages!</p>
 <p>Eventually I ended up with some plain old runtime errors, and I don't think I've ever been so happy to see one, since it meant at least my code was running on the board. Coding was still the least time-consuming part of the process, but ended up being a surprisingly challenging exercise.</p>
-<h2 id="mcetoc_1d0rduh351">Reflection</h2>
+<h2>Reflection</h2>
 <p>The whole process was really enjoyable - it ended up looking great, and works just as I envisioned it (although I didn't imagine the noisy servos in my head 😐). I haven't gotten around to building the light gun yet, since I'm having a lot of trouble figuring out how to get a nice tight beam from an LED without expensive optics or shifting to a laser, but for now a torch is sufficient.</p>
 <p>I'm planning on adding a score board using a third Micro:bit sitting on the top of the structure (maybe when I design and cut out a tiled roof), and since I already have all the radio messages from the other two boards, I shouldn't need to add very much code to the others. This is a good thing, since I was getting to the point where adding in debugging messages to the servo board was pushing me over the memory limit!</p>
 <p>I learned a fair bit about mixing different power levels in circuits along the way which I'll be able to use in my teaching, and I'll certainly have a few gotchas to look out for if any of my students start putting together complex programs.</p>
@@ -792,14 +898,14 @@
 <h2>Aim</h2>
 <p>I've been kicking around this idea since attending a workshop on Minecraft: EE with <a href="https://twitter.com/kieranbailey" target="_blank" rel="noopener noreferrer">Kieran Bailey</a> at the <a href="https://ecawa.wa.edu.au/conferences/2018-state-conference/" target="_blank" rel="noopener noreferrer">ECAWA State Conference</a> earlier this year. Initially I was thinking about pursuing a series of lessons looking at automated agriculture (and probably will revisit that later on), but ended up with some more disjointed ideas building off Code Connection tutorials (so that students had somewhere to start in a self-paced fashion, and more importantly someone else had written the material!) and examining programming fundamentals like looping, conditionals, and variables.</p>
 <p>At the end of the series of lessons, I got students to build a few programs for me. There was some mixed success, and I'll discuss the successes and failures a bit further down.</p>
-<p><img class="post__image--right" src="https://headtilt.me/media/posts/71/my_head_final.PNG" alt="Heads" width="880" height="621">When designing the tasks, I had a few aims in mind:</p>
+<figure class="post__image--right"><img loading="lazy"  src="https://headtilt.me/media/posts/71/my_head_final.PNG" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/71/responsive/my_head_final-xs.PNG 300w ,https://headtilt.me/media/posts/71/responsive/my_head_final-sm.PNG 480w ,https://headtilt.me/media/posts/71/responsive/my_head_final-md.PNG 768w ,https://headtilt.me/media/posts/71/responsive/my_head_final-lg.PNG 1024w"  alt="Heads" width="880" height="621"></figure>When designing the tasks, I had a few aims in mind:</p>
 <ul>
 <li>Get students to create something engaging where they wanted to solve the problem for themselves, not because it was an assessment.</li>
 <li>Have a range of different ways of solving the problems.</li>
 <li>Involve physical prototypes so that students could build the solution themselves to help them visualise the outcome and assist with programming in 3D space.</li>
 <li>Make it difficult or impossible to share answers, whilst still allowing students to learn techniques off each other.</li>
 </ul>
-<p><img class="post__image--right" src="https://headtilt.me/media/posts/71/signatures.png" alt="Lava Signatures" width="964" height="303">My tasks were to create programs that:</p>
+<figure class="post__image--right"><img loading="lazy"  src="https://headtilt.me/media/posts/71/signatures.png" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/71/responsive/signatures-xs.png 300w ,https://headtilt.me/media/posts/71/responsive/signatures-sm.png 480w ,https://headtilt.me/media/posts/71/responsive/signatures-md.png 768w ,https://headtilt.me/media/posts/71/responsive/signatures-lg.png 1024w"  alt="Lava Signatures" width="964" height="303"></figure>My tasks were to create programs that:</p>
 <ul>
 <li>Build a blocky version of the student's own head.</li>
 <li>Sign their initials in lava in a trench in the ground.</li>
@@ -808,7 +914,7 @@
 <p>The first two tasks I'm fairly happy with, but the last one, although I like the problem in itself as there are multiple ways to solve it, obviously doesn't satisfy my last aim.</p>
 <h2>Failures</h2>
 <p>The first group through a new course is always the hardest, as it's difficult to pitch assessments at the right level to challenge but still include all students. My expectations were definitely too high with this set of tasks, and will need adjustments to both how I teach the content and in the difficulty of the assessment next year.</p>
-<p><img class="post__image--right" src="https://headtilt.me/media/posts/71/tutorial_snipped.PNG" alt="OneNote tutorial snippet" width="573" height="433">One of the failures of Minecraft: EE is that since everything is kept in local storage for each student, and the process of switching programs is quite cumbersome (involving a lot of external resource loading, despite programs and Minecraft server being on the local machine), it can be quite tough to ensure students are on track rather than merrily running about doing their own thing. My lesson format for this topic is typically a step by step tutorial (with explanations and screenshots) in OneNote for students to follow, along with 2-3 extension activities at the end which use the concept in a different setting. In future I'll get students to add their own screenshots to a table at the end showing their code and results from the extension activities in order to keep them a bit more accountable.</p>
+<figure class="post__image--right"><img loading="lazy"  src="https://headtilt.me/media/posts/71/tutorial_snipped.PNG" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://headtilt.me/media/posts/71/responsive/tutorial_snipped-xs.PNG 300w ,https://headtilt.me/media/posts/71/responsive/tutorial_snipped-sm.PNG 480w ,https://headtilt.me/media/posts/71/responsive/tutorial_snipped-md.PNG 768w ,https://headtilt.me/media/posts/71/responsive/tutorial_snipped-lg.PNG 1024w"  alt="OneNote tutorial snippet" width="573" height="433"></figure>One of the failures of Minecraft: EE is that since everything is kept in local storage for each student, and the process of switching programs is quite cumbersome (involving a lot of external resource loading, despite programs and Minecraft server being on the local machine), it can be quite tough to ensure students are on track rather than merrily running about doing their own thing. My lesson format for this topic is typically a step by step tutorial (with explanations and screenshots) in OneNote for students to follow, along with 2-3 extension activities at the end which use the concept in a different setting. In future I'll get students to add their own screenshots to a table at the end showing their code and results from the extension activities in order to keep them a bit more accountable.</p>
 <p>As the subject is mandatory now rather than an elective, there are many different literacy (and numeracy - particularly involving 3D space) levels who need to be catered for. Although I try to differentiate instruction in a number of ways (demo and explain verbally, self-paced written and graphical tutorials, teach by the side), it is always surprising who struggles with some concepts or learning methods. Whilst it is incredibly time consuming, next time around I'll add some video tutorials to the mix as well as some smaller explainers and demos to cover some more bases.</p>
 <p> </p>
 <h2>Successes</h2>
@@ -816,61 +922,6 @@
 <p>Although it's by far the hardest of the three problems I gave students (and stupidly, I put it first in the task list) the "build your own head" problem has proven to be a win for getting students to really think about the task in a number of different ways. With some tweaking and more targeted introductory lessons, I think this has a lot of potential for future assessment.</p>
 <p>Minecraft: EE and Code Connection has a range of really nice tutorials to build from, which provides a nice gentle introduction for both students and teachers, and they are general enough that I have been able to introduce several different concepts using them as a base.</p>
 <p>Using a Minecraft world as a prototyping playground is often hilarious. There have been a number of nightmare hellscapes of half-formed heads that my students have created while debugging their programs.</p>
-            ]]>
-        </content>
-    </entry>
-    <entry>
-        <title>Minecraft Edu Edition: Geological Surveys</title>
-        <author>
-            <name>Rob</name>
-        </author>
-        <link href="https://headtilt.me/minecraft-edu-edition-geological-surveys/"/>
-        <id>https://headtilt.me/minecraft-edu-edition-geological-surveys/</id>
-            <category term="classroom"/>
-
-        <updated>2018-08-23T20:14:34+08:00</updated>
-            <summary>
-                <![CDATA[
-                        <img src="https://headtilt.me/media/posts/70/geology_cover.PNG" alt="Minecraft Geological Survey" />
-                    BackgroundI've been using Minecraft Education Edition with Code Connection in my Year&hellip;
-                ]]>
-            </summary>
-        <content type="html">
-            <![CDATA[
-                    <img src="https://headtilt.me/media/posts/70/geology_cover.PNG" alt="Minecraft Geological Survey" />
-                <h2>Background</h2>
-<p>I've been using <a href="https://education.minecraft.net/" target="_blank" rel="noopener noreferrer">Minecraft Education Edition with Code Connection</a> in my Year 7 classes this term to teach programming principles, which has been a blast* (i.e. I spend a lot of time trying to encourage students to write programs rather than run around building stuff themselves).</p>
-<figure class="post__image post__image--right" ><img src="https://headtilt.me/media/posts/70/agent.PNG" alt="" width="191" height="241">
-<figcaption >The Agent</figcaption>
-</figure>
-<p>Code Connection comes with a <a href="https://minecraft.makecode.com/courses/csintro" target="_blank" rel="noopener noreferrer">ton of interesting tutorials</a> to get started with, but I've been writing a few things for myself to try out different features, two of which are the Agent and the Builder. The Agent is a code-controlled character that can build from its inventory, attack and destroy surrounding blocks, and do basic sensing of its environment. The builder is an invisible constructor which is used for raising structures fairly quickly; it doesn't have an inventory and can't interact with its environment beyond placing blocks.</p>
-<p>An example of the two interacting could be using the Builder to construct a house shape (e.g. walls and ceiling) and then using the Agent to dig out and place doors and windows.</p>
-<h2>Geology</h2>
-<p><iframe width="640" height="360" src="https://player.vimeo.com/video/286263292" frameborder="0" webkitallowfullscreen="webkitallowfullscreen" mozallowfullscreen="mozallowfullscreen" allowfullscreen="allowfullscreen" ></iframe></p>
-<p>I wanted to try out something a bit different, and so I got to thinking about core samples. The Agent can dig, so why not use that ability for something interesting like looking at what it digs through (one of my lessons with my students was using <strong>if</strong> statements to dig out diamonds from rock).</p>
-<p>The Agent can pick up the blocks it digs through, so I decided to build a core sampler. It would dig down until it hit bedrock (the indestructable blocks at the bottom of the Minecraft world), and then I could use those blocks to analyse the composition of the earth it dug through.</p>
-<p>One of the issues I ran into straight away is that the Agent and the Builder both have a maximum operating range away from the player, and so I often had to teleport the player to them in order to continue processing.</p>
-<p>Otherwise this worked pretty well. Here are the commands I used for the program.</p>
-<div class="gallery"   >
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/70/gallery/tp_snap.PNG" ><img src="https://headtilt.me/media/posts/70/gallery/tp_snap-thumbnail.PNG" alt="Teleport Initialisation" width="413" height="236"></a>
-<figcaption class="gallery-description">Grabbing agent and storing coordinates.</figcaption>
-</figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/70/gallery/core_snap.PNG" ><img src="https://headtilt.me/media/posts/70/gallery/core_snap-thumbnail.PNG" alt="Digging the core sample" width="240" height="240"></a>
-<figcaption class="gallery-description">Digs until it hits bedrock, collecting blocks and recording IDs.</figcaption>
-</figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/70/gallery/buildcore_snap.PNG" ><img src="https://headtilt.me/media/posts/70/gallery/buildcore_snap-thumbnail.PNG" alt="Building the core sample" width="240" height="240"></a>
-<figcaption class="gallery-description">The core sample just recreates an array of block IDs.</figcaption>
-</figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/70/gallery/graph_1_snap.PNG" ><img src="https://headtilt.me/media/posts/70/gallery/graph_1_snap-thumbnail.PNG" alt="Building the graph" width="240" height="240"></a>
-<figcaption class="gallery-description">Use the Agent inventory to build the graph.</figcaption>
-</figure>
-<figure class="gallery__item"><a href="https://headtilt.me/media/posts/70/gallery/graph_2_snap.PNG" ><img src="https://headtilt.me/media/posts/70/gallery/graph_2_snap-thumbnail.PNG" alt="Last bit of building the graph" width="240" height="240"></a>
-<figcaption class="gallery-description">Lots of special cases for blocks which don't drop themselves.</figcaption>
-</figure>
-</div>
-<p>I thought about using the <strong>lastBlock</strong> array of the blocks that had been encountered for building the frequency graph, but didn't really like the idea of implementing a sorting algorithm in MakeCode and in the end figured that since the Agent collects the same block together in its inventory anyway, that would make a nice shortcut.</p>
-<p>The main issue with using the Agent inventory is many blocks do not drop themselves when broken and picked up. For example each of the ore types (coal, iron, gold, diamond, lapis lazuli, redstone, and emerald) drop non-buildable blocks, resulting in a long and rather ugly selection sequence translating the dropped material into the original block (and conveniently ignoring what happens if a single block drops more than one item!).</p>
-<p>If you would like to try this out and don't want to spend forever dragging blocks around yourself, feel free to <a href="../../../../../media/files/minecraft-Geological Survey.mkcd">download my MakeCode file here</a> and load it into Code Connection yourself.</p>
             ]]>
         </content>
     </entry>

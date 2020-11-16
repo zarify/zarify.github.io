@@ -1,0 +1,3 @@
+User-agent: *
+Disallow:
+Sitemap: https://headtilt.me/sitemap.xml

@@ -69,6 +69,42 @@
 </image:image>
 </url>
 <url>
+<loc>https://headtilt.me/code-introspection-in-minecraft-and-python/</loc>
+<lastmod>2020-11-17T06:30:45+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\82/intro.png</image:loc>
+<image:title><![CDATA[]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\82/gallery/dir_str-thumbnail.png</image:loc>
+<image:title><![CDATA[dir(str) displaying inbuilt methods and properties.]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\82/gallery/help_strip-thumbnail.png</image:loc>
+<image:title><![CDATA[help(str.strip) output]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\82/gallery/say_code-thumbnail.png</image:loc>
+<image:title><![CDATA[Python code for the say function]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\82/gallery/say_output-thumbnail.png</image:loc>
+<image:title><![CDATA[Output from the say function]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\82/dir_output_part.png</image:loc>
+<image:title><![CDATA[Partial output of the dir(agent) call.]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\82/inspect_error.png</image:loc>
+<image:title><![CDATA[An inspect error]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\82/inspect_output.png</image:loc>
+<image:title><![CDATA[Output of the inspect command]]></image:title>
+</image:image>
+</url>
+<url>
 <loc>https://headtilt.me/computing-as-a-subject/</loc>
 <lastmod>2018-08-18T18:20:03+08:00</lastmod>
 </url>
@@ -836,7 +872,7 @@
 </url>
 <url>
 <loc>https://headtilt.me/year-7-8-networking-concepts-mk-2/</loc>
-<lastmod>2020-06-27T13:40:05+08:00</lastmod>
+<lastmod>2020-11-17T05:58:38+08:00</lastmod>
 <image:image>
 <image:loc>https://headtilt.me/media\posts\81/pair_microbit.png</image:loc>
 <image:title><![CDATA[]]></image:title>
