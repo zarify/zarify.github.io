@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Network Node Game</title>
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+    }
+
+    div.container {
+      width: 600px;
+      margin: 0 auto 0 auto;
+    }
+
+    div.game h1 {
+      text-align: center;
+    }
+
+    div.game p {
+      padding-left: 5px;
+      padding-right: 5px;
+    }
+
+    div.game h2 {
+      padding-left: 5px;
+    }
+
+    div.game {
+      margin: 0px;
+      width: 600px;
+      border: 1px solid black;
+    }
+    div#controls {
+      background-color: white;
+      width: 600px;
+      position: absolute;
+      top: 0px;
+      background-color: antiquewhite;
+      border-top: 1px solid black;
+      border-bottom: 1px solid black;
+    }
+
+    div#scores {
+      background-color: white;
+      position: fixed;
+      top: 10px;
+      left: 10px;
+    }
+
+    input#difficulty_slider {
+
+    }
+
+    input#seed_field {
+
+    }
+
+    button#start_button {
+      margin-top: 5px;
+      width: 100%;
+      font-size: 150%;
+    }
+
+    table#highscore_table td {
+      text-align: right;
+    }
+
+    main {
+      z-index: -1;
+    }
+  </style>
+  <script src="p5.js"></script>
+  <script src="addons/p5.sound.min.js"></script>
+  <script src="sketch.js"></script>
+</head>
+
+<body onload="populate_highscores();">
+  <div class="container">
+    <div class="game">
+      <h1>Network Node Game</h1>
+      <div id="controls">
+        <p></p>
+        <h2>Instructions</h2>
+          <ul>
+            <li>Click and connect the nodes.</li>
+            <li>Each node shows how many maximum connections it can have at once.</li>
+            <li>When nodes get too far apart, their connections snap</li>
+            <li>If lines collide they will break each other.</li>
+          </ul>
+        </p>
+        <p>
+        Difficulty [<span id="difficulty_label">50</span>]
+        <input id="difficulty_slider" onchange="update_difficulty();" min="1" max="100" value="50" type="range"><br />
+        Seed: <input id="seed_field" onchange="update_seed();"><br />
+        <button id="start_button" onclick="start_game();">Start Game</button><br />
+        
+        </p>
+      </div>
+      <main>
+      </main>
+    </div>
+  </div>
+  <div id="scores">
+    <h2>High Scores</h2>
+    <div id="highscores">
+    </div>
+  </div>
+
+</body>
+
+</html>
