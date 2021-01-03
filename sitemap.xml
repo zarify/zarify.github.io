@@ -426,7 +426,7 @@
 </url>
 <url>
 <loc>https://headtilt.me/minecraft-edu-edition-geological-surveys/</loc>
-<lastmod>2018-08-23T20:14:34+08:00</lastmod>
+<lastmod>2020-12-07T21:27:42+08:00</lastmod>
 <image:image>
 <image:loc>https://headtilt.me/media\posts\70/geology_cover.PNG</image:loc>
 <image:title><![CDATA[Minecraft Geological Survey]]></image:title>
@@ -648,6 +648,18 @@
 <image:image>
 <image:loc>https://headtilt.me/media\posts\4/app_store_logo.png</image:loc>
 <image:title><![CDATA[Get Repeat on the iOS App Store]]></image:title>
+</image:image>
+</url>
+<url>
+<loc>https://headtilt.me/robotics-inchworms-with-motivation/</loc>
+<lastmod>2021-01-03T15:05:44+08:00</lastmod>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\83/splash.png</image:loc>
+<image:title><![CDATA[Inchworm robot]]></image:title>
+</image:image>
+<image:image>
+<image:loc>https://headtilt.me/media\posts\83/Inchworm-v2-v9.png</image:loc>
+<image:title><![CDATA[Fusion sketches of the Inchworm]]></image:title>
 </image:image>
 </url>
 <url>
@@ -904,7 +916,7 @@
 </url>
 <url>
 <loc>https://headtilt.me/year-7-minecraft-ee-and-programming/</loc>
-<lastmod>2018-09-24T14:13:43+08:00</lastmod>
+<lastmod>2020-12-07T21:27:13+08:00</lastmod>
 <image:image>
 <image:loc>https://headtilt.me/media\posts\71/chess_landscape.png</image:loc>
 <image:title><![CDATA[Chess Landscape]]></image:title>
