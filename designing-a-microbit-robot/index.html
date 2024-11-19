@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Designing a Micro:bit Robot | Headtilt</title>
+<meta name="keywords" content="microbit, robotics">
+<meta name="description" content="Motivation
+Ever since I bought some of Kitronik&rsquo;s :move buggies I&rsquo;ve been interested in making robots with the Micro:bit. They&rsquo;re simple to program, have a decent set of features, and the kids enjoy using them. However they&rsquo;re also a royal pain to assemble due to fiddly screw locations, quite expensive for what they are (we pay around $60AUD for what amounts to about $15-20AUD in components), and difficult to add on to due to cutting you off from all the additional pins the Micro:bit has to offer.">
+<meta name="author" content="Rob">
+<link rel="canonical" href="/designing-a-microbit-robot/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d6fcd20a4fb86efa4dfac8ec95da60244cc8871042183da1ef28e3a762ad79c8.css" integrity="sha256-1vzSCk&#43;4bvpN&#43;sjsldpgJEzIhxBCGD2h7yjjp2Ktecg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="mask-icon" href="/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="/designing-a-microbit-robot/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/css/formatting.css"><meta property="og:url" content="/designing-a-microbit-robot/">
+  <meta property="og:site_name" content="Headtilt">
+  <meta property="og:title" content="Designing a Micro:bit Robot">
+  <meta property="og:description" content="Motivation Ever since I bought some of Kitronik’s :move buggies I’ve been interested in making robots with the Micro:bit. They’re simple to program, have a decent set of features, and the kids enjoy using them. However they’re also a royal pain to assemble due to fiddly screw locations, quite expensive for what they are (we pay around $60AUD for what amounts to about $15-20AUD in components), and difficult to add on to due to cutting you off from all the additional pins the Micro:bit has to offer.">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="post">
+    <meta property="article:published_time" content="2019-04-11T06:17:18+00:00">
+    <meta property="article:modified_time" content="2019-04-11T06:17:18+00:00">
+    <meta property="article:tag" content="Microbit">
+    <meta property="article:tag" content="Robotics">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Designing a Micro:bit Robot">
+<meta name="twitter:description" content="Motivation
+Ever since I bought some of Kitronik&rsquo;s :move buggies I&rsquo;ve been interested in making robots with the Micro:bit. They&rsquo;re simple to program, have a decent set of features, and the kids enjoy using them. However they&rsquo;re also a royal pain to assemble due to fiddly screw locations, quite expensive for what they are (we pay around $60AUD for what amounts to about $15-20AUD in components), and difficult to add on to due to cutting you off from all the additional pins the Micro:bit has to offer.">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "/post/"
+    }
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Designing a Micro:bit Robot",
+      "item": "/designing-a-microbit-robot/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Designing a Micro:bit Robot",
+  "name": "Designing a Micro:bit Robot",
+  "description": "Motivation Ever since I bought some of Kitronik\u0026rsquo;s :move buggies I\u0026rsquo;ve been interested in making robots with the Micro:bit. They\u0026rsquo;re simple to program, have a decent set of features, and the kids enjoy using them. However they\u0026rsquo;re also a royal pain to assemble due to fiddly screw locations, quite expensive for what they are (we pay around $60AUD for what amounts to about $15-20AUD in components), and difficult to add on to due to cutting you off from all the additional pins the Micro:bit has to offer.\n",
+  "keywords": [
+    "microbit", "robotics"
+  ],
+  "articleBody": "Motivation Ever since I bought some of Kitronik’s :move buggies I’ve been interested in making robots with the Micro:bit. They’re simple to program, have a decent set of features, and the kids enjoy using them. However they’re also a royal pain to assemble due to fiddly screw locations, quite expensive for what they are (we pay around $60AUD for what amounts to about $15-20AUD in components), and difficult to add on to due to cutting you off from all the additional pins the Micro:bit has to offer.\nThis year I looked into alternatives. There some 3D printed designs on Thingiverse which also use the same servo:lite board, but are much easier to assemble (design 1, design 2), but my main issue with 3D printing is how long it takes.\nI found an interesting stick insect design which looked like it would lend itself to laser cutting instead and as a bonus didn’t use continuous rotation servos, and so my Year 9 class put together a few and had a go at writing some code to get them to move. Although they looked promising for simple linear movement, the added weight of using MDF instead of ABS/PLA meant they were not very successful, and traction was an issue, so we chalked it up to a learning experience, fiddled with LED code on the servo:lite boards, and practiced writing remote control code with the Micro:bit radios instead.\nI liked the idea of using standard servos instead of continuous rotation (because they’re cheap!) so I sat down to design my own robot.\nDesign Although I did technical drawing aeons ago at school, drafting is not really my strong suit (if I indeed have a strong suit). I drew up some rough plans, mostly while waiting for meetings to start.\n1 Linear actuator design 2 Motion ideas for linear movement 3 Ideas for elevation and steering 4 Closing in on the final design I started from my linear actuator designs, since there would need to be some linear movement - I initially imagined it as a pair of geared pontoons with a lifter underneath the robot, and played around with some ideas of having the lifter rotate so that the robot could steer. Although I still like this idea, keeping the cabling free and the interior robot layout nixed that idea and I went for a more traditional ‘wheel’ approach, each driven by a servo, and having a third servo to elevate the body so that the wheels could reset.\nThe final design went through about six iterations due to issues with weight distribution of the mobile phone power bank I wanted to use for a battery and also the fiddliness of aligning the actuator rod and installing guides so that it moved in a straight line and didn’t catch on the edges of the slot.\nKeeping the actuator rod running smoothly up and down without catching on any other part of the chassis was the hardest part of the design, and the trickiest to assemble once it was cut out. I originally had three pieces surrounding the rod which each had to fit into holes in the top and bottom plates, and it was incredibly difficult to align while also keeping the servos and rod in place. I ended up scrapping that design and going for a simple two support design instead. Utilising a cross shaped support for the actuator rod instead of an L shape also made building supports a lot easier.\nAssembly Here’s a step-by-step process for assembly of the robot.\nThe main problem areas are:\nGetting the actuator rod height right as you assemble, since it needs to be taken apart to adjust it. My guide for this is set the gear servo to 60 degrees before insertion, then insert the rod so that it is about 3mm below the top plate, using the guides which surround the rod as a, well, guide. Holding the whole thing together while the top plate is attached can be a challenge, as can aligning the guide rods. The servos hold the top plate roughly in place, so you can poke a finger or some small object in to push the tops of the guides into their holes to snap into place. Align the wheel servos to their forward positions before attaching the wheels. I use 110 degrees for the right, and 40 degrees for the left servos (since my cheap servos have some funny working ranges). 01 Cutting six robots 02 One robot ready to assemble 03 Actuator rod and attachment to base 04 Rod attached to lifter base 05 Gear fitted snugly to the servo 06 Servos held in place by slots and cabling 07 Bottom view of cabling 08 Rod supports in place 09 Rod inserted to just below top plate height 10 Top plate attached 11 Side supports hold frame together 12 Top view of partial assembly 13 Attach one front support 14 Attach microbit platform 15 Slide support into platform 16 Push wheels on after servo alignment 17 Work complete Code I have some sample code for movement and a more fully functional remote control scheme sitting into Github repo for this project.\nThe movement itself is quite simple though, and just involves a series of these steps:\nExtend elevator rod Reposition wheels Retract elevator rod Move wheels to drag robot # servo pins bottom = pin8 left = pin12 right = pin16 # angles for motion fwd = [110, 40] # right, left bck = [65, 85] # right, left # angles for retraction and extension retract = 65 extend = 90 # 'walk' cycle consisting of: # instruct servos to move # sleep to give enough time to arrive at angle bottom.write_analog(extend) sleep(150) right.write_analog(fwd[0]) left.write_analog(fwd[1]) sleep(200) bottom.write_analog(retract) sleep(150) right.write_analog(bck[0]) left.write_analog(bck[1]) sleep(200) Outcome Front view through to actuator\nSide view\nTop view\nI ended up putting some mounting points for additional sensors and outputs like LEDs at the front. The whole thing snaps together and generally doesn’t require glue to hold anything together (although occasionally due to slight warping of the MDF sheets some of the pegs end up looser than others).\n",
+  "wordCount" : "1024",
+  "inLanguage": "en",
+  "datePublished": "2019-04-11T06:17:18.529Z",
+  "dateModified": "2019-04-11T06:17:18.529Z",
+  "author":{
+    "@type": "Person",
+    "name": "Rob"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "/designing-a-microbit-robot/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Headtilt",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="/images/headtilt.png" alt="" aria-label="logo"
+                    height="30">Adjust your angle</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/post" title="posts">
+                    <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="/page/about/" title="about">
+                    <span><i class="fa-solid fa-circle-info"></i> about</span>
+                </a>
+            </li>
+            <li>
+                <a href="/categories/" title="categories">
+                    <span><i class="fa-solid fa-layer-group"></i> categories</span>
+                </a>
+            </li>
+            <li>
+                <a href="/tags/" title="tags">
+                    <span><i class="fa-solid fa-tags"></i> tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Designing a Micro:bit Robot
+    </h1>
+    <div class="post-meta"><span title='2019-04-11 06:17:18.529 +0000 UTC'>Thu, Apr 11, 2019</span>&nbsp;·&nbsp;Rob
+
+</div>
+  </header> 
+  <div class="post-content"><img loading="lazy" src="/images/knuckle/front_view.jpg"><h2 id="motivation">Motivation<a hidden class="anchor" aria-hidden="true" href="#motivation">#</a></h2>
+<p>Ever since I bought some of <a href="https://www.kitronik.co.uk/5624-move-mini-buggy-kit-excl-microbit.html">Kitronik&rsquo;s :move buggies</a> I&rsquo;ve been interested in making robots with the Micro:bit. They&rsquo;re simple to program, have a decent set of features, and the kids enjoy using them. However they&rsquo;re also a royal pain to assemble due to fiddly screw locations, quite expensive for what they are (we pay around $60AUD for what amounts to about $15-20AUD in components), and difficult to add on to due to cutting you off from all the additional pins the Micro:bit has to offer.</p>
+<p>This year I looked into alternatives. There some 3D printed designs on Thingiverse which also use the same <a href="https://www.kitronik.co.uk/5623-servolite-board-for-move-mini.html">servo:lite board</a>, but are much easier to assemble (<a href="https://www.thingiverse.com/thing:2534232">design 1</a>, <a href="https://www.thingiverse.com/thing:2485069">design 2</a>), but my main issue with 3D printing is how long it takes.</p>
+<p>I found an interesting <a href="https://www.thingiverse.com/thing:2746171">stick insect design</a> which looked like it would lend itself to laser cutting instead and as a bonus didn&rsquo;t use continuous rotation servos, and so my Year 9 class put together a few and had a go at writing some code to get them to move. Although they looked promising for simple linear movement, the added weight of using MDF instead of ABS/PLA meant they were not very successful, and traction was an issue, so we chalked it up to a learning experience, fiddled with LED code on the servo:lite boards, and practiced writing remote control code with the Micro:bit radios instead.</p>
+<p>I liked the idea of using standard servos instead of continuous rotation (because they&rsquo;re cheap!) so I sat down to design my own robot.</p>
+<h2 id="design">Design<a hidden class="anchor" aria-hidden="true" href="#design">#</a></h2>
+<p>Although I did technical drawing aeons ago at school, drafting is not really my strong suit (if I indeed have a strong suit). I drew up some rough plans, mostly while waiting for meetings to start.</p>
+<style>
+    .image-gallery {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1%;
+        margin-left: -1% !important;
+    }
+
+    .image-gallery li {
+        list-style: none;
+        width: 19%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .image-gallery li a {
+        text-align: center;
+        text-decoration: none !important;
+        color: #777;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        justify-content: space-between;
+        box-shadow: none !important;
+    }
+
+    .image-gallery li a span {
+        display: block;
+        padding: 3px 0;
+        white-space: normal;
+        font-size: 0.8em;
+    }
+
+    .image-gallery li a img {
+        width: 100%;
+        display: block;
+    }
+
+     
+    @media (max-width: 1200px) {
+        .image-gallery li {
+            width: 24%;
+             
+        }
+    }
+
+    @media (max-width: 992px) {
+        .image-gallery li {
+            width: 32%;
+             
+        }
+    }
+
+    @media (max-width: 768px) {
+        .image-gallery li {
+            width: 49%;
+             
+        }
+    }
+
+    @media (max-width: 576px) {
+        .image-gallery li {
+            width: 100%;
+             
+        }
+    }
+</style>
+
+
+<ul class="image-gallery">
+    <li>
+        <a href="/gallery/knuckle1/1%20Linear%20actuator%20design.jpg" title="1 Linear actuator design" class="lightbox-image">
+            <img src="/gallery/knuckle1/1%20Linear%20actuator%20design.jpg" alt="1 Linear actuator design" title="1 Linear actuator design">
+            <span>1 Linear actuator design</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/knuckle1/2%20Motion%20ideas%20for%20linear%20movement.jpg" title="2 Motion ideas for linear movement" class="lightbox-image">
+            <img src="/gallery/knuckle1/2%20Motion%20ideas%20for%20linear%20movement.jpg" alt="2 Motion ideas for linear movement" title="2 Motion ideas for linear movement">
+            <span>2 Motion ideas for linear movement</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/knuckle1/3%20Ideas%20for%20elevation%20and%20steering.jpg" title="3 Ideas for elevation and steering" class="lightbox-image">
+            <img src="/gallery/knuckle1/3%20Ideas%20for%20elevation%20and%20steering.jpg" alt="3 Ideas for elevation and steering" title="3 Ideas for elevation and steering">
+            <span>3 Ideas for elevation and steering</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/knuckle1/4%20Closing%20in%20on%20the%20final%20design.jpg" title="4 Closing in on the final design" class="lightbox-image">
+            <img src="/gallery/knuckle1/4%20Closing%20in%20on%20the%20final%20design.jpg" alt="4 Closing in on the final design" title="4 Closing in on the final design">
+            <span>4 Closing in on the final design</span>
+        </a>
+    </li>
+    
+</ul>
+<p>I started from my <a href="https://github.com/zarify/microbit/tree/master/Linear_Actuator">linear actuator designs</a>, since there would need to be some linear movement - I initially imagined it as a pair of geared pontoons with a lifter underneath the robot, and played around with some ideas of having the lifter rotate so that the robot could steer. Although I still like this idea, keeping the cabling free and the interior robot layout nixed that idea and I went for a more traditional &lsquo;wheel&rsquo; approach, each driven by a servo, and having a third servo to elevate the body so that the wheels could reset.</p>
+<p>The final design went through about six iterations due to issues with weight distribution of the mobile phone power bank I wanted to use for a battery and also the fiddliness of aligning the actuator rod and installing guides so that it moved in a straight line and didn&rsquo;t catch on the edges of the slot.</p>
+<p>Keeping the actuator rod running smoothly up and down without catching on any other part of the chassis was the hardest part of the design, and the trickiest to assemble once it was cut out. I originally had three pieces surrounding the rod which each had to fit into holes in the top and bottom plates, and it was incredibly difficult to align while also keeping the servos and rod in place. I ended up scrapping that design and going for a simple two support design instead. Utilising a cross shaped support for the actuator rod instead of an L shape also made building supports a lot easier.</p>
+<h2 id="assembly">Assembly<a hidden class="anchor" aria-hidden="true" href="#assembly">#</a></h2>
+<p>Here&rsquo;s a step-by-step process for assembly of the robot.</p>
+<p>The main problem areas are:</p>
+<ul>
+<li>Getting the actuator rod height right as you assemble, since it needs to be taken apart to adjust it. My guide for this is set the gear servo to 60 degrees before insertion, then insert the rod so that it is about 3mm below the top plate, using the guides which surround the rod as a, well, guide.</li>
+<li>Holding the whole thing together while the top plate is attached can be a challenge, as can aligning the guide rods. The servos hold the top plate roughly in place, so you can poke a finger or some small object in to push the tops of the guides into their holes to snap into place.</li>
+<li>Align the wheel servos to their forward positions before attaching the wheels. I use 110 degrees for the right, and 40 degrees for the left servos (since my cheap servos have some funny working ranges).</li>
+</ul>
+<style>
+    .image-gallery {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1%;
+        margin-left: -1% !important;
+    }
+
+    .image-gallery li {
+        list-style: none;
+        width: 19%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .image-gallery li a {
+        text-align: center;
+        text-decoration: none !important;
+        color: #777;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        justify-content: space-between;
+        box-shadow: none !important;
+    }
+
+    .image-gallery li a span {
+        display: block;
+        padding: 3px 0;
+        white-space: normal;
+        font-size: 0.8em;
+    }
+
+    .image-gallery li a img {
+        width: 100%;
+        display: block;
+    }
+
+     
+    @media (max-width: 1200px) {
+        .image-gallery li {
+            width: 24%;
+             
+        }
+    }
+
+    @media (max-width: 992px) {
+        .image-gallery li {
+            width: 32%;
+             
+        }
+    }
+
+    @media (max-width: 768px) {
+        .image-gallery li {
+            width: 49%;
+             
+        }
+    }
+
+    @media (max-width: 576px) {
+        .image-gallery li {
+            width: 100%;
+             
+        }
+    }
+</style>
+
+
+<ul class="image-gallery">
+    <li>
+        <a href="/gallery/knuckle2/.DS_Store" title="" class="lightbox-image">
+            <img src="/gallery/knuckle2/.DS_Store" alt="" title="">
+            <span></span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/knuckle2/01%20Cutting%20six%20robots.jpg" title="01 Cutting six robots" class="lightbox-image">
+            <img src="/gallery/knuckle2/01%20Cutting%20six%20robots.jpg" alt="01 Cutting six robots" title="01 Cutting six robots">
+            <span>01 Cutting six robots</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/knuckle2/02%20One%20robot%20ready%20to%20assemble.jpg" title="02 One robot ready to assemble" class="lightbox-image">
+            <img src="/gallery/knuckle2/02%20One%20robot%20ready%20to%20assemble.jpg" alt="02 One robot ready to assemble" title="02 One robot ready to assemble">
+            <span>02 One robot ready to assemble</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/knuckle2/03%20Actuator%20rod%20and%20attachment%20to%20base.jpg" title="03 Actuator rod and attachment to base" class="lightbox-image">
+            <img src="/gallery/knuckle2/03%20Actuator%20rod%20and%20attachment%20to%20base.jpg" alt="03 Actuator rod and attachment to base" title="03 Actuator rod and attachment to base">
+            <span>03 Actuator rod and attachment to base</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/knuckle2/04%20Rod%20attached%20to%20lifter%20base.jpg" title="04 Rod attached to lifter base" class="lightbox-image">
+            <img src="/gallery/knuckle2/04%20Rod%20attached%20to%20lifter%20base.jpg" alt="04 Rod attached to lifter base" title="04 Rod attached to lifter base">
+            <span>04 Rod attached to lifter base</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/knuckle2/05%20Gear%20fitted%20snugly%20to%20the%20servo.jpg" title="05 Gear fitted snugly to the servo" class="lightbox-image">
+            <img src="/gallery/knuckle2/05%20Gear%20fitted%20snugly%20to%20the%20servo.jpg" alt="05 Gear fitted snugly to the servo" title="05 Gear fitted snugly to the servo">
+            <span>05 Gear fitted snugly to the servo</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/knuckle2/06%20Servos%20held%20in%20place%20by%20slots%20and%20cabling.jpg" title="06 Servos held in place by slots and cabling" class="lightbox-image">
+            <img src="/gallery/knuckle2/06%20Servos%20held%20in%20place%20by%20slots%20and%20cabling.jpg" alt="06 Servos held in place by slots and cabling" title="06 Servos held in place by slots and cabling">
+            <span>06 Servos held in place by slots and cabling</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/knuckle2/07%20Bottom%20view%20of%20cabling.jpg" title="07 Bottom view of cabling" class="lightbox-image">
+            <img src="/gallery/knuckle2/07%20Bottom%20view%20of%20cabling.jpg" alt="07 Bottom view of cabling" title="07 Bottom view of cabling">
+            <span>07 Bottom view of cabling</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/knuckle2/08%20Rod%20supports%20in%20place.jpg" title="08 Rod supports in place" class="lightbox-image">
+            <img src="/gallery/knuckle2/08%20Rod%20supports%20in%20place.jpg" alt="08 Rod supports in place" title="08 Rod supports in place">
+            <span>08 Rod supports in place</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/knuckle2/09%20Rod%20inserted%20to%20just%20below%20top%20plate%20height.jpg" title="09 Rod inserted to just below top plate height" class="lightbox-image">
+            <img src="/gallery/knuckle2/09%20Rod%20inserted%20to%20just%20below%20top%20plate%20height.jpg" alt="09 Rod inserted to just below top plate height" title="09 Rod inserted to just below top plate height">
+            <span>09 Rod inserted to just below top plate height</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/knuckle2/10%20Top%20plate%20attached.jpg" title="10 Top plate attached" class="lightbox-image">
+            <img src="/gallery/knuckle2/10%20Top%20plate%20attached.jpg" alt="10 Top plate attached" title="10 Top plate attached">
+            <span>10 Top plate attached</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/knuckle2/11%20Side%20supports%20hold%20frame%20together.jpg" title="11 Side supports hold frame together" class="lightbox-image">
+            <img src="/gallery/knuckle2/11%20Side%20supports%20hold%20frame%20together.jpg" alt="11 Side supports hold frame together" title="11 Side supports hold frame together">
+            <span>11 Side supports hold frame together</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/knuckle2/12%20Top%20view%20of%20partial%20assembly.jpg" title="12 Top view of partial assembly" class="lightbox-image">
+            <img src="/gallery/knuckle2/12%20Top%20view%20of%20partial%20assembly.jpg" alt="12 Top view of partial assembly" title="12 Top view of partial assembly">
+            <span>12 Top view of partial assembly</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/knuckle2/13%20Attach%20one%20front%20support.jpg" title="13 Attach one front support" class="lightbox-image">
+            <img src="/gallery/knuckle2/13%20Attach%20one%20front%20support.jpg" alt="13 Attach one front support" title="13 Attach one front support">
+            <span>13 Attach one front support</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/knuckle2/14%20Attach%20microbit%20platform.jpg" title="14 Attach microbit platform" class="lightbox-image">
+            <img src="/gallery/knuckle2/14%20Attach%20microbit%20platform.jpg" alt="14 Attach microbit platform" title="14 Attach microbit platform">
+            <span>14 Attach microbit platform</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/knuckle2/15%20Slide%20support%20into%20platform.jpg" title="15 Slide support into platform" class="lightbox-image">
+            <img src="/gallery/knuckle2/15%20Slide%20support%20into%20platform.jpg" alt="15 Slide support into platform" title="15 Slide support into platform">
+            <span>15 Slide support into platform</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/knuckle2/16%20Push%20wheels%20on%20after%20servo%20alignment.jpg" title="16 Push wheels on after servo alignment" class="lightbox-image">
+            <img src="/gallery/knuckle2/16%20Push%20wheels%20on%20after%20servo%20alignment.jpg" alt="16 Push wheels on after servo alignment" title="16 Push wheels on after servo alignment">
+            <span>16 Push wheels on after servo alignment</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/knuckle2/17%20Work%20complete.jpg" title="17 Work complete" class="lightbox-image">
+            <img src="/gallery/knuckle2/17%20Work%20complete.jpg" alt="17 Work complete" title="17 Work complete">
+            <span>17 Work complete</span>
+        </a>
+    </li>
+    
+</ul>
+<h2 id="code">Code<a hidden class="anchor" aria-hidden="true" href="#code">#</a></h2>
+<p>I have some sample code for movement and a more fully functional remote control scheme sitting into <a href="https://github.com/zarify/microbit/tree/master/Knuckle_Dragger">Github repo for this project</a>.</p>
+<p>The movement itself is quite simple though, and just involves a series of these steps:</p>
+<ul>
+<li>Extend elevator rod</li>
+<li>Reposition wheels</li>
+<li>Retract elevator rod</li>
+<li>Move wheels to drag robot</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="c1"># servo pins</span>
+</span></span><span class="line"><span class="cl"><span class="n">bottom</span> <span class="o">=</span> <span class="n">pin8</span>
+</span></span><span class="line"><span class="cl"><span class="n">left</span> <span class="o">=</span> <span class="n">pin12</span>
+</span></span><span class="line"><span class="cl"><span class="n">right</span> <span class="o">=</span> <span class="n">pin16</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># angles for motion</span>
+</span></span><span class="line"><span class="cl"><span class="n">fwd</span> <span class="o">=</span> <span class="p">[</span><span class="mi">110</span><span class="p">,</span> <span class="mi">40</span><span class="p">]</span> <span class="c1"># right, left</span>
+</span></span><span class="line"><span class="cl"><span class="n">bck</span> <span class="o">=</span> <span class="p">[</span><span class="mi">65</span><span class="p">,</span> <span class="mi">85</span><span class="p">]</span> <span class="c1"># right, left</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># angles for retraction and extension</span>
+</span></span><span class="line"><span class="cl"><span class="n">retract</span> <span class="o">=</span> <span class="mi">65</span>
+</span></span><span class="line"><span class="cl"><span class="n">extend</span> <span class="o">=</span> <span class="mi">90</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># &#39;walk&#39; cycle consisting of:</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># instruct servos to move</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># sleep to give enough time to arrive at angle</span>
+</span></span><span class="line"><span class="cl"><span class="n">bottom</span><span class="o">.</span><span class="n">write_analog</span><span class="p">(</span><span class="n">extend</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="n">sleep</span><span class="p">(</span><span class="mi">150</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="n">right</span><span class="o">.</span><span class="n">write_analog</span><span class="p">(</span><span class="n">fwd</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</span></span><span class="line"><span class="cl"><span class="n">left</span><span class="o">.</span><span class="n">write_analog</span><span class="p">(</span><span class="n">fwd</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</span></span><span class="line"><span class="cl"><span class="n">sleep</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="n">bottom</span><span class="o">.</span><span class="n">write_analog</span><span class="p">(</span><span class="n">retract</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="n">sleep</span><span class="p">(</span><span class="mi">150</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="n">right</span><span class="o">.</span><span class="n">write_analog</span><span class="p">(</span><span class="n">bck</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</span></span><span class="line"><span class="cl"><span class="n">left</span><span class="o">.</span><span class="n">write_analog</span><span class="p">(</span><span class="n">bck</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</span></span><span class="line"><span class="cl"><span class="n">sleep</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+</span></span></code></pre></div><h2 id="outcome"> Outcome<a hidden class="anchor" aria-hidden="true" href="#outcome">#</a></h2>
+<img loading="lazy" src="/images/knuckle/front_view.jpg"><p>Front view through to actuator</p>
+<img loading="lazy" src="/images/knuckle/side_view.jpg"><p>Side view</p>
+<img loading="lazy" src="/images/knuckle/top_view.jpg"><p>Top view</p>
+<p>I ended up putting some mounting points for additional sensors and outputs like LEDs at the front. The whole thing snaps together and generally doesn&rsquo;t require glue to hold anything together (although occasionally due to slight warping of the MDF sheets some of the pegs end up looser than others).</p>
+<iframe width="640" height="1138" src="https://player.vimeo.com/video/328771926" frameborder="0" webkitallowfullscreen="webkitallowfullscreen" mozallowfullscreen="mozallowfullscreen" allowfullscreen="allowfullscreen"></iframe>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="/tags/microbit/">Microbit</a></li>
+      <li><a href="/tags/robotics/">Robotics</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>Rob Poulter</span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a><script type="text/javascript" src="/js/lightbox.js"></script>
+<link rel="stylesheet" href="/css/lightbox.css">
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

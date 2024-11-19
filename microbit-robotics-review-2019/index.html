@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Micro:bit Robotics Review 2019 | Headtilt</title>
+<meta name="keywords" content="microbit, robotics">
+<meta name="description" content="This is a bit of a retrospective of teaching Robotics as a subject to Year 8 students this year. A bit of a theme for my newish subjects tends to be a reduction in expectations as I filter out what I would have liked to have worked into what actually worked and variations on a theme.
+The three themes I&rsquo;ve really thought about since I started teaching this subject are:">
+<meta name="author" content="Rob">
+<link rel="canonical" href="/microbit-robotics-review-2019/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d6fcd20a4fb86efa4dfac8ec95da60244cc8871042183da1ef28e3a762ad79c8.css" integrity="sha256-1vzSCk&#43;4bvpN&#43;sjsldpgJEzIhxBCGD2h7yjjp2Ktecg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="mask-icon" href="/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="/microbit-robotics-review-2019/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/css/formatting.css"><meta property="og:url" content="/microbit-robotics-review-2019/">
+  <meta property="og:site_name" content="Headtilt">
+  <meta property="og:title" content="Micro:bit Robotics Review 2019">
+  <meta property="og:description" content="This is a bit of a retrospective of teaching Robotics as a subject to Year 8 students this year. A bit of a theme for my newish subjects tends to be a reduction in expectations as I filter out what I would have liked to have worked into what actually worked and variations on a theme.
+The three themes I’ve really thought about since I started teaching this subject are:">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="post">
+    <meta property="article:published_time" content="2019-12-23T16:07:13+00:00">
+    <meta property="article:modified_time" content="2019-12-23T16:07:13+00:00">
+    <meta property="article:tag" content="Microbit">
+    <meta property="article:tag" content="Robotics">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Micro:bit Robotics Review 2019">
+<meta name="twitter:description" content="This is a bit of a retrospective of teaching Robotics as a subject to Year 8 students this year. A bit of a theme for my newish subjects tends to be a reduction in expectations as I filter out what I would have liked to have worked into what actually worked and variations on a theme.
+The three themes I&rsquo;ve really thought about since I started teaching this subject are:">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "/post/"
+    }
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Micro:bit Robotics Review 2019",
+      "item": "/microbit-robotics-review-2019/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Micro:bit Robotics Review 2019",
+  "name": "Micro:bit Robotics Review 2019",
+  "description": "This is a bit of a retrospective of teaching Robotics as a subject to Year 8 students this year. A bit of a theme for my newish subjects tends to be a reduction in expectations as I filter out what I would have liked to have worked into what actually worked and variations on a theme.\nThe three themes I\u0026rsquo;ve really thought about since I started teaching this subject are:\n",
+  "keywords": [
+    "microbit", "robotics"
+  ],
+  "articleBody": "This is a bit of a retrospective of teaching Robotics as a subject to Year 8 students this year. A bit of a theme for my newish subjects tends to be a reduction in expectations as I filter out what I would have liked to have worked into what actually worked and variations on a theme.\nThe three themes I’ve really thought about since I started teaching this subject are:\nProgramming environment Inputs and outputs Project freedom and complexity My typical course runs something like this:\nSpend some time looking at what robots are and their variations (inputs and some form of output affecting their environment) like robotic systems (~2 lessons). Programming crash course using different sensors and outputs as a theme (single sensor or output at a time) (~half a term). Electronics crash course in building simple circuits, and understanding digital and analog systems (~half a aterm). Personal or group project (~6 weeks with some post project evaluation). I currently get 2 lessons (of 45-50 minutes each) per week over around 20 weeks (1 semester). Assuming I lose students for around 6 lessons due to absences, public holidays, excursions etc, this means I have about 22 hours with them in total. Programming Environment There are two options which students have (with easy access anyway): MicroPython and Microsoft MakeCode. Being a fan of Python on the desktop/server I have always leaned towards MicroPython as my language of choice when programming Micro:bits, since you’re using the fundamentals of a general purpose programming language and complex programs are much easier to manage than block-based programming. However there are a couple of significant downsides: there is very little memory available for your program, and events and signals aren’t a thing, meaning you need to poll for events, making interactive programs quite tricky in some cases, and any work with SPI or I2C modules mean you’re trawling Github for libraries or learning about their arcane implementation rites.\nMakeCode on the other hand benefits from a decent library management system that’s easy to search through for kids, a lack of syntax errors (although occasionally my students get burnt by trying to compare integers to strings), being able to fit quite complex programs onto the Micro:bit, and most importantly events, although these can be a double edged sword. One of the issues some of my students run into is multiple Forever loops or button inputs with pauses accessing and causing race conditions with variables.\nThe downside is that complex programs end in you panning around the program canvas continuously at tiny zoom levels, and rearranging your code chunks all the time so they don’t overlap (or taking your life into your own hands and asking the browser to format your code and then spending the next few minutes finding all your chunks again).\nElectronics When I started out with the Robotics subject in 2018 there were a pretty large array of sensors and outputs that I wanted to use so that students could really build a range of diverse projects. Unfortunately, even though these all worked in very similar ways (analog, digital, or through a protocol like SPI/I2C) lots of students struggled because they either didn’t have the time to practice and get comfortable, or had trouble deciding on a direction because of an All The Things problem.\nThis year I cut down my set of explicit instruction and practice to a few different components:\nServos (continuous and standard) WS2812B LEDs (“Neopixels”) Speakers Passive InfraRed sensors InfraRed line followers\n(These were without fail used as proximity switches rather than their intended purpose) Potentiometers Light Dependent Resistors This gives students a few options for different methods of input in addition to the accelerometer, buttons, etc built into the Micro:bit, and a range of outputs that can exhibit different behaviours (stationary, moving, visual, audible).\nMost students this year created projects involving servos, RGB LEDs, and PIR sensors, and they ended up with some fairly diverse sets of features, so I’m pretty happy to work with that set of tools going forward.\nI soldered up a whole bunch (~50) of RGB LEDs to 3 port plugs to make them easier to use and practice with. This worked really well, except next time I’ll cross over the voltage and data pins so the plugs can go straight onto the pins on the Micro:mate boards in the standard Ground-Volage-Data order. Normally I just pull the male ends off some of my male-female dupont jumper leads and solder the ends which were crimped into the plug onto whatever I’m working with. Saves me doing up dupont plugs myself and doesn’t cost a lot.\nProjects My biggest lesson from eight groups of student projects, is that a reduction in the freedom to choose is a Good Thing. Extension kids will roam free without my encouragement (or in most cases event explicit permission), and the reduced scope tends to make it easier for the students who struggle.\nMy first set of projects focused on the UN Global Goals, and although these gave some good real world focus areas, there is still an intimidating array of different paths which could be pursued. There’s good scope for building interesting (yet fairly simple) environmental monitoring tools such as water quality, data logging of temperature, soil moisture monitoring and so on, but reading through each of the goals and their associated targets is quite time consuming.\nThis year I have predominately focused on animatronics. Whilst it’s a bit light and fluffy compared with getting students to think Deep Thoughts (in a Douglas Adams sense) about solving global problems with robotics, it’s also much more achievable in the timeframe that I have available to me. In the future I intend to build some learning resources around environmental monitoring as an aid for students in understanding how different types of sensors operate.\nHere are a couple of short Twitter threads with some of the projects my students have built in the latter half of this year:\nThread 1 Thread 2 Navel Gazing I really like Robotics as a teaching area; it incorporates a lot of the Digital Technologies curriculum in an effortless manner (such as evaluating designs, designing for user interaction, the role of hardware and constraints of speed and memory and so on) which can be difficult in other settings where these ideas sometimes need be put into a quite contrived context. This isn’t without drawbacks however, since to run an effective Robotics class I am constantly trying to balance teaching the three main topics of algorithms, electronics, and design (since many final projects are 3D objects laser cut to fit components), which is a real challenge given the limited timeframe.\nJust to finish things off, here are a couple of short videos from a pair of my favourite projects from the first half of the year, a cow being abducted by a UFO (the pulley system just never really worked out sadly) and a papercraft corgi that shakes its head and woofs (and by ‘woof’ I mean uses the speech module in MicroPython to say ‘woof woof’ :).\nYour browser does not support the video tag. Your browser does not support the video tag. ",
+  "wordCount" : "1196",
+  "inLanguage": "en",
+  "datePublished": "2019-12-23T16:07:13.765Z",
+  "dateModified": "2019-12-23T16:07:13.765Z",
+  "author":{
+    "@type": "Person",
+    "name": "Rob"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "/microbit-robotics-review-2019/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Headtilt",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="/images/headtilt.png" alt="" aria-label="logo"
+                    height="30">Adjust your angle</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/post" title="posts">
+                    <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="/page/about/" title="about">
+                    <span><i class="fa-solid fa-circle-info"></i> about</span>
+                </a>
+            </li>
+            <li>
+                <a href="/categories/" title="categories">
+                    <span><i class="fa-solid fa-layer-group"></i> categories</span>
+                </a>
+            </li>
+            <li>
+                <a href="/tags/" title="tags">
+                    <span><i class="fa-solid fa-tags"></i> tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Micro:bit Robotics Review 2019
+    </h1>
+    <div class="post-meta"><span title='2019-12-23 16:07:13.765 +0000 UTC'>Mon, Dec 23, 2019</span>&nbsp;·&nbsp;Rob
+
+</div>
+  </header> 
+  <div class="post-content"><img loading="lazy" src="/images/pong_early.png"><img alt="Cowterpillar robot" loading="lazy" src="/images/cowterpillar_snap.png"><p>This is a bit of a retrospective of teaching Robotics as a subject to Year 8 students this year. A bit of a theme for my newish subjects tends to be a reduction in expectations as I filter out what I would have liked to have worked into what actually worked and variations on a theme.</p>
+<p>The three themes I&rsquo;ve really thought about since I started teaching this subject are:</p>
+<ol>
+<li>Programming environment</li>
+<li>Inputs and outputs</li>
+<li>Project freedom and complexity</li>
+</ol>
+<p>My typical course runs something like this:</p>
+<ul>
+<li>Spend some time looking at what robots are and their variations (inputs and some form of output affecting their environment) like robotic systems (~2 lessons).</li>
+<li>Programming crash course using different sensors and outputs as a theme (single sensor or output at a time) (~half a term).</li>
+<li>Electronics crash course in building simple circuits, and understanding digital and analog systems (~half a aterm).</li>
+<li>Personal or group project (~6 weeks with some post project evaluation).</li>
+</ul>
+<div class="callout callout-info">
+    <i class="fa-regular fa-lightbulb"></i>
+    <div class="callout-content">
+        
+I currently get 2 lessons (of 45-50 minutes each) per week over around 20 weeks (1 semester). Assuming I lose students for around 6 lessons due to absences, public holidays, excursions etc, this means I have about 22 hours with them in total.
+
+    </div>
+</div>
+
+<style>
+    .callout {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+    }
+
+    .callout-info {
+        background-color: #e7f3fe;
+        border-color: #b3d4fc;
+    }
+
+    .callout i {
+        margin-right: 10px;
+        padding: 0.25em 0.5em;
+        font-size: 1.5em;
+    }
+
+    .callout-content {
+        flex-grow: 1;
+    }
+</style>
+<h2 id="programming-environment">Programming Environment<a hidden class="anchor" aria-hidden="true" href="#programming-environment">#</a></h2>
+<p>There are two options which students have (with easy access anyway): <a href="https://microbit-micropython.readthedocs.io/en/latest/">MicroPython</a> and <a href="https://www.microsoft.com/en-us/makecode">Microsoft MakeCode</a>. Being a fan of Python on the desktop/server I have always leaned towards MicroPython as my language of choice when programming Micro:bits, since you&rsquo;re using the fundamentals of a general purpose programming language and complex programs are much easier to manage than block-based programming. However there are a couple of significant downsides: there is very little memory available for your program, and events and signals aren&rsquo;t a thing, meaning you need to poll for events, making interactive programs quite tricky in some cases, and any work with SPI or I2C modules mean you&rsquo;re trawling Github for libraries or learning about their arcane implementation rites.</p>
+<p>MakeCode on the other hand benefits from a decent library management system that&rsquo;s easy to search through for kids, a lack of syntax errors (although occasionally my students get burnt by trying to compare integers to strings), being able to fit quite complex programs onto the Micro:bit, and most importantly events, although these can be a double edged sword. One of the issues some of my students run into is multiple Forever loops or button inputs with pauses accessing and causing race conditions with variables.</p>
+<img loading="lazy" src="/images/microbit-screenshot-pong-server-small.png"><p>The downside is that complex programs end in you panning around the program canvas continuously at tiny zoom levels, and rearranging your code chunks all the time so they don&rsquo;t overlap (or taking your life into your own hands and asking the browser to format your code and then spending the next few minutes finding all your chunks again).</p>
+<h2 id="electronics">Electronics<a hidden class="anchor" aria-hidden="true" href="#electronics">#</a></h2>
+<p>When I started out with the Robotics subject in 2018 there were a pretty large array of sensors and outputs that I wanted to use so that students could really build a range of diverse projects. Unfortunately, even though these all worked in very similar ways (analog, digital, or through a protocol like SPI/I2C) lots of students struggled because they either didn&rsquo;t have the time to practice and get comfortable, or had trouble deciding on a direction because of an All The Things problem.</p>
+<p>This year I cut down my set of explicit instruction and practice to a few different components:</p>
+<ul>
+<li>Servos (continuous and standard)</li>
+<li>WS2812B LEDs (&ldquo;Neopixels&rdquo;)</li>
+<li>Speakers</li>
+<li>Passive InfraRed sensors</li>
+<li>InfraRed line followers<br>
+<em>(These were without fail used as proximity switches rather than their intended purpose)</em></li>
+<li>Potentiometers</li>
+<li>Light Dependent Resistors</li>
+</ul>
+<p>This gives students a few options for different methods of input in addition to the accelerometer, buttons, etc built into the Micro:bit, and a range of outputs that can exhibit different behaviours (stationary, moving, visual, audible).</p>
+<p>Most students this year created projects involving servos, RGB LEDs, and PIR sensors, and they ended up with some fairly diverse sets of features, so I&rsquo;m pretty happy to work with that set of tools going forward.</p>
+<img loading="lazy" src="/images/ws2812b.png"><p>I soldered up a whole bunch (~50) of RGB LEDs to 3 port plugs to make them easier to use and practice with. This worked really well, except next time I&rsquo;ll cross over the voltage and data pins so the plugs can go straight onto the pins on the Micro:mate boards in the standard Ground-Volage-Data order. Normally I just pull the male ends off some of my male-female dupont jumper leads and solder the ends which were crimped into the plug onto whatever I&rsquo;m working with. Saves me doing up dupont plugs myself and doesn&rsquo;t cost a lot.</p>
+<h2 id="projects">Projects<a hidden class="anchor" aria-hidden="true" href="#projects">#</a></h2>
+<p>My biggest lesson from eight groups of student projects, is that a reduction in the freedom to choose is a Good Thing. Extension kids will roam free without my encouragement (or in most cases event explicit permission), and the reduced scope tends to make it easier for the students who struggle.</p>
+<p>My first set of projects focused on the <a href="https://www.globalgoals.org/">UN Global Goals</a>, and although these gave some good real world focus areas, there is still an intimidating array of different paths which could be pursued. There&rsquo;s good scope for building interesting (yet fairly simple) environmental monitoring tools such as water quality, data logging of temperature, soil moisture monitoring and so on, but reading through each of the goals and their associated targets is quite time consuming.</p>
+<p>This year I have predominately focused on animatronics. Whilst it&rsquo;s a bit light and fluffy compared with getting students to think Deep Thoughts (in a <a href="https://hitchhikers.fandom.com/wiki/Deep_Thought">Douglas Adams sense</a>) about solving global problems with robotics, it&rsquo;s also much more achievable in the timeframe that I have available to me. In the future I intend to build some learning resources around environmental monitoring as an aid for students in understanding how different types of sensors operate.</p>
+<p>Here are a couple of short Twitter threads with some of the projects my students have built in the latter half of this year:</p>
+<ul>
+<li><a href="https://twitter.com/robpoulter/status/1201597395525668866">Thread 1</a></li>
+<li><a href="https://twitter.com/robpoulter/status/1204999455935582208">Thread 2</a></li>
+</ul>
+<h2 id="navel-gazing">Navel Gazing<a hidden class="anchor" aria-hidden="true" href="#navel-gazing">#</a></h2>
+<p>I really like Robotics as a teaching area; it incorporates a lot of the Digital Technologies curriculum in an effortless manner (such as evaluating designs, designing for user interaction, the role of hardware and constraints of speed and memory and so on) which can be difficult in other settings where these ideas sometimes need be put into a quite contrived context. This isn&rsquo;t without drawbacks however, since to run an effective Robotics class I am constantly trying to balance teaching the three main topics of algorithms, electronics, and design (since many final projects are 3D objects laser cut to fit components), which is a real challenge given the limited timeframe.</p>
+<p>Just to finish things off, here are a couple of short videos from a pair of my favourite projects from the first half of the year, a cow being abducted by a UFO (the pulley system just never really worked out sadly) and a papercraft corgi that shakes its head and woofs (and by &lsquo;woof&rsquo; I mean uses the speech module in MicroPython to say &lsquo;woof woof&rsquo; :).</p>
+<video controls>
+    <source src="/video/robo_2019_dog.m4v">
+    Your browser does not support the video tag.
+</video>
+<video controls>
+    <source src="/video/robo_2019_ufo.m4v">
+    Your browser does not support the video tag.
+</video>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="/tags/microbit/">Microbit</a></li>
+      <li><a href="/tags/robotics/">Robotics</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>Rob Poulter</span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a><script type="text/javascript" src="/js/lightbox.js"></script>
+<link rel="stylesheet" href="/css/lightbox.css">
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

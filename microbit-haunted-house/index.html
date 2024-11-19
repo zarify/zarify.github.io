@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Micro:bit Haunted House | Headtilt</title>
+<meta name="keywords" content="microbit, robotics">
+<meta name="description" content="Testing out LDR sensors
+This year I have been teaching robotics to Year 8s for the first time. I&rsquo;ve mainly been using BBC Micro:bits, since they are quite affordable, robust, are easy to hook up to a range of widely available components, and are easy to program in a few different environments (MicroPython being my weapon of choice).
+To keep myself entertained, and to provide my students with a sample project (although more complex code-wise than they&rsquo;re likely to accomplish) I decided to make something myself this term while my class worked on their own group projects (theirs are themed after the UN Global Goals). I had ideas for either building a carousel or a light gun game, and settled on the latter so I didn&rsquo;t have to also tackle 3D printing out cams and gears and the like.">
+<meta name="author" content="Rob">
+<link rel="canonical" href="/microbit-haunted-house/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d6fcd20a4fb86efa4dfac8ec95da60244cc8871042183da1ef28e3a762ad79c8.css" integrity="sha256-1vzSCk&#43;4bvpN&#43;sjsldpgJEzIhxBCGD2h7yjjp2Ktecg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="mask-icon" href="/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="/microbit-haunted-house/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/css/formatting.css"><meta property="og:url" content="/microbit-haunted-house/">
+  <meta property="og:site_name" content="Headtilt">
+  <meta property="og:title" content="Micro:bit Haunted House">
+  <meta property="og:description" content="Testing out LDR sensors
+This year I have been teaching robotics to Year 8s for the first time. I’ve mainly been using BBC Micro:bits, since they are quite affordable, robust, are easy to hook up to a range of widely available components, and are easy to program in a few different environments (MicroPython being my weapon of choice).
+To keep myself entertained, and to provide my students with a sample project (although more complex code-wise than they’re likely to accomplish) I decided to make something myself this term while my class worked on their own group projects (theirs are themed after the UN Global Goals). I had ideas for either building a carousel or a light gun game, and settled on the latter so I didn’t have to also tackle 3D printing out cams and gears and the like.">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="post">
+    <meta property="article:published_time" content="2018-11-05T20:56:46+00:00">
+    <meta property="article:modified_time" content="2018-11-05T20:56:46+00:00">
+    <meta property="article:tag" content="Microbit">
+    <meta property="article:tag" content="Robotics">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Micro:bit Haunted House">
+<meta name="twitter:description" content="Testing out LDR sensors
+This year I have been teaching robotics to Year 8s for the first time. I&rsquo;ve mainly been using BBC Micro:bits, since they are quite affordable, robust, are easy to hook up to a range of widely available components, and are easy to program in a few different environments (MicroPython being my weapon of choice).
+To keep myself entertained, and to provide my students with a sample project (although more complex code-wise than they&rsquo;re likely to accomplish) I decided to make something myself this term while my class worked on their own group projects (theirs are themed after the UN Global Goals). I had ideas for either building a carousel or a light gun game, and settled on the latter so I didn&rsquo;t have to also tackle 3D printing out cams and gears and the like.">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "/post/"
+    }
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Micro:bit Haunted House",
+      "item": "/microbit-haunted-house/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Micro:bit Haunted House",
+  "name": "Micro:bit Haunted House",
+  "description": "Testing out LDR sensors\nThis year I have been teaching robotics to Year 8s for the first time. I\u0026rsquo;ve mainly been using BBC Micro:bits, since they are quite affordable, robust, are easy to hook up to a range of widely available components, and are easy to program in a few different environments (MicroPython being my weapon of choice).\nTo keep myself entertained, and to provide my students with a sample project (although more complex code-wise than they\u0026rsquo;re likely to accomplish) I decided to make something myself this term while my class worked on their own group projects (theirs are themed after the UN Global Goals). I had ideas for either building a carousel or a light gun game, and settled on the latter so I didn\u0026rsquo;t have to also tackle 3D printing out cams and gears and the like.\n",
+  "keywords": [
+    "microbit", "robotics"
+  ],
+  "articleBody": "Testing out LDR sensors\nThis year I have been teaching robotics to Year 8s for the first time. I’ve mainly been using BBC Micro:bits, since they are quite affordable, robust, are easy to hook up to a range of widely available components, and are easy to program in a few different environments (MicroPython being my weapon of choice).\nTo keep myself entertained, and to provide my students with a sample project (although more complex code-wise than they’re likely to accomplish) I decided to make something myself this term while my class worked on their own group projects (theirs are themed after the UN Global Goals). I had ideas for either building a carousel or a light gun game, and settled on the latter so I didn’t have to also tackle 3D printing out cams and gears and the like.\nI have designs and code in a GitHub repo if anyone wants to have a look or use any of my ideas - there is also a list of components I used. The laser cutter designs are a bit of a mixed bag of formats at time of posting, but I’ll endeavour to standardise them to SVG or something more portable later. Be aware that the Kitronik servo code used in the servo controller is MIT licensed - I have links to original repositories in the repo readme.\nBelow is a series of in-progress photos of the build.\n1 Prototype and final designs 2 Testing lower power engraving 3 My spooky lineup 4 Early assembly of pieces 5 Attaching servos and spooks 6 Wiring up LDRs and servos 7 All wired up and ready to go 8 Things get messy 9 Testing testing testing Haunted House assembled and tested\nDesign and Creation There were three distinct phases for this project:\nPhysical design (concept, vector design, laser cut and assembly) Circuit design Code The circuits were conceptually pretty simple: LEDs turn on and off, as well as detect and take action based off amount of light received from a photoresistor (LDR). Since the LEDs drew more power than was available from the Micro:bit itself (particularly since it also had to supply power to the LDRs) I decided to use transistors to switch power from an external battery pack to the LEDs. Since the servos were plugged into a dedicated servo controller board, they too were very straightforward.\nI’ve been getting more interested in laser cutting recently, and so the physical design was really enjoyable. I mocked up my designs by hand before drawing the pieces up in Affinity Designer (not really the right tool for the job, but it works). I had used MakerCase with my students before to design simple boxes with cutouts, so I had some idea of how to design finger joints for some structure, and the main challenge was making the design big enough to house the components and allow a decent level of detail in the extras like the dead tree and the spooks inside. Apart from a couple of stuff-ups where my mental model didn’t translate to the real world that well resulting in re-cuts, this went pretty smoothly, although it took about a week, mostly due to only being able to cut at work (and when I wasn’t teaching 😅).\nI was expecting the code to be the easiest part of the whole exercise, since that is what I’m most familiar with. The basic idea for the two Micro:bits took a couple of hours to hash out in my head and roughly debug without having access to the boards. The wrinkle came when I actually loaded the code - or rather when I tried to.\nInitially, my relatively simple model of a two-class program with a basic event loop was rejected as being too big to parse! I trimmed it down a bit (goodbye docstrings!) and tried again, only to encounter a memory error. Occasionally, the Micro:bit was even nice enough to tell me a number after the memory error, which I ended up guessing referred to how much of my code it failed to load, since it went down as I trimmed out functions, shortened strings, shifted dictionaries to lists, collapsed multiple objects to a singleton, and so on. The joys of programming on microcontrollers in interpreted languages!\nEventually I ended up with some plain old runtime errors, and I don’t think I’ve ever been so happy to see one, since it meant at least my code was running on the board. Coding was still the least time-consuming part of the process, but ended up being a surprisingly challenging exercise.\nReflection The whole process was really enjoyable - it ended up looking great, and works just as I envisioned it (although I didn’t imagine the noisy servos in my head 😐). I haven’t gotten around to building the light gun yet, since I’m having a lot of trouble figuring out how to get a nice tight beam from an LED without expensive optics or shifting to a laser, but for now a torch is sufficient.\nI’m planning on adding a score board using a third Micro:bit sitting on the top of the structure (maybe when I design and cut out a tiled roof), and since I already have all the radio messages from the other two boards, I shouldn’t need to add very much code to the others. This is a good thing, since I was getting to the point where adding in debugging messages to the servo board was pushing me over the memory limit!\nI learned a fair bit about mixing different power levels in circuits along the way which I’ll be able to use in my teaching, and I’ll certainly have a few gotchas to look out for if any of my students start putting together complex programs.\n",
+  "wordCount" : "967",
+  "inLanguage": "en",
+  "datePublished": "2018-11-05T20:56:46.039Z",
+  "dateModified": "2018-11-05T20:56:46.039Z",
+  "author":{
+    "@type": "Person",
+    "name": "Rob"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "/microbit-haunted-house/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Headtilt",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="/images/headtilt.png" alt="" aria-label="logo"
+                    height="30">Adjust your angle</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/post" title="posts">
+                    <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="/page/about/" title="about">
+                    <span><i class="fa-solid fa-circle-info"></i> about</span>
+                </a>
+            </li>
+            <li>
+                <a href="/categories/" title="categories">
+                    <span><i class="fa-solid fa-layer-group"></i> categories</span>
+                </a>
+            </li>
+            <li>
+                <a href="/tags/" title="tags">
+                    <span><i class="fa-solid fa-tags"></i> tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Micro:bit Haunted House
+    </h1>
+    <div class="post-meta"><span title='2018-11-05 20:56:46.039 +0000 UTC'>Mon, Nov 5, 2018</span>&nbsp;·&nbsp;Rob
+
+</div>
+  </header> 
+  <div class="post-content"><img alt="Haunted House internals" loading="lazy" src="/images/File-5-11-18-8-05-24-pm.jpeg"><p>Testing out LDR sensors</p>
+<p>This year I have been teaching robotics to Year 8s for the first time. I&rsquo;ve mainly been using BBC Micro:bits, since they are quite affordable, robust, are easy to hook up to a range of widely available components, and are easy to program in a few different environments (MicroPython being my weapon of choice).</p>
+<p>To keep myself entertained, and to provide my students with a sample project (although more complex code-wise than they&rsquo;re likely to accomplish) I decided to make something myself this term while my class worked on their own group projects (theirs are themed after the UN Global Goals). I had ideas for either building a carousel or a light gun game, and settled on the latter so I didn&rsquo;t have to <em>also</em> tackle 3D printing out cams and gears and the like.</p>
+<iframe width="640" height="360" src="https://player.vimeo.com/video/298976485" frameborder="0" webkitallowfullscreen="webkitallowfullscreen" mozallowfullscreen="mozallowfullscreen" allowfullscreen="allowfullscreen"></iframe>
+<iframe width="640" height="360" src="https://player.vimeo.com/video/298976806" frameborder="0" webkitallowfullscreen="webkitallowfullscreen" mozallowfullscreen="mozallowfullscreen" allowfullscreen="allowfullscreen"></iframe>
+<p>I have designs and code in a <a href="https://github.com/zarify/microbit/tree/master/Haunted%20House">GitHub repo</a> if anyone wants to have a look or use any of my ideas - there is also a list of components I used. The laser cutter designs are a bit of a mixed bag of formats at time of posting, but I&rsquo;ll endeavour to standardise them to SVG or something more portable later. Be aware that the Kitronik servo code used in the servo controller is MIT licensed - I have links to original repositories in the repo readme.</p>
+<p>Below is a series of in-progress photos of the build.</p>
+<style>
+    .image-gallery {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1%;
+        margin-left: -1% !important;
+    }
+
+    .image-gallery li {
+        list-style: none;
+        width: 19%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .image-gallery li a {
+        text-align: center;
+        text-decoration: none !important;
+        color: #777;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        justify-content: space-between;
+        box-shadow: none !important;
+    }
+
+    .image-gallery li a span {
+        display: block;
+        padding: 3px 0;
+        white-space: normal;
+        font-size: 0.8em;
+    }
+
+    .image-gallery li a img {
+        width: 100%;
+        display: block;
+    }
+
+     
+    @media (max-width: 1200px) {
+        .image-gallery li {
+            width: 24%;
+             
+        }
+    }
+
+    @media (max-width: 992px) {
+        .image-gallery li {
+            width: 32%;
+             
+        }
+    }
+
+    @media (max-width: 768px) {
+        .image-gallery li {
+            width: 49%;
+             
+        }
+    }
+
+    @media (max-width: 576px) {
+        .image-gallery li {
+            width: 100%;
+             
+        }
+    }
+</style>
+
+
+<ul class="image-gallery">
+    <li>
+        <a href="/gallery/haunted/1%20Prototype%20and%20final%20designs.jpeg" title="1 Prototype and final designs" class="lightbox-image">
+            <img src="/gallery/haunted/1%20Prototype%20and%20final%20designs.jpeg" alt="1 Prototype and final designs" title="1 Prototype and final designs">
+            <span>1 Prototype and final designs</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/haunted/2%20Testing%20lower%20power%20engraving.jpeg" title="2 Testing lower power engraving" class="lightbox-image">
+            <img src="/gallery/haunted/2%20Testing%20lower%20power%20engraving.jpeg" alt="2 Testing lower power engraving" title="2 Testing lower power engraving">
+            <span>2 Testing lower power engraving</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/haunted/3%20My%20spooky%20lineup.jpeg" title="3 My spooky lineup" class="lightbox-image">
+            <img src="/gallery/haunted/3%20My%20spooky%20lineup.jpeg" alt="3 My spooky lineup" title="3 My spooky lineup">
+            <span>3 My spooky lineup</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/haunted/4%20Early%20assembly%20of%20pieces.jpeg" title="4 Early assembly of pieces" class="lightbox-image">
+            <img src="/gallery/haunted/4%20Early%20assembly%20of%20pieces.jpeg" alt="4 Early assembly of pieces" title="4 Early assembly of pieces">
+            <span>4 Early assembly of pieces</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/haunted/5%20Attaching%20servos%20and%20spooks.jpeg" title="5 Attaching servos and spooks" class="lightbox-image">
+            <img src="/gallery/haunted/5%20Attaching%20servos%20and%20spooks.jpeg" alt="5 Attaching servos and spooks" title="5 Attaching servos and spooks">
+            <span>5 Attaching servos and spooks</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/haunted/6%20Wiring%20up%20LDRs%20and%20servos.jpeg" title="6 Wiring up LDRs and servos" class="lightbox-image">
+            <img src="/gallery/haunted/6%20Wiring%20up%20LDRs%20and%20servos.jpeg" alt="6 Wiring up LDRs and servos" title="6 Wiring up LDRs and servos">
+            <span>6 Wiring up LDRs and servos</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/haunted/7%20All%20wired%20up%20and%20ready%20to%20go.jpeg" title="7 All wired up and ready to go" class="lightbox-image">
+            <img src="/gallery/haunted/7%20All%20wired%20up%20and%20ready%20to%20go.jpeg" alt="7 All wired up and ready to go" title="7 All wired up and ready to go">
+            <span>7 All wired up and ready to go</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/haunted/8%20Things%20get%20messy.jpeg" title="8 Things get messy" class="lightbox-image">
+            <img src="/gallery/haunted/8%20Things%20get%20messy.jpeg" alt="8 Things get messy" title="8 Things get messy">
+            <span>8 Things get messy</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/haunted/9%20Testing%20testing%20testing.jpeg" title="9 Testing testing testing" class="lightbox-image">
+            <img src="/gallery/haunted/9%20Testing%20testing%20testing.jpeg" alt="9 Testing testing testing" title="9 Testing testing testing">
+            <span>9 Testing testing testing</span>
+        </a>
+    </li>
+    
+</ul>
+<img alt="Assembled and tested" loading="lazy" src="/images/IMG_1459.JPG"><p>Haunted House assembled and tested</p>
+<h2 id="design-and-creation">Design and Creation<a hidden class="anchor" aria-hidden="true" href="#design-and-creation">#</a></h2>
+<p> There were three distinct phases for this project:</p>
+<ul>
+<li>Physical design (concept, vector design, laser cut and assembly)</li>
+<li>Circuit design</li>
+<li>Code</li>
+</ul>
+<p>The circuits were conceptually pretty simple: LEDs turn on and off, as well as detect and take action based off amount of light received from a photoresistor (LDR). Since the LEDs drew more power than was available from the Micro:bit itself (particularly since it also had to supply power to the LDRs) I decided to use transistors to switch power from an external battery pack to the LEDs. Since the servos were plugged into a dedicated servo controller board, they too were very straightforward.</p>
+<p>I&rsquo;ve been getting more interested in laser cutting recently, and so the physical design was really enjoyable. I mocked up my designs by hand before drawing the pieces up in Affinity Designer (not really the right tool for the job, but it works). I had used <a href="http://www.makercase.com/">MakerCase</a> with my students before to design simple boxes with cutouts, so I had some idea of how to design finger joints for some structure, and the main challenge was making the design big enough to house the components and allow a decent level of detail in the extras like the dead tree and the spooks inside. Apart from a couple of stuff-ups where my mental model didn&rsquo;t translate to the real world that well resulting in re-cuts, this went pretty smoothly, although it took about a week, mostly due to only being able to cut at work (and when I wasn&rsquo;t teaching 😅).</p>
+<p>I was expecting the code to be the easiest part of the whole exercise, since that is what I&rsquo;m most familiar with. The basic idea for the two Micro:bits took a couple of hours to hash out in my head and roughly debug without having access to the boards. The wrinkle came when I actually loaded the code - or rather when I tried to.</p>
+<p>Initially, my relatively simple model of a two-class program with a basic event loop was rejected as being too big to parse! I trimmed it down a bit (goodbye docstrings!) and tried again, only to encounter a memory error. Occasionally, the Micro:bit was even nice enough to tell me a number after the memory error, which I ended up guessing referred to how much of my code it failed to load, since it went down as I trimmed out functions, shortened strings, shifted dictionaries to lists, collapsed multiple objects to a singleton, and so on. The joys of programming on microcontrollers in interpreted languages!</p>
+<p>Eventually I ended up with some plain old runtime errors, and I don&rsquo;t think I&rsquo;ve ever been so happy to see one, since it meant at least my code was running on the board. Coding was still the least time-consuming part of the process, but ended up being a surprisingly challenging exercise.</p>
+<h2 id="reflection">Reflection<a hidden class="anchor" aria-hidden="true" href="#reflection">#</a></h2>
+<p>The whole process was really enjoyable - it ended up looking great, and works just as I envisioned it (although I didn&rsquo;t imagine the noisy servos in my head 😐). I haven&rsquo;t gotten around to building the light gun yet, since I&rsquo;m having a lot of trouble figuring out how to get a nice tight beam from an LED without expensive optics or shifting to a laser, but for now a torch is sufficient.</p>
+<p>I&rsquo;m planning on adding a score board using a third Micro:bit sitting on the top of the structure (maybe when I design and cut out a tiled roof), and since I already have all the radio messages from the other two boards, I shouldn&rsquo;t need to add very much code to the others. This is a good thing, since I was getting to the point where adding in debugging messages to the servo board was pushing me over the memory limit!</p>
+<p>I learned a fair bit about mixing different power levels in circuits along the way which I&rsquo;ll be able to use in my teaching, and I&rsquo;ll certainly have a few gotchas to look out for if any of my students start putting together complex programs.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="/tags/microbit/">Microbit</a></li>
+      <li><a href="/tags/robotics/">Robotics</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>Rob Poulter</span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a><script type="text/javascript" src="/js/lightbox.js"></script>
+<link rel="stylesheet" href="/css/lightbox.css">
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

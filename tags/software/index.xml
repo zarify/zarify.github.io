@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Software on Headtilt</title>
+    <link>/tags/software/</link>
+    <description>Recent content in Software on Headtilt</description>
+    <generator>Hugo -- 0.138.0</generator>
+    <language>en</language>
+    <copyright>Rob Poulter</copyright>
+    <lastBuildDate>Tue, 19 Nov 2024 13:39:27 +0800</lastBuildDate>
+    <atom:link href="/tags/software/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>I go, hugo</title>
+      <link>/i-go-hugo/</link>
+      <pubDate>Tue, 19 Nov 2024 13:39:27 +0800</pubDate>
+      <guid>/i-go-hugo/</guid>
+      <description>&lt;h1 id=&#34;tldr&#34;&gt;TL;DR;&lt;/h1&gt;
+&lt;p&gt;I&amp;rsquo;ve given &lt;a href=&#34;https://getpublii.com/&#34;&gt;Publii&lt;/a&gt; the boot and shifted this site to &lt;a href=&#34;https://gohugo.io/&#34;&gt;hugo&lt;/a&gt;. I myself got a gentler boot, being made redundant and so eyeing off what to do next.&lt;/p&gt;
+&lt;h1 id=&#34;2020-its-been-quite-a-year&#34;&gt;2020, it&amp;rsquo;s been quite a year&lt;/h1&gt;
+&lt;p&gt;OK so it&amp;rsquo;s actually 2024, but whilst migrating this site to Hugo I noticed I haven&amp;rsquo;t written
+anything for the last four years or so.&lt;/p&gt;
+&lt;p&gt;It isn&amp;rsquo;t much of an excuse for the 2020 and 2021, but from 2022 I&amp;rsquo;ve been out of the classroom,
+working at &lt;a href=&#34;https://grokacademy.org&#34;&gt;a Digital Technologies EdTech platform&lt;/a&gt;. As such most of
+the interesting stuff I worked on was either internal, and thus not really relevant to write
+about, or external, and published as a course or delivered as part of a professional development
+session, and so I didn&amp;rsquo;t really feel like it was something to write about on my personal site.
+I know that sort of excuse doesn&amp;rsquo;t hold much water for lots of people who write about internal
+work topics all the time, but it feels right to me.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

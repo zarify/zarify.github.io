@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Year 7: Data Representation &amp; Algorithms | Headtilt</title>
+<meta name="keywords" content="">
+<meta name="description" content="A couple of weeks back I saw a link on Twitter to a post on Laura Bain&rsquo;s blog about data transmission with year 4 and 5s. Go read the post, since it&rsquo;s nice and short, but it&rsquo;s basically kids sending binary data representing black or white pixels to each other using a OneNote Class Notebook. I was starting some of my students off on an activity that used a similar idea to (try to :) teach my kids about image data, and look at why algorithms are important while I was at it.">
+<meta name="author" content="Rob">
+<link rel="canonical" href="/year-7-data-representation-and-algorithms/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d6fcd20a4fb86efa4dfac8ec95da60244cc8871042183da1ef28e3a762ad79c8.css" integrity="sha256-1vzSCk&#43;4bvpN&#43;sjsldpgJEzIhxBCGD2h7yjjp2Ktecg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="mask-icon" href="/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="/year-7-data-representation-and-algorithms/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/css/formatting.css"><meta property="og:url" content="/year-7-data-representation-and-algorithms/">
+  <meta property="og:site_name" content="Headtilt">
+  <meta property="og:title" content="Year 7: Data Representation & Algorithms">
+  <meta property="og:description" content="A couple of weeks back I saw a link on Twitter to a post on Laura Bain’s blog about data transmission with year 4 and 5s. Go read the post, since it’s nice and short, but it’s basically kids sending binary data representing black or white pixels to each other using a OneNote Class Notebook. I was starting some of my students off on an activity that used a similar idea to (try to :) teach my kids about image data, and look at why algorithms are important while I was at it.">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="post">
+    <meta property="article:published_time" content="2017-03-06T12:45:59+00:00">
+    <meta property="article:modified_time" content="2017-03-06T12:45:59+00:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Year 7: Data Representation &amp; Algorithms">
+<meta name="twitter:description" content="A couple of weeks back I saw a link on Twitter to a post on Laura Bain&rsquo;s blog about data transmission with year 4 and 5s. Go read the post, since it&rsquo;s nice and short, but it&rsquo;s basically kids sending binary data representing black or white pixels to each other using a OneNote Class Notebook. I was starting some of my students off on an activity that used a similar idea to (try to :) teach my kids about image data, and look at why algorithms are important while I was at it.">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "/post/"
+    }
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Year 7: Data Representation \u0026 Algorithms",
+      "item": "/year-7-data-representation-and-algorithms/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Year 7: Data Representation \u0026 Algorithms",
+  "name": "Year 7: Data Representation \u0026 Algorithms",
+  "description": "A couple of weeks back I saw a link on Twitter to a post on Laura Bain\u0026rsquo;s blog about data transmission with year 4 and 5s. Go read the post, since it\u0026rsquo;s nice and short, but it\u0026rsquo;s basically kids sending binary data representing black or white pixels to each other using a OneNote Class Notebook. I was starting some of my students off on an activity that used a similar idea to (try to :) teach my kids about image data, and look at why algorithms are important while I was at it.\n",
+  "keywords": [
+    
+  ],
+  "articleBody": "A couple of weeks back I saw a link on Twitter to a post on Laura Bain’s blog about data transmission with year 4 and 5s. Go read the post, since it’s nice and short, but it’s basically kids sending binary data representing black or white pixels to each other using a OneNote Class Notebook. I was starting some of my students off on an activity that used a similar idea to (try to :) teach my kids about image data, and look at why algorithms are important while I was at it.\nLate last year I was at a PD with other CEWA teachers to collectively produce resources for different areas of the new Digital Technologies curriculum that will come in in 2018. One of the lesson sequences I worked on was understanding the digital representation of image data with a side helping of algorithms.\nThe Setup Since I don’t like being too easy on my kids (these are 12 year olds after all!), they’ve got to figure some stuff out for themselves. I started out with getting them to describe the bunny picture to me. We’d discussed binary, pixels and colours the previous period, so some had an inkling of what was going on with the blocky bunny.\nWhat do you see? How would you describe it?\nHow would you describe it if I was on the phone or in another room?\nHow would you describe it if you could only write things down?\nHow would you describe it if I needed to draw the exact same picture?\nA couple of students suggested using coordinate systems, with lots of them sticking with answers like “it’s a bunny”, with not many even mentioning details like the colours of the eyes and nose.\nThe Task Since we were not going to get anywhere just talking about it, it was time to put students’ belief in their own eloquence to the test:\nPartner up with someone Without letting their partner see it, use the rather nice Piskel website to draw a simple (no more than 10x10, black and white only) pixel drawing Save a copy or screengrab of the drawing for later reference Write up a set of step-by-step instructions for their partner to recreate the drawing Give the instructions to their partner, who, without seeing the picture, has to draw it Compare the results with the original Because this is an activity where things are not meant to go according to plan, evaluation afterwards is really important. While they are writing their instructions, students were primed to think about what they found difficult to describe, and when following instructions, to think about what they found difficult to follow. When comparing source and copy images, they needed to look at what types of things went horribly, deliciously wrong.\nResults There was quite a variety in the accuracy and clarity of the instructions, even with some setup and some students explicitly talking about coordinates. I’ve included a small cross section below (spelling errors have for the most part been left in unless they made the instructions difficult to follow).\n“Step 1 get white and draw a circle\nStep 2 fill in the circle\nStep 3 put a big black square mid left\nStep 4 put a big square top left\nStep 5 put a big square in the middle and bottom left\nStep 6 put a big square bottom right mid right and top right\nStep 7 show me”\n“Firstly look at the bottom right hand corner.\nThen put it the [coordinates] in\n15, 12\n…\n16, 17\nTo add colour. type in the colour #ff0000 at 15, 18\nThen the full colour … put in #a2a1a1 then click bucket to colour.”\n“Your goal is to follow the instructions as well as you can so you get the perfect image\nStep 1: Go on the biggest drawing tool you can.\nStep 2: Start on the top left, draw 5 perfect blocks going down.\nStep 3: Go back on the third block you drew and draw three perfect blocks going to the right.\nStep 4: On the last block you drew draw 2 blocks going up and two blocks going down.\nStep 5: Put your mouse on the top block of the second line you drew, go 2 right then start drawing 5 blocks going down.\nAnd you just drew HI your welcome.”\n“Step 1. Start with a line starting a (8,7) to (8,11)\nStep 2. Start at (11,7) to (11,11)\nStep 3. Then go to (6,14) to (13,14)”\n“follow these instructions.\nI will wright the direction to move your mouse and then I will say a colour to place in.\nStart with a black pixel\nright nothing, right black, right nothing, right white, right white, right white, down nothing, left white, left nothing, left nothing, left black, left black, left black, down black, right nothing, right black, right nothing, right white, right white, right white. Your pixel drawing should be complete.”\nThere were quite a few sets of instructions that were completely subjective, but a good number of them were pretty accurate and had chosen strategies that, even if they didn’t specifically mention pixels did a good job at representing colour, position, and scale. Notice that a couple of students included colour into their instructions, although only one of them made sure that the colour they drew was going to be the same one as the source image by including RGB codes.\nMy next lesson with these two classes will be students trying to recreate images, establish what algorithms are important, and then work on an algorithm with the class to follow when writing and reading image data for simple images. Depending on time/progress we’ll look at colour, particularly since Piskel maintains a numbered swatch panel, which might initially look like an attractive way of recording colours (à la indexed colours).\nThoughts My two classes of year 7s really got into this, and handled the discussion part of the task quite well. It was a more difficult task making sure that the pictures they drew in Piskel weren’t too complicated (I had houses, cats, a Nintendo DS, all multicoloured, before I reminded them they had to write instructions on how to draw them!). The adversarial side of the task was also a big incentive and the kids responded well to that part.\nThe difficulties mostly lay in the technical details:\nStudents had only just received their laptops for the first time, and there was a bit of New and Shiny Syndrome going on I didn’t think through the swapping of instructions that well to begin with, and so there was some physical swapping of devices with new tabs open going on for those who finished instructions early, which wasn’t ideal Since OneNote Class Notebooks have been made a bit easier to use with (some) SEQTA integration, with my next batch of students next term I will have a go at using the collaborative space to share instructions and the resulting images, although OneNote has been quite flaky when dealing with a number of students and images at once.\nAs far as the core ideas I wanted to get to went, I think the activity was pretty successful, particularly when we got past the talking stage and into individual problem solving. Next year when I have more time with my year 7s (this year I only see them once a week for a term), I’ll work it into a more fully featured task.\n",
+  "wordCount" : "1250",
+  "inLanguage": "en",
+  "datePublished": "2017-03-06T12:45:59Z",
+  "dateModified": "2017-03-06T12:45:59Z",
+  "author":{
+    "@type": "Person",
+    "name": "Rob"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "/year-7-data-representation-and-algorithms/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Headtilt",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="/images/headtilt.png" alt="" aria-label="logo"
+                    height="30">Adjust your angle</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/post" title="posts">
+                    <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="/page/about/" title="about">
+                    <span><i class="fa-solid fa-circle-info"></i> about</span>
+                </a>
+            </li>
+            <li>
+                <a href="/categories/" title="categories">
+                    <span><i class="fa-solid fa-layer-group"></i> categories</span>
+                </a>
+            </li>
+            <li>
+                <a href="/tags/" title="tags">
+                    <span><i class="fa-solid fa-tags"></i> tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Year 7: Data Representation &amp; Algorithms
+    </h1>
+    <div class="post-meta"><span title='2017-03-06 12:45:59 +0000 UTC'>Mon, Mar 6, 2017</span>&nbsp;·&nbsp;Rob
+
+</div>
+  </header> 
+  <div class="post-content"><p>A couple of weeks back I saw a link on Twitter to a <a href="http://www.laurabain.com.au/blog/data-transmission-using-the-collaboration-space-in-onenote-class-notebook-to-teach-children-about-how-computers-transmit-data-to-peripherals">post on Laura Bain&rsquo;s blog</a> about data transmission with year 4 and 5s. Go read the post, since it&rsquo;s nice and short, but it&rsquo;s basically kids sending binary data representing black or white pixels to each other using a OneNote Class Notebook. I was starting some of my students off on an activity that used a similar idea to (try to :) teach my kids about image data, and look at why algorithms are important while I was at it.</p>
+<p>Late last year I was at a PD with other CEWA teachers to collectively produce resources for different areas of the new Digital Technologies curriculum that will come in in 2018. One of the lesson sequences I worked on was understanding the digital representation of image data with a side helping of algorithms.</p>
+<h1 id="the-setup">The Setup<a hidden class="anchor" aria-hidden="true" href="#the-setup">#</a></h1>
+<p>Since I don&rsquo;t like being too easy on my kids (these are 12 year olds after all!), they&rsquo;ve got to figure some stuff out for themselves. I started out with getting them to describe the bunny picture to me. We&rsquo;d discussed binary, pixels and colours the previous period, so some had an inkling of what was going on with the blocky bunny.</p>
+<blockquote>
+<p>What do you see? How would you describe it?</p>
+</blockquote>
+<blockquote>
+<p>How would you describe it if I was on the phone or in another room?</p>
+</blockquote>
+<blockquote>
+<p>How would you describe it if you could only write things down?</p>
+</blockquote>
+<blockquote>
+<p>How would you describe it if I needed to draw the exact same picture?</p>
+</blockquote>
+<p>A couple of students suggested using coordinate systems, with lots of them sticking with answers like &ldquo;it&rsquo;s a bunny&rdquo;, with not many even mentioning details like the colours of the eyes and nose.</p>
+<h1 id="the-task">The Task<a hidden class="anchor" aria-hidden="true" href="#the-task">#</a></h1>
+<p> Since we were not going to get anywhere just talking about it, it was time to put students&rsquo; belief in their own eloquence to the test:</p>
+<ol>
+<li>Partner up with someone</li>
+<li>Without letting their partner see it, use the rather nice <a href="http://www.piskelapp.com">Piskel</a> website to draw a simple (no more than 10x10, black and white only) pixel drawing</li>
+<li>Save a copy or screengrab of the drawing for later reference</li>
+<li>Write up a set of step-by-step instructions for their partner to recreate the drawing</li>
+<li>Give the instructions to their partner, who, without seeing the picture, has to draw it</li>
+<li>Compare the results with the original</li>
+</ol>
+<p>Because this is an activity where things are not meant to go according to plan, evaluation afterwards is really important. While they are writing their instructions, students were primed to think about what they found difficult to describe, and when following instructions, to think about what they found difficult to follow. When comparing source and copy images, they needed to look at what types of things went horribly, deliciously wrong.</p>
+<h1 id="results">Results<a hidden class="anchor" aria-hidden="true" href="#results">#</a></h1>
+<p>There was quite a variety in the accuracy and clarity of the instructions, even with some setup and some students explicitly talking about coordinates. I&rsquo;ve included a small cross section below (spelling errors have for the most part been left in unless they made the instructions difficult to follow).</p>
+<blockquote>
+<p>&ldquo;Step 1 get white and draw a circle<br>
+Step 2 fill in the circle<br>
+Step 3 put a big black square mid left<br>
+Step 4 put a big square top left<br>
+Step 5 put a big square in the middle and bottom left<br>
+Step 6 put a big square bottom right mid right and top right<br>
+Step 7 show me&rdquo;</p>
+</blockquote>
+<blockquote>
+<p>&ldquo;Firstly look at the bottom right hand corner.<br>
+Then put it the [coordinates] in<br>
+15, 12<br>
+&hellip;<br>
+16, 17<br>
+To add colour. type in the colour #ff0000 at 15, 18<br>
+Then the full colour &hellip; put in #a2a1a1 then click bucket to colour.&rdquo;</p>
+</blockquote>
+<blockquote>
+<p>&ldquo;Your goal is to follow the instructions as well as you can so you get the perfect image<br>
+Step 1: Go on the biggest drawing tool you can.<br>
+Step 2: Start on the top left, draw 5 perfect blocks going down.<br>
+Step 3: Go back on the third block you drew and draw three perfect blocks going to the right.<br>
+Step 4: On the last block you drew draw 2 blocks going up and two blocks going down.<br>
+Step 5: Put your mouse on the top block of the second line you drew, go 2 right then start drawing 5 blocks going down.<br>
+And you just drew HI your welcome.&rdquo;</p>
+</blockquote>
+<blockquote>
+<p>&ldquo;Step 1. Start with a line starting a (8,7) to (8,11)<br>
+Step 2. Start at (11,7) to (11,11)<br>
+Step 3. Then go to (6,14) to (13,14)&rdquo;</p>
+</blockquote>
+<blockquote>
+<p>&ldquo;follow these instructions.<br>
+I will wright the direction to move your mouse and then I will say a colour to place in.<br>
+Start with a black pixel<br>
+right nothing, right black, right nothing, right white, right white, right white, down nothing, left white, left nothing, left nothing, left black, left black, left black, down black, right nothing, right black, right nothing, right white, right white, right white. Your pixel drawing should be complete.&rdquo;</p>
+</blockquote>
+<p>There were quite a few sets of instructions that were completely subjective, but a good number of them were pretty accurate and had chosen strategies that, even if they didn&rsquo;t specifically mention pixels did a good job at representing colour, position, and scale. Notice that a couple of students included colour into their instructions, although only one of them made sure that the colour they drew was going to be the same one as the source image by including RGB codes.</p>
+<p>My next lesson with these two classes will be students trying to recreate images, establish what algorithms are important, and then work on an algorithm with the class to follow when writing and reading image data for simple images. Depending on time/progress we&rsquo;ll look at colour, particularly since Piskel maintains a numbered swatch panel, which might initially look like an attractive way of recording colours (à la indexed colours).</p>
+<h1 id="thoughts">Thoughts<a hidden class="anchor" aria-hidden="true" href="#thoughts">#</a></h1>
+<p>My two classes of year 7s really got into this, and handled the discussion part of the task quite well. It was a more difficult task making sure that the pictures they drew in Piskel weren&rsquo;t too complicated (I had houses, cats, a Nintendo DS, all multicoloured, before I reminded them they had to write instructions on how to draw them!). The adversarial side of the task was also a big incentive and the kids responded well to that part.</p>
+<p>The difficulties mostly lay in the technical details:</p>
+<ul>
+<li>Students had only just received their laptops for the first time, and there was a bit of New and Shiny Syndrome going on</li>
+<li>I didn&rsquo;t think through the swapping of instructions that well to begin with, and so there was some physical swapping of devices with new tabs open going on for those who finished instructions early, which wasn&rsquo;t ideal</li>
+</ul>
+<p>Since OneNote Class Notebooks have been made a bit easier to use with (some) SEQTA integration, with my next batch of students next term I will have a go at using the collaborative space to share instructions and the resulting images, although OneNote has been quite flaky when dealing with a number of students and images at once.</p>
+<p>As far as the core ideas I wanted to get to went, I think the activity was pretty successful, particularly when we got past the talking stage and into individual problem solving. Next year when I have more time with my year 7s (this year I only see them once a week for a term), I&rsquo;ll work it into a more fully featured task.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>Rob Poulter</span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a><script type="text/javascript" src="/js/lightbox.js"></script>
+<link rel="stylesheet" href="/css/lightbox.css">
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

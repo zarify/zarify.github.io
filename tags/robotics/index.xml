@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Robotics on Headtilt</title>
+    <link>/tags/robotics/</link>
+    <description>Recent content in Robotics on Headtilt</description>
+    <generator>Hugo -- 0.138.0</generator>
+    <language>en</language>
+    <copyright>Rob Poulter</copyright>
+    <lastBuildDate>Wed, 30 Dec 2020 11:12:17 +0000</lastBuildDate>
+    <atom:link href="/tags/robotics/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Robotics: Inchworms with Motivation</title>
+      <link>/robotics-inchworms-with-motivation/</link>
+      <pubDate>Wed, 30 Dec 2020 11:12:17 +0000</pubDate>
+      <guid>/robotics-inchworms-with-motivation/</guid>
+      <description>&lt;img alt=&#34;Inchworm robot&#34; class=&#34;floatright&#34; loading=&#34;lazy&#34; src=&#34;/images/inchworm/splash.png&#34;&gt;&lt;p&gt;As a teacher of relatively hands-on subjects, I regularly get roped into running sessions with groups of Year 6 students coming in for Orientation Days. Since getting my first batch of Micro:bits I have been running short sessions with physical computing since it&amp;rsquo;s short and accessible, and the kids can achieve something concrete by the end of a 45 minute session.&lt;/p&gt;
+&lt;p&gt;The last couple of years I have been running sessions using laser cut Inchworm robots, where students hook up a servo, battery, and infrared sensor (to demonstrate external sensing but also to remove the need to fiddle with buttons on moving objects) to the Micro:bit, and then write some basic code investigating ideal angles of movement for the servo, delay time in between moves, and utilising loops.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Micro:bit Epidemic</title>
+      <link>/robotics-showcase-epidemic/</link>
+      <pubDate>Mon, 25 May 2020 05:51:05 +0000</pubDate>
+      <guid>/robotics-showcase-epidemic/</guid>
+      <description>&lt;p&gt;Last year when looking at wireless concepts with my Year 8 Digital Technologies students, I wrote a program for wireless beacons and laser cut a &lt;a href=&#34;/dowsing-for-radio/&#34;&gt;Ghostbusters style PKE Meter&lt;/a&gt; with some servos and a RGB LED for students to go on a hunt in our library. It was a good opportunity to look at things like the range of wireless signals, interference due to obstruction of different materials, and noisy broadcast channels. The students quite enjoyed it and it was a nice excuse to get out of the classroom.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Micro:bit Robotics Review 2019</title>
+      <link>/microbit-robotics-review-2019/</link>
+      <pubDate>Mon, 23 Dec 2019 16:07:13 +0000</pubDate>
+      <guid>/microbit-robotics-review-2019/</guid>
+      <description>&lt;img loading=&#34;lazy&#34; src=&#34;/images/pong_early.png&#34;&gt;&lt;img alt=&#34;Cowterpillar robot&#34; loading=&#34;lazy&#34; src=&#34;/images/cowterpillar_snap.png&#34;&gt;&lt;p&gt;This is a bit of a retrospective of teaching Robotics as a subject to Year 8 students this year. A bit of a theme for my newish subjects tends to be a reduction in expectations as I filter out what I would have liked to have worked into what actually worked and variations on a theme.&lt;/p&gt;
+&lt;p&gt;The three themes I&amp;rsquo;ve really thought about since I started teaching this subject are:&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Designing a Micro:bit Robot</title>
+      <link>/designing-a-microbit-robot/</link>
+      <pubDate>Thu, 11 Apr 2019 06:17:18 +0000</pubDate>
+      <guid>/designing-a-microbit-robot/</guid>
+      <description>&lt;img loading=&#34;lazy&#34; src=&#34;/images/knuckle/front_view.jpg&#34;&gt;&lt;h2 id=&#34;motivation&#34;&gt;Motivation&lt;/h2&gt;
+&lt;p&gt;Ever since I bought some of &lt;a href=&#34;https://www.kitronik.co.uk/5624-move-mini-buggy-kit-excl-microbit.html&#34;&gt;Kitronik&amp;rsquo;s :move buggies&lt;/a&gt; I&amp;rsquo;ve been interested in making robots with the Micro:bit. They&amp;rsquo;re simple to program, have a decent set of features, and the kids enjoy using them. However they&amp;rsquo;re also a royal pain to assemble due to fiddly screw locations, quite expensive for what they are (we pay around $60AUD for what amounts to about $15-20AUD in components), and difficult to add on to due to cutting you off from all the additional pins the Micro:bit has to offer.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Micro:bit robotics</title>
+      <link>/year-8-microbit-robotics/</link>
+      <pubDate>Sat, 06 Apr 2019 08:01:00 +0000</pubDate>
+      <guid>/year-8-microbit-robotics/</guid>
+      <description>&lt;img class=&#34;floatright&#34; loading=&#34;lazy&#34; src=&#34;/images/top_view.jpg&#34;&gt;&lt;p&gt;This post is intended to be a bit of a primer for teachers interested in getting into more varied use of the BBC Micro:bit beyond the inbuilt basics. My intention is to put together two posts: this one on the hardware and the ecosystem, and another on approaches in the classroom (which will mostly be a list of mistakes I&amp;rsquo;ve made and thoughts on doing things beter).&lt;/p&gt;
+&lt;p&gt;This is by no means an exhaustive list of things you can do or components available. I&amp;rsquo;ve generally experimented with cheap and cheerful parts that I can source myself for a few dollars to see if it&amp;rsquo;s worth implementing in the classroom. I still have a long list of things I want to try! The components listed here I&amp;rsquo;ve generally had good success with.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Micro:bit Haunted House</title>
+      <link>/microbit-haunted-house/</link>
+      <pubDate>Mon, 05 Nov 2018 20:56:46 +0000</pubDate>
+      <guid>/microbit-haunted-house/</guid>
+      <description>&lt;img alt=&#34;Haunted House internals&#34; loading=&#34;lazy&#34; src=&#34;/images/File-5-11-18-8-05-24-pm.jpeg&#34;&gt;&lt;p&gt;Testing out LDR sensors&lt;/p&gt;
+&lt;p&gt;This year I have been teaching robotics to Year 8s for the first time. I&amp;rsquo;ve mainly been using BBC Micro:bits, since they are quite affordable, robust, are easy to hook up to a range of widely available components, and are easy to program in a few different environments (MicroPython being my weapon of choice).&lt;/p&gt;
+&lt;p&gt;To keep myself entertained, and to provide my students with a sample project (although more complex code-wise than they&amp;rsquo;re likely to accomplish) I decided to make something myself this term while my class worked on their own group projects (theirs are themed after the UN Global Goals). I had ideas for either building a carousel or a light gun game, and settled on the latter so I didn&amp;rsquo;t have to &lt;em&gt;also&lt;/em&gt; tackle 3D printing out cams and gears and the like.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

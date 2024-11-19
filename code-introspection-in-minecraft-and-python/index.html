@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Code Introspection in Minecraft and Python | Headtilt</title>
+<meta name="keywords" content="python, minecraft">
+<meta name="description" content="I recently got around to trying out the new-ish Python mode for coding within Minecraft: Education Edition, and whilst it is refreshing to be able to write code, the lack of a code library to be able to refer to made learning the Minecraft-specific commands somewhat difficult.
+Enter code introspection, which is the ability to look inside classes and methods from within Python to list them and see what is available, or to show their docstring and discover their arguments.">
+<meta name="author" content="Rob">
+<link rel="canonical" href="/code-introspection-in-minecraft-and-python/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d6fcd20a4fb86efa4dfac8ec95da60244cc8871042183da1ef28e3a762ad79c8.css" integrity="sha256-1vzSCk&#43;4bvpN&#43;sjsldpgJEzIhxBCGD2h7yjjp2Ktecg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="mask-icon" href="/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="/code-introspection-in-minecraft-and-python/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/css/formatting.css"><meta property="og:url" content="/code-introspection-in-minecraft-and-python/">
+  <meta property="og:site_name" content="Headtilt">
+  <meta property="og:title" content="Code Introspection in Minecraft and Python">
+  <meta property="og:description" content="I recently got around to trying out the new-ish Python mode for coding within Minecraft: Education Edition, and whilst it is refreshing to be able to write code, the lack of a code library to be able to refer to made learning the Minecraft-specific commands somewhat difficult.
+Enter code introspection, which is the ability to look inside classes and methods from within Python to list them and see what is available, or to show their docstring and discover their arguments.">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="post">
+    <meta property="article:published_time" content="2020-11-17T05:58:26+00:00">
+    <meta property="article:modified_time" content="2020-11-17T05:58:26+00:00">
+    <meta property="article:tag" content="Python">
+    <meta property="article:tag" content="Minecraft">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Code Introspection in Minecraft and Python">
+<meta name="twitter:description" content="I recently got around to trying out the new-ish Python mode for coding within Minecraft: Education Edition, and whilst it is refreshing to be able to write code, the lack of a code library to be able to refer to made learning the Minecraft-specific commands somewhat difficult.
+Enter code introspection, which is the ability to look inside classes and methods from within Python to list them and see what is available, or to show their docstring and discover their arguments.">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "/post/"
+    }
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Code Introspection in Minecraft and Python",
+      "item": "/code-introspection-in-minecraft-and-python/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Code Introspection in Minecraft and Python",
+  "name": "Code Introspection in Minecraft and Python",
+  "description": "I recently got around to trying out the new-ish Python mode for coding within Minecraft: Education Edition, and whilst it is refreshing to be able to write code, the lack of a code library to be able to refer to made learning the Minecraft-specific commands somewhat difficult.\nEnter code introspection, which is the ability to look inside classes and methods from within Python to list them and see what is available, or to show their docstring and discover their arguments.\n",
+  "keywords": [
+    "python", "minecraft"
+  ],
+  "articleBody": "I recently got around to trying out the new-ish Python mode for coding within Minecraft: Education Edition, and whilst it is refreshing to be able to write code, the lack of a code library to be able to refer to made learning the Minecraft-specific commands somewhat difficult.\nEnter code introspection, which is the ability to look inside classes and methods from within Python to list them and see what is available, or to show their docstring and discover their arguments.\nUsing dir to show the inbuilt methods and properties of the string class.\nUsing help to show the docstring for the strip method of strings.\nUnfortunately, although the dir function works within Minecraft the same way as in regular Python, the help function does not seem to.\nText Output in Minecraft Ordinarily, the interactive shell would be the place to do this, as in the screenshots above, however Minecraft doesn’t have an interactive shell for Python. In places I have no shell (for example in Processing’s Python mode) you could print the output of the the dir or help, but Minecraft doesn’t show the output of the print function. However it does have a method for speaking text: the say function!\nPrinting using say.\nThe output of the say code.\nCombining say() and dir() The naive way (because print in regular Python lets you) of showing available commands for an object like the agent would be to run code like this:\nsay(dir(agent)) However, this will fail to run, with the possibly unhelpful error message:\nError: _minecraft_builtins.MinecraftError: Syntax error: Unexpected \"[\": at \"~ ~ ~ say \u003e\u003e[\u003c\u003c'__class__\" (Code: 0x80000000) which basically boils down to the output of dir being a list of strings, and the say function expecting just one string. The print function will happily give you a string representation of anything, but say is not so flexible.\nThe solution is to join the list into one string separated by something useful like a line break:\nsay(\"\\n\".join(dir(agent))) This may look a bit arcane, so let’s break it down:\n“\\n” is the string we would like to join together the individual list items with.\nThis is a newline character, which creates a line break, so every item will be on its own line. join is a string function we call on the newline character, and takes as an argument a list of strings. dir(agent) gets us the name of every attribute and method which belongs to the agent object as a list of strings. Here is the last part of the output of this code, showing what we can do with the Agent.\nThis works nicely. The list is long, and so only shows part of it in the world chat view, but we can open up the chat window (by pressing t or Enter) to be able to scroll through the whole list:\nattack collect destroy drop get_item get_item_count give inspect inspect_data interact move place position rotation say teleport till transfer turn You will also see a number of listings with __ or _ prepended. These are internal methods and attributes, which you generally don’t want to fiddle with.\nWe can also use a similar technique to look at the contents of the globals dictionary, which is the collection of variables currently defined in the global scope. This gives us an idea of what objects have been created which we can poke at using the dir function (not everything is an object though).\nsay(\"\\n\".join(globals())) This gives us interesting things to look at like the player, world, and user, as well as globally defined functions like spawn, and summon.\nHelp Unfortunately, although there is a help function available, it doesn’t seem to work the same way as the standard Python one, so the way to figure out how many of the functions and methods work is through trial and error. Generally the Python editor within Minecraft will give you useful enough errors to know how many and what type of arguments something needs to run when you get it wrong, and that combined with liberal use of good old print debugging using the say function should get you where you need to go.\nFor example I spent a little while poking at the agent’s inspect method trying to solve one of this year’s Hour of Code problems in a manner that wasn’t in the instructions (didn’t work, but led to this post as inspect wasn’t advertised anywhere in the instructions).\nFirst I can just try the inspect method by itself (even though knowing what it does I should expect a direction):\nagent.inspect() This gives me an error when I run it and return to Code Builder:\nAn error indicating that I need to give inspect a single argument\nNow I can add in a directional argument, save the return value of that method call to a variable, and say it to determine what information the agent is actually receiving.\nd = agent.inspect(\"down\") say(d) “grass” is what is under my Agent!\nWith a bit of perseverance, you should be able to figure out most of the undocumented features through this method.\n",
+  "wordCount" : "849",
+  "inLanguage": "en",
+  "datePublished": "2020-11-17T05:58:26.421Z",
+  "dateModified": "2020-11-17T05:58:26.421Z",
+  "author":{
+    "@type": "Person",
+    "name": "Rob"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "/code-introspection-in-minecraft-and-python/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Headtilt",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="/images/headtilt.png" alt="" aria-label="logo"
+                    height="30">Adjust your angle</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/post" title="posts">
+                    <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="/page/about/" title="about">
+                    <span><i class="fa-solid fa-circle-info"></i> about</span>
+                </a>
+            </li>
+            <li>
+                <a href="/categories/" title="categories">
+                    <span><i class="fa-solid fa-layer-group"></i> categories</span>
+                </a>
+            </li>
+            <li>
+                <a href="/tags/" title="tags">
+                    <span><i class="fa-solid fa-tags"></i> tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Code Introspection in Minecraft and Python
+    </h1>
+    <div class="post-meta"><span title='2020-11-17 05:58:26.421 +0000 UTC'>Tue, Nov 17, 2020</span>&nbsp;·&nbsp;Rob
+
+</div>
+  </header> 
+  <div class="post-content"><img loading="lazy" src="/images/minecraft_python/intro.png"><p>I recently got around to trying out the new-ish Python mode for coding within Minecraft: Education Edition, and whilst it is refreshing to be able to <strong>write</strong> code, the lack of a code library to be able to refer to made learning the Minecraft-specific commands somewhat difficult.</p>
+<p>Enter code introspection, which is the ability to look inside classes and methods from within Python to list them and see what is available, or to show their docstring and discover their arguments.</p>
+<img alt="dir(str) displaying inbuilt methods and properties." loading="lazy" src="/images/minecraft_python/dir_str.png"><p>Using dir to show the inbuilt methods and properties of the string class.</p>
+<img alt="help(str.strip) output" loading="lazy" src="/images/minecraft_python/help_strip.png"><p>Using help to show the docstring for the strip method of strings.</p>
+<p>Unfortunately, although the <strong>dir</strong> function works within Minecraft the same way as in regular Python, the <strong>help</strong> function does not seem to.</p>
+<h2 id="text-output-in-minecraft">Text Output in Minecraft<a hidden class="anchor" aria-hidden="true" href="#text-output-in-minecraft">#</a></h2>
+<p>Ordinarily, the interactive shell would be the place to do this, as in the screenshots above, however Minecraft doesn&rsquo;t have an interactive shell for Python. In places I have no shell (for example in Processing&rsquo;s Python mode) you could <strong>print</strong> the output of the the <strong>dir</strong> or <strong>help</strong>, but Minecraft doesn&rsquo;t show the output of the print function. However it does have a method for speaking text: the <strong>say</strong> function!</p>
+<img alt="Python code for the say function" loading="lazy" src="/images/minecraft_python/say_code.png"><p>Printing using say.</p>
+<img alt="Output from the say function" loading="lazy" src="/images/minecraft_python/say_output.png"><p>The output of the say code.</p>
+<h2 id="combining-say-and-dir">Combining say() and dir()<a hidden class="anchor" aria-hidden="true" href="#combining-say-and-dir">#</a></h2>
+<p>The naive way (because <strong>print</strong> in regular Python lets you) of showing available commands for an object like the <strong>agent</strong> would be to run code like this:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">say</span><span class="p">(</span><span class="nb">dir</span><span class="p">(</span><span class="n">agent</span><span class="p">))</span>
+</span></span></code></pre></div><p>However, this will fail to run, with the possibly unhelpful error message:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">Error</span><span class="p">:</span> <span class="n">_minecraft_builtins</span><span class="o">.</span><span class="n">MinecraftError</span><span class="p">:</span> <span class="n">Syntax</span> <span class="n">error</span><span class="p">:</span> <span class="n">Unexpected</span> <span class="s2">&#34;[&#34;</span><span class="p">:</span> <span class="n">at</span> <span class="s2">&#34;~ ~ ~ say &gt;&gt;[&lt;&lt;&#39;__class__&#34;</span> <span class="p">(</span><span class="n">Code</span><span class="p">:</span> <span class="mh">0x80000000</span><span class="p">)</span>
+</span></span></code></pre></div><p>which basically boils down to the output of <strong>dir</strong> being a list of strings, and the <strong>say</strong> function expecting just one string. The print function will happily give you a string representation of anything, but say is not so flexible.</p>
+<p>The solution is to <strong>join</strong> the list into one string separated by something useful like a line break:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">say</span><span class="p">(</span><span class="s2">&#34;</span><span class="se">\n</span><span class="s2">&#34;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">dir</span><span class="p">(</span><span class="n">agent</span><span class="p">)))</span>
+</span></span></code></pre></div><p>This may look a bit arcane, so let&rsquo;s break it down:</p>
+<ul>
+<li>&ldquo;\n&rdquo; is the string we would like to join together the individual list items with.<br>
+This is a <strong>newline</strong> character, which creates a line break, so every item will be on its own line.</li>
+<li><strong>join</strong> is a string function we call <em>on</em> the newline character, and takes as an argument a list of strings.</li>
+<li>dir(agent) gets us the name of every attribute and method which belongs to the agent object as a list of strings.</li>
+</ul>
+<img alt="Partial output of the dir(agent) call." loading="lazy" src="/images/minecraft_python/dir_output_part.png"><p>Here is the last part of the output of this code, showing what we can do with the Agent.</p>
+<p>This works nicely. The list is long, and so only shows part of it in the world chat view, but we can open up the chat window (by pressing <strong>t</strong> or <strong>Enter)</strong> to be able to scroll through the whole list:</p>
+<ul>
+<li>attack</li>
+<li>collect</li>
+<li>destroy</li>
+<li>drop</li>
+<li>get_item</li>
+<li>get_item_count</li>
+<li>give</li>
+<li>inspect</li>
+<li>inspect_data</li>
+<li>interact</li>
+<li>move</li>
+<li>place</li>
+<li>position</li>
+<li>rotation</li>
+<li>say</li>
+<li>teleport</li>
+<li>till</li>
+<li>transfer</li>
+<li>turn</li>
+</ul>
+<p>You will also see a number of listings with __ or _ prepended. These are internal methods and attributes, which you generally don&rsquo;t want to fiddle with.</p>
+<p>We can also use a similar technique to look at the contents of the <strong>globals</strong> dictionary, which is the collection of variables currently defined in the global scope. This gives us an idea of what objects have been created which we can poke at using the <strong>dir</strong> function (not everything is an object though).</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">say</span><span class="p">(</span><span class="s2">&#34;</span><span class="se">\n</span><span class="s2">&#34;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">globals</span><span class="p">()))</span>
+</span></span></code></pre></div><p>This gives us interesting things to look at like the <strong>player</strong>, <strong>world</strong>, and <strong>user</strong>, as well as globally defined functions like <strong>spawn</strong>, and <strong>summon</strong>.</p>
+<h2 id="help">Help<a hidden class="anchor" aria-hidden="true" href="#help">#</a></h2>
+<p>Unfortunately, although there is a help function available, it doesn&rsquo;t seem to work the same way as the standard Python one, so the way to figure out how many of the functions and methods work is through trial and error. Generally the Python editor within Minecraft will give you useful enough errors to know how many and what type of arguments something needs to run when you get it wrong, and that combined with liberal use of good old print debugging using the <strong>say</strong> function should get you where you need to go.</p>
+<p>For example I spent a little while poking at the agent&rsquo;s <strong>inspect</strong> method trying to solve one of this year&rsquo;s Hour of Code problems in a manner that wasn&rsquo;t in the instructions (didn&rsquo;t work, but led to this post as <strong>inspect</strong> wasn&rsquo;t advertised anywhere in the instructions).</p>
+<p>First I can just try the inspect method by itself (even though knowing what it does I should expect a direction):</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">agent</span><span class="o">.</span><span class="n">inspect</span><span class="p">()</span>
+</span></span></code></pre></div><p>This gives me an error when I run it and return to Code Builder:</p>
+<img alt="An inspect error" loading="lazy" src="/images/minecraft_python/inspect_error.png"><p>An error indicating that I need to give inspect a single argument</p>
+<p>Now I can add in a directional argument, save the return value of that method call to a variable, and say it to determine what information the agent is actually receiving.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">d</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">inspect</span><span class="p">(</span><span class="s2">&#34;down&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="n">say</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+</span></span></code></pre></div><img alt="Output of the inspect command" loading="lazy" src="/images/minecraft_python/inspect_output.png"><p>&ldquo;grass&rdquo; is what is under my Agent!</p>
+<p>With a bit of perseverance, you should be able to figure out most of the undocumented features through this method.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="/tags/python/">Python</a></li>
+      <li><a href="/tags/minecraft/">Minecraft</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>Rob Poulter</span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a><script type="text/javascript" src="/js/lightbox.js"></script>
+<link rel="stylesheet" href="/css/lightbox.css">
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Ramble on Headtilt</title>
+    <link>/categories/ramble/</link>
+    <description>Recent content in Ramble on Headtilt</description>
+    <generator>Hugo -- 0.138.0</generator>
+    <language>en</language>
+    <copyright>Rob Poulter</copyright>
+    <lastBuildDate>Tue, 19 Nov 2024 13:39:27 +0800</lastBuildDate>
+    <atom:link href="/categories/ramble/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>I go, hugo</title>
+      <link>/i-go-hugo/</link>
+      <pubDate>Tue, 19 Nov 2024 13:39:27 +0800</pubDate>
+      <guid>/i-go-hugo/</guid>
+      <description>&lt;h1 id=&#34;tldr&#34;&gt;TL;DR;&lt;/h1&gt;
+&lt;p&gt;I&amp;rsquo;ve given &lt;a href=&#34;https://getpublii.com/&#34;&gt;Publii&lt;/a&gt; the boot and shifted this site to &lt;a href=&#34;https://gohugo.io/&#34;&gt;hugo&lt;/a&gt;. I myself got a gentler boot, being made redundant and so eyeing off what to do next.&lt;/p&gt;
+&lt;h1 id=&#34;2020-its-been-quite-a-year&#34;&gt;2020, it&amp;rsquo;s been quite a year&lt;/h1&gt;
+&lt;p&gt;OK so it&amp;rsquo;s actually 2024, but whilst migrating this site to Hugo I noticed I haven&amp;rsquo;t written
+anything for the last four years or so.&lt;/p&gt;
+&lt;p&gt;It isn&amp;rsquo;t much of an excuse for the 2020 and 2021, but from 2022 I&amp;rsquo;ve been out of the classroom,
+working at &lt;a href=&#34;https://grokacademy.org&#34;&gt;a Digital Technologies EdTech platform&lt;/a&gt;. As such most of
+the interesting stuff I worked on was either internal, and thus not really relevant to write
+about, or external, and published as a course or delivered as part of a professional development
+session, and so I didn&amp;rsquo;t really feel like it was something to write about on my personal site.
+I know that sort of excuse doesn&amp;rsquo;t hold much water for lots of people who write about internal
+work topics all the time, but it feels right to me.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Micro:bit Haunted House</title>
+      <link>/microbit-haunted-house/</link>
+      <pubDate>Mon, 05 Nov 2018 20:56:46 +0000</pubDate>
+      <guid>/microbit-haunted-house/</guid>
+      <description>&lt;img alt=&#34;Haunted House internals&#34; loading=&#34;lazy&#34; src=&#34;/images/File-5-11-18-8-05-24-pm.jpeg&#34;&gt;&lt;p&gt;Testing out LDR sensors&lt;/p&gt;
+&lt;p&gt;This year I have been teaching robotics to Year 8s for the first time. I&amp;rsquo;ve mainly been using BBC Micro:bits, since they are quite affordable, robust, are easy to hook up to a range of widely available components, and are easy to program in a few different environments (MicroPython being my weapon of choice).&lt;/p&gt;
+&lt;p&gt;To keep myself entertained, and to provide my students with a sample project (although more complex code-wise than they&amp;rsquo;re likely to accomplish) I decided to make something myself this term while my class worked on their own group projects (theirs are themed after the UN Global Goals). I had ideas for either building a carousel or a light gun game, and settled on the latter so I didn&amp;rsquo;t have to &lt;em&gt;also&lt;/em&gt; tackle 3D printing out cams and gears and the like.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Migrating from Squarespace</title>
+      <link>/migrating-from-squarespace/</link>
+      <pubDate>Sat, 18 Aug 2018 21:10:38 +0000</pubDate>
+      <guid>/migrating-from-squarespace/</guid>
+      <description>&lt;p&gt;I&amp;rsquo;ve been getting a bit antsy about continuing to pay Squarespace to host Headtilt, mostly due to the infrequent updates that I seem to be doing over the last couple of years, and partly because I think I feel the need to tinker with stuff.&lt;/p&gt;
+&lt;p&gt;For ages I&amp;rsquo;ve liked the idea of static site generators, and occasionally I&amp;rsquo;ll go and play with one for a while before falling out of love with the idea of writing up posts in Markdown, having to remember its syntax for links, images, etc, and then go running back to the arms of a regular CMS.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Publii to Microblog</title>
+      <link>/publii-to-microblog/</link>
+      <pubDate>Sat, 18 Aug 2018 16:32:29 +0000</pubDate>
+      <guid>/publii-to-microblog/</guid>
+      <description>&lt;p&gt;When deciding to play around with Publii (after taking a dislike to Jekyll, and not finding anything else that tickled my fancy), the first problem seemed to be that despite supporting tags for posts, there was no way to create an RSS or JSON feed based on a tag. Publii creates a feed, but it contains all posts regardless of the category.&lt;/p&gt;
+&lt;p&gt;Two alternatives presented themselves, neither particularly nice:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&amp;lsquo;hide&amp;rsquo; all posts except Microblog tagged posts from the feed. This is both kludgy, and not pleasant looking, since only Microblog posts would then appear on the front page of the site.&lt;/li&gt;
+&lt;li&gt;Write a script to create a new feed from the main one with everything except Microblog tagged posts filtered out. Not very hard, but requires running the feed filter after each post.&lt;br&gt;
+This wouldn&amp;rsquo;t be a big deal if Publii followed most other static site generators in running with command-line scripts, since I could just add another script to the chain of posting, but since it all runs through a GUI program with a shiny &amp;ldquo;sync changes&amp;rdquo; button, it means then manually (or on a schedule to check for changes with a cron job maybe) pulling the JSON feed, filtering posts, and then pushing the new file to the site again.&lt;/li&gt;
+&lt;li&gt;(not a real option) figure out how to modify Publii to do what I wanted.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Anyhow, I guess option 2 seems like the way to go since it&amp;rsquo;s gross but simple to do. If it turns out I care (or post!) enough, I&amp;rsquo;ll automate it later.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Playing with Affinity Designer Brushes</title>
+      <link>/playing-with-affinity-designer-brushes/</link>
+      <pubDate>Sun, 01 Jan 2017 05:52:01 +0000</pubDate>
+      <guid>/playing-with-affinity-designer-brushes/</guid>
+      <description>&lt;h1 id=&#34;the-backstory&#34;&gt;The Backstory&lt;/h1&gt;
+&lt;p&gt;Before Christmas I was noodling around with Affinity Designer in an attempt to be a bit better at design. Part of this has been getting more familiar with the tools by working through a bunch of the &lt;a href=&#34;https://design.tutsplus.com&#34;&gt;tutorials at Tuts+&lt;/a&gt;. Tuts+ hosts some tutorials aimed at &lt;a href=&#34;https://design.tutsplus.com/categories/affinity-designer&#34;&gt;Designer&lt;/a&gt;, but working through the ones aimed at other software like Illustrator has been an interesting exercise in figuring out Designer&amp;rsquo;s tools.&lt;/p&gt;
+&lt;p&gt;While I was making a robot face, I was trying to make wires by putting a gradient on a stroke, but it seems Designer won&amp;rsquo;t allow you to have a gradient which follows parallel to the stroke. Instead it will apply the gradient to the stroke colour in the same manner as filling.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Real Heroes of the Touch Bar</title>
+      <link>/real-heroes-of-the-touch-bar/</link>
+      <pubDate>Wed, 14 Dec 2016 10:58:19 +0000</pubDate>
+      <guid>/real-heroes-of-the-touch-bar/</guid>
+      <description>&lt;p&gt;After using the new MBP for a week, I&amp;rsquo;m coming to appreciate the apps that do a good job with their Touch Bar behaviour. I wrote about Affinity Designer before. Pixelmator uses a similar approach, although it seems to be a bit inconsistent, since it allows you to choose tools, but not all of them.&lt;/p&gt;
+&lt;img alt=&#34; Pixelmator: Touch Bar tool options &#34; loading=&#34;lazy&#34; src=&#34;/images/Pixelmator+Touch+Bar+tool+choice.png&#34;&gt;&lt;p&gt; Pixelmator: Touch Bar tool options&lt;/p&gt;
+&lt;p&gt;The real heroes that I&amp;rsquo;ve found so far are Terminal, Preview, and whatever the app is that takes screenshots behind the scenes based on ⌘-Shift-3/4/6 keyboard shortcuts. The default (and optional) buttons for these mostly seem to have been provided to give actual value to a software button, rather than just be there to show that there&amp;rsquo;s support.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>So a horse walks into a Touch Bar...</title>
+      <link>/so-a-horse-walks-into-a-touch-bar/</link>
+      <pubDate>Thu, 08 Dec 2016 10:11:18 +0000</pubDate>
+      <guid>/so-a-horse-walks-into-a-touch-bar/</guid>
+      <description>&lt;h1 id=&#34;obligatory-new-toy-post&#34;&gt;Obligatory New Toy Post&lt;/h1&gt;
+&lt;p&gt;Because I have no self control, I managed to justify to myself that I needed an update on my 2012 13&amp;quot; Macbook Air, and bought a 13&amp;quot; Macbook Pro with Touch Bar (hats off to Apple for making the product names roll off the tongue on that one, by the way). 512GB SSD because I spent the last two years trying to juggle space on my Air, and 16GB of RAM because I&amp;rsquo;m not an animal.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Typefaces, Fonts, Licensing</title>
+      <link>/typefaces-fonts-licensing/</link>
+      <pubDate>Tue, 04 Oct 2016 08:58:48 +0000</pubDate>
+      <guid>/typefaces-fonts-licensing/</guid>
+      <description>&lt;p&gt;&lt;strong&gt;Preface:&lt;/strong&gt; &lt;em&gt;Since there&amp;rsquo;s so much seemingly conflicting information out there, I&amp;rsquo;ve quite possibly gotten it wrong. If so, please let me know so I can correct this!&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;End Use License Agreements are confusing. Most people don&amp;rsquo;t read them, even when they occasionally &lt;a href=&#34;http://arstechnica.com/gaming/2016/02/yes-you-can-rely-on-amazons-new-game-engine-during-the-zombie-apocalypse/&#34;&gt;embed easter eggs&lt;/a&gt;, (&lt;a href=&#34;http://www.howdesign.com/design-career/on-the-job/top-5-ways-designers-get-trouble-fonts/&#34;&gt;according to this site&lt;/a&gt;, most &lt;em&gt;designers&lt;/em&gt; don&amp;rsquo;t regularly read them when it comes to the typefaces they use), and when they do probably don&amp;rsquo;t understand them (or else why would sites like &lt;a href=&#34;https://tosdr.org&#34;&gt;ToS;DR&lt;/a&gt; exist?).&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Institutional blocking as a service</title>
+      <link>/institutional-blocking-as-a-service/</link>
+      <pubDate>Sat, 09 Jul 2016 07:52:03 +0000</pubDate>
+      <guid>/institutional-blocking-as-a-service/</guid>
+      <description>&lt;p&gt;I teach a lot of different students this year - the entire year 9 cohort, most of the year 7s and 8s (spread over the year), and a few classes of year 10s. Seeing all of them regularly gives me a pretty good look at how they use technology (with the exception of mobile since, like many schools, students are prohibited from using their phones during the day), which makes for some interesting conversations.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Machine Learning and Intellectual Laziness</title>
+      <link>/machine-learning-and-intellectual-laziness/</link>
+      <pubDate>Wed, 25 May 2016 13:18:13 +0000</pubDate>
+      <guid>/machine-learning-and-intellectual-laziness/</guid>
+      <description>&lt;p&gt;So there&amp;rsquo;s a certain element of hyperbole coming up. Just saying.&lt;/p&gt;
+&lt;p&gt;Google Allo (which of course makes me think of the classically cheesy &lt;a href=&#34;https://en.wikipedia.org/wiki/&#39;Allo_&#39;Allo!&#34;&gt;&amp;lsquo;Allo &amp;lsquo;Allo&lt;/a&gt;) was outlined in the recent &lt;a href=&#34;https://events.google.com/io2016/&#34;&gt;Google IO&lt;/a&gt; keynote. One of the features which bears some consideration is Smart Reply which suggests replies to messaging and learns from your responses over time (and I assume also does learning on the aggregate, playing to Google&amp;rsquo;s strengths in large scale data analysis.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Pebble Health</title>
+      <link>/pebble-health/</link>
+      <pubDate>Sun, 15 May 2016 05:03:53 +0000</pubDate>
+      <guid>/pebble-health/</guid>
+      <description>&lt;p&gt;I&amp;rsquo;ve written about my Pebble before and the things that I like about it.&lt;/p&gt;
+&lt;p&gt;This week a new firmware and app version got pushed out and I noticed that after tracking health data for some time (steps and sleep), the iOS app finally got a reporting screen for it.&lt;/p&gt;
+&lt;p&gt;I thought it was worthwhile looking at, since it has a really nice reporting graph. Rather than simply reporting the number of steps and sleep hours, it gives an area plot showing current and typical data.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Electric horses</title>
+      <link>/electric-horses/</link>
+      <pubDate>Thu, 21 Apr 2016 10:53:41 +0000</pubDate>
+      <guid>/electric-horses/</guid>
+      <description>&lt;p&gt;My wife and I recently returned from Honeymoon Part 2 on &lt;a href=&#34;https://en.wikipedia.org/wiki/Kangaroo_Island&#34;&gt;Kangaroo Island&lt;/a&gt; in South Australia. This isn&amp;rsquo;t a travel post though (although it&amp;rsquo;s a lovely, if somewhat rugged place to go!).&lt;/p&gt;
+&lt;p&gt;When booking the holiday back in February I looked around for car hire and noticed that one outlet was advertising electric cars. Since Telsa (spoiler: we didn&amp;rsquo;t get a Telsa) has been in the news for ages and I wanted to learn more about plug in electric vehicles, I figured we&amp;rsquo;d hire one for a few days and see what it was like to drive one. I went to the trouble of looking at how many charge points there were around the island (one per town on the eastern side of the island, for a total of five) I went ahead and booked a &lt;a href=&#34;https://en.wikipedia.org/wiki/Nissan_Leaf&#34;&gt;Nissan Leaf&lt;/a&gt;.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Deferred Attention</title>
+      <link>/deferred-attention/</link>
+      <pubDate>Wed, 13 Apr 2016 07:34:56 +0000</pubDate>
+      <guid>/deferred-attention/</guid>
+      <description>&lt;p&gt;I shuffle my attention between four devices:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;a (beloved if aging) 2012 13&amp;quot; Macbook Air&lt;/li&gt;
+&lt;li&gt;iPhone 6S+&lt;/li&gt;
+&lt;li&gt;iPad Air 2&lt;/li&gt;
+&lt;li&gt;Work Surface Pro 3&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Because I split my attention between them all, it can be a struggle to manage the list of things that are interesting to me so that when I&amp;rsquo;m in a time which is suitable on a device which is right, things that I care about are easy to reach.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Smile Acrobatics</title>
+      <link>/smile-acrobatics/</link>
+      <pubDate>Wed, 13 Apr 2016 00:13:12 +0000</pubDate>
+      <guid>/smile-acrobatics/</guid>
+      <description>&lt;p&gt;This morning I woke up to an email from Smile Software titled &lt;em&gt;&amp;ldquo;TextExpander 5 Lives!&amp;rdquo;&lt;/em&gt; and I was a little sad inside. Now I still think that their original plan of moving to a subscription pricing scheme was the wrong decision, but I really wanted to see that they had a plan for it. As tech pundits left and right have said, Smile has been around for ages, they should have a good idea about how the business works.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Release Notes: Slack vs Box</title>
+      <link>/release-notes-slack-vs-box/</link>
+      <pubDate>Mon, 11 Apr 2016 07:37:47 +0000</pubDate>
+      <guid>/release-notes-slack-vs-box/</guid>
+      <description>&lt;img loading=&#34;lazy&#34; src=&#34;/images/slack_box_download.png&#34;&gt;&lt;p&gt;I remember someone else talking up Slack&amp;rsquo;s release notes before, but looking at them side by side with Box&amp;rsquo;s lately&amp;hellip;&lt;/p&gt;
+&lt;p&gt;I honestly don&amp;rsquo;t know why Box bothered with more than the first line since the other three dot points mean exactly the same as the single first dot point, providing no additional information at all.&lt;/p&gt;
+&lt;p&gt;Slack does a great job of what is arguably the job of release notes: information about features, and which bugs have been fixed. More importantly, they do it in such a way that you might actually read the release notes because they are entertaining, not just because you might be frustrated with a problem in an earlier version and you want to know if it&amp;rsquo;s fixed yet.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Useful, Unsolved, Practical, pick two</title>
+      <link>/useful-unsolved-practical-pick-two/</link>
+      <pubDate>Mon, 11 Apr 2016 06:43:53 +0000</pubDate>
+      <guid>/useful-unsolved-practical-pick-two/</guid>
+      <description>&lt;p&gt;Since deciding to turn part time hobby development for myself into a part time hobby that produces stuff others might actually buy, I&amp;rsquo;ve been looking through my list of ideas and trying to figure out some sort of progression through them. This involves evaluating which ideas are practical for me to pursue (I&amp;rsquo;ve got some pretty out-there items in my list which I think would be awesome that I just don&amp;rsquo;t have the time or expertise to attempt at this point) and which might actually be appealing to others.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Dead or just sleeping?</title>
+      <link>/dead-or-just-sleeping/</link>
+      <pubDate>Sun, 10 Apr 2016 13:09:00 +0000</pubDate>
+      <guid>/dead-or-just-sleeping/</guid>
+      <description>&lt;p&gt;Sleep wake on laptops is terrible.&lt;/p&gt;
+&lt;p&gt;But why is it terrible? We&amp;rsquo;ve had close to a decade of smart phones, and on every phone and tablet I&amp;rsquo;ve owned, sleep and wake have been great: you push the button, the device wakes up and is responsive. In that decade of smart phones, every laptop I&amp;rsquo;ve had (both Apple and otherwise) has had some aspect of sleep/wake be unsatisfactory.&lt;/p&gt;
+&lt;p&gt;My Apple laptops have been by far the best of the bunch, but even they tend to be fairly unresponsive waking from sleep, with keyboard input being glitchy in the first few seconds after the display wakes (i.e. when I&amp;rsquo;m trying to type in a password).&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Subscriptions and Personal Value</title>
+      <link>/subscriptions-and-personal-value/</link>
+      <pubDate>Wed, 06 Apr 2016 07:59:22 +0000</pubDate>
+      <guid>/subscriptions-and-personal-value/</guid>
+      <description>&lt;p&gt;There was a fair bit of chatter in the blogs that I follow today that Smile&amp;rsquo;s TextExpander is changing from an upgrade pricing model to a subscription model (&lt;a href=&#34;https://textexpander.com/pricing/&#34;&gt;details at their pricing page&lt;/a&gt;). It&amp;rsquo;s an interesting decision, which I guess probably works out well for them since everyone that I see writing or talking about TextExpander seem to be daily users.&lt;/p&gt;
+&lt;p&gt;I say interesting, since it brings to my mind a question of conflicting values: the perceived value to the customer against the value to the developer.  To generalize, I think upgrade pricing for software lets it become more valuable to the customer over time as they can amortize their initial investment while retaining the original functionality. From a developer&amp;rsquo;s perspective (especially if they are active in maintaining software for platform updates, bugs etc) their software gets less value over time as their time investment increases with no additional return per customer.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>At what price freedom?</title>
+      <link>/at-what-price-freedom/</link>
+      <pubDate>Thu, 31 Mar 2016 08:40:18 +0000</pubDate>
+      <guid>/at-what-price-freedom/</guid>
+      <description>&lt;p&gt;A &lt;a href=&#34;https://blog.cloudflare.com/the-trouble-with-tor/&#34;&gt;story over at the CloudFlare blog&lt;/a&gt; states that it estimates 94% of Tor requests could be classed as &amp;ldquo;malicious&amp;rdquo;, in that it involves automated systems scraping email addresses for spam, testing for vulnerabilities etc.&lt;/p&gt;
+&lt;p&gt;There&amp;rsquo;s some really interesting stuff they&amp;rsquo;re doing when it comes to trying to preserve the anonymous nature of Tor for their protected sites, but still restrict access for bad actors, as well as possible directions this type of struggle might go towards.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>CareKit</title>
+      <link>/carekit/</link>
+      <pubDate>Tue, 22 Mar 2016 11:46:11 +0000</pubDate>
+      <guid>/carekit/</guid>
+      <description>&lt;p&gt;So at Apple&amp;rsquo;s (final) Town Hall event they announced &lt;a href=&#34;http://www.apple.com/researchkit/#carekit&#34;&gt;CareKit&lt;/a&gt;, which looks pretty interesting, although details are kinda scarce beyond their press kit so far, with release being &amp;ldquo;Spring 2016&amp;rdquo; so I guess sometime before WWDC.&lt;/p&gt;
+&lt;p&gt;After making Repeat thinking about meds, it&amp;rsquo;s kind of funny to see Apple bring out a framework aimed at that sort of thing. Particularly since I was having a shower thought the other day about making an app around tracking wound recovery, logging spots-that-might-not-be-spots and so on. Glad that it was only a recent thought and only half-considered, seeing as that seems to be one of the card functions which is going to be released as part of CareKit.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>1.1 Update to Repeat</title>
+      <link>/11-update-to-repeat/</link>
+      <pubDate>Fri, 18 Mar 2016 12:07:42 +0000</pubDate>
+      <guid>/11-update-to-repeat/</guid>
+      <description>&lt;p&gt;This morning my 1.1 update for Repeat got approved on the store, which brings some basic improvements to interaction with tasks, a much nicer visual for repeat history as a calendar view, rather than as a simple list of events, the &lt;a href=&#34;/non-obnoxious-app-rating-appeals/&#34;&gt;ratings system I wrote about in a previous post&lt;/a&gt;, and a Today Widget containing upcoming alarms along with an indication of how close they are.&lt;/p&gt;
+&lt;p&gt;Since I&amp;rsquo;m still learning my way around the iOS frameworks it&amp;rsquo;s been an interesting experience, particularly with respect to the way that Core Data works. When I first started looking at using Core Data, and coming from having done stuff with SQLite and MySQL in the past, it seemed pretty terrible in terms of the overhead of code compared to what you actually wanted to do with it (OK, it actually still seems pretty terrible in that respect).&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Delivery or Garbage Truck?</title>
+      <link>/delivery-or-garbage-truck/</link>
+      <pubDate>Fri, 18 Mar 2016 11:30:15 +0000</pubDate>
+      <guid>/delivery-or-garbage-truck/</guid>
+      <description>&lt;img alt=&#34; Some of the quality Role Playing Games in the Explore section of the iOS App Store. &#34; loading=&#34;lazy&#34; src=&#34;/images/rankings_download.png&#34;&gt;&lt;p&gt;Some of the quality Role Playing Games in the Explore section of the iOS App Store.&lt;/p&gt;
+&lt;p&gt;So today whilst having a coffee and waiting to pick my wife up I casually opened the iOS App Store and had a look at the Explore tab to check out the Role Playing Games section. It usually takes a few times a year to reinforce the fact that Explore is completely useless for both the &amp;ldquo;New&amp;rdquo; apps as well as the top lists, particularly in any of the games categories.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>App Discovery and Ratings</title>
+      <link>/app-discovery-and-ratings/</link>
+      <pubDate>Tue, 15 Mar 2016 13:16:10 +0000</pubDate>
+      <guid>/app-discovery-and-ratings/</guid>
+      <description>&lt;img alt=&#34;  Pond Scum  Texture X (CC-BY 2.0) &#34; loading=&#34;lazy&#34; src=&#34;/images/8267591031_bd43b71992_z.jpg&#34;&gt;&lt;p&gt;Pond Scum Texture X (CC-BY 2.0)&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;(Note that this is from the perspective of a consumer. It&amp;rsquo;s probably also far more rambly than it needs to be.)&lt;/em&gt;&lt;/p&gt;
+&lt;h1 id=&#34;discovery&#34;&gt;Discovery&lt;/h1&gt;
+&lt;p&gt;One of the common problems of app delivery stores is discovery. Particularly in today&amp;rsquo;s mobile app stores, the sheer volume means that discovery tends toward to drift towards the &amp;ldquo;scumbag&amp;rdquo; end of the scale very quickly in much the same manner as SEO does with web page ranking algorithms.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Non-obnoxious app rating appeals</title>
+      <link>/non-obnoxious-app-rating-appeals/</link>
+      <pubDate>Tue, 08 Mar 2016 10:43:28 +0000</pubDate>
+      <guid>/non-obnoxious-app-rating-appeals/</guid>
+      <description>&lt;p&gt;Back in 2014 (and earlier) there was a kerfuffle about the practice of apps being in your face with requests for reviews:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.loopinsight.com/2014/02/04/begging-for-app-ratings/&#34;&gt;Wil Shipley @ The Loop&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;John Gruber and &lt;a href=&#34;http://daringfireball.net/linked/2013/12/05/eff-your-review&#34;&gt;suggesting one star reviews as a response&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Marco Arment suggesting &lt;a href=&#34;https://marco.org/2013/12/14/rate-this-app&#34;&gt;that a popup request for review should go away entirely&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Todd Zarwell on &lt;a href=&#34;http://toddzarwell.com/journal/2013/12/21/the-review-this-app-controversy&#34;&gt;being somewhat better behaved&lt;/a&gt; and showing a popup dialog only on new versions, and after a certain number of launches&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;I was thinking about this while noodling around with a couple of improvements for &lt;a href=&#34;https://headtilt.me/repeat&#34;&gt;Repeat&lt;/a&gt;, which has an unobtrusive rating link in the about screen. Whilst wanting to be well behaved, at the same time I think about the number of times I&amp;rsquo;ve rated apps by using a link in the about screen. I try to rate apps I like fairly regularly since I&amp;rsquo;m aware the reviews go away when new versions appear on the store, but even so I just don&amp;rsquo;t think about it when using apps.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Exactly</title>
+      <link>/exactly/</link>
+      <pubDate>Wed, 02 Mar 2016 14:31:35 +0000</pubDate>
+      <guid>/exactly/</guid>
+      <description>&lt;p&gt;Becky Hansmeyer posted a couple of items recently on &lt;a href=&#34;http://beckyhansmeyer.com/2016/02/29/app-pricing-an-internal-monologue/&#34;&gt;app pricing&lt;/a&gt; (&lt;a href=&#34;http://beckyhansmeyer.com/2016/03/03/app-pricing-follow-up/&#34;&gt;and a followup&lt;/a&gt;) which I thought fit in with my thoughts on pricing pretty closely.&lt;/p&gt;
+&lt;p&gt;She also goes into some stuff I didn&amp;rsquo;t know (but I guess makes sense in retrospect) about the non-restorable nature of repeatable IAPs, meaning if you use a tip jar method for unlocking content, if you install the app at a later date, you would need to pay again to regain the benefits.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Liftoff</title>
+      <link>/liftoff/</link>
+      <pubDate>Sat, 27 Feb 2016 02:33:32 +0000</pubDate>
+      <guid>/liftoff/</guid>
+      <description>&lt;p&gt;This morning I hit the release button on my holiday project, Repeat.&lt;/p&gt;
+&lt;p&gt;As part of my marathon of listening to every development podcast I can, I was recently catching up on the backlog of Release Notes episodes, and in particular the &lt;a href=&#34;http://releasenotes.tv/44-justin-williams-part-1/&#34;&gt;two&lt;/a&gt; &lt;a href=&#34;http://releasenotes.tv/45-justin-williams-part-2/&#34;&gt;episodes&lt;/a&gt; with guest Justin Williams, where he joked that like every other developer, he started out with a notes app, a task manager and a bug tracker.&lt;/p&gt;
+&lt;p&gt;Repeat is my task manager (at this point I don&amp;rsquo;t plan on making a notes app or a bug tracker though&amp;hellip;).&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Adventures in Auto Layout</title>
+      <link>/adventures-in-auto-layout/</link>
+      <pubDate>Sun, 21 Feb 2016 08:24:18 +0000</pubDate>
+      <guid>/adventures-in-auto-layout/</guid>
+      <description>&lt;p&gt;Since hitting Submit for Review for my side project app, I&amp;rsquo;ve been having an interesting time. My first version was rejected in review due to a &amp;ldquo;bug&amp;rdquo; (actually an intended feature - a disabled button control which became usable once initial setup was completed, which goes to show that even Apple testers don&amp;rsquo;t read the help docs ;), and I did some cleaning up of my Core Data code, made some graphic changes to make things look nicer, tested some more, and then resubmitted.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Tools</title>
+      <link>/tools/</link>
+      <pubDate>Mon, 15 Feb 2016 12:40:53 +0000</pubDate>
+      <guid>/tools/</guid>
+      <description>&lt;p&gt;I tend to collect software. I read about things that people I follow recommend and if it&amp;rsquo;s free or affordable and looks interesting I&amp;rsquo;ll usually get it. It gives me an opportunity to look at different paradigms, recommend alternative software to students who might be on different platforms than what they use at school, and generally nerd out.&lt;/p&gt;
+&lt;p&gt;As a result I have a bunch of graphics software sitting around either in the Mac App Store or installed on my laptop (mercifully the Adobe suite is licensed through work so I don&amp;rsquo;t have to buy it myself or make space on my own machine). When it came time to sit down and &amp;ldquo;design&amp;rdquo; (the air quotes are deserved) the graphical assets for Repeat, I had plenty of software to play with, if not a surfeit of talent.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>First Time Development</title>
+      <link>/first-time-development/</link>
+      <pubDate>Mon, 15 Feb 2016 07:59:27 +0000</pubDate>
+      <guid>/first-time-development/</guid>
+      <description>&lt;p&gt;This is a post about the process of developing and posting an app on the iOS App Store for the first time. It&amp;rsquo;s is a long one, sorry. There will be another post looking at toolsets later on.&lt;/p&gt;
+&lt;h1 id=&#34;background&#34;&gt;Background&lt;/h1&gt;
+&lt;p&gt;I write code pretty frequently. I&amp;rsquo;ve always been interested in technology and the best way to learn about it is to tinker. I write small programs to automate my own tasks, I look at the way that different languages work and I write snippets of code just to try out new things. Of course being an ICT teacher I also teach my students how to get into programming themselves as part of their courses as well as running a code club for some self-directed learning.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>My ad blocker didn&#39;t catch this one</title>
+      <link>/my-ad-blocker-didnt-catch-this-one/</link>
+      <pubDate>Wed, 10 Feb 2016 07:07:05 +0000</pubDate>
+      <guid>/my-ad-blocker-didnt-catch-this-one/</guid>
+      <description>&lt;p&gt;This has to be one of the best ads I&amp;rsquo;ve seen in a long time: &lt;a href=&#34;https://medium.com/figma-design/introducing-vector-networks-3b877d2b864f#.4h8pbjdea&#34;&gt;Introducing Vector Networks&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Playing with vectors a lot at home and at work recently, it&amp;rsquo;s interesting looking at another approach to composing vector images.&lt;/p&gt;
+&lt;p&gt;The things which really kill the interest for me (when looking at &lt;a href=&#34;https://www.figma.com/&#34;&gt;the Figma site&lt;/a&gt;, not the nicely crafted ad on Medium) is the fact that it&amp;rsquo;s just another SaaS product. No mention of final pricing of course (&amp;ldquo;Free during the Preview Release&amp;rdquo;), just a big fat sign up button for a spot in the release queue.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Optional(&#34;Working as intended&#34;)</title>
+      <link>/optionalworking-as-intended/</link>
+      <pubDate>Tue, 09 Feb 2016 09:26:25 +0000</pubDate>
+      <guid>/optionalworking-as-intended/</guid>
+      <description>&lt;p&gt;As mentioned in a previous post, I&amp;rsquo;ve been working on an iOS app over the holidays. A topic for another post is all of the hassle with getting to the point where I can actually release it for sale, but while I&amp;rsquo;ve been sorting all that out I&amp;rsquo;ve been noodling around with new features to keep myself interested (although going back to work has gotten in the way ever so slightly). &lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>In which Wired both gets and misses the point</title>
+      <link>/in-which-wired-both-gets-and-misses-the-point/</link>
+      <pubDate>Tue, 09 Feb 2016 06:21:10 +0000</pubDate>
+      <guid>/in-which-wired-both-gets-and-misses-the-point/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;http://www.wired.com/how-wired-is-going-to-handle-ad-blocking/&#34;&gt;Wired made a post in which the publication outlines what it is going to do about the ad-blocking situation&lt;/a&gt;. &lt;/p&gt;
+&lt;p&gt;They acknowledge that readers either want to view content without all the cruft, or are concerned about the fact that advertising is as much about tracking as about actually putting ads in front of your eyeballs.&lt;/p&gt;
+&lt;p&gt;They are moving to restrict articles from those who use ad blockers, with the promise to visitors that if they whitelist the site in their ad blockers they will only see &amp;ldquo;standard display advertising&amp;rdquo;. Of course they don&amp;rsquo;t say what &amp;ldquo;standard display advertising&amp;rdquo; actually means to them. I suspect it just means that they will choose to serve ads that are not visually intrusive (e.g. Popovers, popunders, interstitials etc), and fine, that can appeal to their first group of readers who only care about not having lots of rubbish shoved in their face while they are trying to read. The issue is that they specifically point out that some people are very uncomfortable with the amount of tracking that goes on by advertisers, nothing is said about choosing advertisers based on their privacy policies.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Designing on the Mac</title>
+      <link>/designing-on-the-mac/</link>
+      <pubDate>Fri, 22 Jan 2016 06:02:45 +0000</pubDate>
+      <guid>/designing-on-the-mac/</guid>
+      <description>&lt;p&gt;As usual to keep myself sane during the Summer holidays I&amp;rsquo;ve been doing some coding on project ideas that have come up over the year. After over a year or so of tinkering I&amp;rsquo;m starting to feel like I&amp;rsquo;m getting the hang of the way that iOS does things with &lt;a href=&#34;https://developer.apple.com/library/ios/documentation/General/Conceptual/DevPedia-CocoaCore/MVC.html&#34;&gt;MVC&lt;/a&gt; (although I still have trouble reading Apple&amp;rsquo;s documentation), and these holidays I think I finally got something useful finished which I might get around to publishing.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Join the Conversation</title>
+      <link>/join-the-conversation/</link>
+      <pubDate>Fri, 22 Jan 2016 05:42:39 +0000</pubDate>
+      <guid>/join-the-conversation/</guid>
+      <description>&lt;p&gt;I started writing the draft for this post back in December after attending a conference called Switching Tracks, which seemed to focus a lot on gamification and flipped learning approaches to education. As is usual at conferences these days part of the keynote introduction was what Twitter hashtag to use for the back channel conversation.&lt;/p&gt;
+&lt;p&gt;I&amp;rsquo;m not sure what this sort of conversation is like at other events, since I mostly attend education-themed stuff, but it usually runs something like this:&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Dumb Analogue Ports</title>
+      <link>/dumb-analogue-ports/</link>
+      <pubDate>Fri, 04 Dec 2015 07:14:28 +0000</pubDate>
+      <guid>/dumb-analogue-ports/</guid>
+      <description>&lt;p&gt;There has been a bunch of fuming about the web recently about the rumor of Apple removing the 3.5mm headphone jack from the next iteration of the iPhone (and presumably everything else). All of the complaints that I&amp;rsquo;ve seen so far have been of the &amp;ldquo;isn&amp;rsquo;t it thin enough already?!&amp;rdquo; variety, which I feel misses a broader issue. There seems to be an assumption that everything that Apple does to the iPhone these days is in service to making it thinner and lighter, and I guess when you look at it, the 3.5mm port and associated internal hardware is the (very small) elephant in the room. &lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Content != Advertising</title>
+      <link>/content-advertising/</link>
+      <pubDate>Fri, 02 Oct 2015 04:02:45 +0000</pubDate>
+      <guid>/content-advertising/</guid>
+      <description>&lt;p&gt;I forgot to put this into the previous post about content blocking.&lt;/p&gt;
+&lt;p&gt;I was at a teacher networking meeting a couple of months ago and we had some Apple folks down to talk about education. They were looking at some of the stuff coming up in iOS 9, and mentioned content blocking. Through reading and listening to followup from WWDC this year, most people had put this squarely into an ad-blocking context, but the way they were talking about it sounded a lot more like it would be usful in an instututional setting where acceptable use policies would dictate that some content be inaccessible (e.g. the myriad of stuff which educational organisations block because they are &amp;ldquo;thinking of the children!&amp;rdquo;).&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Content Blocking</title>
+      <link>/content-blocking/</link>
+      <pubDate>Thu, 01 Oct 2015 06:03:09 +0000</pubDate>
+      <guid>/content-blocking/</guid>
+      <description>&lt;p&gt;First of all, content blocking in iOS has a ways to go. It works in Safari and Safari View Controllers, and since as far as I know these new view controllers only got added this year, most apps which use web content won&amp;rsquo;t be using them and thus won&amp;rsquo;t be filtered by blockers. Since most of the web content I consume comes via RSS readers and social media apps like Twitter, Facebook and Google+ the content isn&amp;rsquo;t filtered until they decide they want to adopt the new controllers (if they ever do). I don&amp;rsquo;t really want to push every web link out to Safari because of the overhead of then having to deal with tab management instead of just reading and swiping backwards or tapping the close button to return to a feed. &lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Time</title>
+      <link>/time/</link>
+      <pubDate>Tue, 29 Sep 2015 01:55:06 +0000</pubDate>
+      <guid>/time/</guid>
+      <description>&lt;p&gt;&lt;em&gt;&amp;ldquo;This thing all things devours:&lt;br&gt;
+Birds, beasts, trees, flowers;&lt;br&gt;
+Gnaws iron, bites steel;&lt;br&gt;
+Grinds hard stones to meal;&lt;br&gt;
+Slays king, ruins town,&lt;br&gt;
+And beats high mountain down.&amp;rdquo;&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&amp;ldquo;&lt;strong&gt;The Hobbit&lt;/strong&gt;&amp;rdquo;, J. R. R. Tolkien&lt;/p&gt;
+&lt;p&gt;This is going to be one of the rare times I write about education, but also technology. As a teacher, it can be quite difficult to get out of the rut of doing the same old thing. Pressures from trying to cover everything in the curriculum, making lessons accessible to a variety of types of learners, looking for new ideas from behind a bunch of marking, the need to keep parity with other classes so that assessments are relatively manageable to organize and consistent; basically planning for new things can be a struggle.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Smart Watches &amp; Fitness Bands</title>
+      <link>/smart-watches-and-fitness-bands/</link>
+      <pubDate>Fri, 18 Sep 2015 03:30:11 +0000</pubDate>
+      <guid>/smart-watches-and-fitness-bands/</guid>
+      <description>&lt;p&gt;Since I got one of the original Pebbles which came out as a Kickstarter project I&amp;rsquo;ve been interested in the smart watch movement. Pebble did a lot of things really well (which I&amp;rsquo;ll look at shortly) despite the limitations placed upon them by the platform I was interested in (iOS). Since then (and probably prior to as well) there have been a slew of different devices which integrate with your phone. Broadly I think these fit into a couple of categories: fitness tracking, and phone interaction.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Nifty Automation</title>
+      <link>/nifty-automation/</link>
+      <pubDate>Sat, 12 Sep 2015 03:38:48 +0000</pubDate>
+      <guid>/nifty-automation/</guid>
+      <description>&lt;p&gt;I got a RaspberryPi recently and have been wondering what to do with it.&lt;/p&gt;
+&lt;p&gt;After looking at the &lt;a href=&#34;https://news.ycombinator.com/item?id=10204018&#34;&gt;comments of a recent HN post&lt;/a&gt; on making a &lt;a href=&#34;https://www.raspberrypi.org/blog/magic-mirror/&#34;&gt;magic mirror&lt;/a&gt; out of an old Nexus tablet, there was a link to &lt;a href=&#34;http://jasperproject.github.io/&#34;&gt;Jasper&lt;/a&gt;, a voice control platform made for a Pi.&lt;/p&gt;
+&lt;p&gt;I&amp;rsquo;m kinda keen on doing something similar now (&amp;ldquo;Mirror Mirror on the wall&amp;hellip; what&amp;rsquo;s the forecast for this evening?&amp;rdquo;). I think the issues are going to be how to keep it as low profile as possible, and to reduce power consumption. There were a few suggestions of full size monitors to put behind a two way mirror in the comments, but those tend to be pretty thick and chew up quite a bit of power. Some of the modular displays for things like the Pi seem like a better idea, and having them tied to something like Jasper for activation, rather than being on all the time could further cut down on the usage.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>The Case for Software Eating Journalism</title>
+      <link>/the-case-for-software-eating-journalism/</link>
+      <pubDate>Tue, 08 Sep 2015 01:26:55 +0000</pubDate>
+      <guid>/the-case-for-software-eating-journalism/</guid>
+      <description>&lt;p&gt;A lot of what I think about seems to be sparked from podcasts lately. I listen to a lot of them as I drive between towns, while I walk or run, as I shop. A lot of them are about technology, with a few generally interesting ones thrown in (lots of the NPR podcasts are great - it&amp;rsquo;d be nice if we did more of this in Australia). Recently I&amp;rsquo;ve had a bit of an overlap between two podcasts that I listen to: Vector (about technology) and Planet Money (which I guess is economics, but really seems to cover just about everything - I&amp;rsquo;m sure the economists out there will say that this is just as it should be).&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>More changelog, more fun!</title>
+      <link>/more-changelog-more-fun/</link>
+      <pubDate>Sat, 01 Aug 2015 03:39:22 +0000</pubDate>
+      <guid>/more-changelog-more-fun/</guid>
+      <description>&lt;p&gt;Just a continuation of my admiration of useful changelogs in the iOS App Store. Etsy&amp;rsquo;s latest release promises to maximise my happiness.&lt;/p&gt;
+&lt;p&gt;I wonder if I have to be using their app to be happy, or if it&amp;rsquo;ll increase it with a background update.&lt;/p&gt;
+&lt;img loading=&#34;lazy&#34; src=&#34;/images/etsy_download.jpg&#34;&gt;</description>
+    </item>
+    <item>
+      <title>Windows 10 and the sad state of touch</title>
+      <link>/windows-10-and-the-sad-state-of-touch/</link>
+      <pubDate>Sat, 01 Aug 2015 03:31:24 +0000</pubDate>
+      <guid>/windows-10-and-the-sad-state-of-touch/</guid>
+      <description>&lt;p&gt;I&amp;rsquo;ve written before about how I feel about trackpads on pretty much anything that isn&amp;rsquo;t made by Apple (spoiler: I hate them), which is why I have mixed feelings about the reports of all the multitouch stuff coming in with Windows 10 (&lt;a href=&#34;http://arstechnica.com/gadgets/2015/07/trackpad-gestures-and-keyboard-shortcuts-or-windows-10-for-the-mac-user/&#34;&gt;link for an Ars Technica review&lt;/a&gt;). On one hand one of the features I really love about OS X is the way in which it handles application switching, which is why it&amp;rsquo;s great to see some of that finally coming to Windows without third party software.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Swiftly passing holidays</title>
+      <link>/swiftly-passing-holidays/</link>
+      <pubDate>Thu, 16 Jul 2015 03:53:45 +0000</pubDate>
+      <guid>/swiftly-passing-holidays/</guid>
+      <description>&lt;p&gt;Since the July school holidays closely follow Apple&amp;rsquo;s WWDC this is usually when I feel motivated to sit down and have a crack at some of the programming projects that have built up in my todo list.&lt;/p&gt;
+&lt;p&gt;Despite the winter weather being unusually pleasant this year, and in amongst a couple of road trips around the South-West (mostly &lt;a href=&#34;https://ingress.com&#34;&gt;Ingress&lt;/a&gt;-related), I&amp;rsquo;ve actually managed to do a surprising amount of coding done (even though they&amp;rsquo;re mostly proof of concept projects).&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Changelogs in the App Store</title>
+      <link>/changelogs-in-the-app-store/</link>
+      <pubDate>Sat, 04 Jul 2015 06:34:12 +0000</pubDate>
+      <guid>/changelogs-in-the-app-store/</guid>
+      <description>&lt;p&gt;There has been a bit of a trend (if you can call it that - it&amp;rsquo;s mostly by one company: Facebook) of late when release app updates in the [Apple] App Store, but presumably it happens elsewhere too.&lt;/p&gt;
+&lt;p&gt;The convention is that when you release a new version of some software, you tell your users what is new about it. If it&amp;rsquo;s a feature update then they can decide whether or not they want to upgrade (especially if it&amp;rsquo;s a paid update) and if it&amp;rsquo;s a bugfix update then they at least know what has been fixed, and in an ideal world only submit bug reports for unfixed bugs (but who are we kidding, these days &amp;ldquo;bug reports&amp;rdquo; are just analagous to one star reviews).&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Social Engineering &amp; Charitable Donations</title>
+      <link>/social-engineering-and-charitable-donations/</link>
+      <pubDate>Thu, 18 Jun 2015 05:34:52 +0000</pubDate>
+      <guid>/social-engineering-and-charitable-donations/</guid>
+      <description>&lt;p&gt;First of all, this post is not about charities or charitable donations. This is about a specific method of soliciting donations which seems to be disturbingly prevalent recently.&lt;/p&gt;
+&lt;p&gt;The scene is you&amp;rsquo;re walking along, possibly listening to music, talking on the phone or otherwise minding your own business. Some chirpy (usually foreign) 20-something greets you like a long lost friend. Feeling a disconnect, you engage with them to find out what their deal is, hoping to clear up the misunderstanding. Before you can get a word out, you&amp;rsquo;re asked for your name and they immediately go for a handshake.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>WWDC Talk Show with Phil Schiller</title>
+      <link>/wwdc-talk-show-with-phil-schiller/</link>
+      <pubDate>Sat, 13 Jun 2015 01:51:17 +0000</pubDate>
+      <guid>/wwdc-talk-show-with-phil-schiller/</guid>
+      <description>&lt;p&gt;Being an Apple nerd I&amp;rsquo;ve been following what&amp;rsquo;s been going on at WWDC this year as usual, which includes listening to a slew of (often repetitive) podcasts from people who are actually there.&lt;/p&gt;
+&lt;p&gt;John Gruber of Daring Fireball fame has done a live episode of The Talk Show there for a while, and so that was on my list. Now I run hot and cold on Gruber; when he&amp;rsquo;s in form he has some really good insights but lately I haven&amp;rsquo;t been that impressed by a lot of episodes of the podcast. So when the intro started and it sounded like more of the same I just about deleted the episode and moved on with my life until he introduced the special guest (complete with an &amp;ldquo;I shit you not&amp;hellip;&amp;rdquo;) which was Phil Schiller.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Inspiration (or depression?)</title>
+      <link>/inspiration-or-depression/</link>
+      <pubDate>Sun, 31 May 2015 11:46:36 +0000</pubDate>
+      <guid>/inspiration-or-depression/</guid>
+      <description>&lt;p&gt;One of the things which got me thinking about the previous post about teaching computing was a series of episodes of the &lt;a href=&#34;http://www.npr.org/sections/money/&#34;&gt;Planet Money podcast&lt;/a&gt;. The series arc, which begins with &lt;a href=&#34;http://www.npr.org/sections/money/2015/05/06/404701816/episode-621-when-luddites-attack&#34;&gt;Episode 621: When Luddites Attack&lt;/a&gt;, looks at automation and its effect on jobs, as well as historical and more contemporary reactions to it. It finishes with a piece of speculative fiction about what happens when there are no more jobs.&lt;/p&gt;
+&lt;p&gt;Check it out. It&amp;rsquo;s pretty light going, with short episodes.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Computing as a Subject</title>
+      <link>/computing-as-a-subject/</link>
+      <pubDate>Sun, 31 May 2015 11:37:11 +0000</pubDate>
+      <guid>/computing-as-a-subject/</guid>
+      <description>&lt;p&gt;I&amp;rsquo;ve been thinking a bit lately about the identity of Computing as a subject. This has been brought on by a few factors, some recent, like a professional development day held by the local vocational training provider (South West Institute of Technology) where a local business council member looked at results of a survey of small business and the skills that they were after from young people coming from education and training. Of course I mostly paid attention to the technology skills, which were the same old song we&amp;rsquo;ve heard since I started teaching a decade ago: the Office suite, and not much else.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>The Salmon Mousse[1]</title>
+      <link>/the-salmon-mousse1/</link>
+      <pubDate>Fri, 10 Apr 2015 07:08:44 +0000</pubDate>
+      <guid>/the-salmon-mousse1/</guid>
+      <description>&lt;p&gt;Every year TV news delights in informing everyone of the tragedies of deaths on our roads, adding to the tallies of state road death tolls and doing comparisons between states and years. I figured that holiday road tolls would be higher than usual, but figured I&amp;rsquo;d do some digging into the statistics to see just how much worse they were, state by state and compared to the year as a whole.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>The... FUTURE</title>
+      <link>/the-future/</link>
+      <pubDate>Tue, 17 Mar 2015 03:35:03 +0000</pubDate>
+      <guid>/the-future/</guid>
+      <description>&lt;p&gt;This year I changed my day job from working in a school where I took my beloved 13&amp;quot; MacBook Air in with me every day, to a school where we were provided with Microsoft Surface Pro 3s. Initially, I wasn&amp;rsquo;t too happy about this state of affairs since I&amp;rsquo;ve put together some great workflows in OS X that I still haven&amp;rsquo;t managed to replicate to my satisfaction in Windows, but this has mostly been alleviated by the fact that the Surface Pro 3 is a really nice machine when you get used to using the touch screen for all the important things and only use the still quite terrible trackpad for all the edge cases where the Windows UI still isn&amp;rsquo;t designed to be used well with fat fingers (or even the pen). &lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Maps Weirdness, a.k.a. &#34;At the roundabout...&#34;</title>
+      <link>/maps-weirdness-aka-at-the-roundabout/</link>
+      <pubDate>Wed, 22 Oct 2014 04:35:28 +0000</pubDate>
+      <guid>/maps-weirdness-aka-at-the-roundabout/</guid>
+      <description>&lt;p&gt;We were recently in Tasmania for a holiday and hired a car rather than relying on my dad to drive us everywhere, which meant that a lot of navigation was done via Google and Apple Maps (not sure if Apple Maps being rubbish is still a thing, but there was no appreciable difference between the two in a week&amp;rsquo;s worth of driving everywhere by GPS directions, with the exception of the roundabout stuff below, and Google completely failing at returning us to the airport, which was fine because our plane was delayed by almost two hours anyway).&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Naturally...</title>
+      <link>/naturally/</link>
+      <pubDate>Mon, 14 Jul 2014 02:35:15 +0000</pubDate>
+      <guid>/naturally/</guid>
+      <description>&lt;p&gt;The day after I go and look at writing an operator to mimic &amp;lsquo;in&amp;rsquo; in Python, I read a &lt;a href=&#34;http://practicalswift.com/2014/06/14/the-swift-standard-library-list-of-built-in-functions/&#34;&gt;blog post on undocumented Swift functions&lt;/a&gt; and come across the &amp;lsquo;contains&amp;rsquo; function, which does pretty much that (although it doesn&amp;rsquo;t work quite the same way for dicts and for strings it only works for character elements, so I guess I like one consistent operator better).&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;contains(&amp;#34;happy&amp;#34;, &amp;#34;a&amp;#34;) // true
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;contains([1: &amp;#34;A&amp;#34;, 2:&amp;#34;B&amp;#34;].keys,2) // true
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;contains([1,2,3,4,5,6],4) // true
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;As you can see the dictionary context of the function doesn&amp;rsquo;t work without referring to the keys component of the dict. If you use a substring rather than a single character for the string context then you get an error since it doesn&amp;rsquo;t conform to the generic used to define the function.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Swift and Learning New Languages</title>
+      <link>/swift-and-learning-new-languages/</link>
+      <pubDate>Sun, 13 Jul 2014 13:31:33 +0000</pubDate>
+      <guid>/swift-and-learning-new-languages/</guid>
+      <description>&lt;p&gt;Like a whole bunch of people I was quite interested to learn about Apple&amp;rsquo;s introduction of their new language Swift, at their WWDC event this year. I&amp;rsquo;ve been trying to come to terms with ObjectiveC for a couple of years now without much success and this seemed like a good opportunity to learn something new and at the same time finally get around to starting to write some iOS and potentially OSX software.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Toots update</title>
+      <link>/toots-update/</link>
+      <pubDate>Sun, 22 Sep 2013 05:53:27 +0000</pubDate>
+      <guid>/toots-update/</guid>
+      <description>&lt;p&gt;I got around to updating (I &lt;em&gt;say&lt;/em&gt; update and I mean &lt;em&gt;totally rewrite&lt;/em&gt;) my twitter script this weekend to clear out all the manual cruft that made it so painful to use when I first wrote it. I got a Twitter API key for it a while back so I didn&amp;rsquo;t have to depend on someone else&amp;rsquo;s search tool and can get mine to automatically store tweets via a cron and a SQLite database, and bolted on the really quite pretty &lt;a href=&#34;http://pygal.org&#34;&gt;pygal&lt;/a&gt; graphing library (seriously, go look, it&amp;rsquo;s super nice) so I don&amp;rsquo;t have to fiddle around with CSVs and Excel to make graphs.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Smarter Text</title>
+      <link>/smarter-text/</link>
+      <pubDate>Sun, 28 Jul 2013 03:09:16 +0000</pubDate>
+      <guid>/smarter-text/</guid>
+      <description>&lt;p&gt;(I&amp;rsquo;m going to prepend this with the premise that stuff like TeX has probably been able to do all this stuff for ages, but this is looking to do things in a more automated fashion.)&lt;/p&gt;
+&lt;p&gt;Over the last couple of years I&amp;rsquo;ve been listening to more techy podcasts and it&amp;rsquo;s been interesting learning a bit about some of the tools which people use to get things done. A lot of it is productivity software which I just can&amp;rsquo;t use since I&amp;rsquo;m a fundamentally disorganised person, but there have been some interesting editors that have been promoted which has gotten me thinking about where that could go.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

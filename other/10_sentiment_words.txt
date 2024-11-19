@@ -1,0 +1,6 @@
+type=strongsubj len=1 word1=abomination pos1=noun stemmed1=n priorpolarity=negative
+type=weaksubj len=1 word1=above pos1=anypos stemmed1=n priorpolarity=positive
+type=weaksubj len=1 word1=above-average pos1=adj stemmed1=n priorpolarity=positive
+type=weaksubj len=1 word1=abound pos1=verb stemmed1=y priorpolarity=positive
+type=weaksubj len=1 word1=abrade pos1=verb stemmed1=y priorpolarity=negative
+type=strongsubj len=1 word1=abrasive pos1=adj stemmed1=n priorpolarity=negative

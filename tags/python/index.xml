@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Python on Headtilt</title>
+    <link>/tags/python/</link>
+    <description>Recent content in Python on Headtilt</description>
+    <generator>Hugo -- 0.138.0</generator>
+    <language>en</language>
+    <copyright>Rob Poulter</copyright>
+    <lastBuildDate>Tue, 17 Nov 2020 05:58:26 +0000</lastBuildDate>
+    <atom:link href="/tags/python/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Code Introspection in Minecraft and Python</title>
+      <link>/code-introspection-in-minecraft-and-python/</link>
+      <pubDate>Tue, 17 Nov 2020 05:58:26 +0000</pubDate>
+      <guid>/code-introspection-in-minecraft-and-python/</guid>
+      <description>&lt;img loading=&#34;lazy&#34; src=&#34;/images/minecraft_python/intro.png&#34;&gt;&lt;p&gt;I recently got around to trying out the new-ish Python mode for coding within Minecraft: Education Edition, and whilst it is refreshing to be able to &lt;strong&gt;write&lt;/strong&gt; code, the lack of a code library to be able to refer to made learning the Minecraft-specific commands somewhat difficult.&lt;/p&gt;
+&lt;p&gt;Enter code introspection, which is the ability to look inside classes and methods from within Python to list them and see what is available, or to show their docstring and discover their arguments.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
