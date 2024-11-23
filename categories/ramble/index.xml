@@ -7,8 +7,15 @@
     <generator>Hugo -- 0.138.0</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
-    <lastBuildDate>Tue, 19 Nov 2024 13:39:27 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 24 Nov 2024 05:51:51 +0800</lastBuildDate>
     <atom:link href="/categories/ramble/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>LLMs at the Arcade</title>
+      <link>/llms-at-the-arcade/</link>
+      <pubDate>Sun, 24 Nov 2024 05:51:51 +0800</pubDate>
+      <guid>/llms-at-the-arcade/</guid>
+      <description>&lt;p&gt;I was mentoring at our local fortnightly Coder Dojo session yesterday and heard a couple of students talking about getting help from ChatGPT. My ears pricked up because these are mostly younger kids (mid-late primary, a few in early secondary) and, as much as I try to encourage them to broaden their horizons, usually are firmly in Scratch-land, with a few who have been working in &lt;a href=&#34;https://arcade.makecode.com&#34;&gt;MakeCode Arcade&lt;/a&gt;; how were they using LLMs here?&lt;/p&gt;</description>
+    </item>
     <item>
       <title>I go, hugo</title>
       <link>/i-go-hugo/</link>

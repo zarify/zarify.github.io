@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>LLMs at the Arcade | Headtilt</title>
+<meta name="keywords" content="makecode, ai, llm, debugging, coderdojo">
+<meta name="description" content="I was mentoring at our local fortnightly Coder Dojo session yesterday and heard a couple of students talking about getting help from ChatGPT. My ears pricked up because these are mostly younger kids (mid-late primary, a few in early secondary) and, as much as I try to encourage them to broaden their horizons, usually are firmly in Scratch-land, with a few who have been working in MakeCode Arcade; how were they using LLMs here?">
+<meta name="author" content="Rob">
+<link rel="canonical" href="/llms-at-the-arcade/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d6fcd20a4fb86efa4dfac8ec95da60244cc8871042183da1ef28e3a762ad79c8.css" integrity="sha256-1vzSCk&#43;4bvpN&#43;sjsldpgJEzIhxBCGD2h7yjjp2Ktecg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="mask-icon" href="/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="/llms-at-the-arcade/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/css/formatting.css"><meta property="og:url" content="/llms-at-the-arcade/">
+  <meta property="og:site_name" content="Headtilt">
+  <meta property="og:title" content="LLMs at the Arcade">
+  <meta property="og:description" content="I was mentoring at our local fortnightly Coder Dojo session yesterday and heard a couple of students talking about getting help from ChatGPT. My ears pricked up because these are mostly younger kids (mid-late primary, a few in early secondary) and, as much as I try to encourage them to broaden their horizons, usually are firmly in Scratch-land, with a few who have been working in MakeCode Arcade; how were they using LLMs here?">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="post">
+    <meta property="article:published_time" content="2024-11-24T05:51:51+08:00">
+    <meta property="article:modified_time" content="2024-11-24T05:51:51+08:00">
+    <meta property="article:tag" content="Makecode">
+    <meta property="article:tag" content="Ai">
+    <meta property="article:tag" content="Llm">
+    <meta property="article:tag" content="Debugging">
+    <meta property="article:tag" content="Coderdojo">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LLMs at the Arcade">
+<meta name="twitter:description" content="I was mentoring at our local fortnightly Coder Dojo session yesterday and heard a couple of students talking about getting help from ChatGPT. My ears pricked up because these are mostly younger kids (mid-late primary, a few in early secondary) and, as much as I try to encourage them to broaden their horizons, usually are firmly in Scratch-land, with a few who have been working in MakeCode Arcade; how were they using LLMs here?">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "/post/"
+    }
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "LLMs at the Arcade",
+      "item": "/llms-at-the-arcade/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "LLMs at the Arcade",
+  "name": "LLMs at the Arcade",
+  "description": "I was mentoring at our local fortnightly Coder Dojo session yesterday and heard a couple of students talking about getting help from ChatGPT. My ears pricked up because these are mostly younger kids (mid-late primary, a few in early secondary) and, as much as I try to encourage them to broaden their horizons, usually are firmly in Scratch-land, with a few who have been working in MakeCode Arcade; how were they using LLMs here?\n",
+  "keywords": [
+    "makecode", "ai", "llm", "debugging", "coderdojo"
+  ],
+  "articleBody": "I was mentoring at our local fortnightly Coder Dojo session yesterday and heard a couple of students talking about getting help from ChatGPT. My ears pricked up because these are mostly younger kids (mid-late primary, a few in early secondary) and, as much as I try to encourage them to broaden their horizons, usually are firmly in Scratch-land, with a few who have been working in MakeCode Arcade; how were they using LLMs here?\nA bit later on I plonked myself down next to one of them and asked what his experience had been like with ChatGPT. He said it had been terrible, sometimes it gave him Javascript, sometimes TypeScript or Python for his MakeCode project, and nothing was working. He showed me a couple of interactions he was going through and pasting the resulting code into Arcade, which was reporting errors all the way through. To be somewhat fair to the tool, the problem specification wasn’t great, being along the lines of “Make me a maze generation game in Makecode Arcade”, but one of the real weaknesses of tools like ChatGPT is just running with it, and not more tightly defining the spec first. But hey, these things are supposed to be magic right?\nBecause the student wasn’t familiar with Javascript, or debugging techniques in general he was pretty lost. He told me that with some previous prompts he ended up with working code, so it could be turned back into blocks, and, being a fairly competent visual programmer (although lacking much understanding of things like functions, which I’m trying to work with him on 😀) he at least had a base to work from, but this time around it was a mess. He felt like his only option was generating a whole new “solution” from ChatGPT.\nIt’s a big rough having a conversation with a tween around how LLMs work, and why the suggested code for a predominately visual language is probably going to turn out badly (even for a framework that has equivalent visual, JS, and Python representations you can switch between like MakeCode). Overall, it was a bad experience for him and he ended up writing some Python code, making a start on a Wordle clone and feeling much more successful.\nWhat would have turned this into a more positive experience - the sort that the AI boosters would have held up as a success?\nChatGPT acting like a more effective “helpful assistant” that defines the problem before jumping in and providing “answers”? “Prompt engineering” skills that give a higher likelihood of a more correct response being generated? More of a debugging mindset in students earlier on, where interactions with the LLM are more iterative rather than single shot? Problem decomposition skills that lead to smaller and more tightly focused interactions with the LLM? Or would it be shoving Copilot into yet another tool so it’s closer to the context of the programming problem? I’d actually be interested to see how that turned out and, from a UI perspective how much of a disaster putting putting ghostly suggestion blocks into a visual programming project, a-la Github Copilot, would turn out. Lots of kids are programming following someone on YouTube step by step, so it isn’t a huge leap, but at least there’s intentionality there, not some exquisite corpse programming.\nI actually like Copilot sitting in VSCode for me. When I know what I’m doing I turn on code completion and it makes boilerplate less annoying. When I’m learning new things, I turn off code completion and use the chat mode to explicitly poke at things I don’t quite understand. It’s frequently imperfect or flat out wrong, or just unhelpful. Yesterday I asked a question about the effect of a future change to a default parameter value in a pandas method and it provided example code – twice in a row – that demonstrated identical behavior for both modes of the boolean parameter 🤣. I have a lot of experience of breaking down problems, challenging my assumptions of correctness (so many challenges), debugging code, and generally having to figure out and fix things myself. Where are kids going to get the experience to help them navigate all of the Helpful AI Assistant fails?\n",
+  "wordCount" : "706",
+  "inLanguage": "en",
+  "datePublished": "2024-11-24T05:51:51+08:00",
+  "dateModified": "2024-11-24T05:51:51+08:00",
+  "author":{
+    "@type": "Person",
+    "name": "Rob"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "/llms-at-the-arcade/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Headtilt",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="/images/headtilt.png" alt="" aria-label="logo"
+                    height="30">Adjust your angle</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/post" title="posts">
+                    <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="/page/about/" title="about">
+                    <span><i class="fa-solid fa-circle-info"></i> about</span>
+                </a>
+            </li>
+            <li>
+                <a href="/categories/" title="categories">
+                    <span><i class="fa-solid fa-layer-group"></i> categories</span>
+                </a>
+            </li>
+            <li>
+                <a href="/tags/" title="tags">
+                    <span><i class="fa-solid fa-tags"></i> tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      LLMs at the Arcade
+    </h1>
+    <div class="post-meta"><span title='2024-11-24 05:51:51 +0800 AWST'>Sun, Nov 24, 2024</span>&nbsp;·&nbsp;Rob
+
+</div>
+  </header> 
+  <div class="post-content"><p>I was mentoring at our local fortnightly Coder Dojo session yesterday and heard a couple of students talking about getting help from ChatGPT. My ears pricked up because these are mostly younger kids (mid-late primary, a few in early secondary) and, as much as I try to encourage them to broaden their horizons, usually are firmly in Scratch-land, with a few who have been working in <a href="https://arcade.makecode.com">MakeCode Arcade</a>; how were they using LLMs here?</p>
+<p>A bit later on I plonked myself down next to one of them and asked what his experience had been like with ChatGPT. He said it had been terrible, sometimes it gave him Javascript, sometimes TypeScript or Python for his MakeCode project, and nothing was working. He showed me a couple of interactions he was going through and pasting the resulting code into Arcade, which was reporting errors all the way through. To be somewhat fair to the tool, the problem specification wasn&rsquo;t great, being along the lines of &ldquo;Make me a maze generation game in Makecode Arcade&rdquo;, but one of the real weaknesses of tools like ChatGPT is just running with it, and not more tightly defining the spec first. But hey, these things are supposed to be magic right?</p>
+<p>Because the student wasn&rsquo;t familiar with Javascript, or debugging techniques in general he was pretty lost. He told me that with some previous prompts he ended up with working code, so it could be turned back into blocks, and, being a fairly competent visual programmer (although lacking much understanding of things like functions, which I&rsquo;m trying to work with him on 😀) he at least had a base to work from, but this time around it was a mess. He felt like his only option was generating a whole new &ldquo;solution&rdquo; from ChatGPT.</p>
+<p>It&rsquo;s a big rough having a conversation with a tween around how LLMs work, and why the suggested code for a predominately visual language is probably going to turn out badly (even for a framework that has equivalent visual, JS, and Python representations you can switch between like MakeCode). Overall, it was a bad experience for him and he ended up writing some Python code, making a start on a Wordle clone and feeling much more successful.</p>
+<p>What would have turned this into a more positive experience - the sort that the AI boosters would have held up as a success?</p>
+<ul>
+<li>ChatGPT acting like a more effective &ldquo;helpful assistant&rdquo; that defines the problem before jumping in and providing &ldquo;answers&rdquo;?</li>
+<li>&ldquo;Prompt engineering&rdquo; skills that give a higher likelihood of a more correct response being generated?</li>
+<li>More of a debugging mindset in students earlier on, where interactions with the LLM are more iterative rather than single shot?</li>
+<li>Problem decomposition skills that lead to smaller and more tightly focused interactions with the LLM?</li>
+</ul>
+<p>Or would it be shoving Copilot into yet another tool so it&rsquo;s closer to the context of the programming problem? I&rsquo;d actually be interested to see how that turned out and, from a UI perspective how much of a disaster putting putting ghostly suggestion blocks into a visual programming project, a-la Github Copilot, would turn out. Lots of kids are programming following someone on YouTube step by step, so it isn&rsquo;t a huge leap, but at least there&rsquo;s intentionality there, not some <a href="https://en.wikipedia.org/wiki/Exquisite_corpse">exquisite corpse</a> programming.</p>
+<p>I actually like Copilot sitting in VSCode for me. When I know what I&rsquo;m doing I turn on code completion and it makes boilerplate less annoying. When I&rsquo;m learning new things, I turn off code completion and use the chat mode to explicitly poke at things I don&rsquo;t quite understand. It&rsquo;s frequently imperfect or flat out wrong, or just unhelpful. Yesterday I asked a question about the effect of a future change to a default parameter value in a pandas method and it provided example code &ndash; twice in a row &ndash; that demonstrated identical behavior for both modes of the boolean parameter 🤣.
+I have a lot of experience of breaking down problems, challenging my assumptions of correctness (so many challenges), debugging code, and generally having to figure out and fix things myself. Where are kids going to get the experience to help them navigate all of the Helpful AI Assistant fails?</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="/tags/makecode/">Makecode</a></li>
+      <li><a href="/tags/ai/">Ai</a></li>
+      <li><a href="/tags/llm/">Llm</a></li>
+      <li><a href="/tags/debugging/">Debugging</a></li>
+      <li><a href="/tags/coderdojo/">Coderdojo</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>Rob Poulter</span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a><script type="text/javascript" src="/js/lightbox.js"></script>
+<link rel="stylesheet" href="/css/lightbox.css">
+<script data-goatcounter="https://headtilt_me.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

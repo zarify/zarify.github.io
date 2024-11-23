@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Ai on Headtilt</title>
+    <link>/tags/ai/</link>
+    <description>Recent content in Ai on Headtilt</description>
+    <generator>Hugo -- 0.138.0</generator>
+    <language>en</language>
+    <copyright>Rob Poulter</copyright>
+    <lastBuildDate>Sun, 24 Nov 2024 05:51:51 +0800</lastBuildDate>
+    <atom:link href="/tags/ai/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>LLMs at the Arcade</title>
+      <link>/llms-at-the-arcade/</link>
+      <pubDate>Sun, 24 Nov 2024 05:51:51 +0800</pubDate>
+      <guid>/llms-at-the-arcade/</guid>
+      <description>&lt;p&gt;I was mentoring at our local fortnightly Coder Dojo session yesterday and heard a couple of students talking about getting help from ChatGPT. My ears pricked up because these are mostly younger kids (mid-late primary, a few in early secondary) and, as much as I try to encourage them to broaden their horizons, usually are firmly in Scratch-land, with a few who have been working in &lt;a href=&#34;https://arcade.makecode.com&#34;&gt;MakeCode Arcade&lt;/a&gt;; how were they using LLMs here?&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

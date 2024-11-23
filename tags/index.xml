@@ -7,8 +7,43 @@
     <generator>Hugo -- 0.138.0</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
-    <lastBuildDate>Tue, 19 Nov 2024 13:39:27 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 24 Nov 2024 05:51:51 +0800</lastBuildDate>
     <atom:link href="/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Ai</title>
+      <link>/tags/ai/</link>
+      <pubDate>Sun, 24 Nov 2024 05:51:51 +0800</pubDate>
+      <guid>/tags/ai/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Coderdojo</title>
+      <link>/tags/coderdojo/</link>
+      <pubDate>Sun, 24 Nov 2024 05:51:51 +0800</pubDate>
+      <guid>/tags/coderdojo/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Debugging</title>
+      <link>/tags/debugging/</link>
+      <pubDate>Sun, 24 Nov 2024 05:51:51 +0800</pubDate>
+      <guid>/tags/debugging/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Llm</title>
+      <link>/tags/llm/</link>
+      <pubDate>Sun, 24 Nov 2024 05:51:51 +0800</pubDate>
+      <guid>/tags/llm/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Makecode</title>
+      <link>/tags/makecode/</link>
+      <pubDate>Sun, 24 Nov 2024 05:51:51 +0800</pubDate>
+      <guid>/tags/makecode/</guid>
+      <description></description>
+    </item>
     <item>
       <title>Employment</title>
       <link>/tags/employment/</link>
