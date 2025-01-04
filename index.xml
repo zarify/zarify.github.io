@@ -7,8 +7,24 @@
     <generator>Hugo -- 0.138.0</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
-    <lastBuildDate>Sun, 24 Nov 2024 05:51:51 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 04 Jan 2025 10:23:26 +0800</lastBuildDate>
     <atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Pandas Workout</title>
+      <link>/pandas-workout/</link>
+      <pubDate>Sat, 04 Jan 2025 10:23:26 +0800</pubDate>
+      <guid>/pandas-workout/</guid>
+      <description>&lt;p&gt;The last couple of months I&amp;rsquo;ve been working through &lt;a href=&#34;https://lerner.co.il/&#34;&gt;Reuven Lerner&amp;rsquo;s&lt;/a&gt;
+&lt;a href=&#34;https://www.manning.com/books/pandas-workout&#34;&gt;Pandas Workout&lt;/a&gt; book.&lt;/p&gt;
+&lt;h2 id=&#34;summary&#34;&gt;Summary&lt;/h2&gt;
+&lt;p&gt;The book covers the basics of &lt;a href=&#34;https://pandas.pydata.org/&#34;&gt;pandas&lt;/a&gt; in a way that I felt was
+generally easy to understand and absorb, particularly the first couple of chapters on Series
+and DataFrames. The latter half of the book moves a bit more quickly than I would have liked.
+Each exercise is a discussion of the topic, a set of worked steps and questions, and three or
+so &amp;ldquo;beyond the exercise&amp;rdquo; questions to solve without the help of the book. There is a
+&lt;a href=&#34;https://github.com/reuven/pandas-workout&#34;&gt;GitHub repo&lt;/a&gt;
+of notebooks containing all of the book code and the &amp;ldquo;beyond&amp;rdquo; solutions.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>LLMs at the Arcade</title>
       <link>/llms-at-the-arcade/</link>
