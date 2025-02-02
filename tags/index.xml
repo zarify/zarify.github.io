@@ -7,8 +7,29 @@
     <generator>Hugo -- 0.138.0</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
-    <lastBuildDate>Sun, 24 Nov 2024 05:51:51 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 02 Feb 2025 09:02:54 +0800</lastBuildDate>
     <atom:link href="/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Generative Art</title>
+      <link>/tags/generative-art/</link>
+      <pubDate>Sun, 02 Feb 2025 09:02:54 +0800</pubDate>
+      <guid>/tags/generative-art/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Genuary</title>
+      <link>/tags/genuary/</link>
+      <pubDate>Sun, 02 Feb 2025 09:02:54 +0800</pubDate>
+      <guid>/tags/genuary/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Javascript</title>
+      <link>/tags/javascript/</link>
+      <pubDate>Sun, 02 Feb 2025 09:02:54 +0800</pubDate>
+      <guid>/tags/javascript/</guid>
+      <description></description>
+    </item>
     <item>
       <title>Ai</title>
       <link>/tags/ai/</link>
