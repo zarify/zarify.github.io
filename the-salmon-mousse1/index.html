@@ -9,16 +9,16 @@
 <meta name="keywords" content="">
 <meta name="description" content="Every year TV news delights in informing everyone of the tragedies of deaths on our roads, adding to the tallies of state road death tolls and doing comparisons between states and years. I figured that holiday road tolls would be higher than usual, but figured I&rsquo;d do some digging into the statistics to see just how much worse they were, state by state and compared to the year as a whole.">
 <meta name="author" content="Rob">
-<link rel="canonical" href="/the-salmon-mousse1/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.d6fcd20a4fb86efa4dfac8ec95da60244cc8871042183da1ef28e3a762ad79c8.css" integrity="sha256-1vzSCk&#43;4bvpN&#43;sjsldpgJEzIhxBCGD2h7yjjp2Ktecg=" rel="preload stylesheet" as="style">
-<link rel="icon" href="/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="mask-icon" href="/safari-pinned-tab.svg">
+<link rel="canonical" href="https://headtilt.me/the-salmon-mousse1/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.1d79e034ed3fae3cce466e1b13b697315f9998d1ba8d908def178611b372b49f.css" integrity="sha256-HXngNO0/rjzORm4bE7aXMV&#43;ZmNG6jZCN7xeGEbNytJ8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://headtilt.me/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://headtilt.me/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://headtilt.me/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://headtilt.me/apple-touch-icon.png">
+<link rel="mask-icon" href="https://headtilt.me/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="/the-salmon-mousse1/">
+<link rel="alternate" hreflang="en" href="https://headtilt.me/the-salmon-mousse1/">
 <noscript>
     <style>
         #theme-toggle,
@@ -28,73 +28,10 @@
 
     </style>
 </noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="/css/formatting.css"><meta property="og:url" content="/the-salmon-mousse1/">
-  <meta property="og:site_name" content="Headtilt">
-  <meta property="og:title" content="The Salmon Mousse[1]">
-  <meta property="og:description" content="Every year TV news delights in informing everyone of the tragedies of deaths on our roads, adding to the tallies of state road death tolls and doing comparisons between states and years. I figured that holiday road tolls would be higher than usual, but figured I’d do some digging into the statistics to see just how much worse they were, state by state and compared to the year as a whole.">
-  <meta property="og:locale" content="en">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="post">
-    <meta property="article:published_time" content="2015-04-10T07:08:44+00:00">
-    <meta property="article:modified_time" content="2015-04-10T07:08:44+00:00">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="The Salmon Mousse[1]">
-<meta name="twitter:description" content="Every year TV news delights in informing everyone of the tragedies of deaths on our roads, adding to the tallies of state road death tolls and doing comparisons between states and years. I figured that holiday road tolls would be higher than usual, but figured I&rsquo;d do some digging into the statistics to see just how much worse they were, state by state and compared to the year as a whole.">
+<link rel="stylesheet" href="/css/formatting.css">
 
 
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "Posts",
-      "item": "/post/"
-    }
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "The Salmon Mousse[1]",
-      "item": "/the-salmon-mousse1/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "The Salmon Mousse[1]",
-  "name": "The Salmon Mousse[1]",
-  "description": "Every year TV news delights in informing everyone of the tragedies of deaths on our roads, adding to the tallies of state road death tolls and doing comparisons between states and years. I figured that holiday road tolls would be higher than usual, but figured I\u0026rsquo;d do some digging into the statistics to see just how much worse they were, state by state and compared to the year as a whole.\n",
-  "keywords": [
-    
-  ],
-  "articleBody": "Every year TV news delights in informing everyone of the tragedies of deaths on our roads, adding to the tallies of state road death tolls and doing comparisons between states and years. I figured that holiday road tolls would be higher than usual, but figured I’d do some digging into the statistics to see just how much worse they were, state by state and compared to the year as a whole.\nI went looking for data sources, and found some super-detailed spreadsheets at the Bureau of Infrastructure, Transport and Regional Economics (BITRE) which breaks down each individual incident, the speed limit zone that it happened in, type of vehicle, whether the fatality was a pedestrian, driver, passenger etc as well as date and time (and more). This is all broken down by state and year, and goes back to 1989.\nInformation on numbers of licensed drivers was a bit of a bust though. I would have thought that the ABS would have had something like that in with the census data, or at least a nicely broken down population by age, which it sort of had, but I was impatient and it would have required a bunch of fiddling to get it into the format that I wanted. I ended up settling for raw population data for each state instead.\nAnyway, after some fiddling around in Python getting the data into the format I wanted, I put together a bit of a summary of each year of data broken down by state, as well as the Easter[2] and Christmas road tolls.\nThe results were, if not surprising, somewhat heartening. The road toll over the holiday periods (the four typical holiday days of Easter: Good Friday to Easter Monday, and three days around Christmas: Christmas Eve to Boxing Day) were significantly higher than the rest of the year, but both the yearly road tolls and holiday road tolls have been dropping year by year, even taking into account the increase in population.\nI’ve included some rather ugly graphs to illustrate, state by state, and one consolidated graph that shows the drop in road deaths as a percentage of total state population (although, the Northern Territory, while decreasing is still comparatively way out there).\nThese each show deaths per day, taken over the year, the Easter break and the Christmas break.\nApart from the relative difference between the holiday and non-holiday periods it is gratifying that in general the trend is downwards.\nThe final graph shows the trend for all states of deaths per day as a percentage of total population. Again, the general trend is downwards, but as a percentage, the Northern Territory does particularly poorly compared to the rest of the country. When I’m a bit more inclined it’d be interesting to look at what sort of conditions the fatalities in the NT occur in compared to the rest.\nThere were a few things that I would probably do a bit differently in future. I didn’t remove the holiday totals from the rest of the year, and considering that the holiday numbers are quite high, I think it’d make a bit of a difference. As mentioned previously, it would have been nice to look at what these numbers are like when compared to the total number of licensed drivers rather than total population, although that takes us down a bit of a rabbit hole as far as how to account for pedestrian and passenger deaths. Perhaps in that instance it would be better to look at crash data rather than crash fatalities.\nAlso my stats skills are super rusty. I probably did all sorts of things wrong here, it’s been quite some time since uni :) Sadly this doesn’t stop me finding it all interesting.\n[1] - Hello Python\n[2] - Getting the dates for Easter was, of course, the worst part of the exercise because of the way that Easter is chosen each year.\n",
-  "wordCount" : "655",
-  "inLanguage": "en",
-  "datePublished": "2015-04-10T07:08:44Z",
-  "dateModified": "2015-04-10T07:08:44Z",
-  "author":{
-    "@type": "Person",
-    "name": "Rob"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "/the-salmon-mousse1/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Headtilt",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "/favicon.ico"
-    }
-  }
-}
-</script>
+
 </head>
 
 <body class="" id="top">
@@ -102,30 +39,30 @@
 <header class="header">
     <nav class="nav">
         <div class="logo">
-            <a href="/" accesskey="h" title="Adjust your angle (Alt + H)">
-                <img src="/images/headtilt.png" alt="" aria-label="logo"
+            <a href="https://headtilt.me/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="https://headtilt.me/images/headtilt.png" alt="" aria-label="logo"
                     height="30">Adjust your angle</a>
             <div class="logo-switches">
             </div>
         </div>
         <ul id="menu">
             <li>
-                <a href="/post" title="posts">
+                <a href="https://headtilt.me/post" title="posts">
                     <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
                 </a>
             </li>
             <li>
-                <a href="/page/about/" title="about">
+                <a href="https://headtilt.me/page/about/" title="about">
                     <span><i class="fa-solid fa-circle-info"></i> about</span>
                 </a>
             </li>
             <li>
-                <a href="/categories/" title="categories">
+                <a href="https://headtilt.me/categories/" title="categories">
                     <span><i class="fa-solid fa-layer-group"></i> categories</span>
                 </a>
             </li>
             <li>
-                <a href="/tags/" title="tags">
+                <a href="https://headtilt.me/tags/" title="tags">
                     <span><i class="fa-solid fa-tags"></i> tags</span>
                 </a>
             </li>

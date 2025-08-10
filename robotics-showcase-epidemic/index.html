@@ -9,16 +9,16 @@
 <meta name="keywords" content="compsci, microbit, robotics">
 <meta name="description" content="Last year when looking at wireless concepts with my Year 8 Digital Technologies students, I wrote a program for wireless beacons and laser cut a Ghostbusters style PKE Meter with some servos and a RGB LED for students to go on a hunt in our library. It was a good opportunity to look at things like the range of wireless signals, interference due to obstruction of different materials, and noisy broadcast channels. The students quite enjoyed it and it was a nice excuse to get out of the classroom.">
 <meta name="author" content="Rob">
-<link rel="canonical" href="/robotics-showcase-epidemic/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.d6fcd20a4fb86efa4dfac8ec95da60244cc8871042183da1ef28e3a762ad79c8.css" integrity="sha256-1vzSCk&#43;4bvpN&#43;sjsldpgJEzIhxBCGD2h7yjjp2Ktecg=" rel="preload stylesheet" as="style">
-<link rel="icon" href="/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="mask-icon" href="/safari-pinned-tab.svg">
+<link rel="canonical" href="https://headtilt.me/robotics-showcase-epidemic/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.1d79e034ed3fae3cce466e1b13b697315f9998d1ba8d908def178611b372b49f.css" integrity="sha256-HXngNO0/rjzORm4bE7aXMV&#43;ZmNG6jZCN7xeGEbNytJ8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://headtilt.me/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://headtilt.me/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://headtilt.me/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://headtilt.me/apple-touch-icon.png">
+<link rel="mask-icon" href="https://headtilt.me/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="/robotics-showcase-epidemic/">
+<link rel="alternate" hreflang="en" href="https://headtilt.me/robotics-showcase-epidemic/">
 <noscript>
     <style>
         #theme-toggle,
@@ -28,76 +28,10 @@
 
     </style>
 </noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="/css/formatting.css"><meta property="og:url" content="/robotics-showcase-epidemic/">
-  <meta property="og:site_name" content="Headtilt">
-  <meta property="og:title" content="Micro:bit Epidemic">
-  <meta property="og:description" content="Last year when looking at wireless concepts with my Year 8 Digital Technologies students, I wrote a program for wireless beacons and laser cut a Ghostbusters style PKE Meter with some servos and a RGB LED for students to go on a hunt in our library. It was a good opportunity to look at things like the range of wireless signals, interference due to obstruction of different materials, and noisy broadcast channels. The students quite enjoyed it and it was a nice excuse to get out of the classroom.">
-  <meta property="og:locale" content="en">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="post">
-    <meta property="article:published_time" content="2020-05-25T05:51:05+00:00">
-    <meta property="article:modified_time" content="2020-05-25T05:51:05+00:00">
-    <meta property="article:tag" content="Compsci">
-    <meta property="article:tag" content="Microbit">
-    <meta property="article:tag" content="Robotics">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Micro:bit Epidemic">
-<meta name="twitter:description" content="Last year when looking at wireless concepts with my Year 8 Digital Technologies students, I wrote a program for wireless beacons and laser cut a Ghostbusters style PKE Meter with some servos and a RGB LED for students to go on a hunt in our library. It was a good opportunity to look at things like the range of wireless signals, interference due to obstruction of different materials, and noisy broadcast channels. The students quite enjoyed it and it was a nice excuse to get out of the classroom.">
+<link rel="stylesheet" href="/css/formatting.css">
 
 
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "Posts",
-      "item": "/post/"
-    }
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "Micro:bit Epidemic",
-      "item": "/robotics-showcase-epidemic/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "Micro:bit Epidemic",
-  "name": "Micro:bit Epidemic",
-  "description": "Last year when looking at wireless concepts with my Year 8 Digital Technologies students, I wrote a program for wireless beacons and laser cut a Ghostbusters style PKE Meter with some servos and a RGB LED for students to go on a hunt in our library. It was a good opportunity to look at things like the range of wireless signals, interference due to obstruction of different materials, and noisy broadcast channels. The students quite enjoyed it and it was a nice excuse to get out of the classroom.\n",
-  "keywords": [
-    "compsci", "microbit", "robotics"
-  ],
-  "articleBody": "Last year when looking at wireless concepts with my Year 8 Digital Technologies students, I wrote a program for wireless beacons and laser cut a Ghostbusters style PKE Meter with some servos and a RGB LED for students to go on a hunt in our library. It was a good opportunity to look at things like the range of wireless signals, interference due to obstruction of different materials, and noisy broadcast channels. The students quite enjoyed it and it was a nice excuse to get out of the classroom.\n2020 has been the year of living with the global SARS-CoV2 pandemic, and there has been a lot of discussion about the various contact tracing apps which have been developed left and right (which is great fuel for my classes on ethics and data privacy!) and I figured I’d spin up a new idea for the activity on wireless networks and flip the contact tracing app on its head, using it to infect other devices instead of keep records of potentially risky contact.\nThe basic concept of the contact tracing apps (at least of the moderately sane variety) is this:\nBroadcast an ID (often randomised) via Bluetooth Low Energy Monitor incoming beacon messages, and use the signal to determine approximate proximity and whether this falls within the threshhold of $DANGER_DISTANCE Keep a record of IDs which have been in proximity for $DANGER_TIME IDs are purged after some time period (21 days is thrown around a lot) which would cover the time taken to typically develop symptoms In the event of someone testing positive for COVID-19 contacts could be uploaded to local health services to enable more efficient contact tracing (with the method for this varying by implementation) The typical values for $DANGER_DISTANCE and $DANGER_TIME have been around 2 meters and 15 minutes respectively.\nUsing Micro:bits Since the Micro:bit has a Bluetooth radio and can easily monitor signal strength and signal device IDs, it was fairly straightforward to implement some code (written in Microsoft’s MakeCode this time, whereas I used Python for the PKE meter).\nI’d like to do up a version of this that uses a speaker as well for some audio feedback about symptom status - some bleeps and bloops for coughing perhaps, or even just for some basic tactile feedback of vibration from a piezo to alert students that their device is sick.\nI’ve included links to the code and discussion of the algorithm further down the page.\nVideo Here’s a video of my first test run of more than a pair of clients. There’s one mistake in my discussion as it plays where I say more than 10 infection messages in a 30 second period, which should be a 40 second period - since infection messages are broadcast every 2 seconds, it would make it hard to get infected otherwise!\nThe Code Since this section will be a bit lengthy, here are links to the code. I’ve tried to comment most of the important blocks so hopefully most of it will be pretty self-explanatory.\nMakeCode - Virus Client\nMakeCode - Virus Master\nVirus Master The virus master device is responsible for monitoring of the client devices, and also initial infection of a client device so that I have a known infection time and get an opportunity to prime students for the activity (which I’m planning on running twice - once unaware, and once with intentional physical distancing).\nThe code is pretty straightforward - it just monitors radio traffic and collects device IDs and infection messages to keep track of total and infected devices.\nSet the radio group and create arrays for keeping device IDs of nearby Micro:bits and infected devices.\nIncoming messages will either be discovery messages or infection messages. Capture device IDs and put into relevant arrays if not already present.\nUse the captured device IDs to report on number of devices seen and infected using A or B.\nPick a random device ID to send an infection message to as Patient Zero.\nVirus Client The virus client maintains arrays of infected devices around itself based on the RSSI (signal strength) values of incoming messages. Each incoming message also contains the device ID of the sender, which can be used for determining whether enough infection messages have been received to merit being infected itself.\nIf sufficient time (40s in this case) passes without enough infection messages from a seen device, that device’s info is purged from the lists. This has a couple of purposes:\nIt keeps the idea of device lists easier to understand - if it’s there it’s infectious and close enough to be a problem If it isn’t there, we’re preserving that device’s privacy by not keeping its info on our device When devices are infected, they remain asymptomatic for 60 seconds, so only show the sad face on the screen after they’ve been merrily infecting other close devices for some time. The client needs to maintain arrays of other devices it has seen which are broadcasting infected messages, when it first saw an infected device, and how many messages it has seen. It also needs to know if it is infectious and displaying symptoms.\nThe clients broadcast discovery messages intended for the master device. If they are infected, they broadcast infect messages, and use the screen to displays whether or not they are symptomatic. Contacts are also pruned when they fall out of range for the infection window.\nWhen radio packets are received, the client needs to determine if the device has been seen before, if the signal is strong enough to merit contributing to infection, and whether enough contact has occured to infect this device. This also listens for the master device to see if an infection message refers to this device ID.\nI could probably get away without pruning and just maintain data for every device seen, but this keeps the list of infected devices easy to understand. If it’s in the array, it’s something to worry about. This also stays true to the idea of not keeping identifying data for devices which are not relevant.\n",
-  "wordCount" : "1014",
-  "inLanguage": "en",
-  "datePublished": "2020-05-25T05:51:05.735Z",
-  "dateModified": "2020-05-25T05:51:05.735Z",
-  "author":{
-    "@type": "Person",
-    "name": "Rob"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "/robotics-showcase-epidemic/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Headtilt",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "/favicon.ico"
-    }
-  }
-}
-</script>
+
 </head>
 
 <body class="" id="top">
@@ -105,30 +39,30 @@
 <header class="header">
     <nav class="nav">
         <div class="logo">
-            <a href="/" accesskey="h" title="Adjust your angle (Alt + H)">
-                <img src="/images/headtilt.png" alt="" aria-label="logo"
+            <a href="https://headtilt.me/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="https://headtilt.me/images/headtilt.png" alt="" aria-label="logo"
                     height="30">Adjust your angle</a>
             <div class="logo-switches">
             </div>
         </div>
         <ul id="menu">
             <li>
-                <a href="/post" title="posts">
+                <a href="https://headtilt.me/post" title="posts">
                     <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
                 </a>
             </li>
             <li>
-                <a href="/page/about/" title="about">
+                <a href="https://headtilt.me/page/about/" title="about">
                     <span><i class="fa-solid fa-circle-info"></i> about</span>
                 </a>
             </li>
             <li>
-                <a href="/categories/" title="categories">
+                <a href="https://headtilt.me/categories/" title="categories">
                     <span><i class="fa-solid fa-layer-group"></i> categories</span>
                 </a>
             </li>
             <li>
-                <a href="/tags/" title="tags">
+                <a href="https://headtilt.me/tags/" title="tags">
                     <span><i class="fa-solid fa-tags"></i> tags</span>
                 </a>
             </li>
@@ -147,7 +81,7 @@
 
 </div>
   </header> 
-  <div class="post-content"><p>Last year when looking at wireless concepts with my Year 8 Digital Technologies students, I wrote a program for wireless beacons and laser cut a <a href="/dowsing-for-radio/">Ghostbusters style PKE Meter</a> with some servos and a RGB LED for students to go on a hunt in our library. It was a good opportunity to look at things like the range of wireless signals, interference due to obstruction of different materials, and noisy broadcast channels. The students quite enjoyed it and it was a nice excuse to get out of the classroom.</p>
+  <div class="post-content"><p>Last year when looking at wireless concepts with my Year 8 Digital Technologies students, I wrote a program for wireless beacons and laser cut a <a href="https://headtilt.me/dowsing-for-radio/">Ghostbusters style PKE Meter</a> with some servos and a RGB LED for students to go on a hunt in our library. It was a good opportunity to look at things like the range of wireless signals, interference due to obstruction of different materials, and noisy broadcast channels. The students quite enjoyed it and it was a nice excuse to get out of the classroom.</p>
 <p>2020 has been the year of living with the global SARS-CoV2 pandemic, and there has been a lot of discussion about the various contact tracing apps which have been developed left and right (which is great fuel for my classes on ethics and data privacy!) and I figured I&rsquo;d spin up a new idea for the activity on wireless networks and flip the contact tracing app on its head, using it to infect other devices instead of keep records of potentially risky contact.</p>
 <p>The basic concept of the contact tracing apps (at least of the moderately sane variety) is this:</p>
 <ul>
@@ -194,9 +128,9 @@
 
   <footer class="post-footer">
     <ul class="post-tags">
-      <li><a href="/tags/compsci/">Compsci</a></li>
-      <li><a href="/tags/microbit/">Microbit</a></li>
-      <li><a href="/tags/robotics/">Robotics</a></li>
+      <li><a href="https://headtilt.me/tags/compsci/">Compsci</a></li>
+      <li><a href="https://headtilt.me/tags/microbit/">Microbit</a></li>
+      <li><a href="https://headtilt.me/tags/robotics/">Robotics</a></li>
     </ul>
   </footer>
 </article>

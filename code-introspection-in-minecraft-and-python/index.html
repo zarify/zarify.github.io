@@ -10,16 +10,16 @@
 <meta name="description" content="I recently got around to trying out the new-ish Python mode for coding within Minecraft: Education Edition, and whilst it is refreshing to be able to write code, the lack of a code library to be able to refer to made learning the Minecraft-specific commands somewhat difficult.
 Enter code introspection, which is the ability to look inside classes and methods from within Python to list them and see what is available, or to show their docstring and discover their arguments.">
 <meta name="author" content="Rob">
-<link rel="canonical" href="/code-introspection-in-minecraft-and-python/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.d6fcd20a4fb86efa4dfac8ec95da60244cc8871042183da1ef28e3a762ad79c8.css" integrity="sha256-1vzSCk&#43;4bvpN&#43;sjsldpgJEzIhxBCGD2h7yjjp2Ktecg=" rel="preload stylesheet" as="style">
-<link rel="icon" href="/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="mask-icon" href="/safari-pinned-tab.svg">
+<link rel="canonical" href="https://headtilt.me/code-introspection-in-minecraft-and-python/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.1d79e034ed3fae3cce466e1b13b697315f9998d1ba8d908def178611b372b49f.css" integrity="sha256-HXngNO0/rjzORm4bE7aXMV&#43;ZmNG6jZCN7xeGEbNytJ8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://headtilt.me/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://headtilt.me/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://headtilt.me/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://headtilt.me/apple-touch-icon.png">
+<link rel="mask-icon" href="https://headtilt.me/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="/code-introspection-in-minecraft-and-python/">
+<link rel="alternate" hreflang="en" href="https://headtilt.me/code-introspection-in-minecraft-and-python/">
 <noscript>
     <style>
         #theme-toggle,
@@ -29,77 +29,10 @@ Enter code introspection, which is the ability to look inside classes and method
 
     </style>
 </noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="/css/formatting.css"><meta property="og:url" content="/code-introspection-in-minecraft-and-python/">
-  <meta property="og:site_name" content="Headtilt">
-  <meta property="og:title" content="Code Introspection in Minecraft and Python">
-  <meta property="og:description" content="I recently got around to trying out the new-ish Python mode for coding within Minecraft: Education Edition, and whilst it is refreshing to be able to write code, the lack of a code library to be able to refer to made learning the Minecraft-specific commands somewhat difficult.
-Enter code introspection, which is the ability to look inside classes and methods from within Python to list them and see what is available, or to show their docstring and discover their arguments.">
-  <meta property="og:locale" content="en">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="post">
-    <meta property="article:published_time" content="2020-11-17T05:58:26+00:00">
-    <meta property="article:modified_time" content="2020-11-17T05:58:26+00:00">
-    <meta property="article:tag" content="Python">
-    <meta property="article:tag" content="Minecraft">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Code Introspection in Minecraft and Python">
-<meta name="twitter:description" content="I recently got around to trying out the new-ish Python mode for coding within Minecraft: Education Edition, and whilst it is refreshing to be able to write code, the lack of a code library to be able to refer to made learning the Minecraft-specific commands somewhat difficult.
-Enter code introspection, which is the ability to look inside classes and methods from within Python to list them and see what is available, or to show their docstring and discover their arguments.">
+<link rel="stylesheet" href="/css/formatting.css">
 
 
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "Posts",
-      "item": "/post/"
-    }
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "Code Introspection in Minecraft and Python",
-      "item": "/code-introspection-in-minecraft-and-python/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "Code Introspection in Minecraft and Python",
-  "name": "Code Introspection in Minecraft and Python",
-  "description": "I recently got around to trying out the new-ish Python mode for coding within Minecraft: Education Edition, and whilst it is refreshing to be able to write code, the lack of a code library to be able to refer to made learning the Minecraft-specific commands somewhat difficult.\nEnter code introspection, which is the ability to look inside classes and methods from within Python to list them and see what is available, or to show their docstring and discover their arguments.\n",
-  "keywords": [
-    "python", "minecraft"
-  ],
-  "articleBody": "I recently got around to trying out the new-ish Python mode for coding within Minecraft: Education Edition, and whilst it is refreshing to be able to write code, the lack of a code library to be able to refer to made learning the Minecraft-specific commands somewhat difficult.\nEnter code introspection, which is the ability to look inside classes and methods from within Python to list them and see what is available, or to show their docstring and discover their arguments.\nUsing dir to show the inbuilt methods and properties of the string class.\nUsing help to show the docstring for the strip method of strings.\nUnfortunately, although the dir function works within Minecraft the same way as in regular Python, the help function does not seem to.\nText Output in Minecraft Ordinarily, the interactive shell would be the place to do this, as in the screenshots above, however Minecraft doesn’t have an interactive shell for Python. In places I have no shell (for example in Processing’s Python mode) you could print the output of the the dir or help, but Minecraft doesn’t show the output of the print function. However it does have a method for speaking text: the say function!\nPrinting using say.\nThe output of the say code.\nCombining say() and dir() The naive way (because print in regular Python lets you) of showing available commands for an object like the agent would be to run code like this:\nsay(dir(agent)) However, this will fail to run, with the possibly unhelpful error message:\nError: _minecraft_builtins.MinecraftError: Syntax error: Unexpected \"[\": at \"~ ~ ~ say \u003e\u003e[\u003c\u003c'__class__\" (Code: 0x80000000) which basically boils down to the output of dir being a list of strings, and the say function expecting just one string. The print function will happily give you a string representation of anything, but say is not so flexible.\nThe solution is to join the list into one string separated by something useful like a line break:\nsay(\"\\n\".join(dir(agent))) This may look a bit arcane, so let’s break it down:\n“\\n” is the string we would like to join together the individual list items with.\nThis is a newline character, which creates a line break, so every item will be on its own line. join is a string function we call on the newline character, and takes as an argument a list of strings. dir(agent) gets us the name of every attribute and method which belongs to the agent object as a list of strings. Here is the last part of the output of this code, showing what we can do with the Agent.\nThis works nicely. The list is long, and so only shows part of it in the world chat view, but we can open up the chat window (by pressing t or Enter) to be able to scroll through the whole list:\nattack collect destroy drop get_item get_item_count give inspect inspect_data interact move place position rotation say teleport till transfer turn You will also see a number of listings with __ or _ prepended. These are internal methods and attributes, which you generally don’t want to fiddle with.\nWe can also use a similar technique to look at the contents of the globals dictionary, which is the collection of variables currently defined in the global scope. This gives us an idea of what objects have been created which we can poke at using the dir function (not everything is an object though).\nsay(\"\\n\".join(globals())) This gives us interesting things to look at like the player, world, and user, as well as globally defined functions like spawn, and summon.\nHelp Unfortunately, although there is a help function available, it doesn’t seem to work the same way as the standard Python one, so the way to figure out how many of the functions and methods work is through trial and error. Generally the Python editor within Minecraft will give you useful enough errors to know how many and what type of arguments something needs to run when you get it wrong, and that combined with liberal use of good old print debugging using the say function should get you where you need to go.\nFor example I spent a little while poking at the agent’s inspect method trying to solve one of this year’s Hour of Code problems in a manner that wasn’t in the instructions (didn’t work, but led to this post as inspect wasn’t advertised anywhere in the instructions).\nFirst I can just try the inspect method by itself (even though knowing what it does I should expect a direction):\nagent.inspect() This gives me an error when I run it and return to Code Builder:\nAn error indicating that I need to give inspect a single argument\nNow I can add in a directional argument, save the return value of that method call to a variable, and say it to determine what information the agent is actually receiving.\nd = agent.inspect(\"down\") say(d) “grass” is what is under my Agent!\nWith a bit of perseverance, you should be able to figure out most of the undocumented features through this method.\n",
-  "wordCount" : "849",
-  "inLanguage": "en",
-  "datePublished": "2020-11-17T05:58:26.421Z",
-  "dateModified": "2020-11-17T05:58:26.421Z",
-  "author":{
-    "@type": "Person",
-    "name": "Rob"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "/code-introspection-in-minecraft-and-python/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Headtilt",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "/favicon.ico"
-    }
-  }
-}
-</script>
+
 </head>
 
 <body class="" id="top">
@@ -107,30 +40,30 @@ Enter code introspection, which is the ability to look inside classes and method
 <header class="header">
     <nav class="nav">
         <div class="logo">
-            <a href="/" accesskey="h" title="Adjust your angle (Alt + H)">
-                <img src="/images/headtilt.png" alt="" aria-label="logo"
+            <a href="https://headtilt.me/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="https://headtilt.me/images/headtilt.png" alt="" aria-label="logo"
                     height="30">Adjust your angle</a>
             <div class="logo-switches">
             </div>
         </div>
         <ul id="menu">
             <li>
-                <a href="/post" title="posts">
+                <a href="https://headtilt.me/post" title="posts">
                     <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
                 </a>
             </li>
             <li>
-                <a href="/page/about/" title="about">
+                <a href="https://headtilt.me/page/about/" title="about">
                     <span><i class="fa-solid fa-circle-info"></i> about</span>
                 </a>
             </li>
             <li>
-                <a href="/categories/" title="categories">
+                <a href="https://headtilt.me/categories/" title="categories">
                     <span><i class="fa-solid fa-layer-group"></i> categories</span>
                 </a>
             </li>
             <li>
-                <a href="/tags/" title="tags">
+                <a href="https://headtilt.me/tags/" title="tags">
                     <span><i class="fa-solid fa-tags"></i> tags</span>
                 </a>
             </li>
@@ -218,8 +151,8 @@ This is a <strong>newline</strong> character, which creates a line break, so ev
 
   <footer class="post-footer">
     <ul class="post-tags">
-      <li><a href="/tags/python/">Python</a></li>
-      <li><a href="/tags/minecraft/">Minecraft</a></li>
+      <li><a href="https://headtilt.me/tags/python/">Python</a></li>
+      <li><a href="https://headtilt.me/tags/minecraft/">Minecraft</a></li>
     </ul>
   </footer>
 </article>
