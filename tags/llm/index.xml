@@ -7,8 +7,29 @@
     <generator>Hugo -- 0.148.2</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
-    <lastBuildDate>Sat, 09 Aug 2025 07:35:10 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 28 Aug 2025 02:53:25 +0800</lastBuildDate>
     <atom:link href="https://headtilt.me/tags/llm/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>WASM Python - Cat Herding 01</title>
+      <link>https://headtilt.me/cat-herding-wasm-python-01/</link>
+      <pubDate>Thu, 28 Aug 2025 02:53:25 +0800</pubDate>
+      <guid>https://headtilt.me/cat-herding-wasm-python-01/</guid>
+      <description>&lt;h2 id=&#34;preramble&#34;&gt;Pre(r)amble&lt;/h2&gt;
+&lt;p&gt;I&amp;rsquo;m in a strange place in my head with respect to coding agents. On one hand I see all the really
+dumb stuff that &amp;ldquo;intelligent&amp;rdquo; chatbots produce, on the other hand,
+&lt;a href=&#34;https://headtilt.me/agent-experiment/&#34;&gt;I&amp;rsquo;ve used them myself&lt;/a&gt; to turn something from
+&amp;ldquo;I should do that sometime when I&amp;rsquo;m motivated&amp;rdquo; into something I can actually use. It&amp;rsquo;s a weird
+time to be a teacher, let alone one of Digital Technologies.&lt;/p&gt;
+&lt;p&gt;Anyhow, this post (and hopefully some future ones) is an attempt to use AI to help shift some
+projects out of my head and backlog, and try and get them made. I&amp;rsquo;m aware of some of the things
+I found with my first AI coding experiment, in that rather than necessarily turning me into a
+&amp;ldquo;10x Engineer&amp;rdquo;, in fact it can turn me into a &amp;ldquo;0.95x Engineer&amp;rdquo;, getting me 95% of the way
+there and then getting stuck. The wonderful Cory Doctorow had a turn of phrase &amp;ldquo;reverse centaur&amp;rdquo;
+in &lt;a href=&#34;https://pluralistic.net/2025/08/04/bad-vibe-coding/#maximally-codelike-bugs&#34;&gt;this post&lt;/a&gt;,
+referring to when humans are forced to use AI. I loved the term, but probably not for the reason
+it was intended. I feel that when you&amp;rsquo;re being a centaur using AI agents, sometimes you&amp;rsquo;re the
+human, and sometimes you&amp;rsquo;re the horse(&amp;rsquo;s arse).&lt;/p&gt;</description>
+    </item>
     <item>
       <title>ESP-CYD</title>
       <link>https://headtilt.me/esp-cyd/</link>

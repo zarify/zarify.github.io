@@ -2,11 +2,41 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://headtilt.me/tags/agents/</loc>
+    <lastmod>2025-08-28T02:53:25+08:00</lastmod>
+  </url><url>
     <loc>https://headtilt.me/tags/ai/</loc>
-    <lastmod>2025-08-09T07:35:10+08:00</lastmod>
+    <lastmod>2025-08-28T02:53:25+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/tags/cat-herding/</loc>
+    <lastmod>2025-08-28T02:53:25+08:00</lastmod>
   </url><url>
     <loc>https://headtilt.me/categories/</loc>
-    <lastmod>2025-08-09T07:35:10+08:00</lastmod>
+    <lastmod>2025-08-28T02:53:25+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/</loc>
+    <lastmod>2025-08-28T02:53:25+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/tags/llm/</loc>
+    <lastmod>2025-08-28T02:53:25+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/post/</loc>
+    <lastmod>2025-08-28T02:53:25+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/tags/python/</loc>
+    <lastmod>2025-08-28T02:53:25+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/categories/ramble/</loc>
+    <lastmod>2025-08-28T02:53:25+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/tags/</loc>
+    <lastmod>2025-08-28T02:53:25+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/cat-herding-wasm-python-01/</loc>
+    <lastmod>2025-08-28T02:53:25+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/tags/wasm-python/</loc>
+    <lastmod>2025-08-28T02:53:25+08:00</lastmod>
   </url><url>
     <loc>https://headtilt.me/categories/classroom/</loc>
     <lastmod>2025-08-09T07:35:10+08:00</lastmod>
@@ -17,31 +47,13 @@
     <loc>https://headtilt.me/esp-cyd/</loc>
     <lastmod>2025-08-09T07:35:10+08:00</lastmod>
   </url><url>
-    <loc>https://headtilt.me/</loc>
-    <lastmod>2025-08-09T07:35:10+08:00</lastmod>
-  </url><url>
-    <loc>https://headtilt.me/tags/llm/</loc>
-    <lastmod>2025-08-09T07:35:10+08:00</lastmod>
-  </url><url>
-    <loc>https://headtilt.me/post/</loc>
-    <lastmod>2025-08-09T07:35:10+08:00</lastmod>
-  </url><url>
-    <loc>https://headtilt.me/tags/python/</loc>
-    <lastmod>2025-08-09T07:35:10+08:00</lastmod>
-  </url><url>
     <loc>https://headtilt.me/tags/robotics/</loc>
-    <lastmod>2025-08-09T07:35:10+08:00</lastmod>
-  </url><url>
-    <loc>https://headtilt.me/tags/</loc>
     <lastmod>2025-08-09T07:35:10+08:00</lastmod>
   </url><url>
     <loc>https://headtilt.me/agent-experiment/</loc>
     <lastmod>2025-08-09T07:31:10+08:00</lastmod>
   </url><url>
     <loc>https://headtilt.me/tags/debugging/</loc>
-    <lastmod>2025-08-09T07:31:10+08:00</lastmod>
-  </url><url>
-    <loc>https://headtilt.me/categories/ramble/</loc>
     <lastmod>2025-08-09T07:31:10+08:00</lastmod>
   </url><url>
     <loc>https://headtilt.me/tags/generative-art/</loc>
