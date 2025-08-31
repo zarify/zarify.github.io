@@ -4,11 +4,28 @@
     <title>Ai on Headtilt</title>
     <link>https://headtilt.me/tags/ai/</link>
     <description>Recent content in Ai on Headtilt</description>
-    <generator>Hugo -- 0.148.2</generator>
+    <generator>Hugo -- 0.149.0</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
-    <lastBuildDate>Thu, 28 Aug 2025 02:53:25 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 01 Sep 2025 06:03:47 +0800</lastBuildDate>
     <atom:link href="https://headtilt.me/tags/ai/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Cat Herding Wasm Python 02</title>
+      <link>https://headtilt.me/cat-herding-wasm-python-02/</link>
+      <pubDate>Mon, 01 Sep 2025 06:03:47 +0800</pubDate>
+      <guid>https://headtilt.me/cat-herding-wasm-python-02/</guid>
+      <description>&lt;h2 id=&#34;preramble&#34;&gt;Pre(r)amble&lt;/h2&gt;
+&lt;p&gt;This is part of a(n aspirationally) series of posts documenting some of the process of
+(building|cat herding an AI agent to build)
+an easily hosted Python teaching tool built with just front-end JS and a WASM port of
+MicroPython. &lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-01/&#34;&gt;You can find Part 1 here&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;what-we-had-before&#34;&gt;What we had before&lt;/h2&gt;
+&lt;p&gt;The outcome of the previous week&amp;rsquo;s achievements was pretty satisfying since I&amp;rsquo;d tried
+and failed to solve the problems of having a responsive WASM Python runtime for user
+code before. Being able to lean on the agent to do things like make changes to C code
+where I knew what the outcome needed to be, and knew &lt;em&gt;how&lt;/em&gt; it needed to work, but didn&amp;rsquo;t
+know &lt;em&gt;what&lt;/em&gt; to do to make it happen was so valuable.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>WASM Python - Cat Herding 01</title>
       <link>https://headtilt.me/cat-herding-wasm-python-01/</link>
