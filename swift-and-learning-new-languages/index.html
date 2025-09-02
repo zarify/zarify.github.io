@@ -9,16 +9,16 @@
 <meta name="keywords" content="">
 <meta name="description" content="Like a whole bunch of people I was quite interested to learn about Apple&rsquo;s introduction of their new language Swift, at their WWDC event this year. I&rsquo;ve been trying to come to terms with ObjectiveC for a couple of years now without much success and this seemed like a good opportunity to learn something new and at the same time finally get around to starting to write some iOS and potentially OSX software.">
 <meta name="author" content="Rob">
-<link rel="canonical" href="/swift-and-learning-new-languages/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.d6fcd20a4fb86efa4dfac8ec95da60244cc8871042183da1ef28e3a762ad79c8.css" integrity="sha256-1vzSCk&#43;4bvpN&#43;sjsldpgJEzIhxBCGD2h7yjjp2Ktecg=" rel="preload stylesheet" as="style">
-<link rel="icon" href="/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="mask-icon" href="/safari-pinned-tab.svg">
+<link rel="canonical" href="https://headtilt.me/swift-and-learning-new-languages/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.1d79e034ed3fae3cce466e1b13b697315f9998d1ba8d908def178611b372b49f.css" integrity="sha256-HXngNO0/rjzORm4bE7aXMV&#43;ZmNG6jZCN7xeGEbNytJ8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://headtilt.me/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://headtilt.me/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://headtilt.me/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://headtilt.me/apple-touch-icon.png">
+<link rel="mask-icon" href="https://headtilt.me/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="/swift-and-learning-new-languages/">
+<link rel="alternate" hreflang="en" href="https://headtilt.me/swift-and-learning-new-languages/">
 <noscript>
     <style>
         #theme-toggle,
@@ -28,73 +28,10 @@
 
     </style>
 </noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="/css/formatting.css"><meta property="og:url" content="/swift-and-learning-new-languages/">
-  <meta property="og:site_name" content="Headtilt">
-  <meta property="og:title" content="Swift and Learning New Languages">
-  <meta property="og:description" content="Like a whole bunch of people I was quite interested to learn about Apple’s introduction of their new language Swift, at their WWDC event this year. I’ve been trying to come to terms with ObjectiveC for a couple of years now without much success and this seemed like a good opportunity to learn something new and at the same time finally get around to starting to write some iOS and potentially OSX software.">
-  <meta property="og:locale" content="en">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="post">
-    <meta property="article:published_time" content="2014-07-13T13:31:33+00:00">
-    <meta property="article:modified_time" content="2014-07-13T13:31:33+00:00">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Swift and Learning New Languages">
-<meta name="twitter:description" content="Like a whole bunch of people I was quite interested to learn about Apple&rsquo;s introduction of their new language Swift, at their WWDC event this year. I&rsquo;ve been trying to come to terms with ObjectiveC for a couple of years now without much success and this seemed like a good opportunity to learn something new and at the same time finally get around to starting to write some iOS and potentially OSX software.">
+<link rel="stylesheet" href="/css/formatting.css">
 
 
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "Posts",
-      "item": "/post/"
-    }
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "Swift and Learning New Languages",
-      "item": "/swift-and-learning-new-languages/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "Swift and Learning New Languages",
-  "name": "Swift and Learning New Languages",
-  "description": "Like a whole bunch of people I was quite interested to learn about Apple\u0026rsquo;s introduction of their new language Swift, at their WWDC event this year. I\u0026rsquo;ve been trying to come to terms with ObjectiveC for a couple of years now without much success and this seemed like a good opportunity to learn something new and at the same time finally get around to starting to write some iOS and potentially OSX software.\n",
-  "keywords": [
-    
-  ],
-  "articleBody": "Like a whole bunch of people I was quite interested to learn about Apple’s introduction of their new language Swift, at their WWDC event this year. I’ve been trying to come to terms with ObjectiveC for a couple of years now without much success and this seemed like a good opportunity to learn something new and at the same time finally get around to starting to write some iOS and potentially OSX software.\nIt’s been quite some time since I went and learned a new language. I had a brief look at Mozilla’s Rust a while back, and while some of the language features were interesting, I didn’t have a compelling reason to really get into it and try to write something. I think that means the last time I actually learned and used a new language was Python, going on 10 years ago (and I still thoroughly enjoy using it).\nLearning Swift has been relatively easy for most of the basic language features as it shares a lot of the nice higher level syntax of commonly used interpreted languages like type inference and less focus on throwing special symbols around (like semi-colons in any C-like language, and in particular square brackets in ObjectiveC). Some of the funkier things have taken a bit more getting used to, like Optionals and Generics, but since the WWDC session videos were available to everyone this year, it was quite helpful seeing their presenters go through a bunch of examples explaining their uses.\nI was having a play with creating custom operators this afternoon, since while Swift has an ‘in’ keyword like Python, it doesn’t operate the same way. You can use it to iterate over an iterable, but not to check for membership, which is often handy. I figured I’d have a go at making an operator that did and it seems to work ok (but no doubt will break in all sorts of interesting ways!)\nUpdate 2014-08-20: From Beta 4 a few things changed, so I’ve aded a few things to fix this so it still works.\n// This bit on extending string via subscripts from // http://stackoverflow.com/a/24144365/2930510 extension String { subscript (i: Int) -\u003e String { return String(Array(self)[i]) } subscript (r: Range) -\u003e String { var start = advance(startIndex, r.startIndex) var end = advance(startIndex, r.endIndex) return substringWithRange(Range(start: start, end: end)) } } infix operator\u003c\u003e { associativity none } func \u003c\u003e(left: T, right: [T]) -\u003e Bool { if let result = find(right, left) { return true } else { return false } } func \u003c\u003e(left: T, right: [T: AnyObject]) -\u003e Bool { if let result = right.indexForKey(left) { return true } else { return false } } func \u003c\u003e(left: String, right: String) -\u003e Bool { let strlen = Array(right).count let sublen = Array(left).count for i: Int in 0..\u003c(strlen-sublen+1) { if left == right[i..\u003ci+sublen] { return true } } for i: Int in 0.. (This would be nicer with properly indented code :-/)\nIt’s a little annoying that I couldn’t just use the word ‘in’ with this approach, as operators have to be made up of the usual operator set of characters (!, -, + etc) and not much really shouted out membership to me. Messing with anyone who uses the \u003c\u003e convention for inequality and reads my code makes me a little bit happier though :) I quite like the use of generics here for the array and dictionary operations, even if the method for finding a substring just makes me cringe.\nThe real headache (as lots of people pointed out when Swift was announced) is not that Swift is a nice easy language to learn, but that all of the iOS and OSX frameworks still need to be learned, and they’re less straightforward. The majority of the tutorial code that people have put out there is still in ObjectiveC, and while it is possible to translate from one to the other after a while, when I was trying to figure it out to start with it was still quite obtuse. Add to that the XCode beta still being quite flaky in some respects when it comes to Swift and having to fall back on ObjC code for some things (like unwinding segues between storyboards) and getting a very simple app written turned out to be not quite as simple as all that.\nOne of the things that has quite surprised me is that so few tutorials aimed at iOS beginners actually do much to explain the concepts of how the application model works. Most tutorials focus on explaining what code does, which is fine, but if you’re not aware of what a view controller does, or the purpose and application of delegates then you’re left pretty confused.\nIn summary, it’s been quite fun playing with a new language and doing something practical with it. Now that I’ve read a small mountain of articles on basic app design I think I’m starting to get my head around the way that iOS works and can start chipping away at some of the ideas I’ve had building up for a few years now. One of the benefits of putting all of this off for so long has been that I have a nice stockpile of concepts from simple on-phone stuff to more complex ideas requiring some server infrastructure to implement (it remains to be seen as to whether I’ll ever get to those ones though :P).\n",
-  "wordCount" : "902",
-  "inLanguage": "en",
-  "datePublished": "2014-07-13T13:31:33Z",
-  "dateModified": "2014-07-13T13:31:33Z",
-  "author":{
-    "@type": "Person",
-    "name": "Rob"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "/swift-and-learning-new-languages/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Headtilt",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "/favicon.ico"
-    }
-  }
-}
-</script>
+
 </head>
 
 <body class="" id="top">
@@ -102,30 +39,30 @@
 <header class="header">
     <nav class="nav">
         <div class="logo">
-            <a href="/" accesskey="h" title="Adjust your angle (Alt + H)">
-                <img src="/images/headtilt.png" alt="" aria-label="logo"
+            <a href="https://headtilt.me/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="https://headtilt.me/images/headtilt.png" alt="" aria-label="logo"
                     height="30">Adjust your angle</a>
             <div class="logo-switches">
             </div>
         </div>
         <ul id="menu">
             <li>
-                <a href="/post" title="posts">
+                <a href="https://headtilt.me/post" title="posts">
                     <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
                 </a>
             </li>
             <li>
-                <a href="/page/about/" title="about">
+                <a href="https://headtilt.me/page/about/" title="about">
                     <span><i class="fa-solid fa-circle-info"></i> about</span>
                 </a>
             </li>
             <li>
-                <a href="/categories/" title="categories">
+                <a href="https://headtilt.me/categories/" title="categories">
                     <span><i class="fa-solid fa-layer-group"></i> categories</span>
                 </a>
             </li>
             <li>
-                <a href="/tags/" title="tags">
+                <a href="https://headtilt.me/tags/" title="tags">
                     <span><i class="fa-solid fa-tags"></i> tags</span>
                 </a>
             </li>

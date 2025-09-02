@@ -11,16 +11,16 @@
 My previous lesson looking at wireless networks used Microbits and their Bluetooth networking to illustrate some of the problems with local wireless networks (as opposed to general internet connectivity, which we mostly did by doing speed tests and complaining about the school&rsquo;s net connection :).
 At the end I wrote a bit about what I wanted to do with the next lesson, which was look at some basic crypto to handle the eavesdropping problem we had when someone else listened to the same channel we were communicating on.">
 <meta name="author" content="Rob">
-<link rel="canonical" href="/year-7-8-bad-crypto-with-microbits/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.d6fcd20a4fb86efa4dfac8ec95da60244cc8871042183da1ef28e3a762ad79c8.css" integrity="sha256-1vzSCk&#43;4bvpN&#43;sjsldpgJEzIhxBCGD2h7yjjp2Ktecg=" rel="preload stylesheet" as="style">
-<link rel="icon" href="/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="mask-icon" href="/safari-pinned-tab.svg">
+<link rel="canonical" href="https://headtilt.me/year-7-8-bad-crypto-with-microbits/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.1d79e034ed3fae3cce466e1b13b697315f9998d1ba8d908def178611b372b49f.css" integrity="sha256-HXngNO0/rjzORm4bE7aXMV&#43;ZmNG6jZCN7xeGEbNytJ8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://headtilt.me/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://headtilt.me/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://headtilt.me/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://headtilt.me/apple-touch-icon.png">
+<link rel="mask-icon" href="https://headtilt.me/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="/year-7-8-bad-crypto-with-microbits/">
+<link rel="alternate" hreflang="en" href="https://headtilt.me/year-7-8-bad-crypto-with-microbits/">
 <noscript>
     <style>
         #theme-toggle,
@@ -30,77 +30,10 @@ At the end I wrote a bit about what I wanted to do with the next lesson, which w
 
     </style>
 </noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="/css/formatting.css"><meta property="og:url" content="/year-7-8-bad-crypto-with-microbits/">
-  <meta property="og:site_name" content="Headtilt">
-  <meta property="og:title" content="Year 7-8: Bad Crypto with Microbits">
-  <meta property="og:description" content="Security of Wireless Networks My previous lesson looking at wireless networks used Microbits and their Bluetooth networking to illustrate some of the problems with local wireless networks (as opposed to general internet connectivity, which we mostly did by doing speed tests and complaining about the school’s net connection :).
-At the end I wrote a bit about what I wanted to do with the next lesson, which was look at some basic crypto to handle the eavesdropping problem we had when someone else listened to the same channel we were communicating on.">
-  <meta property="og:locale" content="en">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="post">
-    <meta property="article:published_time" content="2017-05-14T11:45:21+00:00">
-    <meta property="article:modified_time" content="2017-05-14T11:45:21+00:00">
-    <meta property="article:tag" content="Microbit">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Year 7-8: Bad Crypto with Microbits">
-<meta name="twitter:description" content="Security of Wireless Networks
-My previous lesson looking at wireless networks used Microbits and their Bluetooth networking to illustrate some of the problems with local wireless networks (as opposed to general internet connectivity, which we mostly did by doing speed tests and complaining about the school&rsquo;s net connection :).
-At the end I wrote a bit about what I wanted to do with the next lesson, which was look at some basic crypto to handle the eavesdropping problem we had when someone else listened to the same channel we were communicating on.">
+<link rel="stylesheet" href="/css/formatting.css">
 
 
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "Posts",
-      "item": "/post/"
-    }
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "Year 7-8: Bad Crypto with Microbits",
-      "item": "/year-7-8-bad-crypto-with-microbits/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "Year 7-8: Bad Crypto with Microbits",
-  "name": "Year 7-8: Bad Crypto with Microbits",
-  "description": "Security of Wireless Networks My previous lesson looking at wireless networks used Microbits and their Bluetooth networking to illustrate some of the problems with local wireless networks (as opposed to general internet connectivity, which we mostly did by doing speed tests and complaining about the school\u0026rsquo;s net connection :).\nAt the end I wrote a bit about what I wanted to do with the next lesson, which was look at some basic crypto to handle the eavesdropping problem we had when someone else listened to the same channel we were communicating on.\n",
-  "keywords": [
-    "microbit"
-  ],
-  "articleBody": "Security of Wireless Networks My previous lesson looking at wireless networks used Microbits and their Bluetooth networking to illustrate some of the problems with local wireless networks (as opposed to general internet connectivity, which we mostly did by doing speed tests and complaining about the school’s net connection :).\nAt the end I wrote a bit about what I wanted to do with the next lesson, which was look at some basic crypto to handle the eavesdropping problem we had when someone else listened to the same channel we were communicating on.\n(Note for anyone who wants to yell at me through the internet: I’m well aware that this is not anything approaching real crypto, and I’ll be the first to tell my kids that if they want to know more about how modern crypto really works, the first thing they need to do is go and find someone who really understands it - this is about what it does, not how it works.)\nThe Almighty XOR and his hammer MjollNOR\nAfter running into a bit of a wall trying to get a XOR cipher working in the block coding interface, I started to dig into the MicroPython interface instead. Along the way I discovered that there was a rather nice basic IDE called Mu, which lets you flash your code straight to the device, as well as running a REPL (Run-Evaluate-Print-Loop) to do easy code testing (which also works breaking into running code, so you can load functions onto the Microbit, then run and test them in the REPL interface).\nThe Results I haven’t used this with my classes yet, but I’ll edit this post at the end of the week and add in how things went.\nThis version uses a shake of the Microbit to choose a random image, mostly because getting A+B button presses working was annoying - see the Issues section later on, but also because I wanted to play with accelerometer gestures in Python. The A button transmits the image over whatever channel the device is listening to.\nThe B button switches channels, but I also made it switch between clear text and cipher text modes. You will see in the video when I press the B button for a second time on a channel the top-right LED lights up and the channel number stays the same. This indicates cipher text mode. It still listens on the same channel, but uses its cipher bitstring to decode any communication it receives (whether or not it’s actually encrypted :).\nBelow is a short video showing how this version of the program works.\nAgain, if you want to look at the Python code, or download the .hex file to load onto a Microbit via copying, you can grab them from the github repo.\nIssues As usual, there were some issues I ran into along the way.\nEvent-driven programming in MicroPython just isn’t there. With the block interface it seems that event listeners get their own processes, so you can break into say a radio’s receive section using a button’s code. With Python the lack of event listeners is slightly mitigated with things like buttons keeping track of whether they have been pressed since you last examined them (button_a.is_pressed() vs button_a.was_pressed() for example). This is fine for a simple main loop, but you still need to be careful not to lock yourself out with delays, particularly since I found a few situations where I had to build in delays just to cope with the length of time it takes to un-depress a button.\nDebugging is still annoying. Let’s say there’s a syntax error in your code, because you’re just not paying attention. The Microbit will try and be helpful and, when it flashes and restarts, will tell you about any errors using the LED array. However, trying to read an error message scrolling across the LED array is just plain painful, since it is quite bright, and also only shows you about a character and a half at a time. If you’re lucky, opening a REPL will also give you the error message in a way that preserves your eyes and your sanity, but I didn’t have this work all the time. I just tried to ignore the bright lights, and focus on the bit where it told you the line number of the error.\nI quite like Mu. It’s clean, simple, has (slightly overzealous) code completion, and it’s nice getting to the REPL and being able to do code introspection. BUT Mu’s ‘check syntax’ function checks syntax, but also highlights lines that don’t obey its style guidelines. So this means if you’re somewhat lazy about putting spaces after commas in argument lists or list definitions, you’ll get exactly the same red indicator at the start of the line as a genuine syntax error (and it is very opinionated about coding style, oh, and not being able to find an EOF at the end of the file).\nLastly, writing code which you can only interface with using two buttons and some basic gestures is hard. Talk about minimalism in UI design.\n",
-  "wordCount" : "852",
-  "inLanguage": "en",
-  "datePublished": "2017-05-14T11:45:21Z",
-  "dateModified": "2017-05-14T11:45:21Z",
-  "author":{
-    "@type": "Person",
-    "name": "Rob"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "/year-7-8-bad-crypto-with-microbits/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Headtilt",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "/favicon.ico"
-    }
-  }
-}
-</script>
+
 </head>
 
 <body class="" id="top">
@@ -108,30 +41,30 @@ At the end I wrote a bit about what I wanted to do with the next lesson, which w
 <header class="header">
     <nav class="nav">
         <div class="logo">
-            <a href="/" accesskey="h" title="Adjust your angle (Alt + H)">
-                <img src="/images/headtilt.png" alt="" aria-label="logo"
+            <a href="https://headtilt.me/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="https://headtilt.me/images/headtilt.png" alt="" aria-label="logo"
                     height="30">Adjust your angle</a>
             <div class="logo-switches">
             </div>
         </div>
         <ul id="menu">
             <li>
-                <a href="/post" title="posts">
+                <a href="https://headtilt.me/post" title="posts">
                     <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
                 </a>
             </li>
             <li>
-                <a href="/page/about/" title="about">
+                <a href="https://headtilt.me/page/about/" title="about">
                     <span><i class="fa-solid fa-circle-info"></i> about</span>
                 </a>
             </li>
             <li>
-                <a href="/categories/" title="categories">
+                <a href="https://headtilt.me/categories/" title="categories">
                     <span><i class="fa-solid fa-layer-group"></i> categories</span>
                 </a>
             </li>
             <li>
-                <a href="/tags/" title="tags">
+                <a href="https://headtilt.me/tags/" title="tags">
                     <span><i class="fa-solid fa-tags"></i> tags</span>
                 </a>
             </li>
@@ -151,7 +84,7 @@ At the end I wrote a bit about what I wanted to do with the next lesson, which w
 </div>
   </header> 
   <div class="post-content"><h1 id="security-of-wireless-networks">Security of Wireless Networks<a hidden class="anchor" aria-hidden="true" href="#security-of-wireless-networks">#</a></h1>
-<p>My <a href="/year-7-8-wireless-network-concepts-with-microbits/">previous lesson</a> looking at wireless networks used Microbits and their Bluetooth networking to illustrate some of the problems with local wireless networks (as opposed to general internet connectivity, which we mostly did by doing speed tests and complaining about the school&rsquo;s net connection :).</p>
+<p>My <a href="https://headtilt.me/year-7-8-wireless-network-concepts-with-microbits/">previous lesson</a> looking at wireless networks used Microbits and their Bluetooth networking to illustrate some of the problems with local wireless networks (as opposed to general internet connectivity, which we mostly did by doing speed tests and complaining about the school&rsquo;s net connection :).</p>
 <p>At the end I wrote a bit about what I wanted to do with the next lesson, which was look at some basic crypto to handle the eavesdropping problem we had when someone else listened to the same channel we were communicating on.</p>
 <p>(<strong>Note for anyone who wants to yell at me through the internet:</strong> I&rsquo;m well aware that this is not anything approaching real crypto, and I&rsquo;ll be the first to tell my kids that if they want to know more about how modern crypto really works, the first thing they need to do is go and find someone who really understands it - this is about what it does, not how it works.)</p>
 <img alt=" The Almighty XOR " loading="lazy" src="/images/Almighty+XOR.png"><p>The Almighty XOR and his hammer MjollNOR</p>
@@ -175,7 +108,7 @@ At the end I wrote a bit about what I wanted to do with the next lesson, which w
 
   <footer class="post-footer">
     <ul class="post-tags">
-      <li><a href="/tags/microbit/">Microbit</a></li>
+      <li><a href="https://headtilt.me/tags/microbit/">Microbit</a></li>
     </ul>
   </footer>
 </article>

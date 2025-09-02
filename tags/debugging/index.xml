@@ -2,18 +2,35 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Debugging on Headtilt</title>
-    <link>/tags/debugging/</link>
+    <link>https://headtilt.me/tags/debugging/</link>
     <description>Recent content in Debugging on Headtilt</description>
-    <generator>Hugo -- 0.138.0</generator>
+    <generator>Hugo -- 0.149.0</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
-    <lastBuildDate>Sun, 24 Nov 2024 05:51:51 +0800</lastBuildDate>
-    <atom:link href="/tags/debugging/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 09 Aug 2025 07:31:10 +0800</lastBuildDate>
+    <atom:link href="https://headtilt.me/tags/debugging/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Agent Experiment</title>
+      <link>https://headtilt.me/agent-experiment/</link>
+      <pubDate>Sat, 09 Aug 2025 07:31:10 +0800</pubDate>
+      <guid>https://headtilt.me/agent-experiment/</guid>
+      <description>&lt;h2 id=&#34;preramble&#34;&gt;Pre(r)amble&lt;/h2&gt;
+&lt;p&gt;It&amp;rsquo;s hard to avoid all the AI infesting everything these days, but apart from using
+completions a bit in VSCode Copilot with the occasional conversation about different
+libraries (which I find a pretty pleasant way to learn about new things, even if
+those new things are occasionally BS) I haven&amp;rsquo;t really used it for code a lot.&lt;/p&gt;
+&lt;p&gt;I read Github&amp;rsquo;s breathless &amp;ldquo;now, with AGENTS&amp;rdquo; release a while back, and never really
+gave it much thought until they also put out their
+&lt;a href=&#34;https://microsoft.github.io/CopilotAdventures/&#34;&gt;Copilot Adventures&lt;/a&gt; &amp;hellip; tutorials?
+The word &amp;ldquo;tutorial&amp;rdquo; feels a bit off, since the activities are couched in terms of
+&amp;ldquo;you&amp;rsquo;re going to make X!&amp;rdquo; but you&amp;rsquo;re not really making anything - you&amp;rsquo;re just being
+given examples of prompt structure to get the agent to build the thing for you.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>LLMs at the Arcade</title>
-      <link>/llms-at-the-arcade/</link>
+      <link>https://headtilt.me/llms-at-the-arcade/</link>
       <pubDate>Sun, 24 Nov 2024 05:51:51 +0800</pubDate>
-      <guid>/llms-at-the-arcade/</guid>
+      <guid>https://headtilt.me/llms-at-the-arcade/</guid>
       <description>&lt;p&gt;I was mentoring at our local fortnightly Coder Dojo session yesterday and heard a couple of students talking about getting help from ChatGPT. My ears pricked up because these are mostly younger kids (mid-late primary, a few in early secondary) and, as much as I try to encourage them to broaden their horizons, usually are firmly in Scratch-land, with a few who have been working in &lt;a href=&#34;https://arcade.makecode.com&#34;&gt;MakeCode Arcade&lt;/a&gt;; how were they using LLMs here?&lt;/p&gt;</description>
     </item>
   </channel>

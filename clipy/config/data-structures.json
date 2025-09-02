@@ -1,0 +1,79 @@
+{
+    "id": "data-structures",
+    "version": "1.0",
+    "title": "Python Data Structures",
+    "description": "Explore lists, dictionaries, sets, and tuples",
+    "starter": "# Python Data Structures\n# Working with lists, dictionaries, sets, and tuples\n\n# Lists - ordered, mutable collections\nfruits = [\"apple\", \"banana\", \"orange\"]\nprint(\"Fruits:\", fruits)\nfruits.append(\"grape\")\nprint(\"After adding grape:\", fruits)\n\n# Dictionaries - key-value pairs\nstudent = {\n    \"name\": \"Alice\",\n    \"age\": 20,\n    \"grades\": [85, 92, 78]\n}\nprint(\"Student info:\", student)\nprint(\"Student name:\", student[\"name\"])\n\n# Try adding more data or experimenting with other data structures!",
+    "instructions": "Learn about Python's built-in data structures! This lesson covers lists, dictionaries, sets, and tuples. Run the code to see examples, then try creating your own data structures and manipulating them.",
+    "links": [
+        "https://docs.python.org/3/tutorial/datastructures.html"
+    ],
+    "runtime": {
+        "type": "micropython",
+        "url": "/vendor/micropython.mjs"
+    },
+    "execution": {
+        "timeoutSeconds": 30,
+        "maxOutputLines": 1000
+    },
+    "tests": [
+        {
+            "id": "ds-list-print",
+            "description": "prints the fruits list",
+            "expected_stdout": "Fruits:"
+        },
+        {
+            "id": "ds-append",
+            "description": "appending grape results in grape present",
+            "main": "fruits = ['apple','banana']\nfruits.append('grape')\nprint('grape' in fruits)",
+            "expected_stdout": "True"
+        }
+    ],
+    "feedback": [
+        {
+            "id": "ds-list",
+            "title": "Lists",
+            "when": [
+                "edit"
+            ],
+            "pattern": {
+                "type": "regex",
+                "target": "code",
+                "expression": "\\[.*\\]"
+            },
+            "message": "Working with lists - great for storing ordered collections!",
+            "severity": "info",
+            "visibleByDefault": true
+        },
+        {
+            "id": "ds-dict",
+            "title": "Dictionaries",
+            "when": [
+                "edit"
+            ],
+            "pattern": {
+                "type": "regex",
+                "target": "code",
+                "expression": "\\{.*\\}"
+            },
+            "message": "Using dictionaries - perfect for key-value data!",
+            "severity": "info",
+            "visibleByDefault": true
+        },
+        {
+            "id": "ds-list-methods",
+            "title": "List methods",
+            "when": [
+                "edit"
+            ],
+            "pattern": {
+                "type": "regex",
+                "target": "code",
+                "expression": "\\.append\\(|\\.extend\\(|\\.insert\\("
+            },
+            "message": "Good use of list methods to modify collections.",
+            "severity": "info",
+            "visibleByDefault": true
+        }
+    ]
+}

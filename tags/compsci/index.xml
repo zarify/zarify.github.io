@@ -2,32 +2,32 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Compsci on Headtilt</title>
-    <link>/tags/compsci/</link>
+    <link>https://headtilt.me/tags/compsci/</link>
     <description>Recent content in Compsci on Headtilt</description>
-    <generator>Hugo -- 0.138.0</generator>
+    <generator>Hugo -- 0.149.0</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
     <lastBuildDate>Sat, 27 Jun 2020 13:11:24 +0000</lastBuildDate>
-    <atom:link href="/tags/compsci/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://headtilt.me/tags/compsci/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Year 7-8 Networking Concepts Mk 2</title>
-      <link>/year-7-8-networking-concepts-mk-2/</link>
+      <link>https://headtilt.me/year-7-8-networking-concepts-mk-2/</link>
       <pubDate>Sat, 27 Jun 2020 13:11:24 +0000</pubDate>
-      <guid>/year-7-8-networking-concepts-mk-2/</guid>
-      <description>&lt;img loading=&#34;lazy&#34; src=&#34;/images/pairing/pair_microbit.png&#34;&gt;&lt;p&gt;&lt;a href=&#34;/year-7-8-wireless-network-concepts-with-microbits/&#34;&gt;Back in 2017&lt;/a&gt; when I was first thinking about how I could use physical computing like Micro:bits in my classroom, I wrote some quick and nasty programs to demonstrate networking concepts like attenuation and latency in wireless connections as well as adapting some ideas from the &lt;a href=&#34;https://microbit.nominetresearch.uk/networking-book-online-python/&#34;&gt;Networking With the micro:bit book&lt;/a&gt;, and &lt;a href=&#34;https://learnlearn.uk/microbit/topics/networking-two-microbits/&#34;&gt;using basic wired networks for Morse Code&lt;/a&gt; (the linked site is not the original project I used the idea from, but there are only so many permutations).&lt;/p&gt;</description>
+      <guid>https://headtilt.me/year-7-8-networking-concepts-mk-2/</guid>
+      <description>&lt;img loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/pairing/pair_microbit.png&#34;&gt;&lt;p&gt;&lt;a href=&#34;https://headtilt.me/year-7-8-wireless-network-concepts-with-microbits/&#34;&gt;Back in 2017&lt;/a&gt; when I was first thinking about how I could use physical computing like Micro:bits in my classroom, I wrote some quick and nasty programs to demonstrate networking concepts like attenuation and latency in wireless connections as well as adapting some ideas from the &lt;a href=&#34;https://microbit.nominetresearch.uk/networking-book-online-python/&#34;&gt;Networking With the micro:bit book&lt;/a&gt;, and &lt;a href=&#34;https://learnlearn.uk/microbit/topics/networking-two-microbits/&#34;&gt;using basic wired networks for Morse Code&lt;/a&gt; (the linked site is not the original project I used the idea from, but there are only so many permutations).&lt;/p&gt;</description>
     </item>
     <item>
       <title>Micro:bit Epidemic</title>
-      <link>/robotics-showcase-epidemic/</link>
+      <link>https://headtilt.me/robotics-showcase-epidemic/</link>
       <pubDate>Mon, 25 May 2020 05:51:05 +0000</pubDate>
-      <guid>/robotics-showcase-epidemic/</guid>
-      <description>&lt;p&gt;Last year when looking at wireless concepts with my Year 8 Digital Technologies students, I wrote a program for wireless beacons and laser cut a &lt;a href=&#34;/dowsing-for-radio/&#34;&gt;Ghostbusters style PKE Meter&lt;/a&gt; with some servos and a RGB LED for students to go on a hunt in our library. It was a good opportunity to look at things like the range of wireless signals, interference due to obstruction of different materials, and noisy broadcast channels. The students quite enjoyed it and it was a nice excuse to get out of the classroom.&lt;/p&gt;</description>
+      <guid>https://headtilt.me/robotics-showcase-epidemic/</guid>
+      <description>&lt;p&gt;Last year when looking at wireless concepts with my Year 8 Digital Technologies students, I wrote a program for wireless beacons and laser cut a &lt;a href=&#34;https://headtilt.me/dowsing-for-radio/&#34;&gt;Ghostbusters style PKE Meter&lt;/a&gt; with some servos and a RGB LED for students to go on a hunt in our library. It was a good opportunity to look at things like the range of wireless signals, interference due to obstruction of different materials, and noisy broadcast channels. The students quite enjoyed it and it was a nice excuse to get out of the classroom.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Year 10s: Sentiment Analysis</title>
-      <link>/year-10s-sentiment-analysis/</link>
+      <link>https://headtilt.me/year-10s-sentiment-analysis/</link>
       <pubDate>Sun, 29 Dec 2019 15:46:19 +0000</pubDate>
-      <guid>/year-10s-sentiment-analysis/</guid>
+      <guid>https://headtilt.me/year-10s-sentiment-analysis/</guid>
       <description>&lt;p&gt;In 2019 I started up a programming-oriented Data Science class with my Year 10s. I ran two classes during the year, each spanning a semester. My aim for the course was to introduce students to different ways of storing, retrieving, and working with data, as well as give some coverage over different types of data and some operations that you can perform with it (e.g. numeric, text, spatial).&lt;/p&gt;
 &lt;p&gt;I ran a different main project with each class: during the first semester I looked at analysing data from the &lt;a href=&#34;https://www.aph.gov.au/Parliamentary_Business/Hansard&#34;&gt;Australian Federal Government Hansard&lt;/a&gt;. Unfortunately, the students in the group weren&amp;rsquo;t very interested in it, and (like many of my first time projects) the scope turned out to be overly broad, meaning students had trouble figuring out what they &lt;em&gt;would&lt;/em&gt; do from all the alternatives of what they &lt;em&gt;could&lt;/em&gt; do. Tangentially, working with the XML from the Hansard is a great (or terrible, depending on your perspective) activity in data cleaning - they&amp;rsquo;ve made some&amp;hellip; interesting decisions about how to format their data inside the XML structure.&lt;/p&gt;</description>
     </item>

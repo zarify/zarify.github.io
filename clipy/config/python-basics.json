@@ -1,0 +1,69 @@
+{
+    "id": "python-basics",
+    "version": "1.0",
+    "title": "Python Basics Tutorial",
+    "description": "Learn the fundamentals of Python programming",
+    "starter": "# Python Basics Tutorial\n# Let's start with variables and basic data types\n\nname = \"Alice\"\nage = 25\nheight = 5.6\n\nprint(f\"Name: {name}\")\nprint(f\"Age: {age}\")\nprint(f\"Height: {height} feet\")\n\n# Try modifying the values above and run the code!",
+    "instructions": "Welcome to Python Basics! This tutorial will teach you fundamental Python concepts. Start by running the code to see how variables work, then try modifying the values and experimenting with different data types.",
+    "links": [
+        "https://docs.python.org/3/tutorial/",
+        "https://docs.micropython.org/"
+    ],
+    "runtime": {
+        "type": "micropython",
+        "url": "/vendor/micropython.mjs"
+    },
+    "execution": {
+        "timeoutSeconds": 30,
+        "maxOutputLines": 1000
+    },
+    "tests": [
+        {
+            "id": "pb-vars",
+            "description": "prints Name, Age and Height",
+            "expected_stdout": "Name: Alice"
+        },
+        {
+            "id": "pb-stdin-format",
+            "description": "reads two values and prints formatted output",
+            "main": "a = input()\nb = input()\nprint(f'A={a},B={b}')",
+            "stdin": [
+                "one",
+                "two"
+            ],
+            "expected_stdout": "A=one,B=two"
+        }
+    ],
+    "feedback": [
+        {
+            "id": "pb-fstring",
+            "title": "Using f-strings",
+            "when": [
+                "edit"
+            ],
+            "pattern": {
+                "type": "regex",
+                "target": "code",
+                "expression": "f\".*\\{.*\\}.*\""
+            },
+            "message": "Great! You're using f-strings for formatted output.",
+            "severity": "info",
+            "visibleByDefault": true
+        },
+        {
+            "id": "pb-print",
+            "title": "Using print",
+            "when": [
+                "edit"
+            ],
+            "pattern": {
+                "type": "regex",
+                "target": "code",
+                "expression": "print\\("
+            },
+            "message": "Good use of the print() function to display output.",
+            "severity": "info",
+            "visibleByDefault": true
+        }
+    ]
+}

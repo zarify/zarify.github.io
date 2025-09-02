@@ -2,18 +2,18 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Employment on Headtilt</title>
-    <link>/tags/employment/</link>
+    <link>https://headtilt.me/tags/employment/</link>
     <description>Recent content in Employment on Headtilt</description>
-    <generator>Hugo -- 0.138.0</generator>
+    <generator>Hugo -- 0.149.0</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
     <lastBuildDate>Tue, 19 Nov 2024 13:39:27 +0800</lastBuildDate>
-    <atom:link href="/tags/employment/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://headtilt.me/tags/employment/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>I go, hugo</title>
-      <link>/i-go-hugo/</link>
+      <link>https://headtilt.me/i-go-hugo/</link>
       <pubDate>Tue, 19 Nov 2024 13:39:27 +0800</pubDate>
-      <guid>/i-go-hugo/</guid>
+      <guid>https://headtilt.me/i-go-hugo/</guid>
       <description>&lt;h1 id=&#34;tldr&#34;&gt;TL;DR;&lt;/h1&gt;
 &lt;p&gt;I&amp;rsquo;ve given &lt;a href=&#34;https://getpublii.com/&#34;&gt;Publii&lt;/a&gt; the boot and shifted this site to &lt;a href=&#34;https://gohugo.io/&#34;&gt;hugo&lt;/a&gt;. I myself got a gentler boot, being made redundant and so eyeing off what to do next.&lt;/p&gt;
 &lt;h1 id=&#34;2020-its-been-quite-a-year&#34;&gt;2020, it&amp;rsquo;s been quite a year&lt;/h1&gt;

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>ESP-CYD | Headtilt</title>
+<meta name="keywords" content="electronics, robotics, python, ai, llm">
+<meta name="description" content="Note: There&rsquo;s a companion post to this about using agentic AI here.
+Pre(r)amble
+I have a problem. Well, I have several problems, but this post is specifically about my habit of seeing
+a neat looking microcontroller, not really thinking about whether I need another one, and then buying a
+couple (because, well, you need two just in case, right?).
+In the office I have:
+
+A stack of v1 micro:bits
+Some third party micro:bit clones
+Several v2 micro:bits
+Raspberry Pi Picos (2040)
+DFRobot Beetles (ATmega)
+DFRobot Firebeetles (ESP32)
+Some ESP8266s
+Various ESP32 variants (some camera versions, some plain boards)
+
+How many have I actually gotten around to writing code on? One of the Firebeetles 😂 &hellip;and all of
+the micro:bits. Why? Having nice accessible inputs and outputs makes programming so much more enjoyable.
+The micro:bit completely nails this - no faffing around with which pin to use for the buttons, no I2C
+or SPI nonsense needed to poke at the accelerometer, and nothing funky to do to access the display,
+sound, or mic. Just use the nice simple API, load the code via USB and off you go. Even when running
+peripheral sensors, servos, etc the micro:bit is just a joy to get going with.">
+<meta name="author" content="Rob">
+<link rel="canonical" href="https://headtilt.me/esp-cyd/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.1d79e034ed3fae3cce466e1b13b697315f9998d1ba8d908def178611b372b49f.css" integrity="sha256-HXngNO0/rjzORm4bE7aXMV&#43;ZmNG6jZCN7xeGEbNytJ8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://headtilt.me/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://headtilt.me/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://headtilt.me/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://headtilt.me/apple-touch-icon.png">
+<link rel="mask-icon" href="https://headtilt.me/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://headtilt.me/esp-cyd/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/css/formatting.css">
+
+
+
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://headtilt.me/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="https://headtilt.me/images/headtilt.png" alt="" aria-label="logo"
+                    height="30">Adjust your angle</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://headtilt.me/post" title="posts">
+                    <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/page/about/" title="about">
+                    <span><i class="fa-solid fa-circle-info"></i> about</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/categories/" title="categories">
+                    <span><i class="fa-solid fa-layer-group"></i> categories</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/tags/" title="tags">
+                    <span><i class="fa-solid fa-tags"></i> tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      ESP-CYD
+    </h1>
+    <div class="post-meta"><span title='2025-08-09 07:35:10 +0800 AWST'>Sat, Aug 9, 2025</span>&nbsp;·&nbsp;Rob
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#preramble" aria-label="Pre(r)amble">Pre(r)amble</a></li>
+                <li>
+                    <a href="#esp-now-and-the-cheap-yellow-display" aria-label="ESP-NOW and the Cheap Yellow Display">ESP-NOW and the Cheap Yellow Display</a></li>
+                <li>
+                    <a href="#bridging-the-gap" aria-label="Bridging the gap">Bridging the gap</a><ul>
+                        
+                <li>
+                    <a href="#the-display" aria-label="The display">The display</a></li>
+                <li>
+                    <a href="#the-radio" aria-label="The radio">The radio</a></li>
+                <li>
+                    <a href="#the-touch-screen" aria-label="The touch screen">The touch screen</a></li></ul>
+                </li>
+                <li>
+                    <a href="#putting-it-all-together" aria-label="Putting it all together">Putting it all together</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><p><strong>Note:</strong> There&rsquo;s a companion post to this about <a href="https://headtilt.me/agent-experiment/">using agentic AI here</a>.</p>
+<h2 id="preramble">Pre(r)amble<a hidden class="anchor" aria-hidden="true" href="#preramble">#</a></h2>
+<p>I have a problem. Well, I have several problems, but this post is specifically about my habit of seeing
+a neat looking microcontroller, not really thinking about whether I need another one, and then buying a
+couple (because, well, you need two just in case, right?).</p>
+<p>In the office I have:</p>
+<ul>
+<li>A stack of v1 micro:bits</li>
+<li>Some third party micro:bit clones</li>
+<li>Several v2 micro:bits</li>
+<li>Raspberry Pi Picos (2040)</li>
+<li>DFRobot Beetles (ATmega)</li>
+<li>DFRobot Firebeetles (ESP32)</li>
+<li>Some ESP8266s</li>
+<li>Various ESP32 variants (some camera versions, some plain boards)</li>
+</ul>
+<p>How many have I actually gotten around to writing code on? <strong>One</strong> of the Firebeetles 😂 &hellip;and all of
+the micro:bits. Why? Having nice accessible inputs and outputs makes programming so much more enjoyable.
+The micro:bit completely nails this - no faffing around with which pin to use for the buttons, no I2C
+or SPI nonsense needed to poke at the accelerometer, and nothing funky to do to access the display,
+sound, or mic. Just use the nice simple API, load the code via USB and off you go. Even when running
+peripheral sensors, servos, etc the micro:bit is just a joy to get going with.</p>
+<h2 id="esp-now-and-the-cheap-yellow-display">ESP-NOW and the Cheap Yellow Display<a hidden class="anchor" aria-hidden="true" href="#esp-now-and-the-cheap-yellow-display">#</a></h2>
+<p>Why am I talking about micro:bits when the post is about ESP boards? I read a couple of posts on the
+pretty great <a href="https://randomnerdtutorials.com/">Random Nerd Tutorials</a> site that made me think that I
+could have a similar experience to the micro:bit with ESP32:</p>
+<ul>
+<li><a href="https://randomnerdtutorials.com/micropython-esp-now-esp32/">MicroPython: ESP-NOW with Micropython</a></li>
+<li><a href="https://randomnerdtutorials.com/micropython-cheap-yellow-display-board-cyd-esp32-2432s028r/">MicroPython: ESP32 Cheap Yellow Display Board - CYD (ESP32-2432S028R)</a></li>
+</ul>
+<p><a href="https://www.espressif.com/en/solutions/low-power-solutions/esp-now">ESP-NOW</a> is a nice simple network
+solution (<a href="https://docs.micropython.org/en/latest/library/espnow.html">Micropython docs here</a>) that
+doesn&rsquo;t rely on existing wifi networks. As soon as I started reading some of the details it felt a
+lot like the <a href="https://microbit-micropython.readthedocs.io/en/latest/radio.html">really basic networking that I love so much in micro:bits</a>.</p>
+<img class="floatright" loading="lazy" src="/images/esp32/esp_fb.png"><p>The ESP-CYD board feels a bit like the micro:bit, even though the features are quite different:</p>
+<ul>
+<li>320x240 colour display</li>
+<li>Resistive touch screen</li>
+<li>1 RGB LED</li>
+<li>red, green, blue LED</li>
+<li>1 light dependent resistor (LDR)</li>
+<li>Speaker</li>
+<li>Some spare GPIO pins, microSD slot, etc</li>
+</ul>
+<p>Despite the differences, it has a lot of the qualities I quite like about the micro:bit - a built in output
+method that&rsquo;s pretty rich (the display and some blinky lights), some accessible inputs (the touch screen
+and the LDR). Add easy networking into the mix and you have something that doesn&rsquo;t require too much
+fiddling to get working and you can chain other devices to it over the network.</p>
+<h2 id="bridging-the-gap">Bridging the gap<a hidden class="anchor" aria-hidden="true" href="#bridging-the-gap">#</a></h2>
+<p><strong>TL;DR</strong> I spent a few weeks in the dead hours of the mornings wrangling an AI coding agent into writing
+some simplified libraries for the ESP-CYD to get it to be more micro:bit like.</p>
+<ul>
+<li><a href="https://github.com/zarify/esp32_cyd">See the code on Github here</a>.</li>
+<li><a href="https://headtilt.me/agent-experiment/">See the post on what using agentic AI was like here</a></li>
+</ul>
+<p>This post is mostly about the API, not the development process. Where the API landed feels like a fairly
+good place, although I&rsquo;ve only really done a bunch of preliminary testing on my own devices. If you&rsquo;ve
+got strong feelings about it, either send me an email, or force me to figure out how to use Github properly 😅.</p>
+<p>Overall the aim was to provide a simple API for students, to remove the need to use any configuration
+of pins and just get going with a program. I started out by just writing a wrapper over the top of the
+libraries used in the tutorials, but then decided to go on a magical AI agent journey and see if I could
+learn a bit about using AI for a complete project <em>and</em> get something worthwhile out the other end.</p>
+<h3 id="the-display">The display<a hidden class="anchor" aria-hidden="true" href="#the-display">#</a></h3>
+<p>Pushing pixels in terms of shapes and colours isn&rsquo;t too exciting, and
+<a href="https://github.com/rdagger/micropython-ili9341">the library from rdagger</a> that Rui and Sara
+Santos use in their tutorial over at RNT does a good job at doing all the things you probably want to
+do with it.</p>
+<p>A couple of things I wanted to change or add were:</p>
+<ul>
+<li>Being able to do simple text logging to the screen. This meant text wrapping, and passing multiple lines to be drawn.</li>
+<li>Try and address some of the slow drawing issues</li>
+</ul>
+<p>Looking over the original library and what the LLM spat out, there&rsquo;s not much difference overall, apart from
+hiding hardware configuration details and some of the text behaviour.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">easy_display</span> <span class="kn">import</span> <span class="n">Display</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">display</span> <span class="o">=</span> <span class="n">Display</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">display</span><span class="o">.</span><span class="n">show_text</span><span class="p">(</span><span class="s2">&#34;Hello world!&#34;</span><span class="p">)</span>
+</span></span></code></pre></div><h3 id="the-radio">The radio<a hidden class="anchor" aria-hidden="true" href="#the-radio">#</a></h3>
+<p>This is where I really wanted to make a lot of changes to the original API. The ESP-NOW library is pretty
+good, but I wanted to make it broadcast by default, add student-facing options for setting transmission
+power, add group filtering like the micro:bit, and have an accessible method for examining the signal
+strength of incoming packets.</p>
+<p>I&rsquo;m actually really happy how this turned out, although the micro:bit API has a simple receive and a
+full receive function, whereas my API just has an extended receive function.</p>
+<p>Let&rsquo;s look at some typical micro:bit receive code:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">microbit</span> <span class="kn">import</span> <span class="o">*</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">radio</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">radio</span><span class="o">.</span><span class="n">on</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">msg</span> <span class="o">=</span> <span class="n">radio</span><span class="o">.</span><span class="n">receive</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">msg</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+</span></span></code></pre></div><p>&hellip;and my ESP-NOW wrapper library:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">easy_radio</span> <span class="kn">import</span> <span class="n">Radio</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">radio</span> <span class="o">=</span> <span class="n">Radio</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">msg</span> <span class="o">=</span> <span class="n">radio</span><span class="o">.</span><span class="n">receive</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">msg</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">[</span><span class="s2">&#34;text&#34;</span><span class="p">])</span>
+</span></span></code></pre></div><p>The library also includes groups (artificial filtering based on group ID) with a <code>0</code> ID for
+promiscuous mode, since sometimes snooping is useful!</p>
+<h3 id="the-touch-screen">The touch screen<a hidden class="anchor" aria-hidden="true" href="#the-touch-screen">#</a></h3>
+<p>The touch screen needed a fair bit of work to get it to where I wanted it to go. The <a href="https://github.com/rdagger/micropython-ili9341/blob/master/xpt2046.py">original xpt2046 library</a> is pretty basic and just captures individual touches. I wanted to go full micro:bit and draw
+inspiration from both the <a href="https://microbit-micropython.readthedocs.io/en/v2-docs/button.html">button API</a>
+and the <a href="https://microbit-micropython.readthedocs.io/en/v2-docs/accelerometer.html">acclerometer API</a>.
+These do a great job of helping students by allowing them to interrogate past events, not just those
+that are happening when students poll the hardware.</p>
+<p>The micro:bit has neat methods like <code>was_pressed()</code>, <code>get_presses()</code>, and <code>was_gesture()</code> that are
+really useful for students who like to throw <code>sleep()</code> calls into their event loops and so block
+code left right and centre. This means having event queues that get populated via hardware callbacks
+so that nothing gets in the way of student code.</p>
+<p>In the end I got a similar set of methods for the touch interface:</p>
+<ul>
+<li><code>is_touched()</code></li>
+<li><code>was_touched()</code></li>
+<li><code>get_last_touch_coords()</code></li>
+<li><code>get_touches()</code></li>
+<li><code>was_swiped([direction], [bounds])</code></li>
+</ul>
+<p>Swipes turned out to be really tricky, since when a release event is registered it&rsquo;s too late to
+ask the hardware for the touch coordinates, meaning that you need to poll for touch positions
+between a press and a release, without impacting performance too much.</p>
+<p>Additionally, the touch screen and display are separate devices and so have different orientations
+and coordinates. I added an integrated configuration and calibration method that gets run and auto
+saved when the touch library is used for the first time.</p>
+<h2 id="putting-it-all-together">Putting it all together<a hidden class="anchor" aria-hidden="true" href="#putting-it-all-together">#</a></h2>
+<p>Let&rsquo;s look at how to create a simple program that gets input from the touch screen, displays
+it as a circle, and then sends the touch to other devices via broadcast transmission.
+When a device receives a different device&rsquo;s touch coordinates, it draws it to its own screen
+in a different colour.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">easy_display</span> <span class="kn">import</span> <span class="n">Display</span>
+</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">easy_touch</span> <span class="kn">import</span> <span class="n">Touch</span>
+</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">easy_radio</span> <span class="kn">import</span> <span class="n">Radio</span>
+</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">touch</span> <span class="o">=</span> <span class="n">Touch</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="n">display</span> <span class="o">=</span> <span class="n">Display</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="n">radio</span> <span class="o">=</span> <span class="n">Radio</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">touch</span><span class="o">.</span><span class="n">was_touched</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">touch</span><span class="o">.</span><span class="n">get_last_touch_coords</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="n">display</span><span class="o">.</span><span class="n">draw_circle</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&#34;yellow&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">radio</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;</span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">y</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">msg</span> <span class="o">=</span> <span class="n">radio</span><span class="o">.</span><span class="n">receive</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">msg</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">try</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">msg</span><span class="p">[</span><span class="s2">&#34;text&#34;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&#34;,&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="n">display</span><span class="o">.</span><span class="n">draw_circle</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&#34;red&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">except</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="k">pass</span>
+</span></span><span class="line"><span class="cl">    <span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+</span></span></code></pre></div>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://headtilt.me/tags/electronics/">Electronics</a></li>
+      <li><a href="https://headtilt.me/tags/robotics/">Robotics</a></li>
+      <li><a href="https://headtilt.me/tags/python/">Python</a></li>
+      <li><a href="https://headtilt.me/tags/ai/">Ai</a></li>
+      <li><a href="https://headtilt.me/tags/llm/">Llm</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>Rob Poulter</span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a><script type="text/javascript" src="/js/lightbox.js"></script>
+<link rel="stylesheet" href="/css/lightbox.css">
+<script data-goatcounter="https://headtilt_me.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

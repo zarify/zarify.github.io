@@ -2,26 +2,26 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Repeat on Headtilt</title>
-    <link>/tags/repeat/</link>
+    <link>https://headtilt.me/tags/repeat/</link>
     <description>Recent content in Repeat on Headtilt</description>
-    <generator>Hugo -- 0.138.0</generator>
+    <generator>Hugo -- 0.149.0</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
     <lastBuildDate>Fri, 18 Mar 2016 12:07:42 +0000</lastBuildDate>
-    <atom:link href="/tags/repeat/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://headtilt.me/tags/repeat/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>1.1 Update to Repeat</title>
-      <link>/11-update-to-repeat/</link>
+      <link>https://headtilt.me/11-update-to-repeat/</link>
       <pubDate>Fri, 18 Mar 2016 12:07:42 +0000</pubDate>
-      <guid>/11-update-to-repeat/</guid>
-      <description>&lt;p&gt;This morning my 1.1 update for Repeat got approved on the store, which brings some basic improvements to interaction with tasks, a much nicer visual for repeat history as a calendar view, rather than as a simple list of events, the &lt;a href=&#34;/non-obnoxious-app-rating-appeals/&#34;&gt;ratings system I wrote about in a previous post&lt;/a&gt;, and a Today Widget containing upcoming alarms along with an indication of how close they are.&lt;/p&gt;
+      <guid>https://headtilt.me/11-update-to-repeat/</guid>
+      <description>&lt;p&gt;This morning my 1.1 update for Repeat got approved on the store, which brings some basic improvements to interaction with tasks, a much nicer visual for repeat history as a calendar view, rather than as a simple list of events, the &lt;a href=&#34;https://headtilt.me/non-obnoxious-app-rating-appeals/&#34;&gt;ratings system I wrote about in a previous post&lt;/a&gt;, and a Today Widget containing upcoming alarms along with an indication of how close they are.&lt;/p&gt;
 &lt;p&gt;Since I&amp;rsquo;m still learning my way around the iOS frameworks it&amp;rsquo;s been an interesting experience, particularly with respect to the way that Core Data works. When I first started looking at using Core Data, and coming from having done stuff with SQLite and MySQL in the past, it seemed pretty terrible in terms of the overhead of code compared to what you actually wanted to do with it (OK, it actually still seems pretty terrible in that respect).&lt;/p&gt;</description>
     </item>
     <item>
       <title>Non-obnoxious app rating appeals</title>
-      <link>/non-obnoxious-app-rating-appeals/</link>
+      <link>https://headtilt.me/non-obnoxious-app-rating-appeals/</link>
       <pubDate>Tue, 08 Mar 2016 10:43:28 +0000</pubDate>
-      <guid>/non-obnoxious-app-rating-appeals/</guid>
+      <guid>https://headtilt.me/non-obnoxious-app-rating-appeals/</guid>
       <description>&lt;p&gt;Back in 2014 (and earlier) there was a kerfuffle about the practice of apps being in your face with requests for reviews:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&#34;http://www.loopinsight.com/2014/02/04/begging-for-app-ratings/&#34;&gt;Wil Shipley @ The Loop&lt;/a&gt;&lt;/li&gt;
@@ -33,18 +33,18 @@
     </item>
     <item>
       <title>Liftoff</title>
-      <link>/liftoff/</link>
+      <link>https://headtilt.me/liftoff/</link>
       <pubDate>Sat, 27 Feb 2016 02:33:32 +0000</pubDate>
-      <guid>/liftoff/</guid>
+      <guid>https://headtilt.me/liftoff/</guid>
       <description>&lt;p&gt;This morning I hit the release button on my holiday project, Repeat.&lt;/p&gt;
 &lt;p&gt;As part of my marathon of listening to every development podcast I can, I was recently catching up on the backlog of Release Notes episodes, and in particular the &lt;a href=&#34;http://releasenotes.tv/44-justin-williams-part-1/&#34;&gt;two&lt;/a&gt; &lt;a href=&#34;http://releasenotes.tv/45-justin-williams-part-2/&#34;&gt;episodes&lt;/a&gt; with guest Justin Williams, where he joked that like every other developer, he started out with a notes app, a task manager and a bug tracker.&lt;/p&gt;
 &lt;p&gt;Repeat is my task manager (at this point I don&amp;rsquo;t plan on making a notes app or a bug tracker though&amp;hellip;).&lt;/p&gt;</description>
     </item>
     <item>
       <title>Adventures in Auto Layout</title>
-      <link>/adventures-in-auto-layout/</link>
+      <link>https://headtilt.me/adventures-in-auto-layout/</link>
       <pubDate>Sun, 21 Feb 2016 08:24:18 +0000</pubDate>
-      <guid>/adventures-in-auto-layout/</guid>
+      <guid>https://headtilt.me/adventures-in-auto-layout/</guid>
       <description>&lt;p&gt;Since hitting Submit for Review for my side project app, I&amp;rsquo;ve been having an interesting time. My first version was rejected in review due to a &amp;ldquo;bug&amp;rdquo; (actually an intended feature - a disabled button control which became usable once initial setup was completed, which goes to show that even Apple testers don&amp;rsquo;t read the help docs ;), and I did some cleaning up of my Core Data code, made some graphic changes to make things look nicer, tested some more, and then resubmitted.&lt;/p&gt;</description>
     </item>
   </channel>

@@ -2,19 +2,19 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Networking on Headtilt</title>
-    <link>/tags/networking/</link>
+    <link>https://headtilt.me/tags/networking/</link>
     <description>Recent content in Networking on Headtilt</description>
-    <generator>Hugo -- 0.138.0</generator>
+    <generator>Hugo -- 0.149.0</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
     <lastBuildDate>Sat, 27 Jun 2020 13:11:24 +0000</lastBuildDate>
-    <atom:link href="/tags/networking/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://headtilt.me/tags/networking/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Year 7-8 Networking Concepts Mk 2</title>
-      <link>/year-7-8-networking-concepts-mk-2/</link>
+      <link>https://headtilt.me/year-7-8-networking-concepts-mk-2/</link>
       <pubDate>Sat, 27 Jun 2020 13:11:24 +0000</pubDate>
-      <guid>/year-7-8-networking-concepts-mk-2/</guid>
-      <description>&lt;img loading=&#34;lazy&#34; src=&#34;/images/pairing/pair_microbit.png&#34;&gt;&lt;p&gt;&lt;a href=&#34;/year-7-8-wireless-network-concepts-with-microbits/&#34;&gt;Back in 2017&lt;/a&gt; when I was first thinking about how I could use physical computing like Micro:bits in my classroom, I wrote some quick and nasty programs to demonstrate networking concepts like attenuation and latency in wireless connections as well as adapting some ideas from the &lt;a href=&#34;https://microbit.nominetresearch.uk/networking-book-online-python/&#34;&gt;Networking With the micro:bit book&lt;/a&gt;, and &lt;a href=&#34;https://learnlearn.uk/microbit/topics/networking-two-microbits/&#34;&gt;using basic wired networks for Morse Code&lt;/a&gt; (the linked site is not the original project I used the idea from, but there are only so many permutations).&lt;/p&gt;</description>
+      <guid>https://headtilt.me/year-7-8-networking-concepts-mk-2/</guid>
+      <description>&lt;img loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/pairing/pair_microbit.png&#34;&gt;&lt;p&gt;&lt;a href=&#34;https://headtilt.me/year-7-8-wireless-network-concepts-with-microbits/&#34;&gt;Back in 2017&lt;/a&gt; when I was first thinking about how I could use physical computing like Micro:bits in my classroom, I wrote some quick and nasty programs to demonstrate networking concepts like attenuation and latency in wireless connections as well as adapting some ideas from the &lt;a href=&#34;https://microbit.nominetresearch.uk/networking-book-online-python/&#34;&gt;Networking With the micro:bit book&lt;/a&gt;, and &lt;a href=&#34;https://learnlearn.uk/microbit/topics/networking-two-microbits/&#34;&gt;using basic wired networks for Morse Code&lt;/a&gt; (the linked site is not the original project I used the idea from, but there are only so many permutations).&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

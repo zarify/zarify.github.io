@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Clipy Sandbox Smoke Host (src)</title>
+</head>
+
+<body>
+    <div id="out">starting...</div>
+    <pre id="log"
+        style="white-space:pre-wrap;background:#111;color:#eee;padding:12px;border-radius:6px;max-height:60vh;overflow:auto">log:
+</pre>
+    <script type="module">
+        import { createSandboxedRunFn } from '../js/test-runner-sandbox.js'
+
+        const append = (s) => {
+            const l = document.getElementById('log')
+            if (!l) return
+            l.textContent += s + '\n'
+            l.scrollTop = l.scrollHeight
+        }
+
+        window.addEventListener('message', (ev) => {
+            try {
+                const m = ev.data || {}
+                // Also log to console so DevTools Console captures these messages
+                try { console.log('[smoke-host message]', m) } catch (e) { }
+                if (m && (m.type === 'stdout' || m.type === 'stderr' || m.type === 'debug')) {
+                    append(`[${m.type}] ${m.text}`)
+                }
+                if (m && m.type === 'testResult') {
+                    append(`[result] ${JSON.stringify(m)}`)
+                    window.__smoke_result = m
+                }
+            } catch (e) { try { console.error('message handler error', e) } catch (_) { }; append('message error: ' + e) }
+        })
+
+            ; (async () => {
+                const out = document.getElementById('out')
+                try {
+                    out.textContent = 'creating runFn'
+                    try { console.log('smoke-host: message listener attached') } catch (e) { }
+                    // small delay to let the UI paint and ensure streaming is visible
+                    await new Promise((r) => setTimeout(r, 200))
+                    const runFn = createSandboxedRunFn({ runtimeUrl: '../vendor/micropython.mjs', iframeSrc: './runner.html', filesSnapshot: { '/main.py': 'print("SMOKE")' } })
+                    out.textContent = 'running test'
+                    append('running test...')
+                    const res = await runFn({ id: 'smoke1', main: 'print("SMOKE")', stdin: '', timeoutMs: 20000 })
+                    window.__smoke_result = res
+                    out.textContent = JSON.stringify(res)
+                    append('final: ' + JSON.stringify(res))
+                } catch (e) {
+                    out.textContent = 'error: ' + e
+                    window.__smoke_result = { passed: false, stderr: String(e) }
+                    append('error: ' + e)
+                }
+            })()
+    </script>
+</body>
+
+</html>

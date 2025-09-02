@@ -2,302 +2,326 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>/categories/</loc>
+    <loc>https://headtilt.me/tags/agents/</loc>
+    <lastmod>2025-09-01T06:03:47+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/tags/ai/</loc>
+    <lastmod>2025-09-01T06:03:47+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/tags/cat-herding/</loc>
+    <lastmod>2025-09-01T06:03:47+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/categories/</loc>
+    <lastmod>2025-09-01T06:03:47+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/</loc>
+    <lastmod>2025-09-01T06:03:47+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/tags/llm/</loc>
+    <lastmod>2025-09-01T06:03:47+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/post/</loc>
+    <lastmod>2025-09-01T06:03:47+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/tags/python/</loc>
+    <lastmod>2025-09-01T06:03:47+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/categories/ramble/</loc>
+    <lastmod>2025-09-01T06:03:47+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/tags/</loc>
+    <lastmod>2025-09-01T06:03:47+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/cat-herding-wasm-python-02/</loc>
+    <lastmod>2025-09-01T06:03:47+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/tags/wasm-python/</loc>
+    <lastmod>2025-09-01T06:03:47+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/cat-herding-wasm-python-01/</loc>
+    <lastmod>2025-08-28T02:53:25+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/categories/classroom/</loc>
+    <lastmod>2025-08-09T07:35:10+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/tags/electronics/</loc>
+    <lastmod>2025-08-09T07:35:10+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/esp-cyd/</loc>
+    <lastmod>2025-08-09T07:35:10+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/tags/robotics/</loc>
+    <lastmod>2025-08-09T07:35:10+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/agent-experiment/</loc>
+    <lastmod>2025-08-09T07:31:10+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/tags/debugging/</loc>
+    <lastmod>2025-08-09T07:31:10+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/tags/generative-art/</loc>
     <lastmod>2025-02-02T09:02:54+08:00</lastmod>
   </url><url>
-    <loc>/tags/generative-art/</loc>
+    <loc>https://headtilt.me/tags/genuary/</loc>
     <lastmod>2025-02-02T09:02:54+08:00</lastmod>
   </url><url>
-    <loc>/tags/genuary/</loc>
+    <loc>https://headtilt.me/genuary25/</loc>
     <lastmod>2025-02-02T09:02:54+08:00</lastmod>
   </url><url>
-    <loc>/genuary25/</loc>
+    <loc>https://headtilt.me/tags/javascript/</loc>
     <lastmod>2025-02-02T09:02:54+08:00</lastmod>
   </url><url>
-    <loc>/</loc>
-    <lastmod>2025-02-02T09:02:54+08:00</lastmod>
-  </url><url>
-    <loc>/tags/javascript/</loc>
-    <lastmod>2025-02-02T09:02:54+08:00</lastmod>
-  </url><url>
-    <loc>/post/</loc>
-    <lastmod>2025-02-02T09:02:54+08:00</lastmod>
-  </url><url>
-    <loc>/categories/ramble/</loc>
-    <lastmod>2025-02-02T09:02:54+08:00</lastmod>
-  </url><url>
-    <loc>/tags/</loc>
-    <lastmod>2025-02-02T09:02:54+08:00</lastmod>
-  </url><url>
-    <loc>/pandas-workout/</loc>
+    <loc>https://headtilt.me/pandas-workout/</loc>
     <lastmod>2025-01-04T10:23:26+08:00</lastmod>
   </url><url>
-    <loc>/tags/ai/</loc>
+    <loc>https://headtilt.me/tags/coderdojo/</loc>
     <lastmod>2024-11-24T05:51:51+08:00</lastmod>
   </url><url>
-    <loc>/tags/coderdojo/</loc>
+    <loc>https://headtilt.me/llms-at-the-arcade/</loc>
     <lastmod>2024-11-24T05:51:51+08:00</lastmod>
   </url><url>
-    <loc>/tags/debugging/</loc>
+    <loc>https://headtilt.me/tags/makecode/</loc>
     <lastmod>2024-11-24T05:51:51+08:00</lastmod>
   </url><url>
-    <loc>/tags/llm/</loc>
-    <lastmod>2024-11-24T05:51:51+08:00</lastmod>
-  </url><url>
-    <loc>/llms-at-the-arcade/</loc>
-    <lastmod>2024-11-24T05:51:51+08:00</lastmod>
-  </url><url>
-    <loc>/tags/makecode/</loc>
-    <lastmod>2024-11-24T05:51:51+08:00</lastmod>
-  </url><url>
-    <loc>/tags/employment/</loc>
+    <loc>https://headtilt.me/tags/employment/</loc>
     <lastmod>2024-11-19T13:39:27+08:00</lastmod>
   </url><url>
-    <loc>/i-go-hugo/</loc>
+    <loc>https://headtilt.me/i-go-hugo/</loc>
     <lastmod>2024-11-19T13:39:27+08:00</lastmod>
   </url><url>
-    <loc>/tags/software/</loc>
+    <loc>https://headtilt.me/tags/software/</loc>
     <lastmod>2024-11-19T13:39:27+08:00</lastmod>
   </url><url>
-    <loc>/categories/classroom/</loc>
+    <loc>https://headtilt.me/tags/microbit/</loc>
     <lastmod>2020-12-30T11:12:17+00:00</lastmod>
   </url><url>
-    <loc>/tags/microbit/</loc>
+    <loc>https://headtilt.me/robotics-inchworms-with-motivation/</loc>
     <lastmod>2020-12-30T11:12:17+00:00</lastmod>
   </url><url>
-    <loc>/tags/robotics/</loc>
-    <lastmod>2020-12-30T11:12:17+00:00</lastmod>
-  </url><url>
-    <loc>/robotics-inchworms-with-motivation/</loc>
-    <lastmod>2020-12-30T11:12:17+00:00</lastmod>
-  </url><url>
-    <loc>/code-introspection-in-minecraft-and-python/</loc>
+    <loc>https://headtilt.me/code-introspection-in-minecraft-and-python/</loc>
     <lastmod>2020-11-17T05:58:26+00:00</lastmod>
   </url><url>
-    <loc>/tags/minecraft/</loc>
+    <loc>https://headtilt.me/tags/minecraft/</loc>
     <lastmod>2020-11-17T05:58:26+00:00</lastmod>
   </url><url>
-    <loc>/tags/python/</loc>
-    <lastmod>2020-11-17T05:58:26+00:00</lastmod>
-  </url><url>
-    <loc>/tags/compsci/</loc>
+    <loc>https://headtilt.me/tags/compsci/</loc>
     <lastmod>2020-06-27T13:11:24+00:00</lastmod>
   </url><url>
-    <loc>/tags/networking/</loc>
+    <loc>https://headtilt.me/tags/networking/</loc>
     <lastmod>2020-06-27T13:11:24+00:00</lastmod>
   </url><url>
-    <loc>/year-7-8-networking-concepts-mk-2/</loc>
+    <loc>https://headtilt.me/year-7-8-networking-concepts-mk-2/</loc>
     <lastmod>2020-06-27T13:11:24+00:00</lastmod>
   </url><url>
-    <loc>/robotics-showcase-epidemic/</loc>
+    <loc>https://headtilt.me/robotics-showcase-epidemic/</loc>
     <lastmod>2020-05-25T05:51:05+00:00</lastmod>
   </url><url>
-    <loc>/tags/datascience/</loc>
+    <loc>https://headtilt.me/tags/datascience/</loc>
     <lastmod>2019-12-29T15:46:19+00:00</lastmod>
   </url><url>
-    <loc>/year-10s-sentiment-analysis/</loc>
+    <loc>https://headtilt.me/year-10s-sentiment-analysis/</loc>
     <lastmod>2019-12-29T15:46:19+00:00</lastmod>
   </url><url>
-    <loc>/microbit-robotics-review-2019/</loc>
+    <loc>https://headtilt.me/microbit-robotics-review-2019/</loc>
     <lastmod>2019-12-23T16:07:13+00:00</lastmod>
   </url><url>
-    <loc>/dowsing-for-radio/</loc>
+    <loc>https://headtilt.me/dowsing-for-radio/</loc>
     <lastmod>2019-04-19T14:02:52+00:00</lastmod>
   </url><url>
-    <loc>/designing-a-microbit-robot/</loc>
+    <loc>https://headtilt.me/designing-a-microbit-robot/</loc>
     <lastmod>2019-04-11T06:17:18+00:00</lastmod>
   </url><url>
-    <loc>/year-8-microbit-robotics/</loc>
+    <loc>https://headtilt.me/year-8-microbit-robotics/</loc>
     <lastmod>2019-04-06T08:01:00+00:00</lastmod>
   </url><url>
-    <loc>/microbit-haunted-house/</loc>
+    <loc>https://headtilt.me/microbit-haunted-house/</loc>
     <lastmod>2018-11-05T20:56:46+00:00</lastmod>
   </url><url>
-    <loc>/year-7-minecraft-ee-and-programming/</loc>
+    <loc>https://headtilt.me/year-7-minecraft-ee-and-programming/</loc>
     <lastmod>2018-09-24T14:13:43+00:00</lastmod>
   </url><url>
-    <loc>/minecraft-edu-edition-geological-surveys/</loc>
+    <loc>https://headtilt.me/minecraft-edu-edition-geological-surveys/</loc>
     <lastmod>2018-08-23T20:14:34+00:00</lastmod>
   </url><url>
-    <loc>/migrating-from-squarespace/</loc>
+    <loc>https://headtilt.me/migrating-from-squarespace/</loc>
     <lastmod>2018-08-18T21:10:38+00:00</lastmod>
   </url><url>
-    <loc>/publii-to-microblog/</loc>
+    <loc>https://headtilt.me/publii-to-microblog/</loc>
     <lastmod>2018-08-18T16:32:29+00:00</lastmod>
   </url><url>
-    <loc>/year-7-8-bad-crypto-with-microbits/</loc>
+    <loc>https://headtilt.me/year-7-8-bad-crypto-with-microbits/</loc>
     <lastmod>2017-05-14T11:45:21+00:00</lastmod>
   </url><url>
-    <loc>/year-7-8-wireless-network-concepts-with-microbits/</loc>
+    <loc>https://headtilt.me/year-7-8-wireless-network-concepts-with-microbits/</loc>
     <lastmod>2017-05-13T06:16:26+00:00</lastmod>
   </url><url>
-    <loc>/year-7-data-representation-and-algorithms/</loc>
+    <loc>https://headtilt.me/year-7-data-representation-and-algorithms/</loc>
     <lastmod>2017-03-06T12:45:59+00:00</lastmod>
   </url><url>
-    <loc>/playing-with-affinity-designer-brushes/</loc>
+    <loc>https://headtilt.me/playing-with-affinity-designer-brushes/</loc>
     <lastmod>2017-01-01T05:52:01+00:00</lastmod>
   </url><url>
-    <loc>/real-heroes-of-the-touch-bar/</loc>
+    <loc>https://headtilt.me/real-heroes-of-the-touch-bar/</loc>
     <lastmod>2016-12-14T10:58:19+00:00</lastmod>
   </url><url>
-    <loc>/so-a-horse-walks-into-a-touch-bar/</loc>
+    <loc>https://headtilt.me/so-a-horse-walks-into-a-touch-bar/</loc>
     <lastmod>2016-12-08T10:11:18+00:00</lastmod>
   </url><url>
-    <loc>/typefaces-fonts-licensing/</loc>
+    <loc>https://headtilt.me/typefaces-fonts-licensing/</loc>
     <lastmod>2016-10-04T08:58:48+00:00</lastmod>
   </url><url>
-    <loc>/teaching-digital-technologies/</loc>
+    <loc>https://headtilt.me/teaching-digital-technologies/</loc>
     <lastmod>2016-07-10T10:31:08+00:00</lastmod>
   </url><url>
-    <loc>/institutional-blocking-as-a-service/</loc>
+    <loc>https://headtilt.me/institutional-blocking-as-a-service/</loc>
     <lastmod>2016-07-09T07:52:03+00:00</lastmod>
   </url><url>
-    <loc>/machine-learning-and-intellectual-laziness/</loc>
+    <loc>https://headtilt.me/machine-learning-and-intellectual-laziness/</loc>
     <lastmod>2016-05-25T13:18:13+00:00</lastmod>
   </url><url>
-    <loc>/pebble-health/</loc>
+    <loc>https://headtilt.me/pebble-health/</loc>
     <lastmod>2016-05-15T05:03:53+00:00</lastmod>
   </url><url>
-    <loc>/electric-horses/</loc>
+    <loc>https://headtilt.me/electric-horses/</loc>
     <lastmod>2016-04-21T10:53:41+00:00</lastmod>
   </url><url>
-    <loc>/deferred-attention/</loc>
+    <loc>https://headtilt.me/deferred-attention/</loc>
     <lastmod>2016-04-13T07:34:56+00:00</lastmod>
   </url><url>
-    <loc>/smile-acrobatics/</loc>
+    <loc>https://headtilt.me/smile-acrobatics/</loc>
     <lastmod>2016-04-13T00:13:12+00:00</lastmod>
   </url><url>
-    <loc>/release-notes-slack-vs-box/</loc>
+    <loc>https://headtilt.me/release-notes-slack-vs-box/</loc>
     <lastmod>2016-04-11T07:37:47+00:00</lastmod>
   </url><url>
-    <loc>/useful-unsolved-practical-pick-two/</loc>
+    <loc>https://headtilt.me/useful-unsolved-practical-pick-two/</loc>
     <lastmod>2016-04-11T06:43:53+00:00</lastmod>
   </url><url>
-    <loc>/dead-or-just-sleeping/</loc>
+    <loc>https://headtilt.me/dead-or-just-sleeping/</loc>
     <lastmod>2016-04-10T13:09:00+00:00</lastmod>
   </url><url>
-    <loc>/subscriptions-and-personal-value/</loc>
+    <loc>https://headtilt.me/subscriptions-and-personal-value/</loc>
     <lastmod>2016-04-06T07:59:22+00:00</lastmod>
   </url><url>
-    <loc>/at-what-price-freedom/</loc>
+    <loc>https://headtilt.me/at-what-price-freedom/</loc>
     <lastmod>2016-03-31T08:40:18+00:00</lastmod>
   </url><url>
-    <loc>/carekit/</loc>
+    <loc>https://headtilt.me/carekit/</loc>
     <lastmod>2016-03-22T11:46:11+00:00</lastmod>
   </url><url>
-    <loc>/11-update-to-repeat/</loc>
+    <loc>https://headtilt.me/11-update-to-repeat/</loc>
     <lastmod>2016-03-18T12:07:42+00:00</lastmod>
   </url><url>
-    <loc>/tags/repeat/</loc>
+    <loc>https://headtilt.me/tags/repeat/</loc>
     <lastmod>2016-03-18T12:07:42+00:00</lastmod>
   </url><url>
-    <loc>/delivery-or-garbage-truck/</loc>
+    <loc>https://headtilt.me/delivery-or-garbage-truck/</loc>
     <lastmod>2016-03-18T11:30:15+00:00</lastmod>
   </url><url>
-    <loc>/app-discovery-and-ratings/</loc>
+    <loc>https://headtilt.me/app-discovery-and-ratings/</loc>
     <lastmod>2016-03-15T13:16:10+00:00</lastmod>
   </url><url>
-    <loc>/non-obnoxious-app-rating-appeals/</loc>
+    <loc>https://headtilt.me/non-obnoxious-app-rating-appeals/</loc>
     <lastmod>2016-03-08T10:43:28+00:00</lastmod>
   </url><url>
-    <loc>/exactly/</loc>
+    <loc>https://headtilt.me/exactly/</loc>
     <lastmod>2016-03-02T14:31:35+00:00</lastmod>
   </url><url>
-    <loc>/liftoff/</loc>
+    <loc>https://headtilt.me/liftoff/</loc>
     <lastmod>2016-02-27T02:33:32+00:00</lastmod>
   </url><url>
-    <loc>/adventures-in-auto-layout/</loc>
+    <loc>https://headtilt.me/adventures-in-auto-layout/</loc>
     <lastmod>2016-02-21T08:24:18+00:00</lastmod>
   </url><url>
-    <loc>/tools/</loc>
+    <loc>https://headtilt.me/tools/</loc>
     <lastmod>2016-02-15T12:40:53+00:00</lastmod>
   </url><url>
-    <loc>/first-time-development/</loc>
+    <loc>https://headtilt.me/first-time-development/</loc>
     <lastmod>2016-02-15T07:59:27+00:00</lastmod>
   </url><url>
-    <loc>/my-ad-blocker-didnt-catch-this-one/</loc>
+    <loc>https://headtilt.me/my-ad-blocker-didnt-catch-this-one/</loc>
     <lastmod>2016-02-10T07:07:05+00:00</lastmod>
   </url><url>
-    <loc>/optionalworking-as-intended/</loc>
+    <loc>https://headtilt.me/optionalworking-as-intended/</loc>
     <lastmod>2016-02-09T09:26:25+00:00</lastmod>
   </url><url>
-    <loc>/in-which-wired-both-gets-and-misses-the-point/</loc>
+    <loc>https://headtilt.me/in-which-wired-both-gets-and-misses-the-point/</loc>
     <lastmod>2016-02-09T06:21:10+00:00</lastmod>
   </url><url>
-    <loc>/designing-on-the-mac/</loc>
+    <loc>https://headtilt.me/designing-on-the-mac/</loc>
     <lastmod>2016-01-22T06:02:45+00:00</lastmod>
   </url><url>
-    <loc>/join-the-conversation/</loc>
+    <loc>https://headtilt.me/join-the-conversation/</loc>
     <lastmod>2016-01-22T05:42:39+00:00</lastmod>
   </url><url>
-    <loc>/dumb-analogue-ports/</loc>
+    <loc>https://headtilt.me/dumb-analogue-ports/</loc>
     <lastmod>2015-12-04T07:14:28+00:00</lastmod>
   </url><url>
-    <loc>/content-advertising/</loc>
+    <loc>https://headtilt.me/content-advertising/</loc>
     <lastmod>2015-10-02T04:02:45+00:00</lastmod>
   </url><url>
-    <loc>/content-blocking/</loc>
+    <loc>https://headtilt.me/content-blocking/</loc>
     <lastmod>2015-10-01T06:03:09+00:00</lastmod>
   </url><url>
-    <loc>/time/</loc>
+    <loc>https://headtilt.me/time/</loc>
     <lastmod>2015-09-29T01:55:06+00:00</lastmod>
   </url><url>
-    <loc>/smart-watches-and-fitness-bands/</loc>
+    <loc>https://headtilt.me/smart-watches-and-fitness-bands/</loc>
     <lastmod>2015-09-18T03:30:11+00:00</lastmod>
   </url><url>
-    <loc>/nifty-automation/</loc>
+    <loc>https://headtilt.me/nifty-automation/</loc>
     <lastmod>2015-09-12T03:38:48+00:00</lastmod>
   </url><url>
-    <loc>/the-case-for-software-eating-journalism/</loc>
+    <loc>https://headtilt.me/the-case-for-software-eating-journalism/</loc>
     <lastmod>2015-09-08T01:26:55+00:00</lastmod>
   </url><url>
-    <loc>/more-changelog-more-fun/</loc>
+    <loc>https://headtilt.me/more-changelog-more-fun/</loc>
     <lastmod>2015-08-01T03:39:22+00:00</lastmod>
   </url><url>
-    <loc>/windows-10-and-the-sad-state-of-touch/</loc>
+    <loc>https://headtilt.me/windows-10-and-the-sad-state-of-touch/</loc>
     <lastmod>2015-08-01T03:31:24+00:00</lastmod>
   </url><url>
-    <loc>/swiftly-passing-holidays/</loc>
+    <loc>https://headtilt.me/swiftly-passing-holidays/</loc>
     <lastmod>2015-07-16T03:53:45+00:00</lastmod>
   </url><url>
-    <loc>/changelogs-in-the-app-store/</loc>
+    <loc>https://headtilt.me/changelogs-in-the-app-store/</loc>
     <lastmod>2015-07-04T06:34:12+00:00</lastmod>
   </url><url>
-    <loc>/social-engineering-and-charitable-donations/</loc>
+    <loc>https://headtilt.me/social-engineering-and-charitable-donations/</loc>
     <lastmod>2015-06-18T05:34:52+00:00</lastmod>
   </url><url>
-    <loc>/wwdc-talk-show-with-phil-schiller/</loc>
+    <loc>https://headtilt.me/wwdc-talk-show-with-phil-schiller/</loc>
     <lastmod>2015-06-13T01:51:17+00:00</lastmod>
   </url><url>
-    <loc>/inspiration-or-depression/</loc>
+    <loc>https://headtilt.me/inspiration-or-depression/</loc>
     <lastmod>2015-05-31T11:46:36+00:00</lastmod>
   </url><url>
-    <loc>/computing-as-a-subject/</loc>
+    <loc>https://headtilt.me/computing-as-a-subject/</loc>
     <lastmod>2015-05-31T11:37:11+00:00</lastmod>
   </url><url>
-    <loc>/the-salmon-mousse1/</loc>
+    <loc>https://headtilt.me/the-salmon-mousse1/</loc>
     <lastmod>2015-04-10T07:08:44+00:00</lastmod>
   </url><url>
-    <loc>/the-future/</loc>
+    <loc>https://headtilt.me/the-future/</loc>
     <lastmod>2015-03-17T03:35:03+00:00</lastmod>
   </url><url>
-    <loc>/maps-weirdness-aka-at-the-roundabout/</loc>
+    <loc>https://headtilt.me/maps-weirdness-aka-at-the-roundabout/</loc>
     <lastmod>2014-10-22T04:35:28+00:00</lastmod>
   </url><url>
-    <loc>/naturally/</loc>
+    <loc>https://headtilt.me/naturally/</loc>
     <lastmod>2014-07-14T02:35:15+00:00</lastmod>
   </url><url>
-    <loc>/swift-and-learning-new-languages/</loc>
+    <loc>https://headtilt.me/swift-and-learning-new-languages/</loc>
     <lastmod>2014-07-13T13:31:33+00:00</lastmod>
   </url><url>
-    <loc>/toots-update/</loc>
+    <loc>https://headtilt.me/toots-update/</loc>
     <lastmod>2013-09-22T05:53:27+00:00</lastmod>
   </url><url>
-    <loc>/smarter-text/</loc>
+    <loc>https://headtilt.me/smarter-text/</loc>
     <lastmod>2013-07-28T03:09:16+00:00</lastmod>
   </url><url>
-    <loc>/page/about/</loc>
+    <loc>https://headtilt.me/page/about/</loc>
   </url><url>
-    <loc>/page/</loc>
+    <loc>https://headtilt.me/page/</loc>
   </url>
 </urlset>

@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Clipy Sandbox STDIN Tests</title>
+    <style>
+        body {
+            font-family: system-ui, Arial;
+            background: #fff;
+            color: #111;
+            padding: 12px
+        }
+
+        pre {
+            background: #111;
+            color: #eee;
+            padding: 12px;
+            border-radius: 6px;
+            max-height: 60vh;
+            overflow: auto
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Sandbox STDIN tests</h2>
+    <div id="status">starting...</div>
+    <pre id="log">log:
+</pre>
+    <pre id="results">results:
+</pre>
+
+    <script type="module">
+        import { createSandboxedRunFn } from '../js/test-runner-sandbox.js'
+
+        const logEl = (id, s) => {
+            const el = document.getElementById(id)
+            if (!el) return
+            el.textContent += s + '\n'
+            el.scrollTop = el.scrollHeight
+        }
+
+        window.addEventListener('message', (ev) => {
+            try {
+                const m = ev.data || {}
+                try { console.log('[smoke-stdin message]', m) } catch (e) { }
+                if (m && (m.type === 'stdout' || m.type === 'stderr' || m.type === 'debug')) {
+                    logEl('log', `[${m.type}] ${m.text}`)
+                }
+                if (m && m.type === 'testResult') {
+                    logEl('log', `[result] ${JSON.stringify(m)}`)
+                }
+            } catch (e) { try { console.error('message handler error', e) } catch (_) { }; logEl('log', 'message error: ' + e) }
+        })
+
+            ; (async () => {
+                document.getElementById('status').textContent = 'creating runFn...'
+                // Create the sandboxed runFn (uses per-test iframe)
+                const runFn = createSandboxedRunFn({ runtimeUrl: '../vendor/micropython.mjs', iframeSrc: './runner.html', filesSnapshot: {} })
+
+                const tests = [
+                    {
+                        id: 'stdin-single',
+                        description: 'single input() call',
+                        main: 'v = input()\nprint("GOT:" + v)',
+                        stdin: 'hello',
+                        timeoutMs: 10000
+                    },
+                    {
+                        id: 'stdin-multi',
+                        description: 'two input() calls',
+                        main: 'a = input()\nb = input()\nprint("A=" + a + ",B=" + b)',
+                        stdin: ['one', 'two'],
+                        timeoutMs: 10000
+                    },
+                    {
+                        id: 'stdin-array-short',
+                        description: 'array shorter than requests (second will be empty)',
+                        main: 'x = input()\ny = input()\nprint("X=" + x + ",Y=" + y)',
+                        stdin: ['onlyone'],
+                        timeoutMs: 10000
+                    }
+                ]
+
+                const results = []
+                document.getElementById('status').textContent = 'running ' + tests.length + ' tests'
+
+                for (const t of tests) {
+                    logEl('log', `--- starting ${t.id} (${t.description})`)
+                    try {
+                        // runFn will create an iframe per test and return the test result object
+                        const r = await runFn(t)
+                        results.push(r)
+                        logEl('results', JSON.stringify(r))
+                    } catch (e) {
+                        results.push({ id: t.id, passed: false, stderr: String(e) })
+                        logEl('results', `error for ${t.id}: ${e}`)
+                    }
+                    await new Promise(r => setTimeout(r, 120))
+                }
+
+                document.getElementById('status').textContent = 'done'
+                logEl('log', 'ALL TESTS DONE')
+                logEl('log', 'results: ' + JSON.stringify(results, null, 2))
+            })()
+    </script>
+</body>
+
+</html>

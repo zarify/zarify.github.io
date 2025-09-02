@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Electronics on Headtilt</title>
+    <link>https://headtilt.me/tags/electronics/</link>
+    <description>Recent content in Electronics on Headtilt</description>
+    <generator>Hugo -- 0.149.0</generator>
+    <language>en</language>
+    <copyright>Rob Poulter</copyright>
+    <lastBuildDate>Sat, 09 Aug 2025 07:35:10 +0800</lastBuildDate>
+    <atom:link href="https://headtilt.me/tags/electronics/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>ESP-CYD</title>
+      <link>https://headtilt.me/esp-cyd/</link>
+      <pubDate>Sat, 09 Aug 2025 07:35:10 +0800</pubDate>
+      <guid>https://headtilt.me/esp-cyd/</guid>
+      <description>&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; There&amp;rsquo;s a companion post to this about &lt;a href=&#34;https://headtilt.me/agent-experiment/&#34;&gt;using agentic AI here&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;preramble&#34;&gt;Pre(r)amble&lt;/h2&gt;
+&lt;p&gt;I have a problem. Well, I have several problems, but this post is specifically about my habit of seeing
+a neat looking microcontroller, not really thinking about whether I need another one, and then buying a
+couple (because, well, you need two just in case, right?).&lt;/p&gt;
+&lt;p&gt;In the office I have:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;A stack of v1 micro:bits&lt;/li&gt;
+&lt;li&gt;Some third party micro:bit clones&lt;/li&gt;
+&lt;li&gt;Several v2 micro:bits&lt;/li&gt;
+&lt;li&gt;Raspberry Pi Picos (2040)&lt;/li&gt;
+&lt;li&gt;DFRobot Beetles (ATmega)&lt;/li&gt;
+&lt;li&gt;DFRobot Firebeetles (ESP32)&lt;/li&gt;
+&lt;li&gt;Some ESP8266s&lt;/li&gt;
+&lt;li&gt;Various ESP32 variants (some camera versions, some plain boards)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;How many have I actually gotten around to writing code on? &lt;strong&gt;One&lt;/strong&gt; of the Firebeetles 😂 &amp;hellip;and all of
+the micro:bits. Why? Having nice accessible inputs and outputs makes programming so much more enjoyable.
+The micro:bit completely nails this - no faffing around with which pin to use for the buttons, no I2C
+or SPI nonsense needed to poke at the accelerometer, and nothing funky to do to access the display,
+sound, or mic. Just use the nice simple API, load the code via USB and off you go. Even when running
+peripheral sensors, servos, etc the micro:bit is just a joy to get going with.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Agent Experiment</title>
+      <link>https://headtilt.me/agent-experiment/</link>
+      <pubDate>Sat, 09 Aug 2025 07:31:10 +0800</pubDate>
+      <guid>https://headtilt.me/agent-experiment/</guid>
+      <description>&lt;h2 id=&#34;preramble&#34;&gt;Pre(r)amble&lt;/h2&gt;
+&lt;p&gt;It&amp;rsquo;s hard to avoid all the AI infesting everything these days, but apart from using
+completions a bit in VSCode Copilot with the occasional conversation about different
+libraries (which I find a pretty pleasant way to learn about new things, even if
+those new things are occasionally BS) I haven&amp;rsquo;t really used it for code a lot.&lt;/p&gt;
+&lt;p&gt;I read Github&amp;rsquo;s breathless &amp;ldquo;now, with AGENTS&amp;rdquo; release a while back, and never really
+gave it much thought until they also put out their
+&lt;a href=&#34;https://microsoft.github.io/CopilotAdventures/&#34;&gt;Copilot Adventures&lt;/a&gt; &amp;hellip; tutorials?
+The word &amp;ldquo;tutorial&amp;rdquo; feels a bit off, since the activities are couched in terms of
+&amp;ldquo;you&amp;rsquo;re going to make X!&amp;rdquo; but you&amp;rsquo;re not really making anything - you&amp;rsquo;re just being
+given examples of prompt structure to get the agent to build the thing for you.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

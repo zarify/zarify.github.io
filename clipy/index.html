@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Client-side Python Playground (MicroPython)</title>
+  <link rel="stylesheet" href="./style.css">
+  <!-- CodeMirror 5 (classic) from CDN for quick editor integration -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+  <!-- Highlight.js styles for code blocks rendered from Markdown -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/styles/github.min.css">
+</head>
+
+<body>
+  <header>
+    <h1>Client-side Python Playground</h1>
+    <div class="config-info">
+      <span class="config-title-line">Loading...</span>
+      <button id="reset-config-btn" class="btn btn-ghost" title="Reset to loaded config" style="margin-left:8px">
+        <span class="icon" aria-hidden="true">↺</span>
+      </button>
+    </div>
+    <div style="display: none;">
+      <span id="config-title">Loading...</span>
+      <small id="config-version"></small>
+    </div>
+  </header>
+  <main>
+    <section id="side" class="panel">
+      <div class="side-tabs" role="tablist" aria-label="Side tabs">
+        <button id="tab-btn-instructions" class="side-tab-btn" data-target="instructions" role="tab"
+          aria-selected="true">Instructions</button>
+        <button id="tab-btn-terminal" class="side-tab-btn" data-target="terminal" role="tab"
+          aria-selected="false">Terminal</button>
+        <button id="tab-btn-feedback" class="side-tab-btn" data-target="feedback" role="tab"
+          aria-selected="false">Feedback</button>
+      </div>
+      <div class="side-tab-content">
+        <div id="instructions" class="panel-child">
+          <div id="instructions-content">Loading...</div>
+        </div>
+        <div id="terminal" class="panel-child" style="display:none">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <button id="clear-terminal" class="btn btn-ghost" title="Clear terminal" aria-label="Clear terminal">
+              <span class="icon" aria-hidden="true">🧹</span>
+              <span>Clear</span>
+            </button>
+          </div>
+          <div id="terminal-output" class="terminal-output" tabindex="0" role="log" aria-live="polite"></div>
+          <form id="terminal-input-form" class="term-input" action="#" onsubmit="return false;">
+            <label class="prompt" aria-hidden="true">$</label>
+            <input id="stdin-box" class="term-prompt-input" placeholder="Type input and press Enter" autocomplete="off"
+              aria-label="Program stdin input" />
+            <button id="stdin-send" class="btn btn-ghost" title="Send stdin">
+              <span class="icon" aria-hidden="true">✉️</span>
+              <span>Send</span>
+            </button>
+          </form>
+        </div>
+        <div id="feedback" class="panel-child" style="display:none">
+          <div id="feedback-list">(no feedback)</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="editor" class="panel">
+      <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <h2 style="margin:0">Editor</h2>
+        <div class="editor-header-meta" style="min-width:120px;text-align:right">
+          <span id="autosave-indicator" aria-live="polite">Not saved</span>
+        </div>
+      </div>
+      <div id="file-tabs" class="tabs" role="tablist" style="margin-bottom:8px">
+        <div id="tabs-left" style="display:flex;gap:6px;align-items:center"></div>
+        <button id="tab-new" class="btn" title="New file" aria-label="New file">+</button>
+      </div>
+      <!-- Keep textarea accessible for tests -->
+      <textarea id="code"></textarea>
+      <div id="editor-host" class="cm-editor" aria-label="Code editor"></div>
+      <div class="editor-controls">
+        <div class="editor-actions" style="display:flex;align-items:center;">
+          <div style="display:flex;gap:8px;align-items:center">
+            <button id="run" class="btn btn-primary" title="Run">
+              <span class="icon" aria-hidden="true">▶️</span>
+              <span>Run</span>
+            </button>
+            <button id="stop" class="btn btn-danger" title="Stop execution" style="display:none">
+              <span class="icon" aria-hidden="true">⏹️</span>
+              <span>Stop</span>
+            </button>
+          </div>
+
+          <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+            <button id="save-snapshot" class="btn" title="Save snapshot">
+              <span class="icon" aria-hidden="true">💾</span>
+              <span>Save snapshot</span>
+            </button>
+            <button id="history" class="btn" title="History">
+              <span class="icon" aria-hidden="true">🕘</span>
+              <span>History</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- legacy stdin controls removed; terminal now contains the inline stdin prompt -->
+      </div>
+    </section>
+    <!-- Files panel removed: tabs are the primary UI for file visibility -->
+
+    <!-- terminal moved into the side panel above -->
+  </main>
+
+  <!-- Snapshot history modal -->
+  <div id="snapshot-modal" class="modal" role="dialog" aria-hidden="true" aria-labelledby="snapshot-modal-title"
+    aria-describedby="snapshot-modal-list">
+    <div class="modal-content">
+      <div class="modal-header" style="display:flex;align-items:center;gap:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <h3 id="snapshot-modal-title">Snapshots</h3>
+          (<div id="snapshot-storage-summary-header" style="font-size:0.95rem;color:#444">0 snaps • 0 files • 0B</div>)
+          <span class="info-icon" role="img" aria-label="Info about storage counts" tabindex="0"
+            style="margin-left:2px">
+            i
+            <div class="info-tooltip">(storage across all configurations)</div>
+          </span>
+        </div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+          <!-- Keep id clear-storage for existing tests; style as a normal button and place to the right -->
+          <button id="clear-storage" class="btn btn-danger" title="Clear storage" style="margin-left:6px">
+            <span class="icon" aria-hidden="true">🧺</span>
+            <span>Clear storage</span>
+          </button>
+        </div>
+      </div>
+      <div id="snapshot-list">(loading)</div>
+      <div id="snapshot-modal-footer" style="margin-top:8px;font-size:0.9em;color:#444">
+        <div id="snapshot-storage-summary">No snapshots • 0B total</div>
+      </div>
+      <div class="modal-actions" style="justify-content:space-between;align-items:center">
+        <div class="snapshot-clear-placeholder"></div>
+        <div>
+          <button id="close-snapshots" class="btn modal-close-btn">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Generic confirmation modal (used for clear-storage and other confirmations) -->
+  <div id="confirm-modal" class="modal" role="dialog" aria-hidden="true" aria-labelledby="confirm-modal-title"
+    aria-describedby="confirm-modal-message">
+    <div class="modal-content">
+      <h3 id="confirm-modal-title">Confirm</h3>
+      <div id="confirm-modal-message">Are you sure?</div>
+      <div id="confirm-modal-meta" style="margin-top:8px;color:#666;font-size:0.95rem"></div>
+      <div class="modal-actions">
+        <button id="confirm-yes" class="btn btn-danger">Confirm</button>
+        <button id="confirm-no" class="btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Configuration modal -->
+  <div id="config-modal" class="modal" role="dialog" aria-hidden="true" aria-labelledby="config-modal-title">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="config-modal-title">Load Configuration</h3>
+      </div>
+      <div style="margin-bottom:8px">
+        <strong>Available configs on server</strong>
+        <div id="config-server-list" class="config-server-list">(loading...)</div>
+      </div>
+
+      <div style="margin-bottom:8px">
+        <strong>Load from URL or filename</strong>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <input id="config-url-input" placeholder="config filename or full URL" style="flex:1" />
+          <button id="config-load-url" class="btn">Load</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:8px">
+        <strong>Upload a config file</strong>
+        <div id="config-drop-area" style="border:1px dashed #ccc;padding:12px;text-align:center;margin-top:6px">Drop a
+          JSON file here or <button id="config-file-picker" class="btn">Choose file</button></div>
+        <input id="config-file-input" type="file" accept="application/json" style="display:none" />
+      </div>
+
+      <!-- Inline error area for configuration loading failures (404, CORS, parse errors) -->
+      <div id="config-error" role="alert" aria-live="assertive"
+        style="color:var(--text-error,#b00020);font-size:0.95em;margin-top:6px;display:none"></div>
+
+      <div class="modal-actions">
+        <button id="config-close" class="btn modal-close-btn">Close</button>
+      </div>
+    </div>
+  </div>
+  <!-- Input modal for accessible prompt replacements -->
+  <div id="input-modal" class="modal" role="dialog" aria-hidden="true" aria-labelledby="input-modal-title"
+    aria-describedby="input-modal-desc">
+    <div class="modal-content">
+      <h3 id="input-modal-title">Input</h3>
+      <div id="input-modal-desc">Please provide input</div>
+      <div style="margin-top:8px">
+        <input id="input-modal-field" style="width:100%" />
+      </div>
+      <div class="modal-actions">
+        <button id="input-modal-ok" class="btn btn-primary">OK</button>
+        <button id="input-modal-cancel" class="btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <!-- Load marked (markdown compiler) and DOMPurify for safe HTML sanitization.
+    These are loaded as non-module globals so the existing app can consume them via `window.marked` and `window.DOMPurify`.
+    Using CDN links keeps the bundle light and avoids adding a build step.
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.8.0/build/highlight.min.js"></script>
+
+  <script type="module" src="./app.js"></script>
+</body>
+
+</html>

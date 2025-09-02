@@ -2,19 +2,102 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Python on Headtilt</title>
-    <link>/tags/python/</link>
+    <link>https://headtilt.me/tags/python/</link>
     <description>Recent content in Python on Headtilt</description>
-    <generator>Hugo -- 0.138.0</generator>
+    <generator>Hugo -- 0.149.0</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
-    <lastBuildDate>Tue, 17 Nov 2020 05:58:26 +0000</lastBuildDate>
-    <atom:link href="/tags/python/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 01 Sep 2025 06:03:47 +0800</lastBuildDate>
+    <atom:link href="https://headtilt.me/tags/python/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>WASM Python - Cat Herding 02</title>
+      <link>https://headtilt.me/cat-herding-wasm-python-02/</link>
+      <pubDate>Mon, 01 Sep 2025 06:03:47 +0800</pubDate>
+      <guid>https://headtilt.me/cat-herding-wasm-python-02/</guid>
+      <description>&lt;h2 id=&#34;preramble&#34;&gt;Pre(r)amble&lt;/h2&gt;
+&lt;p&gt;This is part of a(n aspirationally) series of posts documenting some of the process of
+(building|cat herding an AI agent to build)
+an easily hosted Python teaching tool built with just front-end JS and a WASM port of
+MicroPython. &lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-01/&#34;&gt;You can find Part 1 here&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;what-we-had-before&#34;&gt;What we had before&lt;/h2&gt;
+&lt;p&gt;The outcome of the previous week&amp;rsquo;s achievements was pretty satisfying since I&amp;rsquo;d tried
+and failed to solve the problems of having a responsive WASM Python runtime for user
+code before. Being able to lean on the agent to do things like make changes to C code
+where I knew what the outcome needed to be, and knew &lt;em&gt;how&lt;/em&gt; it needed to work, but didn&amp;rsquo;t
+know &lt;em&gt;what&lt;/em&gt; to do to make it happen was so valuable.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>WASM Python - Cat Herding 01</title>
+      <link>https://headtilt.me/cat-herding-wasm-python-01/</link>
+      <pubDate>Thu, 28 Aug 2025 02:53:25 +0800</pubDate>
+      <guid>https://headtilt.me/cat-herding-wasm-python-01/</guid>
+      <description>&lt;h2 id=&#34;preramble&#34;&gt;Pre(r)amble&lt;/h2&gt;
+&lt;p&gt;I&amp;rsquo;m in a strange place in my head with respect to coding agents. On one hand I see all the really
+dumb stuff that &amp;ldquo;intelligent&amp;rdquo; chatbots produce, on the other hand,
+&lt;a href=&#34;https://headtilt.me/agent-experiment/&#34;&gt;I&amp;rsquo;ve used them myself&lt;/a&gt; to turn something from
+&amp;ldquo;I should do that sometime when I&amp;rsquo;m motivated&amp;rdquo; into something I can actually use. It&amp;rsquo;s a weird
+time to be a teacher, let alone one of Digital Technologies.&lt;/p&gt;
+&lt;p&gt;Anyhow, this post (and hopefully some future ones) is an attempt to use AI to help shift some
+projects out of my head and backlog, and try and get them made. I&amp;rsquo;m aware of some of the things
+I found with my first AI coding experiment, in that rather than necessarily turning me into a
+&amp;ldquo;10x Engineer&amp;rdquo;, in fact it can turn me into a &amp;ldquo;0.95x Engineer&amp;rdquo;, getting me 95% of the way
+there and then getting stuck. The wonderful Cory Doctorow had a turn of phrase &amp;ldquo;reverse centaur&amp;rdquo;
+in &lt;a href=&#34;https://pluralistic.net/2025/08/04/bad-vibe-coding/#maximally-codelike-bugs&#34;&gt;this post&lt;/a&gt;,
+referring to when humans are forced to use AI. I loved the term, but probably not for the reason
+it was intended. I feel that when you&amp;rsquo;re being a centaur using AI agents, sometimes you&amp;rsquo;re the
+human, and sometimes you&amp;rsquo;re the horse(&amp;rsquo;s arse).&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>ESP-CYD</title>
+      <link>https://headtilt.me/esp-cyd/</link>
+      <pubDate>Sat, 09 Aug 2025 07:35:10 +0800</pubDate>
+      <guid>https://headtilt.me/esp-cyd/</guid>
+      <description>&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; There&amp;rsquo;s a companion post to this about &lt;a href=&#34;https://headtilt.me/agent-experiment/&#34;&gt;using agentic AI here&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;preramble&#34;&gt;Pre(r)amble&lt;/h2&gt;
+&lt;p&gt;I have a problem. Well, I have several problems, but this post is specifically about my habit of seeing
+a neat looking microcontroller, not really thinking about whether I need another one, and then buying a
+couple (because, well, you need two just in case, right?).&lt;/p&gt;
+&lt;p&gt;In the office I have:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;A stack of v1 micro:bits&lt;/li&gt;
+&lt;li&gt;Some third party micro:bit clones&lt;/li&gt;
+&lt;li&gt;Several v2 micro:bits&lt;/li&gt;
+&lt;li&gt;Raspberry Pi Picos (2040)&lt;/li&gt;
+&lt;li&gt;DFRobot Beetles (ATmega)&lt;/li&gt;
+&lt;li&gt;DFRobot Firebeetles (ESP32)&lt;/li&gt;
+&lt;li&gt;Some ESP8266s&lt;/li&gt;
+&lt;li&gt;Various ESP32 variants (some camera versions, some plain boards)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;How many have I actually gotten around to writing code on? &lt;strong&gt;One&lt;/strong&gt; of the Firebeetles 😂 &amp;hellip;and all of
+the micro:bits. Why? Having nice accessible inputs and outputs makes programming so much more enjoyable.
+The micro:bit completely nails this - no faffing around with which pin to use for the buttons, no I2C
+or SPI nonsense needed to poke at the accelerometer, and nothing funky to do to access the display,
+sound, or mic. Just use the nice simple API, load the code via USB and off you go. Even when running
+peripheral sensors, servos, etc the micro:bit is just a joy to get going with.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Agent Experiment</title>
+      <link>https://headtilt.me/agent-experiment/</link>
+      <pubDate>Sat, 09 Aug 2025 07:31:10 +0800</pubDate>
+      <guid>https://headtilt.me/agent-experiment/</guid>
+      <description>&lt;h2 id=&#34;preramble&#34;&gt;Pre(r)amble&lt;/h2&gt;
+&lt;p&gt;It&amp;rsquo;s hard to avoid all the AI infesting everything these days, but apart from using
+completions a bit in VSCode Copilot with the occasional conversation about different
+libraries (which I find a pretty pleasant way to learn about new things, even if
+those new things are occasionally BS) I haven&amp;rsquo;t really used it for code a lot.&lt;/p&gt;
+&lt;p&gt;I read Github&amp;rsquo;s breathless &amp;ldquo;now, with AGENTS&amp;rdquo; release a while back, and never really
+gave it much thought until they also put out their
+&lt;a href=&#34;https://microsoft.github.io/CopilotAdventures/&#34;&gt;Copilot Adventures&lt;/a&gt; &amp;hellip; tutorials?
+The word &amp;ldquo;tutorial&amp;rdquo; feels a bit off, since the activities are couched in terms of
+&amp;ldquo;you&amp;rsquo;re going to make X!&amp;rdquo; but you&amp;rsquo;re not really making anything - you&amp;rsquo;re just being
+given examples of prompt structure to get the agent to build the thing for you.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>Code Introspection in Minecraft and Python</title>
-      <link>/code-introspection-in-minecraft-and-python/</link>
+      <link>https://headtilt.me/code-introspection-in-minecraft-and-python/</link>
       <pubDate>Tue, 17 Nov 2020 05:58:26 +0000</pubDate>
-      <guid>/code-introspection-in-minecraft-and-python/</guid>
-      <description>&lt;img loading=&#34;lazy&#34; src=&#34;/images/minecraft_python/intro.png&#34;&gt;&lt;p&gt;I recently got around to trying out the new-ish Python mode for coding within Minecraft: Education Edition, and whilst it is refreshing to be able to &lt;strong&gt;write&lt;/strong&gt; code, the lack of a code library to be able to refer to made learning the Minecraft-specific commands somewhat difficult.&lt;/p&gt;
+      <guid>https://headtilt.me/code-introspection-in-minecraft-and-python/</guid>
+      <description>&lt;img loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/minecraft_python/intro.png&#34;&gt;&lt;p&gt;I recently got around to trying out the new-ish Python mode for coding within Minecraft: Education Edition, and whilst it is refreshing to be able to &lt;strong&gt;write&lt;/strong&gt; code, the lack of a code library to be able to refer to made learning the Minecraft-specific commands somewhat difficult.&lt;/p&gt;
 &lt;p&gt;Enter code introspection, which is the ability to look inside classes and methods from within Python to list them and see what is available, or to show their docstring and discover their arguments.&lt;/p&gt;</description>
     </item>
   </channel>

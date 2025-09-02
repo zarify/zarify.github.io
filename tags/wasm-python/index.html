@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Wasm-Python | Headtilt</title>
+<meta name="keywords" content="">
+<meta name="description" content="">
+<meta name="author" content="Rob">
+<link rel="canonical" href="https://headtilt.me/tags/wasm-python/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.1d79e034ed3fae3cce466e1b13b697315f9998d1ba8d908def178611b372b49f.css" integrity="sha256-HXngNO0/rjzORm4bE7aXMV&#43;ZmNG6jZCN7xeGEbNytJ8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://headtilt.me/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://headtilt.me/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://headtilt.me/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://headtilt.me/apple-touch-icon.png">
+<link rel="mask-icon" href="https://headtilt.me/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" type="application/rss+xml" href="https://headtilt.me/tags/wasm-python/index.xml">
+<link rel="alternate" hreflang="en" href="https://headtilt.me/tags/wasm-python/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/css/formatting.css">
+
+
+
+</head>
+
+<body class="list" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://headtilt.me/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="https://headtilt.me/images/headtilt.png" alt="" aria-label="logo"
+                    height="30">Adjust your angle</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://headtilt.me/post" title="posts">
+                    <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/page/about/" title="about">
+                    <span><i class="fa-solid fa-circle-info"></i> about</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/categories/" title="categories">
+                    <span><i class="fa-solid fa-layer-group"></i> categories</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/tags/" title="tags">
+                    <span><i class="fa-solid fa-tags"></i> tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main"> 
+<header class="page-header">
+  <h1>
+    Wasm-Python
+    <a href="/tags/wasm-python/index.xml" title="RSS" aria-label="RSS">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" height="23">
+        <path d="M4 11a9 9 0 0 1 9 9" />
+        <path d="M4 4a16 16 0 0 1 16 16" />
+        <circle cx="5" cy="19" r="1" />
+      </svg>
+    </a>
+  </h1>
+</header>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">WASM Python - Cat Herding 02
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Pre(r)amble This is part of a(n aspirationally) series of posts documenting some of the process of (building|cat herding an AI agent to build) an easily hosted Python teaching tool built with just front-end JS and a WASM port of MicroPython. You can find Part 1 here
+What we had before The outcome of the previous week’s achievements was pretty satisfying since I’d tried and failed to solve the problems of having a responsive WASM Python runtime for user code before. Being able to lean on the agent to do things like make changes to C code where I knew what the outcome needed to be, and knew how it needed to work, but didn’t know what to do to make it happen was so valuable.
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-01 06:03:47 +0800 AWST'>Mon, Sep 1, 2025</span>&nbsp;·&nbsp;Rob</footer>
+  <a class="entry-link" aria-label="post link to WASM Python - Cat Herding 02" href="https://headtilt.me/cat-herding-wasm-python-02/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">WASM Python - Cat Herding 01
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Pre(r)amble I’m in a strange place in my head with respect to coding agents. On one hand I see all the really dumb stuff that “intelligent” chatbots produce, on the other hand, I’ve used them myself to turn something from “I should do that sometime when I’m motivated” into something I can actually use. It’s a weird time to be a teacher, let alone one of Digital Technologies.
+Anyhow, this post (and hopefully some future ones) is an attempt to use AI to help shift some projects out of my head and backlog, and try and get them made. I’m aware of some of the things I found with my first AI coding experiment, in that rather than necessarily turning me into a “10x Engineer”, in fact it can turn me into a “0.95x Engineer”, getting me 95% of the way there and then getting stuck. The wonderful Cory Doctorow had a turn of phrase “reverse centaur” in this post, referring to when humans are forced to use AI. I loved the term, but probably not for the reason it was intended. I feel that when you’re being a centaur using AI agents, sometimes you’re the human, and sometimes you’re the horse(’s arse).
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-08-28 02:53:25 +0800 AWST'>Thu, Aug 28, 2025</span>&nbsp;·&nbsp;Rob</footer>
+  <a class="entry-link" aria-label="post link to WASM Python - Cat Herding 01" href="https://headtilt.me/cat-herding-wasm-python-01/"></a>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>Rob Poulter</span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a><script type="text/javascript" src="/js/lightbox.js"></script>
+<link rel="stylesheet" href="/css/lightbox.css">
+<script data-goatcounter="https://headtilt_me.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+</body>
+
+</html>

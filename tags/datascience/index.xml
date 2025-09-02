@@ -2,29 +2,29 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Datascience on Headtilt</title>
-    <link>/tags/datascience/</link>
+    <link>https://headtilt.me/tags/datascience/</link>
     <description>Recent content in Datascience on Headtilt</description>
-    <generator>Hugo -- 0.138.0</generator>
+    <generator>Hugo -- 0.149.0</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
     <lastBuildDate>Sun, 29 Dec 2019 15:46:19 +0000</lastBuildDate>
-    <atom:link href="/tags/datascience/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://headtilt.me/tags/datascience/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Year 10s: Sentiment Analysis</title>
-      <link>/year-10s-sentiment-analysis/</link>
+      <link>https://headtilt.me/year-10s-sentiment-analysis/</link>
       <pubDate>Sun, 29 Dec 2019 15:46:19 +0000</pubDate>
-      <guid>/year-10s-sentiment-analysis/</guid>
+      <guid>https://headtilt.me/year-10s-sentiment-analysis/</guid>
       <description>&lt;p&gt;In 2019 I started up a programming-oriented Data Science class with my Year 10s. I ran two classes during the year, each spanning a semester. My aim for the course was to introduce students to different ways of storing, retrieving, and working with data, as well as give some coverage over different types of data and some operations that you can perform with it (e.g. numeric, text, spatial).&lt;/p&gt;
 &lt;p&gt;I ran a different main project with each class: during the first semester I looked at analysing data from the &lt;a href=&#34;https://www.aph.gov.au/Parliamentary_Business/Hansard&#34;&gt;Australian Federal Government Hansard&lt;/a&gt;. Unfortunately, the students in the group weren&amp;rsquo;t very interested in it, and (like many of my first time projects) the scope turned out to be overly broad, meaning students had trouble figuring out what they &lt;em&gt;would&lt;/em&gt; do from all the alternatives of what they &lt;em&gt;could&lt;/em&gt; do. Tangentially, working with the XML from the Hansard is a great (or terrible, depending on your perspective) activity in data cleaning - they&amp;rsquo;ve made some&amp;hellip; interesting decisions about how to format their data inside the XML structure.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Minecraft Edu Edition: Geological Surveys</title>
-      <link>/minecraft-edu-edition-geological-surveys/</link>
+      <link>https://headtilt.me/minecraft-edu-edition-geological-surveys/</link>
       <pubDate>Thu, 23 Aug 2018 20:14:34 +0000</pubDate>
-      <guid>/minecraft-edu-edition-geological-surveys/</guid>
-      <description>&lt;img alt=&#34;Minecraft Geological Survey&#34; loading=&#34;lazy&#34; src=&#34;/images/geology/geology_cover.PNG&#34;&gt;&lt;h2 id=&#34;background&#34;&gt;Background&lt;/h2&gt;
+      <guid>https://headtilt.me/minecraft-edu-edition-geological-surveys/</guid>
+      <description>&lt;img alt=&#34;Minecraft Geological Survey&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/geology/geology_cover.PNG&#34;&gt;&lt;h2 id=&#34;background&#34;&gt;Background&lt;/h2&gt;
 &lt;p&gt;I&amp;rsquo;ve been using &lt;a href=&#34;https://education.minecraft.net/&#34;&gt;Minecraft Education Edition with Code Connection&lt;/a&gt; in my Year 7 classes this term to teach programming principles, which has been a blast* (i.e. I spend a lot of time trying to encourage students to write programs rather than run around building stuff themselves).&lt;/p&gt;
-&lt;img loading=&#34;lazy&#34; src=&#34;/images/geology/agent.PNG&#34;&gt;&lt;p&gt;The Agent&lt;/p&gt;
+&lt;img loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/geology/agent.PNG&#34;&gt;&lt;p&gt;The Agent&lt;/p&gt;
 &lt;p&gt;Code Connection comes with a &lt;a href=&#34;https://minecraft.makecode.com/courses/csintro&#34;&gt;ton of interesting tutorials&lt;/a&gt; to get started with, but I&amp;rsquo;ve been writing a few things for myself to try out different features, two of which are the Agent and the Builder. The Agent is a code-controlled character that can build from its inventory, attack and destroy surrounding blocks, and do basic sensing of its environment. The builder is an invisible constructor which is used for raising structures fairly quickly; it doesn&amp;rsquo;t have an inventory and can&amp;rsquo;t interact with its environment beyond placing blocks.&lt;/p&gt;</description>
     </item>
   </channel>

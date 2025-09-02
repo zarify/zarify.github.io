@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>WASM Python - Cat Herding 01 | Headtilt</title>
+<meta name="keywords" content="ai, python, llm, agents, cat-herding, wasm-python">
+<meta name="description" content="Pre(r)amble
+I&rsquo;m in a strange place in my head with respect to coding agents. On one hand I see all the really
+dumb stuff that &ldquo;intelligent&rdquo; chatbots produce, on the other hand,
+I&rsquo;ve used them myself to turn something from
+&ldquo;I should do that sometime when I&rsquo;m motivated&rdquo; into something I can actually use. It&rsquo;s a weird
+time to be a teacher, let alone one of Digital Technologies.
+Anyhow, this post (and hopefully some future ones) is an attempt to use AI to help shift some
+projects out of my head and backlog, and try and get them made. I&rsquo;m aware of some of the things
+I found with my first AI coding experiment, in that rather than necessarily turning me into a
+&ldquo;10x Engineer&rdquo;, in fact it can turn me into a &ldquo;0.95x Engineer&rdquo;, getting me 95% of the way
+there and then getting stuck. The wonderful Cory Doctorow had a turn of phrase &ldquo;reverse centaur&rdquo;
+in this post,
+referring to when humans are forced to use AI. I loved the term, but probably not for the reason
+it was intended. I feel that when you&rsquo;re being a centaur using AI agents, sometimes you&rsquo;re the
+human, and sometimes you&rsquo;re the horse(&rsquo;s arse).">
+<meta name="author" content="Rob">
+<link rel="canonical" href="https://headtilt.me/cat-herding-wasm-python-01/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.1d79e034ed3fae3cce466e1b13b697315f9998d1ba8d908def178611b372b49f.css" integrity="sha256-HXngNO0/rjzORm4bE7aXMV&#43;ZmNG6jZCN7xeGEbNytJ8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://headtilt.me/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://headtilt.me/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://headtilt.me/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://headtilt.me/apple-touch-icon.png">
+<link rel="mask-icon" href="https://headtilt.me/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://headtilt.me/cat-herding-wasm-python-01/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/css/formatting.css">
+
+
+
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://headtilt.me/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="https://headtilt.me/images/headtilt.png" alt="" aria-label="logo"
+                    height="30">Adjust your angle</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://headtilt.me/post" title="posts">
+                    <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/page/about/" title="about">
+                    <span><i class="fa-solid fa-circle-info"></i> about</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/categories/" title="categories">
+                    <span><i class="fa-solid fa-layer-group"></i> categories</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/tags/" title="tags">
+                    <span><i class="fa-solid fa-tags"></i> tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      WASM Python - Cat Herding 01
+    </h1>
+    <div class="post-meta"><span title='2025-08-28 02:53:25 +0800 AWST'>Thu, Aug 28, 2025</span>&nbsp;·&nbsp;Rob
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#preramble" aria-label="Pre(r)amble">Pre(r)amble</a></li>
+                <li>
+                    <a href="#the-point-of-the-post" aria-label="The point of the post">The point of the post</a><ul>
+                        
+                <li>
+                    <a href="#the-project" aria-label="The project">The project</a></li>
+                <li>
+                    <a href="#the-weeds" aria-label="The weeds">The weeds</a><ul>
+                        
+                <li>
+                    <a href="#blocking-code" aria-label="Blocking code">Blocking code</a><ul>
+                        
+                <li>
+                    <a href="#input" aria-label="input()">input()</a></li>
+                <li>
+                    <a href="#loops" aria-label="Loops">Loops</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+            </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h2 id="preramble">Pre(r)amble<a hidden class="anchor" aria-hidden="true" href="#preramble">#</a></h2>
+<p>I&rsquo;m in a strange place in my head with respect to coding agents. On one hand I see all the really
+dumb stuff that &ldquo;intelligent&rdquo; chatbots produce, on the other hand,
+<a href="https://headtilt.me/agent-experiment/">I&rsquo;ve used them myself</a> to turn something from
+&ldquo;I should do that sometime when I&rsquo;m motivated&rdquo; into something I can actually use. It&rsquo;s a weird
+time to be a teacher, let alone one of Digital Technologies.</p>
+<p>Anyhow, this post (and hopefully some future ones) is an attempt to use AI to help shift some
+projects out of my head and backlog, and try and get them made. I&rsquo;m aware of some of the things
+I found with my first AI coding experiment, in that rather than necessarily turning me into a
+&ldquo;10x Engineer&rdquo;, in fact it can turn me into a &ldquo;0.95x Engineer&rdquo;, getting me 95% of the way
+there and then getting stuck. The wonderful Cory Doctorow had a turn of phrase &ldquo;reverse centaur&rdquo;
+in <a href="https://pluralistic.net/2025/08/04/bad-vibe-coding/#maximally-codelike-bugs">this post</a>,
+referring to when humans are forced to use AI. I loved the term, but probably not for the reason
+it was intended. I feel that when you&rsquo;re being a centaur using AI agents, sometimes you&rsquo;re the
+human, and sometimes you&rsquo;re the horse(&rsquo;s arse).</p>
+<h2 id="the-point-of-the-post">The point of the post<a hidden class="anchor" aria-hidden="true" href="#the-point-of-the-post">#</a></h2>
+<p>Back when I worked for <a href="https://groklearning.com">Grok</a> (no, not that one), lots of students
+logged in to learn to code, and used the platform as the place to do it. Lots of front-end
+editing, back-end execution, front-end reporting. There was a lot going on in terms of
+keep tracking of student progress, reporting that back to teachers, and so on, but the
+coding feedback loop was always something that was really interesting.</p>
+<p>Students got light syntax/pattern-based feedback as they wrote their code (generally in Python),
+then ran their code, and got effectively unit test based feedback on execution. We served
+students all over Australia (and internationally) and some of the regions are really remote
+without the best Internet connections. Bad network connections could lead to bad
+experiences since there was a lot of back and forth communication - so what if we could do
+almost everything client-side?</p>
+<p><a href="https://webassembly.org/">WASM</a> ports of Python (through things like
+<a href="https://pyodide.org">Pyodide</a> and <a href="https://pyscript.net/">Pyscript</a>) have been getting
+more love, and there are some really neat things that use it. A couple that
+really made me pay attention were:</p>
+<ul>
+<li><a href="https://pysheets.app/about">PySheets</a> - a local spreadsheets app</li>
+<li><a href="https://docs.marimo.io/guides/wasm/">Marimo WebAssembly notebooks</a> - a Python notebook similar (but also not very similar) to Jupyter</li>
+</ul>
+<h3 id="the-project">The project<a hidden class="anchor" aria-hidden="true" href="#the-project">#</a></h3>
+<p>The project is to create a &ldquo;learn Python&rdquo; style page that:</p>
+<ul>
+<li>Lets students write and save their code locally (using browser storage for snapshots)</li>
+<li>Be configurable to present students with coding problems to solve, instructions, and sample files to work with</li>
+<li>Uses JavaScript locally to give students edit-time feedback on what they&rsquo;re doing, both with pattern matching and static analysis</li>
+<li>Unit test student code locally (TBH I&rsquo;m still not entirely sure how this one will work 😅)</li>
+<li>Will run on a vanilla HTTP server with no server-end architecture beyond hosting files</li>
+</ul>
+<p>I&rsquo;ve been noodling around with this for a week or so now, and currently have:</p>
+<ul>
+<li>A pleasantly utilitarian page for instructions, feedback, and editing</li>
+<li>Browser-based code snapshots, which are tied to configured problems and versions</li>
+<li>Locally running user-edited Python code that runs in a <a href="https://micropython.org/">Micropython</a> WASM</li>
+<li>A lightly configured CodeMirror editor that will highlight runtime errors</li>
+</ul>
+<div class="callout callout-info">
+    <i class="fa-regular fa-lightbulb"></i>
+    <div class="callout-content">
+        Why Micropython? Mostly because it&rsquo;s really small. The latest versions are pretty capable
+for a lot of regular Python (you can even <code>:=</code> your way around). You don&rsquo;t get the library
+ecosystem, but it&rsquo;s a tradeoff in terms of making it pretty snappy.
+    </div>
+</div>
+
+<style>
+    .callout {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        font-family: 'Arial', sans-serif;
+        font-size: 0.9em;
+    }
+
+    .callout-info {
+        background-color: #e7f3fe;
+        border-color: #b3d4fc;
+    }
+
+    .callout i {
+        margin-right: 10px;
+        padding: 0.25em 0.5em;
+        font-size: 1.5em;
+    }
+
+    .callout-content {
+        flex-grow: 1;
+    }
+</style>
+<img loading="lazy" src="/images/clipy/clipy_20250828.png"><h3 id="the-weeds">The weeds<a hidden class="anchor" aria-hidden="true" href="#the-weeds">#</a></h3>
+<p>Some technical stuff about what has had to be solved so far. It&rsquo;s been interesting doing this with
+an agent, because as I&rsquo;ve said before, they do some really dumb things. I&rsquo;ve got a background in
+Computer Science, but I have also spent my career teaching which has pretty much killed off any deeply
+technical experience I had as I spent years covering surface level concepts over and over again.</p>
+<p>Still, I can generally see when the agent is doing something stupid, and have a general feel for
+some potential solutions, even if I don&rsquo;t have the experience to implement them myself. So far there&rsquo;s
+been a lot of fairly mundane issues, mostly related to my eyes glazing over whenever I see JS code
+about promise resolution, but there have been a couple of interesting technical hurdles to overcome.</p>
+<h4 id="blocking-code">Blocking code<a hidden class="anchor" aria-hidden="true" href="#blocking-code">#</a></h4>
+<p>Students write a lot of blocking code like <code>input()</code> calls, loops using <code>time.sleep()</code>, and tight loops
+where they don&rsquo;t <em>really</em> think too hard about how to break out of the loop before they run the program.
+This presents a real problem for code running in Micropython in the browser, because it all runs
+synchronously in the VM, locking you out until it&rsquo;s finished executing or raises an error.</p>
+<p>If you&rsquo;re trying to use JS to poke at that code? You&rsquo;re out of luck until it&rsquo;s good and ready.</p>
+<h5 id="input"><code>input()</code><a hidden class="anchor" aria-hidden="true" href="#input">#</a></h5>
+<p>The most obvious problem to tackle first was <code>input()</code> which has two problems:</p>
+<ol>
+<li>Where&rsquo;s <code>stdin</code> coming from as a VM running inside the browser?!?</li>
+<li><code>input()</code> is blocking, so how do we get some input from JS in to Python if it&rsquo;s stopping us from doing anything?</li>
+</ol>
+<p>AI suggestions for answering this problem mostly involved rewriting student code and wrapping everything
+in <code>async</code>/<code>await</code>, which sort of works, but is incredibly fragile since you&rsquo;re rewriting code blocks
+all over the place. An <code>input</code> call inside a loop or selection? BOOM, have a <code>SyntaxError</code> for your trouble.
+Also it makes reporting tracebacks to the student a mission because now you&rsquo;re undoing all that code
+munging to give them the right line numbers.</p>
+<p>The second suggestion from AI was to use <a href="https://emscripten.org/docs/porting/asyncify.html">asyncify</a>
+which lets you jump in and out of VM execution preserving state. The trouble is, <code>input</code> is still a
+blocking function and I didn&rsquo;t want to rewrite student code.</p>
+<p>The solution to when <code>input</code> is the problem? Edit what <code>input</code> does, recompile the Micropython WASM
+port (with asyncify), and we&rsquo;re off to the races! My solution was that <code>input</code> doesn&rsquo;t actually have do <em>be</em> <code>input</code>
+in my version of Python, so we turned it into something else that just acts as something that yields
+control and lets us use JS for getting user input.</p>
+<h5 id="loops">Loops<a hidden class="anchor" aria-hidden="true" href="#loops">#</a></h5>
+<p>Infinite loops suck. When you&rsquo;re running your own interactive program though, you can just hit the good
+old ^C and interrupt it. In WASM land though? Oh no, you&rsquo;re waiting for the browser to notice that not
+much is happening because you&rsquo;re locked out.</p>
+<p>What about loops that aren&rsquo;t infinite, but are just busy <code>sleep</code>ing? Well that&rsquo;s a problem too, because
+<code>time.sleep()</code> is another blocking function we can&rsquo;t break into.</p>
+<p>The solution to both of these? Yep, time to recompile Micropython again, this time to make both loop
+iterations and <code>time.sleep()</code> yield control back so we can send it an interrupt and SIGINT our way out
+of there. I&rsquo;m sure there are performance implications for doing this, but again, this is supposed to be
+a toy environment to learn in, not for production.</p>
+<div class="callout callout-info">
+    <i class="fa-regular fa-lightbulb"></i>
+    <div class="callout-content">
+        <p>So far this is where I&rsquo;m at. I have a client-side environment where you can write and run Python code that
+a student would typically write, and a virtual filesystem backed by browser storage and a basic snapshot
+system for version control.</p>
+<p>I&rsquo;ve got configuration implemented in a barebones way so that you can pass in instructions, starter code,
+files into the filesystem, and entry points for pattern matching and AST-based feedback. This will
+probably be the next thing to focus on.</p>
+<p>Because this is a pretty volatile project (see the &ldquo;with AI&rdquo; part) I&rsquo;ll put the code on GitHub when
+it&rsquo;s less likely to get rewrites as I discover some major architectural change is necessary
+(happened a couple of times so far 🤣).</p>
+
+    </div>
+</div>
+
+<style>
+    .callout {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        font-family: 'Arial', sans-serif;
+        font-size: 0.9em;
+    }
+
+    .callout-info {
+        background-color: #e7f3fe;
+        border-color: #b3d4fc;
+    }
+
+    .callout i {
+        margin-right: 10px;
+        padding: 0.25em 0.5em;
+        font-size: 1.5em;
+    }
+
+    .callout-content {
+        flex-grow: 1;
+    }
+</style>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://headtilt.me/tags/ai/">Ai</a></li>
+      <li><a href="https://headtilt.me/tags/python/">Python</a></li>
+      <li><a href="https://headtilt.me/tags/llm/">Llm</a></li>
+      <li><a href="https://headtilt.me/tags/agents/">Agents</a></li>
+      <li><a href="https://headtilt.me/tags/cat-herding/">Cat-Herding</a></li>
+      <li><a href="https://headtilt.me/tags/wasm-python/">Wasm-Python</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>Rob Poulter</span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a><script type="text/javascript" src="/js/lightbox.js"></script>
+<link rel="stylesheet" href="/css/lightbox.css">
+<script data-goatcounter="https://headtilt_me.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

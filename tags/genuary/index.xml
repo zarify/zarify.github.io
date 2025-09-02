@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Genuary on Headtilt</title>
-    <link>/tags/genuary/</link>
+    <link>https://headtilt.me/tags/genuary/</link>
     <description>Recent content in Genuary on Headtilt</description>
-    <generator>Hugo -- 0.138.0</generator>
+    <generator>Hugo -- 0.149.0</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
     <lastBuildDate>Sun, 02 Feb 2025 09:02:54 +0800</lastBuildDate>
-    <atom:link href="/tags/genuary/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://headtilt.me/tags/genuary/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Genuary 2025</title>
-      <link>/genuary25/</link>
+      <link>https://headtilt.me/genuary25/</link>
       <pubDate>Sun, 02 Feb 2025 09:02:54 +0800</pubDate>
-      <guid>/genuary25/</guid>
+      <guid>https://headtilt.me/genuary25/</guid>
       <description>&lt;p&gt;January / &lt;a href=&#34;https://genuary.art&#34;&gt;Genuary&lt;/a&gt; is over for another year, and I&amp;rsquo;m coming to the end of my enforced holiday,
 starting my new remote teaching job this week. Despite the &amp;ldquo;need to find a new job&amp;rdquo; pressure, it&amp;rsquo;s actually been
-pretty nice to sink some time into things like the &lt;a href=&#34;/pandas-workout/&#34;&gt;Pandas Workout book&lt;/a&gt;,
+pretty nice to sink some time into things like the &lt;a href=&#34;https://headtilt.me/pandas-workout/&#34;&gt;Pandas Workout book&lt;/a&gt;,
 &lt;a href=&#34;https://adventofcode.com/2024/&#34;&gt;Advent of Code&lt;/a&gt;
 (&lt;a href=&#34;https://github.com/zarify/advent_of_code/tree/main/2024&#34;&gt;my first 50 stars&lt;/a&gt;,
 although I relied on some explanations for a couple of the problems) and Genuary.&lt;/p&gt;

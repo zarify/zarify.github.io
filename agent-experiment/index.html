@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Agent Experiment | Headtilt</title>
+<meta name="keywords" content="ai, robotics, llm, debugging, python, electronics">
+<meta name="description" content="Pre(r)amble
+It&rsquo;s hard to avoid all the AI infesting everything these days, but apart from using
+completions a bit in VSCode Copilot with the occasional conversation about different
+libraries (which I find a pretty pleasant way to learn about new things, even if
+those new things are occasionally BS) I haven&rsquo;t really used it for code a lot.
+I read Github&rsquo;s breathless &ldquo;now, with AGENTS&rdquo; release a while back, and never really
+gave it much thought until they also put out their
+Copilot Adventures &hellip; tutorials?
+The word &ldquo;tutorial&rdquo; feels a bit off, since the activities are couched in terms of
+&ldquo;you&rsquo;re going to make X!&rdquo; but you&rsquo;re not really making anything - you&rsquo;re just being
+given examples of prompt structure to get the agent to build the thing for you.">
+<meta name="author" content="Rob">
+<link rel="canonical" href="https://headtilt.me/agent-experiment/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.1d79e034ed3fae3cce466e1b13b697315f9998d1ba8d908def178611b372b49f.css" integrity="sha256-HXngNO0/rjzORm4bE7aXMV&#43;ZmNG6jZCN7xeGEbNytJ8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://headtilt.me/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://headtilt.me/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://headtilt.me/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://headtilt.me/apple-touch-icon.png">
+<link rel="mask-icon" href="https://headtilt.me/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://headtilt.me/agent-experiment/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/css/formatting.css">
+
+
+
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://headtilt.me/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="https://headtilt.me/images/headtilt.png" alt="" aria-label="logo"
+                    height="30">Adjust your angle</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://headtilt.me/post" title="posts">
+                    <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/page/about/" title="about">
+                    <span><i class="fa-solid fa-circle-info"></i> about</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/categories/" title="categories">
+                    <span><i class="fa-solid fa-layer-group"></i> categories</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/tags/" title="tags">
+                    <span><i class="fa-solid fa-tags"></i> tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Agent Experiment
+    </h1>
+    <div class="post-meta"><span title='2025-08-09 07:31:10 +0800 AWST'>Sat, Aug 9, 2025</span>&nbsp;·&nbsp;Rob
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#preramble" aria-label="Pre(r)amble">Pre(r)amble</a></li>
+                <li>
+                    <a href="#agent-of-chaos" aria-label="Agent of Chaos">Agent of Chaos</a><ul>
+                        
+                <li>
+                    <a href="#productivity-boost" aria-label="Productivity boost!">Productivity boost!</a></li>
+                <li>
+                    <a href="#squashing-bugs-and-change-blindness" aria-label="Squashing bugs and Change blindness">Squashing bugs and Change blindness</a></li>
+                <li>
+                    <a href="#the-good" aria-label="The good">The good</a></li></ul>
+                </li>
+                <li>
+                    <a href="#results" aria-label="Results">Results</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h2 id="preramble">Pre(r)amble<a hidden class="anchor" aria-hidden="true" href="#preramble">#</a></h2>
+<p>It&rsquo;s hard to avoid all the AI infesting everything these days, but apart from using
+completions a bit in VSCode Copilot with the occasional conversation about different
+libraries (which I find a pretty pleasant way to learn about new things, even if
+those new things are occasionally BS) I haven&rsquo;t really used it for code a lot.</p>
+<p>I read Github&rsquo;s breathless &ldquo;now, with AGENTS&rdquo; release a while back, and never really
+gave it much thought until they also put out their
+<a href="https://microsoft.github.io/CopilotAdventures/">Copilot Adventures</a> &hellip; tutorials?
+The word &ldquo;tutorial&rdquo; feels a bit off, since the activities are couched in terms of
+&ldquo;you&rsquo;re going to make X!&rdquo; but you&rsquo;re not really making anything - you&rsquo;re just being
+given examples of prompt structure to get the agent to build the thing for you.</p>
+<div class="callout callout-info">
+    <i class="fa-regular fa-lightbulb"></i>
+    <div class="callout-content">
+        If I put my teacher hat on, it feels more like a professional learning session on
+classroom pedagogy - here are some ways you can break up your instructions in a way
+that students will understand. Of course, the agents aren&rsquo;t students, and don&rsquo;t learn
+(from you) so the analogy gets a bit thin. This is why I have such a hard time
+swallowing all the rhetoric about AI Agents just being junior software engineers.
+    </div>
+</div>
+
+<style>
+    .callout {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        font-family: 'Arial', sans-serif;
+        font-size: 0.9em;
+    }
+
+    .callout-info {
+        background-color: #e7f3fe;
+        border-color: #b3d4fc;
+    }
+
+    .callout i {
+        margin-right: 10px;
+        padding: 0.25em 0.5em;
+        font-size: 1.5em;
+    }
+
+    .callout-content {
+        flex-grow: 1;
+    }
+</style>
+<h2 id="agent-of-chaos">Agent of Chaos<a hidden class="anchor" aria-hidden="true" href="#agent-of-chaos">#</a></h2>
+<p>OK so the heading is a bit over the top, but we&rsquo;ll run with it.</p>
+<p>I had a go at a couple of the Copilot Adventures activities, and while I didn&rsquo;t think
+they were amazing, they at least gave me a way to think about agents that wasn&rsquo;t just
+automating my typing. I still don&rsquo;t understand most of the AI agent boosterism&hellip;
+maybe one day.</p>
+<p>Anyway, armed with some idea of how to prod the agent to make things for me took
+a couple of ESP32 modules with touch screens (<a href="https://headtilt.me/esp-cyd/">more about what actually got made here</a>)
+and started prompting away to get Claude in agent mode to write some student-friendly
+libraries for the display, the touch screen, and the (pretty neat) ESP-NOW radio.</p>
+<p>A little while ago this paper on <a href="https://arxiv.org/abs/2507.09089">Measuring the Impact of Early 2025-AI on Experienced Open-Source Developer Productivity</a>
+was doing the rounds. The TLDR was that developers predicted a reduction in development
+time by ~20% but instead development time increased by a similar amount.</p>
+<p>My <code>n=1</code> example project of my own pretty much bears that out. For three weeks or so I
+spent a couple of mornings here and there consciously avoiding writing code myself and
+just getting the agent to create the libraries, write demo code so that I could test it
+on hardware, write documentation etc.</p>
+<h3 id="productivity-boost">Productivity boost!<a hidden class="anchor" aria-hidden="true" href="#productivity-boost">#</a></h3>
+<p>The first couple of days felt super productive! So much code was being written! I could
+test features that I&rsquo;d just described without having to write the code myself! Amazing!
+There were some hiccups, sure. There was a tendency to try and use the wrong API, so I
+had to write a small amount of code for RSSI reporting in the network library myself, and
+then shout at Claude to leave it alone because I could verify that it worked and it kept
+trying to &ldquo;fix&rdquo; it by returning a constant value instead.</p>
+<p>Then we got to optimising. At first it felt really productive. I got to
+bounce ideas off Claude for how to improve draw speeds on the display, and because the
+AI is such a kiss-arse every idea I had was incredibly insightful - a game-changer! So
+the agent would re-write half the code, the display would still be slow, and I would have
+to slog through the code to figure out whether it was me being an idiot or the AI. Turns
+out it was a little of both. I learned a fair bit about what actually slows down microcontroller
+hardware, and Claude, well, Claude didn&rsquo;t learn anything. It created &ldquo;buffered write&rdquo;
+solutions that created buffers but didn&rsquo;t use them, duplicated code all over the place,
+wrote lots of demo code to demonstrate performance improvements that didn&rsquo;t prove out,
+and on the whole wasted a lot of time rewriting things from scratch.</p>
+<p>Eventually I spent at least as much effort as I would have expended writing all the code
+myself in coaxing Claude to fix things to a point where I was happy with the performance.</p>
+<h3 id="squashing-bugs-and-change-blindness">Squashing bugs and Change blindness<a hidden class="anchor" aria-hidden="true" href="#squashing-bugs-and-change-blindness">#</a></h3>
+<p>Debugging and testing was honestly one of the worst parts of the whole process, and I&rsquo;m
+someone who typically enjoys debugging - the process of tracing and reasoning about code
+is really satisfying. Intentionally getting the agent to identify and fix bugs though?
+That&rsquo;s a nightmare.</p>
+<p>Every fix is a super confident &ldquo;Oh I see exactly what the problem is! Perfect! All fixed&rdquo;
+and then you get the set of diffs. The trouble is you get this discussion chain of adds
+and removes along the way with a light and fluffy <em>&ldquo;Now I&rsquo;ll adjust the widget on the doodad [+10/-7]&rdquo;</em>
+without the details, and get lumped with the summary of changes at the end. You can step
+through the file change by change, but lose the context of <em>why</em> the line or lines were
+changed. So eventually (bearing in mind this is a hobby project) I just end up accepting
+them all and relying on testing to see if the problem is actually fixed.</p>
+<p>This was exacerbated by the fact I was working with microcontrollers so a lot of the
+code required copying the updated file onto the device, restarting the device, and then
+manually testing, since mocked tests weren&rsquo;t necessarily reflective of how the hardware
+really worked.</p>
+<p>Eventually I ended up with change blindness on the diffs, such that when trying to fix
+an unrelated bug, I missed that the agent had reverted a previous fix to touch screen
+calibration. It then tried to do the same thing on two other separate occasions with
+screen calibration and also tried to revert my RSSI function. Bug fixing was super
+frustrating.</p>
+<h3 id="the-good">The good<a hidden class="anchor" aria-hidden="true" href="#the-good">#</a></h3>
+<p>All in all getting from zero to decent working libraries (well, working on the two available
+boards I have - hardware is hard) took more time than I anticipated, and a lot of it
+made me unreasonably angry at a computer program with a human name.</p>
+<p>However, it wasn&rsquo;t all bad. I went into the project using an agent because I don&rsquo;t
+know a lot about interfacing with hardware, and it helped a lot with that. It also
+unintentionally helped my understanding of the peripherals and mechanisms involved
+because it did. so. much. dumb. shit. I had to learn about what the SPI calls did,
+I had to learn about how resistive touch screens are accessed and how you get at the
+coordinates, how display information is sent for updates, and so much more.</p>
+<p>The agent also created a fair bit of pretty decent code. There were lots of demo
+programs that were created along the way that were great and honestly, I wouldn&rsquo;t
+have had the patience to write them myself, or possibly even thought about them the
+same way (I did have to delete some stupid code examples from some of them though).</p>
+<h2 id="results">Results<a hidden class="anchor" aria-hidden="true" href="#results">#</a></h2>
+<p>I went into this wanting to understand a bit more about using agents in a project,
+and also to create something that wasn&rsquo;t a toy like the examples in Copilot Adventures.</p>
+<p>It&rsquo;s easy to understand some of the public vibe coding disasters having seen the agent
+scrap large swathes of (working) code to implement a small feature that turns out to
+be broken. It&rsquo;s also easy to understand how much working with an agent amplifies the
+feeling of &ldquo;works on my machine&rdquo; - typical LLM braggadocio aside, test scripts are
+written and run, and when they fail they are tweaked and run again until they pass.
+That means everything has been confirmed to work, right? If you&rsquo;re not used to thinking
+about where the edges of your code are and what people might actually do with it, I
+guess you&rsquo;re more inclined to trust the machine.</p>
+<p>Overall, I think I could have written the whole set of libraries for my little project
+in about the same amount of time without the AI, and probably learned more about the
+underlying hardware in the process. It would have <em>looked</em> a lot more like my code,
+not had classes everywhere (<em>so</em> much OOP), and probably also not have had as many features,
+or as much exception handling. Also I feel it might not have been as easy to keep at
+it, since it was much faster to get to <em>something</em> working.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://headtilt.me/tags/ai/">Ai</a></li>
+      <li><a href="https://headtilt.me/tags/robotics/">Robotics</a></li>
+      <li><a href="https://headtilt.me/tags/llm/">Llm</a></li>
+      <li><a href="https://headtilt.me/tags/debugging/">Debugging</a></li>
+      <li><a href="https://headtilt.me/tags/python/">Python</a></li>
+      <li><a href="https://headtilt.me/tags/electronics/">Electronics</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>Rob Poulter</span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a><script type="text/javascript" src="/js/lightbox.js"></script>
+<link rel="stylesheet" href="/css/lightbox.css">
+<script data-goatcounter="https://headtilt_me.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

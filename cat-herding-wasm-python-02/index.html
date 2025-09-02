@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>WASM Python - Cat Herding 02 | Headtilt</title>
+<meta name="keywords" content="ai, python, llm, agents, cat-herding, wasm-python">
+<meta name="description" content="Pre(r)amble
+This is part of a(n aspirationally) series of posts documenting some of the process of
+(building|cat herding an AI agent to build)
+an easily hosted Python teaching tool built with just front-end JS and a WASM port of
+MicroPython. You can find Part 1 here
+What we had before
+The outcome of the previous week&rsquo;s achievements was pretty satisfying since I&rsquo;d tried
+and failed to solve the problems of having a responsive WASM Python runtime for user
+code before. Being able to lean on the agent to do things like make changes to C code
+where I knew what the outcome needed to be, and knew how it needed to work, but didn&rsquo;t
+know what to do to make it happen was so valuable.">
+<meta name="author" content="Rob">
+<link rel="canonical" href="https://headtilt.me/cat-herding-wasm-python-02/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.1d79e034ed3fae3cce466e1b13b697315f9998d1ba8d908def178611b372b49f.css" integrity="sha256-HXngNO0/rjzORm4bE7aXMV&#43;ZmNG6jZCN7xeGEbNytJ8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://headtilt.me/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://headtilt.me/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://headtilt.me/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://headtilt.me/apple-touch-icon.png">
+<link rel="mask-icon" href="https://headtilt.me/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://headtilt.me/cat-herding-wasm-python-02/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/css/formatting.css">
+
+
+
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://headtilt.me/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="https://headtilt.me/images/headtilt.png" alt="" aria-label="logo"
+                    height="30">Adjust your angle</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://headtilt.me/post" title="posts">
+                    <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/page/about/" title="about">
+                    <span><i class="fa-solid fa-circle-info"></i> about</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/categories/" title="categories">
+                    <span><i class="fa-solid fa-layer-group"></i> categories</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/tags/" title="tags">
+                    <span><i class="fa-solid fa-tags"></i> tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      WASM Python - Cat Herding 02
+    </h1>
+    <div class="post-meta"><span title='2025-09-01 06:03:47 +0800 AWST'>Mon, Sep 1, 2025</span>&nbsp;·&nbsp;Rob
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#preramble" aria-label="Pre(r)amble">Pre(r)amble</a></li>
+                <li>
+                    <a href="#what-we-had-before" aria-label="What we had before">What we had before</a></li>
+                <li>
+                    <a href="#whats-happened-since" aria-label="What&rsquo;s happened since">What&rsquo;s happened since</a><ul>
+                        
+                <li>
+                    <a href="#is-this-going-to-be-in-the-test" aria-label="Is this going to be in the test?">Is this going to be in the test?</a></li>
+                <li>
+                    <a href="#these-are-no-spaces-for-braces" aria-label="These are no spaces for braces">These are no spaces for braces</a></li>
+                <li>
+                    <a href="#but-teacher-what-am-i-meant-to-do" aria-label="But teacher, what am I meant to do?">But teacher, what am I meant to do?</a></li></ul>
+                </li>
+                <li>
+                    <a href="#introspection" aria-label="Introspection">Introspection</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h2 id="preramble">Pre(r)amble<a hidden class="anchor" aria-hidden="true" href="#preramble">#</a></h2>
+<p>This is part of a(n aspirationally) series of posts documenting some of the process of
+(building|cat herding an AI agent to build)
+an easily hosted Python teaching tool built with just front-end JS and a WASM port of
+MicroPython. <a href="https://headtilt.me/cat-herding-wasm-python-01/">You can find Part 1 here</a></p>
+<h2 id="what-we-had-before">What we had before<a hidden class="anchor" aria-hidden="true" href="#what-we-had-before">#</a></h2>
+<p>The outcome of the previous week&rsquo;s achievements was pretty satisfying since I&rsquo;d tried
+and failed to solve the problems of having a responsive WASM Python runtime for user
+code before. Being able to lean on the agent to do things like make changes to C code
+where I knew what the outcome needed to be, and knew <em>how</em> it needed to work, but didn&rsquo;t
+know <em>what</em> to do to make it happen was so valuable.</p>
+<p>By the end of it I had a Micropython runtime running client side and being able to write,
+execute, and interrupt user code. I still have a nagging feeling that there will be some
+edge cases to discover where everything will break horribly and we&rsquo;ll be diving back into
+compiling C code again, but for now it&rsquo;s just a feeling. I have a virtual filesystem that
+the Python code can access, and a basic snapshot system for version control. Finally, I had
+a configuration system where scenarios could be loaded into the browser with instructions,
+starter code, and live pattern-based feedback for code as well as IO.</p>
+<h2 id="whats-happened-since">What&rsquo;s happened since<a hidden class="anchor" aria-hidden="true" href="#whats-happened-since">#</a></h2>
+<p>On my list of priorities for the next features to implement were:</p>
+<ul>
+<li>Unit tests for user code so program behaviour can be verified against the instructions</li>
+<li>A configuration authoring interface so I didn&rsquo;t have to write JSON all the time</li>
+<li>Methods for loading configurations into the page</li>
+</ul>
+<style>
+    .image-gallery {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1%;
+        margin-left: -1% !important;
+    }
+
+    .image-gallery li {
+        list-style: none;
+        width: 19%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .image-gallery li a {
+        text-align: center;
+        text-decoration: none !important;
+        color: #777;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        justify-content: space-between;
+        box-shadow: none !important;
+    }
+
+    .image-gallery li a span {
+        display: block;
+        padding: 3px 0;
+        white-space: normal;
+        font-size: 0.8em;
+    }
+
+    .image-gallery li a img {
+        width: 100%;
+        display: block;
+    }
+
+     
+    @media (max-width: 1200px) {
+        .image-gallery li {
+            width: 24%;
+             
+        }
+    }
+
+    @media (max-width: 992px) {
+        .image-gallery li {
+            width: 32%;
+             
+        }
+    }
+
+    @media (max-width: 768px) {
+        .image-gallery li {
+            width: 49%;
+             
+        }
+    }
+
+    @media (max-width: 576px) {
+        .image-gallery li {
+            width: 100%;
+             
+        }
+    }
+</style>
+
+
+<ul class="image-gallery">
+    <li>
+        <a href="/gallery/clipy/week2/01_editor_instructions.png" title="01_editor_instructions" class="lightbox-image">
+            <img src="/gallery/clipy/week2/01_editor_instructions.png" alt="01_editor_instructions" title="01_editor_instructions">
+            <span>01_editor_instructions</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/clipy/week2/02_editor_terminal.png" title="02_editor_terminal" class="lightbox-image">
+            <img src="/gallery/clipy/week2/02_editor_terminal.png" alt="02_editor_terminal" title="02_editor_terminal">
+            <span>02_editor_terminal</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/clipy/week2/03_editor_feedback_no.png" title="03_editor_feedback_no" class="lightbox-image">
+            <img src="/gallery/clipy/week2/03_editor_feedback_no.png" alt="03_editor_feedback_no" title="03_editor_feedback_no">
+            <span>03_editor_feedback_no</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/clipy/week2/04_editor_feedback_yes.png" title="04_editor_feedback_yes" class="lightbox-image">
+            <img src="/gallery/clipy/week2/04_editor_feedback_yes.png" alt="04_editor_feedback_yes" title="04_editor_feedback_yes">
+            <span>04_editor_feedback_yes</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/clipy/week2/05_authoring_meta.png" title="05_authoring_meta" class="lightbox-image">
+            <img src="/gallery/clipy/week2/05_authoring_meta.png" alt="05_authoring_meta" title="05_authoring_meta">
+            <span>05_authoring_meta</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/clipy/week2/06_authoring_tests.png" title="06_authoring_tests" class="lightbox-image">
+            <img src="/gallery/clipy/week2/06_authoring_tests.png" alt="06_authoring_tests" title="06_authoring_tests">
+            <span>06_authoring_tests</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/clipy/week2/07_authoring_tests_single.png" title="07_authoring_tests_single" class="lightbox-image">
+            <img src="/gallery/clipy/week2/07_authoring_tests_single.png" alt="07_authoring_tests_single" title="07_authoring_tests_single">
+            <span>07_authoring_tests_single</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/clipy/week2/08_feedback_authoring.png" title="08_feedback_authoring" class="lightbox-image">
+            <img src="/gallery/clipy/week2/08_feedback_authoring.png" alt="08_feedback_authoring" title="08_feedback_authoring">
+            <span>08_feedback_authoring</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/clipy/week2/09_feedback_list.png" title="09_feedback_list" class="lightbox-image">
+            <img src="/gallery/clipy/week2/09_feedback_list.png" alt="09_feedback_list" title="09_feedback_list">
+            <span>09_feedback_list</span>
+        </a>
+    </li>
+    
+</ul>
+<h3 id="is-this-going-to-be-in-the-test">Is this going to be in the test?<a hidden class="anchor" aria-hidden="true" href="#is-this-going-to-be-in-the-test">#</a></h3>
+<p>Testing has been a bit of a ride. To start with I wanted to re-use the same Python runtime
+as the user code to run the tests, but I ran into way too many issues with state, rewiring
+<code>stdin</code>, <code>stdout</code>, and <code>stderr</code> so that it was only visible to tests, and just plain implementation
+issues, so a couple of reverts later, I went with firing up another runtime in an iframe
+and just doing the testing there, passing info back to the main page.</p>
+<div class="callout callout-info">
+    <i class="fa-regular fa-lightbulb"></i>
+    <div class="callout-content">
+        <p>So I know I <em>said</em> something about rewiring things like <code>stderr</code> and <code>stdout</code> but actually
+that turned out to be such a mess that actually what I did was just treat it all as <code>stdout</code>
+and do some pattern matching for tracebacks. I&rsquo;m not proud.</p>
+<p>Who knows, this could be an opportunity later on to just compile something into the runtime
+to make it easier. After all, one of my main realisations from the previous lof of work was
+that it doesn&rsquo;t matter what the original Python was <em>meant</em> to do, it only matters whether
+it looks like it&rsquo;s doing it to the user, and if their code is implemented in a real runtime
+it does the same thing.</p>
+
+    </div>
+</div>
+
+<style>
+    .callout {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        font-family: 'Arial', sans-serif;
+        font-size: 0.9em;
+    }
+
+    .callout-info {
+        background-color: #e7f3fe;
+        border-color: #b3d4fc;
+    }
+
+    .callout i {
+        margin-right: 10px;
+        padding: 0.25em 0.5em;
+        font-size: 1.5em;
+    }
+
+    .callout-content {
+        flex-grow: 1;
+    }
+</style>
+<p>So far I&rsquo;ve implemented testing for <code>stdout</code>, <code>stdin</code>, and <code>stderr</code>. This is all focused on
+program behaviour, not implementation. Down the road I want to implement richer testing of
+the program internals.</p>
+<p>One of the interesting things about doing the tests for <code>stdin</code> was again a difference in
+how the user-facing code works compared to the testing framework. User code is interactive -
+one of the frustrating things about working with the agent was it kept suggesting just
+pre-collecting user input, shattering the illusion of interactive code (and also ignoring
+the problems caused by non-deterministic inputs, such as in a while loop). With tests, we
+can quite happily just build an input queue and feed the program as required.</p>
+<p>I need to do some more rigorous tests of behaviour with mismatched inputs and expected inputs
+since for now there&rsquo;s a bunch of ignoring of inconvenient things going on.</p>
+<h3 id="these-are-no-spaces-for-braces">These are no spaces for braces<a hidden class="anchor" aria-hidden="true" href="#these-are-no-spaces-for-braces">#</a></h3>
+<p>JSON is supposed to be human readable, which it is (mostly). However it is so not human
+writeable. Since the configuration for problems is done in JSON I wanted to have an authoring
+tool to create the JSON files, prevent dumb errors, provide documentation, and so on.</p>
+<p>This was handled by the agent pretty well after writing up a spec document and getting it
+to identify gaps in requirements.</p>
+<p>The outcome was a separate page that allows for configuration metadata, writing instructions,
+building feedback, and writing tests. The latest configuration is saved and loaded from
+browser <code>localStorage</code>, which has a nice side benefit of providing that as a data source
+when loading in the main page. It has a pretty pleasant flow of: edit config, switch to the
+app page, load the latest config automatically, run tests or feedback, and repeat. When I&rsquo;m
+happy I can export to a JSON file. I haven&rsquo;t implemented it yet, but the plan is also to keep
+configs as a more easily accessed list in IndexedDB so that if you&rsquo;re developing on the same
+machine there&rsquo;s a lower friction way of editing configs over time.</p>
+<h3 id="but-teacher-what-am-i-meant-to-do">But teacher, what am I meant to do?<a hidden class="anchor" aria-hidden="true" href="#but-teacher-what-am-i-meant-to-do">#</a></h3>
+<p>When developing I have a few sample configurations sitting in a sub folder of the app so I
+can test various features, but if this is going to be something for people who are not me
+to use, I wanted to provide some flexible methods of loading configuration information.</p>
+<p>I landed on a few different methods:</p>
+<ul>
+<li>Manual loading based off files stored with the app (not user friendly but easy for testing).</li>
+<li>Loading an authoring config file from localStorage (see previous section). Only for authoring testing.</li>
+<li>Upload a file manually (open a JSON config). Not very student friendly.</li>
+<li>Load from a URL parameter, either providing a file name (load from the config store) or a full URL.</li>
+</ul>
+<p>The last one is much more user friendly - a teacher could just provide a link in an email, LMS, etc
+and the page would automatically load the config that was specified. The problem is one I&rsquo;ve
+run into a fair bit when developing this - what about server settings? To load the file from
+another site, it needs to allow Cross-Origin Resource Sharing. From what I gather, this would
+require someone to host and access their resource files through something like GitHub using
+the <code>raw.githubuserconent.com</code> method.</p>
+<p>None of these methods are amazing, but again given the constraints of &ldquo;hosted on a vanilla
+HTTP server with no special configuration&rdquo; I think it&rsquo;s about the best I can do, so all of them
+are implemented.</p>
+<h2 id="introspection">Introspection<a hidden class="anchor" aria-hidden="true" href="#introspection">#</a></h2>
+<p>This stage of the process has highlighted some interesting aspects of the agent workflow:</p>
+<ul>
+<li>I feel like I&rsquo;m playing this weird hybrid role of product manager and tester.</li>
+<li>Ran out of the credits provided as part of my Copilot subscription part-way through the week, which cut off Claude, so I&rsquo;ve mostly been working with GPT-5-mini. The difference in &ldquo;AI-ality&rdquo; (not &ldquo;person&quot;ality,surely!) is striking.</li>
+<li>There&rsquo;s been a real difference in speed of development vs perceived speed of development this week, since a lot of it has been UI code, but a lot of it has also been fixing regressions (so many regressions).</li>
+<li>Testing (lots of plain JS and Playwright) has been interesting. One thing I&rsquo;ve really not been enjoying is the feeling that instead of just running the tests myself, I should be <em>asking the agent to run the tests</em> because then it pays attention to the test output. This is super frustrating, and I&rsquo;ve found that as I go on I&rsquo;ve been trying to be more involved in the code myself because the alternave is so incredibly wasteful in terms of time and resources.</li>
+</ul>
+<div class="callout callout-warning">
+    <i class="fa-solid fa-asterisk"></i>
+    <div class="callout-content">
+        <p>As I was taking screenshots for this post I realised that something was broken in <code>stdin</code> tests again.</p>
+<p>So. Many. Regressions. 🤣🐎</p>
+
+    </div>
+</div>
+
+<style>
+    .callout {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        font-family: 'Arial', sans-serif;
+        font-size: 0.9em;
+    }
+
+    .callout-warning {
+        background-color: #fff3cd;
+        border-color: #ffeeba;
+    }
+
+    .callout i {
+        margin-right: 10px;
+        padding: 0.25em 0.5em;
+        font-size: 1.5em;
+    }
+
+    .callout-content {
+        flex-grow: 1;
+    }
+</style>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://headtilt.me/tags/ai/">Ai</a></li>
+      <li><a href="https://headtilt.me/tags/python/">Python</a></li>
+      <li><a href="https://headtilt.me/tags/llm/">Llm</a></li>
+      <li><a href="https://headtilt.me/tags/agents/">Agents</a></li>
+      <li><a href="https://headtilt.me/tags/cat-herding/">Cat-Herding</a></li>
+      <li><a href="https://headtilt.me/tags/wasm-python/">Wasm-Python</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>Rob Poulter</span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a><script type="text/javascript" src="/js/lightbox.js"></script>
+<link rel="stylesheet" href="/css/lightbox.css">
+<script data-goatcounter="https://headtilt_me.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

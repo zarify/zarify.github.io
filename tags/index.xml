@@ -2,137 +2,165 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Tags on Headtilt</title>
-    <link>/tags/</link>
+    <link>https://headtilt.me/tags/</link>
     <description>Recent content in Tags on Headtilt</description>
-    <generator>Hugo -- 0.138.0</generator>
+    <generator>Hugo -- 0.149.0</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
-    <lastBuildDate>Sun, 02 Feb 2025 09:02:54 +0800</lastBuildDate>
-    <atom:link href="/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 01 Sep 2025 06:03:47 +0800</lastBuildDate>
+    <atom:link href="https://headtilt.me/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Generative Art</title>
-      <link>/tags/generative-art/</link>
-      <pubDate>Sun, 02 Feb 2025 09:02:54 +0800</pubDate>
-      <guid>/tags/generative-art/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Genuary</title>
-      <link>/tags/genuary/</link>
-      <pubDate>Sun, 02 Feb 2025 09:02:54 +0800</pubDate>
-      <guid>/tags/genuary/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Javascript</title>
-      <link>/tags/javascript/</link>
-      <pubDate>Sun, 02 Feb 2025 09:02:54 +0800</pubDate>
-      <guid>/tags/javascript/</guid>
+      <title>Agents</title>
+      <link>https://headtilt.me/tags/agents/</link>
+      <pubDate>Mon, 01 Sep 2025 06:03:47 +0800</pubDate>
+      <guid>https://headtilt.me/tags/agents/</guid>
       <description></description>
     </item>
     <item>
       <title>Ai</title>
-      <link>/tags/ai/</link>
-      <pubDate>Sun, 24 Nov 2024 05:51:51 +0800</pubDate>
-      <guid>/tags/ai/</guid>
+      <link>https://headtilt.me/tags/ai/</link>
+      <pubDate>Mon, 01 Sep 2025 06:03:47 +0800</pubDate>
+      <guid>https://headtilt.me/tags/ai/</guid>
       <description></description>
     </item>
     <item>
-      <title>Coderdojo</title>
-      <link>/tags/coderdojo/</link>
-      <pubDate>Sun, 24 Nov 2024 05:51:51 +0800</pubDate>
-      <guid>/tags/coderdojo/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Debugging</title>
-      <link>/tags/debugging/</link>
-      <pubDate>Sun, 24 Nov 2024 05:51:51 +0800</pubDate>
-      <guid>/tags/debugging/</guid>
+      <title>Cat-Herding</title>
+      <link>https://headtilt.me/tags/cat-herding/</link>
+      <pubDate>Mon, 01 Sep 2025 06:03:47 +0800</pubDate>
+      <guid>https://headtilt.me/tags/cat-herding/</guid>
       <description></description>
     </item>
     <item>
       <title>Llm</title>
-      <link>/tags/llm/</link>
-      <pubDate>Sun, 24 Nov 2024 05:51:51 +0800</pubDate>
-      <guid>/tags/llm/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Makecode</title>
-      <link>/tags/makecode/</link>
-      <pubDate>Sun, 24 Nov 2024 05:51:51 +0800</pubDate>
-      <guid>/tags/makecode/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Employment</title>
-      <link>/tags/employment/</link>
-      <pubDate>Tue, 19 Nov 2024 13:39:27 +0800</pubDate>
-      <guid>/tags/employment/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Software</title>
-      <link>/tags/software/</link>
-      <pubDate>Tue, 19 Nov 2024 13:39:27 +0800</pubDate>
-      <guid>/tags/software/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Microbit</title>
-      <link>/tags/microbit/</link>
-      <pubDate>Wed, 30 Dec 2020 11:12:17 +0000</pubDate>
-      <guid>/tags/microbit/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Robotics</title>
-      <link>/tags/robotics/</link>
-      <pubDate>Wed, 30 Dec 2020 11:12:17 +0000</pubDate>
-      <guid>/tags/robotics/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Minecraft</title>
-      <link>/tags/minecraft/</link>
-      <pubDate>Tue, 17 Nov 2020 05:58:26 +0000</pubDate>
-      <guid>/tags/minecraft/</guid>
+      <link>https://headtilt.me/tags/llm/</link>
+      <pubDate>Mon, 01 Sep 2025 06:03:47 +0800</pubDate>
+      <guid>https://headtilt.me/tags/llm/</guid>
       <description></description>
     </item>
     <item>
       <title>Python</title>
-      <link>/tags/python/</link>
+      <link>https://headtilt.me/tags/python/</link>
+      <pubDate>Mon, 01 Sep 2025 06:03:47 +0800</pubDate>
+      <guid>https://headtilt.me/tags/python/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Wasm-Python</title>
+      <link>https://headtilt.me/tags/wasm-python/</link>
+      <pubDate>Mon, 01 Sep 2025 06:03:47 +0800</pubDate>
+      <guid>https://headtilt.me/tags/wasm-python/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Electronics</title>
+      <link>https://headtilt.me/tags/electronics/</link>
+      <pubDate>Sat, 09 Aug 2025 07:35:10 +0800</pubDate>
+      <guid>https://headtilt.me/tags/electronics/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Robotics</title>
+      <link>https://headtilt.me/tags/robotics/</link>
+      <pubDate>Sat, 09 Aug 2025 07:35:10 +0800</pubDate>
+      <guid>https://headtilt.me/tags/robotics/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Debugging</title>
+      <link>https://headtilt.me/tags/debugging/</link>
+      <pubDate>Sat, 09 Aug 2025 07:31:10 +0800</pubDate>
+      <guid>https://headtilt.me/tags/debugging/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Generative Art</title>
+      <link>https://headtilt.me/tags/generative-art/</link>
+      <pubDate>Sun, 02 Feb 2025 09:02:54 +0800</pubDate>
+      <guid>https://headtilt.me/tags/generative-art/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Genuary</title>
+      <link>https://headtilt.me/tags/genuary/</link>
+      <pubDate>Sun, 02 Feb 2025 09:02:54 +0800</pubDate>
+      <guid>https://headtilt.me/tags/genuary/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Javascript</title>
+      <link>https://headtilt.me/tags/javascript/</link>
+      <pubDate>Sun, 02 Feb 2025 09:02:54 +0800</pubDate>
+      <guid>https://headtilt.me/tags/javascript/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Coderdojo</title>
+      <link>https://headtilt.me/tags/coderdojo/</link>
+      <pubDate>Sun, 24 Nov 2024 05:51:51 +0800</pubDate>
+      <guid>https://headtilt.me/tags/coderdojo/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Makecode</title>
+      <link>https://headtilt.me/tags/makecode/</link>
+      <pubDate>Sun, 24 Nov 2024 05:51:51 +0800</pubDate>
+      <guid>https://headtilt.me/tags/makecode/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Employment</title>
+      <link>https://headtilt.me/tags/employment/</link>
+      <pubDate>Tue, 19 Nov 2024 13:39:27 +0800</pubDate>
+      <guid>https://headtilt.me/tags/employment/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Software</title>
+      <link>https://headtilt.me/tags/software/</link>
+      <pubDate>Tue, 19 Nov 2024 13:39:27 +0800</pubDate>
+      <guid>https://headtilt.me/tags/software/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Microbit</title>
+      <link>https://headtilt.me/tags/microbit/</link>
+      <pubDate>Wed, 30 Dec 2020 11:12:17 +0000</pubDate>
+      <guid>https://headtilt.me/tags/microbit/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Minecraft</title>
+      <link>https://headtilt.me/tags/minecraft/</link>
       <pubDate>Tue, 17 Nov 2020 05:58:26 +0000</pubDate>
-      <guid>/tags/python/</guid>
+      <guid>https://headtilt.me/tags/minecraft/</guid>
       <description></description>
     </item>
     <item>
       <title>Compsci</title>
-      <link>/tags/compsci/</link>
+      <link>https://headtilt.me/tags/compsci/</link>
       <pubDate>Sat, 27 Jun 2020 13:11:24 +0000</pubDate>
-      <guid>/tags/compsci/</guid>
+      <guid>https://headtilt.me/tags/compsci/</guid>
       <description></description>
     </item>
     <item>
       <title>Networking</title>
-      <link>/tags/networking/</link>
+      <link>https://headtilt.me/tags/networking/</link>
       <pubDate>Sat, 27 Jun 2020 13:11:24 +0000</pubDate>
-      <guid>/tags/networking/</guid>
+      <guid>https://headtilt.me/tags/networking/</guid>
       <description></description>
     </item>
     <item>
       <title>Datascience</title>
-      <link>/tags/datascience/</link>
+      <link>https://headtilt.me/tags/datascience/</link>
       <pubDate>Sun, 29 Dec 2019 15:46:19 +0000</pubDate>
-      <guid>/tags/datascience/</guid>
+      <guid>https://headtilt.me/tags/datascience/</guid>
       <description></description>
     </item>
     <item>
       <title>Repeat</title>
-      <link>/tags/repeat/</link>
+      <link>https://headtilt.me/tags/repeat/</link>
       <pubDate>Fri, 18 Mar 2016 12:07:42 +0000</pubDate>
-      <guid>/tags/repeat/</guid>
+      <guid>https://headtilt.me/tags/repeat/</guid>
       <description></description>
     </item>
   </channel>
