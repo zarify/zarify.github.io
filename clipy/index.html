@@ -94,6 +94,10 @@
           </div>
 
           <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+            <button id="download-code" class="btn" title="Download workspace code">
+              <span class="icon" aria-hidden="true">⬇️</span>
+              <span>Download</span>
+            </button>
             <button id="save-snapshot" class="btn" title="Save snapshot">
               <span class="icon" aria-hidden="true">💾</span>
               <span>Save snapshot</span>
@@ -164,36 +168,36 @@
   <!-- Configuration modal -->
   <div id="config-modal" class="modal" role="dialog" aria-hidden="true" aria-labelledby="config-modal-title">
     <div class="modal-content">
-      <div class="modal-header">
-        <h3 id="config-modal-title">Load Configuration</h3>
-      </div>
-      <div style="margin-bottom:8px">
-        <strong>Available configs on server</strong>
-        <div id="config-server-list" class="config-server-list">(loading...)</div>
+      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <button id="config-author-page" class="btn" style="display:none">Open Author Page</button>
+        <button id="config-close" class="btn modal-close-btn">Close</button>
       </div>
 
-      <div style="margin-bottom:8px">
-        <strong>Load from URL or filename</strong>
-        <div style="display:flex;gap:8px;margin-top:6px">
-          <input id="config-url-input" placeholder="config filename or full URL" style="flex:1" />
+      <div style="margin-bottom:12px">
+        <strong>Available configurations</strong>
+        <div id="config-server-list" class="config-server-list" style="margin-top:6px">(loading...)</div>
+      </div>
+
+      <div style="margin-bottom:12px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <strong>Load from URL</strong>
+          <input id="config-url-input" placeholder="https://example.com/config.json" style="flex:1" />
           <button id="config-load-url" class="btn">Load</button>
         </div>
       </div>
 
-      <div style="margin-bottom:8px">
-        <strong>Upload a config file</strong>
-        <div id="config-drop-area" style="border:1px dashed #ccc;padding:12px;text-align:center;margin-top:6px">Drop a
-          JSON file here or <button id="config-file-picker" class="btn">Choose file</button></div>
+      <div style="margin-bottom:12px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <strong>Load a file</strong>
+          <div id="config-drop-area" style="border:1px dashed #ccc;padding:8px;text-align:center;flex:1">Drop a JSON
+            file here or <button id="config-file-picker" class="btn">Choose file</button></div>
+        </div>
         <input id="config-file-input" type="file" accept="application/json" style="display:none" />
       </div>
 
       <!-- Inline error area for configuration loading failures (404, CORS, parse errors) -->
       <div id="config-error" role="alert" aria-live="assertive"
         style="color:var(--text-error,#b00020);font-size:0.95em;margin-top:6px;display:none"></div>
-
-      <div class="modal-actions">
-        <button id="config-close" class="btn modal-close-btn">Close</button>
-      </div>
     </div>
   </div>
   <!-- Input modal for accessible prompt replacements -->

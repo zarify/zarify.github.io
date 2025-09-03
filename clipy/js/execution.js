@@ -186,6 +186,9 @@ export async function runPythonCode(code, cfg) {
     setExecutionRunning(true)
     appendTerminal('>>> Running...', 'runtime')
 
+    // Initialize stdin history tracking for feedback system
+    window.__ssg_stdin_history = ''
+
     // Clear Python state before each execution to ensure fresh start
     try {
         if (window.clearMicroPythonState) {
@@ -257,23 +260,7 @@ export async function runPythonCode(code, cfg) {
                     }
                     const runtimeOutput = out === undefined ? '' : String(out)
                     if (runtimeOutput) appendTerminal(runtimeOutput, 'stdout')
-                    try {
-                        if (window.Feedback && typeof window.Feedback.evaluateFeedbackOnRun === 'function') {
-                            try {
-                                const outEl = document.getElementById('terminal-output')
-                                const full = outEl ? (outEl.textContent || '') : runtimeOutput
-                                window.Feedback.evaluateFeedbackOnRun({ stdout: full, stderr: '' })
-                                // Re-run after a short delay to accommodate streaming or delayed DOM updates
-                                setTimeout(() => {
-                                    try {
-                                        const outEl2 = document.getElementById('terminal-output')
-                                        const full2 = outEl2 ? (outEl2.textContent || '') : runtimeOutput
-                                        window.Feedback.evaluateFeedbackOnRun({ stdout: full2, stderr: '' })
-                                    } catch (_e) { }
-                                }, 50)
-                            } catch (_e) { }
-                        }
-                    } catch (_e) { }
+                    // Feedback evaluation moved to end of execution to include all data
                 } catch (asyncifyErr) {
                     const errMsg = String(asyncifyErr)
 
@@ -433,22 +420,7 @@ export async function runPythonCode(code, cfg) {
                     const out = await executeWithTimeout(runtimeAdapter.run(codeToRun), timeoutMs, safetyTimeoutMs)
                     const runtimeOutput = out === undefined ? '' : String(out)
                     if (runtimeOutput) appendTerminal(runtimeOutput, 'stdout')
-                    try {
-                        if (window.Feedback && typeof window.Feedback.evaluateFeedbackOnRun === 'function') {
-                            try {
-                                const outEl = document.getElementById('terminal-output')
-                                const full = outEl ? (outEl.textContent || '') : runtimeOutput
-                                window.Feedback.evaluateFeedbackOnRun({ stdout: full, stderr: '' })
-                                setTimeout(() => {
-                                    try {
-                                        const outEl2 = document.getElementById('terminal-output')
-                                        const full2 = outEl2 ? (outEl2.textContent || '') : runtimeOutput
-                                        window.Feedback.evaluateFeedbackOnRun({ stdout: full2, stderr: '' })
-                                    } catch (_e) { }
-                                }, 50)
-                            } catch (_e) { }
-                        }
-                    } catch (_e) { }
+                    // Feedback evaluation moved to end of execution to include all data
                 } catch (e) {
                     const msg = String(e || '')
 
@@ -487,13 +459,15 @@ export async function runPythonCode(code, cfg) {
             // Sync VFS after execution
             await syncVFSAfterRun()
 
-            // Notify Feedback subsystem with run-time captures: stdout, stderr, and filenames
+            // Notify Feedback subsystem with run-time captures: stdout, stderr, stdin, and filenames
             try {
                 if (window.Feedback && typeof window.Feedback.evaluateFeedbackOnRun === 'function') {
                     try {
                         const outEl = document.getElementById('terminal-output')
                         const stdoutFull = outEl ? (outEl.textContent || '') : ''
                         const stderrFull = (typeof window.__ssg_last_mapped === 'string' && window.__ssg_last_mapped) ? window.__ssg_last_mapped : ''
+                        // Capture stdin inputs from the execution session
+                        const stdinFull = (typeof window.__ssg_stdin_history === 'string') ? window.__ssg_stdin_history : ''
                         // gather filenames from FileManager or localStorage mirror
                         let filenamesArr = []
                         try {
@@ -508,7 +482,7 @@ export async function runPythonCode(code, cfg) {
                                 filenamesArr = Object.keys(map || {})
                             } catch (_e2) { filenamesArr = [] }
                         }
-                        window.Feedback.evaluateFeedbackOnRun({ stdout: stdoutFull, stderr: stderrFull, filename: filenamesArr })
+                        window.Feedback.evaluateFeedbackOnRun({ stdout: stdoutFull, stderr: stderrFull, stdin: stdinFull, filename: filenamesArr })
                     } catch (_e) { /* swallow feedback errors */ }
                 }
             } catch (_e) { }

@@ -1,13 +1,13 @@
 {
-  "id": "authoring-demo",
-  "title": "Authoring Demo",
+  "id": "feedback-playground",
+  "title": "Python Playground",
   "version": "1.0",
-  "description": "A demo script for authoring.",
-  "instructions": "You should **write some Python code**!\n\nTry `print`ing some text.\n\nOr getting some `input`!\n\nOr...\n\n```python\nname = input(\"What is your name? \")\nprint(f\"Hello {name}!\")\n```",
+  "description": "A Python programming environment",
+  "instructions": "Write **Python** code and click Run to execute it.\n\n```python\nprint(\"Hello!\")\n```\n\n# Feedback\n\nCreate a file called `foo.txt` to test filename feedback.\n\nRun a program with `Rob` as user input.\n\n# Tests\n\nThere are some basic tests set up that look for a program that does this:\n\n```python\nname = input(\"What is your name? \")\nprint(f\"Hello {name}!\")\n```",
   "feedback": [
     {
-      "id": "fb-mf2h24jy-56uzm",
-      "title": "Used an input with a prompt",
+      "id": "fb-mezkx6hw-tabvo",
+      "title": "Print something",
       "when": [
         "edit"
       ],
@@ -15,16 +15,16 @@
         "type": "regex",
         "target": "code",
         "fileTarget": "main.py",
-        "expression": "input\\((['\"]).+\\1\\)",
+        "expression": "print\\(f?([\"']).+?\\1\\)",
         "flags": ""
       },
-      "message": "Nice work, you used an input with a prompt!",
+      "message": "Excellent, you used a print statement correctly.",
       "severity": "success",
       "visibleByDefault": true
     },
     {
-      "id": "fb-mf2h3q74-65kql",
-      "title": "Make sure you use a prompt!",
+      "id": "fb-mf1pozvi-68ifd",
+      "title": "Testing for an f-string",
       "when": [
         "edit"
       ],
@@ -32,33 +32,16 @@
         "type": "regex",
         "target": "code",
         "fileTarget": "main.py",
-        "expression": "input\\(\\)",
+        "expression": "print\\(f([\"']).+\\1\\)",
         "flags": ""
       },
-      "message": "Make sure you use a prompt in your input like this: `input(\"Name: \")`",
+      "message": "Good show, you used an f-string for printing.",
       "severity": "info",
-      "visibleByDefault": false
-    },
-    {
-      "id": "fb-mf2h5sg1-en5gd",
-      "title": "Assigned user input to a variable",
-      "when": [
-        "edit"
-      ],
-      "pattern": {
-        "type": "regex",
-        "target": "code",
-        "fileTarget": "main.py",
-        "expression": "[A-z]\\w* ?= ?input\\(.*\\)",
-        "flags": ""
-      },
-      "message": "Yes, you assigned your input to a variable.",
-      "severity": "success",
       "visibleByDefault": true
     },
     {
-      "id": "fb-mf2h1de6-8esz9",
-      "title": "Used a print statement",
+      "id": "fb-mf3xfuoi-yrpn9",
+      "title": "Use braces for a variable placeholder in a string.",
       "when": [
         "edit"
       ],
@@ -66,57 +49,39 @@
         "type": "regex",
         "target": "code",
         "fileTarget": "main.py",
-        "expression": "print\\(.+\\)",
+        "expression": "([\"']).*\\{[A-z]\\w*\\}.*\\1",
         "flags": ""
       },
-      "message": "Good work, we need to print out our greeting.",
-      "severity": "success",
-      "visibleByDefault": true
-    },
-    {
-      "id": "fb-mf2h7lnx-lpwq0",
-      "title": "Printed using an f-string",
-      "when": [
-        "edit"
-      ],
-      "pattern": {
-        "type": "regex",
-        "target": "code",
-        "fileTarget": "main.py",
-        "expression": "print\\(f([\"']).*\\{.+\\}.*\\1\\)",
-        "flags": ""
-      },
-      "message": "Nice work, f-strings make mixing strings and variables easy.",
+      "message": "I can see braces around a {variable} in a string.",
       "severity": "success",
       "visibleByDefault": true
     }
   ],
   "tests": [
     {
-      "id": "t-mf2h96v1-t3t8i",
-      "description": "Checking if an input with a prompt was used.",
-      "stdin": "Rob",
+      "id": "t-mezkycs6-o7jv9",
+      "description": "Successfully printed something",
       "expected_stdout": {
         "type": "regex",
-        "expression": ".+Rob",
+        "expression": ".+",
         "flags": ""
       }
     },
     {
-      "id": "t-mf2haqyp-pulls",
-      "description": "Checking the correct prompt was used.",
+      "id": "t-mf0nw60r-cqvl8",
+      "description": "Used the correct prompt",
       "stdin": "Rob",
       "expected_stdout": "What is your name? Rob"
     },
     {
-      "id": "t-mf2hbjkt-gczpf",
-      "description": "Checking for the correct output.",
+      "id": "t-mf4lguda-oi4xi",
+      "description": "Used the correct output format.",
       "stdin": "Rob",
-      "expected_stdout": "Hello Rob!"
+      "expected_stdout": "What is your name? Rob\nHello Rob!"
     }
   ],
-  "starter": "\"Hello!\"\n",
+  "starter": "\"This is the author test starter code\"\n\"hi\"",
   "files": {
-    "/main.py": "\"Hello!\"\n"
+    "/main.py": "\"This is the author test starter code\"\n\"hi\""
   }
 }

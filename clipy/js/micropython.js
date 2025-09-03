@@ -499,6 +499,10 @@ export async function loadMicroPythonRuntime(cfg) {
                                             resolve: (value) => {
                                                 delete window.__ssg_pending_input
                                                 try { setTerminalInputEnabled(false) } catch (_e) { }
+                                                // Track stdin input for feedback system
+                                                if (typeof window.__ssg_stdin_history === 'string') {
+                                                    window.__ssg_stdin_history += (window.__ssg_stdin_history ? '\n' : '') + value
+                                                }
                                                 appendTerminal(`DEBUG: Resolving stdin with: ${value}`, 'runtime')
                                                 resolve(value + '\n')
                                             },
@@ -523,6 +527,10 @@ export async function loadMicroPythonRuntime(cfg) {
                                 resolve: (value) => {
                                     delete window.__ssg_pending_input
                                     try { setTerminalInputEnabled(false) } catch (_e) { }
+                                    // Track stdin input for feedback system
+                                    if (typeof window.__ssg_stdin_history === 'string') {
+                                        window.__ssg_stdin_history += (window.__ssg_stdin_history ? '\n' : '') + value
+                                    }
                                     appendTerminal(`DEBUG: Resolving stdin with: ${value}`, 'runtime')
                                     // Return the input with newline as MicroPython expects
                                     resolve(value + '\n')

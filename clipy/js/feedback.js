@@ -31,7 +31,7 @@ function validateConfig(cfg) {
         if (!Array.isArray(entry.when) || entry.when.length === 0) throw new Error('feedback.when must be non-empty array')
         if (!entry.pattern || typeof entry.pattern !== 'object') throw new Error('feedback.pattern required')
         const p = entry.pattern
-        if (!['regex', 'ast'].includes(p.type)) throw new Error('unsupported pattern.type')
+        if (!['string', 'regex', 'ast'].includes(p.type)) throw new Error('unsupported pattern.type')
         if (!['code', 'filename', 'stdout', 'stderr', 'stdin'].includes(p.target)) throw new Error('unsupported pattern.target')
         if (typeof p.expression !== 'string') throw new Error('pattern.expression must be a string')
     }
@@ -76,6 +76,26 @@ function _applyRegex(expr, flags) {
     try { return new RegExp(expr, flags || '') } catch (e) { return null }
 }
 
+function _applyPattern(pattern, text) {
+    if (pattern.type === 'string') {
+        // Simple string matching - check if text contains the expression
+        const searchText = String(pattern.expression || '')
+        const content = String(text || '')
+        const index = content.indexOf(searchText)
+        if (index >= 0) {
+            // Return match-like result for compatibility
+            return [searchText]
+        }
+        return null
+    } else if (pattern.type === 'regex') {
+        const re = _applyRegex(pattern.expression, pattern.flags)
+        if (!re) return null
+        return text.match(re)
+    }
+    // ast and other types not implemented yet
+    return null
+}
+
 function _formatMessage(template, groups) {
     if (!template) return ''
     // replace $1..$9 simple placeholders
@@ -91,7 +111,7 @@ function evaluateFeedbackOnEdit(code, path) {
     for (const entry of _config.feedback) {
         if (!entry.when.includes('edit')) continue
         const p = entry.pattern
-        if (p.type === 'regex') {
+        if (p.type === 'regex' || p.type === 'string') {
             if (p.target === 'code') {
                 // Determine which file's content to check. If a fileTarget is
                 // provided on the pattern use that, otherwise fall back to the
@@ -115,21 +135,29 @@ function evaluateFeedbackOnEdit(code, path) {
                     }
                 } catch (_e) { }
 
-                const re = _applyRegex(p.expression, p.flags)
-                if (!re) continue
-                const lines = contentToCheck.split(/\r?\n/)
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i]
-                    const m = line.match(re)
+                if (p.type === 'string') {
+                    // For string matching, check the entire content
+                    const m = _applyPattern(p, contentToCheck)
                     if (m) {
-                        matches.push({ file: (targetFile.startsWith('/') ? targetFile : ('/' + targetFile)), line: i + 1, message: _formatMessage(entry.message, m), id: entry.id })
+                        matches.push({ file: (targetFile.startsWith('/') ? targetFile : ('/' + targetFile)), message: _formatMessage(entry.message, m), id: entry.id })
+                    }
+                } else {
+                    // For regex, continue line-by-line matching for better location reporting
+                    const re = _applyRegex(p.expression, p.flags)
+                    if (!re) continue
+                    const lines = contentToCheck.split(/\r?\n/)
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i]
+                        const m = line.match(re)
+                        if (m) {
+                            matches.push({ file: (targetFile.startsWith('/') ? targetFile : ('/' + targetFile)), line: i + 1, message: _formatMessage(entry.message, m), id: entry.id })
+                        }
                     }
                 }
             } else if (p.target === 'filename') {
-                const re = _applyRegex(p.expression, p.flags)
-                if (!re) continue
-                if (path && String(path).match(re)) {
-                    matches.push({ file: path, message: _formatMessage(entry.message, []), id: entry.id })
+                const m = _applyPattern(p, path)
+                if (m) {
+                    matches.push({ file: path, message: _formatMessage(entry.message, m), id: entry.id })
                 }
             }
         }
@@ -148,10 +176,8 @@ function evaluateFeedbackOnRun(ioCapture) {
     for (const entry of _config.feedback) {
         if (!entry.when.includes('run') && !entry.when.includes('test')) continue
         const p = entry.pattern
-        if (p.type === 'regex') {
+        if (p.type === 'regex' || p.type === 'string') {
             const target = p.target
-            const re = _applyRegex(p.expression, p.flags)
-            if (!re) continue
             if (target === 'filename') {
                 // Support filename being provided as an array or a string
                 const val = (ioCapture && ioCapture.filename) || ''
@@ -159,7 +185,8 @@ function evaluateFeedbackOnRun(ioCapture) {
                 if (Array.isArray(val)) {
                     for (const fname of val) {
                         try {
-                            if (String(fname || '').match(re)) { found = fname; break }
+                            const m = _applyPattern(p, String(fname || ''))
+                            if (m) { found = fname; break }
                         } catch (_e) { }
                     }
                 } else {
@@ -167,7 +194,10 @@ function evaluateFeedbackOnRun(ioCapture) {
                     const s = String(val || '')
                     const parts = s.split(/\r?\n/).map(x => x.trim()).filter(x => x)
                     for (const fname of parts) {
-                        try { if (String(fname).match(re)) { found = fname; break } } catch (_e) { }
+                        try {
+                            const m = _applyPattern(p, String(fname))
+                            if (m) { found = fname; break }
+                        } catch (_e) { }
                     }
                 }
                 if (found !== null) {
@@ -175,7 +205,7 @@ function evaluateFeedbackOnRun(ioCapture) {
                 }
             } else {
                 const text = String((ioCapture && ioCapture[target]) || '')
-                const m = text.match(re)
+                const m = _applyPattern(p, text)
                 if (m) {
                     matches.push({ message: _formatMessage(entry.message, m), id: entry.id, target })
                 }

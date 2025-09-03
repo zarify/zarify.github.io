@@ -383,6 +383,21 @@ function setupHandlers() {
         debounceSave()
     })
     $('file-upload').addEventListener('change', handleUpload)
+
+    // Back to app navigation with session flag
+    $('back-to-app').addEventListener('click', () => {
+        try {
+            // Set flag for return detection
+            sessionStorage.setItem('returningFromAuthor', 'true')
+            // Navigate back to main app
+            window.location.href = '../index.html'
+        } catch (e) {
+            console.error('Failed to navigate back to app:', e)
+            // Fallback navigation
+            window.location.href = '../index.html'
+        }
+    })
+
     // New: clear current authoring configuration and reset UI
     $('new-config').addEventListener('click', async () => {
         let ok = false
@@ -500,7 +515,92 @@ function setupHandlers() {
     $('load-draft').addEventListener('click', () => {
         alert('Load Drafts not implemented yet — drafts will be added later.')
     })
+
+    // Changelog modal
+    $('changelog-btn').addEventListener('click', async () => {
+        await openChangelogModal()
+    })
+
+    const changelogClose = $('changelog-close')
+    if (changelogClose) {
+        changelogClose.addEventListener('click', () => {
+            closeChangelogModal()
+        })
+    }
 }
+
+// Changelog modal functions
+async function openChangelogModal() {
+    const modal = $('changelog-modal')
+    const contentEl = $('changelog-content')
+
+    if (!modal || !contentEl) return
+
+    try {
+        // Load and render changelog content
+        contentEl.innerHTML = '<p style="text-align:center;color:#666;font-style:italic;">Loading changelog...</p>'
+
+        try {
+            // Use relative path that works from author/ directory
+            const response = await fetch('./changelog.md')
+
+            if (response.ok) {
+                const markdownContent = await response.text()
+                if (markdownContent.trim()) {
+                    // Render markdown to HTML
+                    const htmlContent = renderMarkdown(markdownContent)
+                    contentEl.innerHTML = htmlContent
+                } else {
+                    // Empty file
+                    contentEl.innerHTML = `
+                        <div style="text-align:center;padding:40px;">
+                            <h3 style="color:#666;margin-bottom:12px;">📋 No Changelog Available</h3>
+                            <p style="color:#888;margin-bottom:16px;">The changelog file is empty.</p>
+                            <p style="color:#999;font-size:0.9em;">Edit <code>author/changelog.md</code> to add changelog content.</p>
+                        </div>
+                    `
+                }
+            } else {
+                // File not found or error
+                contentEl.innerHTML = `
+                    <div style="text-align:center;padding:40px;">
+                        <h3 style="color:#666;margin-bottom:12px;">📋 Changelog Not Found</h3>
+                        <p style="color:#888;margin-bottom:16px;">No changelog file was found.</p>
+                        <p style="color:#999;font-size:0.9em;">Create <code>author/changelog.md</code> to add changelog content.</p>
+                    </div>
+                `
+            }
+        } catch (error) {
+            console.error('Failed to load changelog:', error)
+            contentEl.innerHTML = `
+                <div style="text-align:center;padding:40px;">
+                    <h3 style="color:#d32f2f;margin-bottom:12px;">⚠️ Error Loading Changelog</h3>
+                    <p style="color:#888;margin-bottom:16px;">Failed to load the changelog file.</p>
+                    <p style="color:#999;font-size:0.9em;">Check the console for details.</p>
+                </div>
+            `
+        }
+
+        // Use shared modal function for accessibility (ESC key, focus management, etc.)
+        openModal(modal)
+    } catch (e) {
+        console.error('Failed to open changelog modal:', e)
+    }
+}
+
+function closeChangelogModal() {
+    const modal = $('changelog-modal')
+    if (modal) {
+        // Use shared modal function for proper cleanup
+        closeModal(modal)
+    }
+}// Close changelog modal when clicking outside content
+document.addEventListener('click', (e) => {
+    const modal = $('changelog-modal')
+    if (modal && e.target === modal) {
+        closeChangelogModal()
+    }
+})
 
 // Initialize
 window.addEventListener('DOMContentLoaded', () => {

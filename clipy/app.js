@@ -32,9 +32,46 @@ import { transformAndWrap, highlightMappedTracebackInEditor, highlightFeedbackLi
 
 // Additional features
 import { setupSnapshotSystem } from './js/snapshots.js'
+import { setupDownloadSystem } from './js/download.js'
 import { showStorageInfo } from './js/storage-manager.js'
 import { resetFeedback, evaluateFeedbackOnEdit, evaluateFeedbackOnRun, on as feedbackOn, off as feedbackOff } from './js/feedback.js'
 import { initializeFeedbackUI, setFeedbackMatches, setFeedbackConfig } from './js/feedback-ui.js'
+
+// Check if authoring mode is enabled via URL parameter
+function isAuthoringEnabled() {
+    try {
+        const params = new URLSearchParams(window.location.search)
+        // Check for various authoring parameter formats
+        const hasAuthorParam = params.has('author') ||
+            params.get('authoring') === 'true' ||
+            params.get('author') === 'true' ||
+            params.has('authoring')
+
+        // Also check if returning from authoring page
+        const returningFromAuthor = sessionStorage.getItem('returningFromAuthor') === 'true'
+
+        return hasAuthorParam || returningFromAuthor
+    } catch (e) {
+        return false
+    }
+}
+
+// Add author flag to URL if not present when authoring is enabled
+function ensureAuthorFlag() {
+    try {
+        if (isAuthoringEnabled()) {
+            const params = new URLSearchParams(window.location.search)
+            if (!params.has('author') && !params.has('authoring')) {
+                // Add author flag to current URL
+                params.set('author', 'true')
+                const newUrl = window.location.pathname + '?' + params.toString()
+                window.history.replaceState({}, '', newUrl)
+            }
+        }
+    } catch (e) {
+        console.warn('Failed to ensure author flag:', e)
+    }
+}
 
 // Expose global functions for tests and debugging
 try {
@@ -393,8 +430,9 @@ async function main() {
         // 8. Setup input handling
         setupInputHandling()
 
-        // 9. Setup snapshot system
+        // 9. Setup snapshot and download systems
         setupSnapshotSystem()
+        setupDownloadSystem()
 
         // Wire reset config button if present: restore loaded config from remote and refresh UI
         try {
@@ -636,11 +674,49 @@ async function main() {
             const configInfoEl = document.querySelector('.config-info') || document.querySelector('.config-title-line')
             const configModal = document.getElementById('config-modal')
             if (configInfoEl && configModal) {
+                // Handle authoring mode setup
+                ensureAuthorFlag()
+                const authoringEnabled = isAuthoringEnabled()
+
+                // Log authoring mode status
+                if (authoringEnabled) {
+                    console.log('✨ Authoring mode enabled - config modal available')
+                } else {
+                    console.log('👤 User mode - config modal disabled')
+                }
+
+                // Update cursor style based on authoring mode
+                if (authoringEnabled) {
+                    configInfoEl.classList.add('authoring-enabled')
+                } else {
+                    configInfoEl.classList.remove('authoring-enabled')
+                }
+
+                // Clear session flag after checking
+                try {
+                    sessionStorage.removeItem('returningFromAuthor')
+                } catch (e) {
+                    console.warn('Failed to clear session flag:', e)
+                }
+
                 // Click and keyboard handler to open modal
                 const openHandler = async (ev) => {
                     try {
+                        // Check if authoring mode is enabled
+                        if (!isAuthoringEnabled()) {
+                            console.debug('[app] config modal disabled - authoring mode not enabled')
+                            return
+                        }
+
                         console.debug('[app] config header activated', ev && ev.type)
                         openModal(configModal)
+
+                        // Show/hide author page button based on authoring mode
+                        const authorPageBtn = document.getElementById('config-author-page')
+                        if (authorPageBtn) {
+                            authorPageBtn.style.display = isAuthoringEnabled() ? 'inline-block' : 'none'
+                        }
+
                         // Verify the modal became visible; if not, force it and log
                         try {
                             const vis = configModal.getAttribute && configModal.getAttribute('aria-hidden')
@@ -651,7 +727,7 @@ async function main() {
                             }
                         } catch (_e) { }
 
-                        // Populate server list
+                        // Populate combined configurations list (server + authoring)
                         const listContainer = document.getElementById('config-server-list')
                         if (listContainer) {
                             listContainer.textContent = 'Loading...'
@@ -668,8 +744,76 @@ async function main() {
                                 listContainer.parentNode.insertBefore(errorEl, listContainer.nextSibling)
                             }
                             errorEl.textContent = ''
+
+                            let hasConfigs = false
+
+                            // Add authoring config first if available
+                            try {
+                                const AUTHOR_CONFIG_KEY = 'author_config'
+                                const rawJson = localStorage.getItem(AUTHOR_CONFIG_KEY)
+                                if (rawJson) {
+                                    try {
+                                        const raw = JSON.parse(rawJson || 'null')
+
+                                        // Handle tests parsing (same as before)
+                                        try {
+                                            if (raw && typeof raw.tests === 'string' && raw.tests.trim()) {
+                                                const parsedTests = JSON.parse(raw.tests)
+                                                if (Array.isArray(parsedTests)) raw.tests = parsedTests
+                                            }
+                                        } catch (_e) { /* leave raw.tests as-is if parsing fails */ }
+
+                                        // Sanitize test entries (same as before)
+                                        try {
+                                            if (raw && Array.isArray(raw.tests)) {
+                                                raw.tests = raw.tests.map(t => {
+                                                    if (!t || typeof t !== 'object') return t
+                                                    const clean = Object.assign({}, t)
+                                                    if (clean.expected_stdout === null) delete clean.expected_stdout
+                                                    if (clean.expected_stderr === null) delete clean.expected_stderr
+                                                    if (clean.setup === null) delete clean.setup
+                                                    if (clean.stdin === null) delete clean.stdin
+                                                    if (!clean.id) clean.id = ('t-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7))
+                                                    return clean
+                                                })
+                                            }
+                                        } catch (_e) { }
+
+                                        const normalized = validateAndNormalizeConfig(raw)
+                                        if (normalized) {
+                                            const btn = document.createElement('button')
+                                            btn.className = 'btn'
+                                            btn.style.display = 'block'
+                                            btn.style.width = '100%'
+                                            btn.style.textAlign = 'left'
+                                            btn.style.marginBottom = '4px'
+                                            btn.style.background = '#f8f9fa'
+                                            btn.style.border = '1px solid #e9ecef'
+                                            btn.textContent = `${normalized.title || normalized.id} ${normalized.version ? ('v' + normalized.version + ' ') : ''}(local)`
+                                            btn.addEventListener('click', async () => {
+                                                try {
+                                                    await applyConfigToWorkspace(normalized)
+                                                    closeModal(configModal)
+                                                } catch (e) {
+                                                    const msg = 'Failed to load local author config: ' + (e && e.message ? e.message : e)
+                                                    try { showConfigError(msg, configModal) } catch (_err) { }
+                                                }
+                                            })
+                                            listContainer.appendChild(btn)
+                                            hasConfigs = true
+                                        }
+                                    } catch (_e) {
+                                        // Malformed JSON or validation failed; surface a minimal inline error
+                                        try { showConfigError('Invalid local author config in localStorage', configModal) } catch (_err) { }
+                                    }
+                                }
+                            } catch (_e) { }
+
+                            // Add server configs
                             if (!items || !items.length) {
-                                listContainer.textContent = '(no configs available)'
+                                if (!hasConfigs) {
+                                    listContainer.textContent = '(no configurations available)'
+                                }
                             } else {
                                 for (const name of items) {
                                     try {
@@ -685,13 +829,14 @@ async function main() {
 
                                         const displayTitle = (meta && meta.title) ? meta.title : name
                                         const versionText = (meta && meta.version) ? ('v' + meta.version) : ''
-                                        const label = versionText ? `${displayTitle} — ${versionText}` : displayTitle
+                                        const label = versionText ? `${displayTitle} ${versionText}` : displayTitle
 
                                         const btn = document.createElement('button')
                                         btn.className = 'btn'
                                         btn.style.display = 'block'
                                         btn.style.width = '100%'
                                         btn.style.textAlign = 'left'
+                                        btn.style.marginBottom = '4px'
                                         btn.textContent = label
                                         // keep original filename/identifier available for click handler
                                         btn.dataset.configSource = name
@@ -713,93 +858,10 @@ async function main() {
                                             }
                                         })
                                         listContainer.appendChild(btn)
+                                        hasConfigs = true
                                     } catch (_e) { }
                                 }
                             }
-
-                            // Detect a single explicit authoring config stored in localStorage
-                            try {
-                                const AUTHOR_CONFIG_KEY = 'author_config'
-                                const rawJson = localStorage.getItem(AUTHOR_CONFIG_KEY)
-                                if (rawJson) {
-                                    try {
-                                        const raw = JSON.parse(rawJson || 'null')
-
-                                        // If tests were saved as a JSON string by an older authoring
-                                        // session, attempt to parse them so the validator receives
-                                        // the structured array and preserves tests when loading.
-                                        try {
-                                            if (raw && typeof raw.tests === 'string' && raw.tests.trim()) {
-                                                const parsedTests = JSON.parse(raw.tests)
-                                                if (Array.isArray(parsedTests)) raw.tests = parsedTests
-                                            }
-                                        } catch (_e) { /* leave raw.tests as-is if parsing fails */ }
-
-                                        // Sanitize test entries: the authoring UI may include
-                                        // explicit nulls for optional fields. Convert those
-                                        // to absent properties so downstream consumers
-                                        // (and validation) treat them as optional.
-                                        try {
-                                            if (raw && Array.isArray(raw.tests)) {
-                                                raw.tests = raw.tests.map(t => {
-                                                    if (!t || typeof t !== 'object') return t
-                                                    const clean = Object.assign({}, t)
-                                                    if (clean.expected_stdout === null) delete clean.expected_stdout
-                                                    if (clean.expected_stderr === null) delete clean.expected_stderr
-                                                    if (clean.setup === null) delete clean.setup
-                                                    if (clean.stdin === null) delete clean.stdin
-                                                    if (!clean.id) clean.id = ('t-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7))
-                                                    return clean
-                                                })
-                                            }
-                                        } catch (_e) { }
-
-                                        const normalized = validateAndNormalizeConfig(raw)
-                                        if (normalized) {
-                                            // Remove any prior author section to avoid duplicates when
-                                            // opening the modal multiple times during a session.
-                                            try {
-                                                const existing = listContainer.parentNode.querySelector('.config-author-section')
-                                                if (existing && existing.parentNode) existing.parentNode.removeChild(existing)
-                                            } catch (_e) { }
-
-                                            const authorSection = document.createElement('div')
-                                            authorSection.className = 'config-author-section'
-                                            authorSection.style.marginTop = '8px'
-
-                                            const header = document.createElement('div')
-                                            header.style.fontWeight = '600'
-                                            header.style.margin = '8px 0 4px 0'
-                                            header.textContent = 'Local authoring config (from localStorage)'
-
-                                            const btn = document.createElement('button')
-                                            btn.className = 'btn'
-                                            btn.style.display = 'block'
-                                            btn.style.width = '100%'
-                                            btn.style.textAlign = 'left'
-                                            btn.textContent = `Load author config: ${normalized.title || normalized.id} ${normalized.version ? ('— v' + normalized.version) : ''}`
-                                            btn.addEventListener('click', async () => {
-                                                try {
-                                                    await applyConfigToWorkspace(normalized)
-                                                    closeModal(configModal)
-                                                } catch (e) {
-                                                    const msg = 'Failed to load local author config: ' + (e && e.message ? e.message : e)
-                                                    try { showConfigError(msg, configModal) } catch (_err) { }
-                                                }
-                                            })
-
-                                            authorSection.appendChild(header)
-                                            authorSection.appendChild(btn)
-                                            try {
-                                                listContainer.parentNode.insertBefore(authorSection, listContainer)
-                                            } catch (_e) { }
-                                        }
-                                    } catch (_e) {
-                                        // Malformed JSON or validation failed; surface a minimal inline error
-                                        try { showConfigError('Invalid local author config in localStorage', configModal) } catch (_err) { }
-                                    }
-                                }
-                            } catch (_e) { }
                         }
                     } catch (_e) { }
                 }
@@ -827,7 +889,7 @@ async function main() {
                 })
             }
 
-            // File picker and drop area
+            // File picker and drop area - make entire modal droppable
             const filePickerBtn = document.getElementById('config-file-picker')
             const fileInput = document.getElementById('config-file-input')
             const dropArea = document.getElementById('config-drop-area')
@@ -846,6 +908,46 @@ async function main() {
                 })
             }
 
+            // Make entire modal droppable for JSON files
+            if (configModal) {
+                let dragCounter = 0
+
+                configModal.addEventListener('dragenter', (e) => {
+                    e.preventDefault()
+                    dragCounter++
+                    configModal.classList.add('drag-over')
+                })
+
+                configModal.addEventListener('dragleave', (e) => {
+                    e.preventDefault()
+                    dragCounter--
+                    if (dragCounter === 0) {
+                        configModal.classList.remove('drag-over')
+                    }
+                })
+
+                configModal.addEventListener('dragover', (e) => {
+                    e.preventDefault()
+                    e.dataTransfer.dropEffect = 'copy'
+                })
+
+                configModal.addEventListener('drop', async (e) => {
+                    e.preventDefault()
+                    dragCounter = 0
+                    configModal.classList.remove('drag-over')
+                    try {
+                        const f = e.dataTransfer && e.dataTransfer.files ? e.dataTransfer.files[0] : null
+                        if (!f) return
+                        const normalized = await loadConfigFromFile(f)
+                        await applyConfigToWorkspace(normalized)
+                        closeModal(configModal)
+                    } catch (err) {
+                        try { showConfigError('Failed to load dropped config: ' + (err && err.message ? err.message : err), configModal) } catch (_e) { }
+                    }
+                })
+            }
+
+            // Keep the drop area for the visual hint
             if (dropArea) {
                 dropArea.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy' })
                 dropArea.addEventListener('drop', async (e) => {
@@ -865,6 +967,21 @@ async function main() {
             // Close button
             const configClose = document.getElementById('config-close')
             if (configClose && configModal) configClose.addEventListener('click', () => { try { closeModal(configModal) } catch (_e) { } })
+
+            // Author page button
+            const authorPageBtn = document.getElementById('config-author-page')
+            if (authorPageBtn) {
+                authorPageBtn.addEventListener('click', () => {
+                    try {
+                        // Set flag for return detection
+                        sessionStorage.setItem('returningFromAuthor', 'true')
+                        // Navigate to author page
+                        window.location.href = 'author/'
+                    } catch (e) {
+                        console.error('Failed to navigate to author page:', e)
+                    }
+                })
+            }
         } catch (_e) { }
 
         console.log('✅ Clipy application initialized successfully')

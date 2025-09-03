@@ -51,6 +51,11 @@ export function setupInputHandling() {
 
                 submitting = false
 
+                // Track stdin input for feedback system
+                if (typeof window.__ssg_stdin_history === 'string') {
+                    window.__ssg_stdin_history += (window.__ssg_stdin_history ? '\n' : '') + val
+                }
+
                 window.__ssg_pending_input.resolve(val)
                 delete window.__ssg_pending_input
             } catch (_e) {
@@ -159,6 +164,11 @@ export function createInputHandler() {
                             if (form) form.removeEventListener('submit', formHandler)
                             stdinBox.value = ''
 
+                            // Track stdin input for feedback system
+                            if (typeof window.__ssg_stdin_history === 'string') {
+                                window.__ssg_stdin_history += (window.__ssg_stdin_history ? '\n' : '') + value
+                            }
+
                             // Resolve the input
                             window.__ssg_pending_input.resolve(value)
                         }
@@ -177,6 +187,11 @@ export function createInputHandler() {
                             const form = $('terminal-input-form')
                             if (form) form.removeEventListener('submit', formHandler)
                             stdinBox.value = ''
+
+                            // Track stdin input for feedback system
+                            if (typeof window.__ssg_stdin_history === 'string') {
+                                window.__ssg_stdin_history += (window.__ssg_stdin_history ? '\n' : '') + value
+                            }
 
                             // Resolve the input
                             window.__ssg_pending_input.resolve(value)

@@ -19,15 +19,23 @@
 
 <body>
     <header>
-        <h1>Clipy — Authoring</h1>
-        <div style="display:flex;gap:8px;align-items:center">
-            <a href="../index.html" class="btn btn-ghost">Back to App</a>
-            <button id="new-config" class="btn">New</button>
-            <button id="save-draft" class="btn">Save Draft</button>
-            <button id="load-draft" class="btn">Load Drafts</button>
-            <input id="import-file" type="file" accept="application/json" style="display:none" />
-            <button id="import-btn" class="btn">Import</button>
-            <button id="export-btn" class="btn">Export</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <h1>Clipy | Author</h1>
+                <button id="changelog-btn" class="btn btn-ghost" title="View Changelog">
+                    <span class="icon" aria-hidden="true">📋</span>
+                    <span>Changelog</span>
+                </button>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+                <button id="back-to-app" class="btn btn-ghost">Back to App</button>
+                <button id="new-config" class="btn">New</button>
+                <button id="save-draft" class="btn">Save Draft</button>
+                <button id="load-draft" class="btn">Load Drafts</button>
+                <input id="import-file" type="file" accept="application/json" style="display:none" />
+                <button id="import-btn" class="btn">Import</button>
+                <button id="export-btn" class="btn">Export</button>
+            </div>
         </div>
     </header>
 
@@ -121,6 +129,20 @@
             <div class="modal-actions">
                 <button id="confirm-yes" class="btn btn-danger">Confirm</button>
                 <button id="confirm-no" class="btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Changelog modal -->
+    <div id="changelog-modal" class="modal" role="dialog" aria-hidden="true" aria-labelledby="changelog-modal-title">
+        <div class="modal-content" style="max-width:800px;">
+            <div class="modal-header">
+                <h3 id="changelog-modal-title">Changelog</h3>
+                <button id="changelog-close" class="btn modal-close-btn">Close</button>
+            </div>
+            <div id="changelog-content"
+                style="max-height:500px;overflow-y:auto;padding:12px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;">
+                <p style="text-align:center;color:#666;font-style:italic;">Loading changelog...</p>
             </div>
         </div>
     </div>

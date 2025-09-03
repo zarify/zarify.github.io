@@ -5,15 +5,59 @@
 
 import { openModal as openModalHelper, closeModal as closeModalHelper } from './modals.js'
 
-const VALID_PATTERN_TYPES = ['regex', 'ast']
+const VALID_PATTERN_TYPES = ['string', 'regex', 'ast']
 const VALID_TARGETS = ['code', 'filename', 'stdout', 'stderr', 'stdin']
 const VALID_WHEN = ['edit', 'run']
 const VALID_SEVERITIES = ['success', 'info', 'warning', 'error']
+
+// Target restrictions based on when the feedback runs
+const EDIT_TARGETS = ['code', 'filename']
+const RUN_TARGETS = ['stdin', 'stdout', 'stderr', 'filename']
 
 function $(sel, root = document) { return root.querySelector(sel) }
 
 function genId() {
     return 'fb-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7)
+}
+
+function getValidTargetsForWhen(whenValues) {
+    const hasEdit = whenValues.includes('edit')
+    const hasRun = whenValues.includes('run')
+
+    if (hasEdit) {
+        return EDIT_TARGETS
+    } else if (hasRun) {
+        return RUN_TARGETS
+    } else {
+        // No when selected, default to run targets
+        return RUN_TARGETS
+    }
+}
+
+function updateTargetOptions(targetSel, whenRadios, currentValue) {
+    const whenValues = Array.from(whenRadios)
+        .filter(radio => radio.checked)
+        .map(radio => radio.value)
+
+    const validTargets = getValidTargetsForWhen(whenValues)
+
+    // Clear existing options
+    targetSel.innerHTML = ''
+
+    // Add valid options
+    validTargets.forEach(t => {
+        const o = document.createElement('option')
+        o.value = t
+        o.textContent = t
+        targetSel.appendChild(o)
+    })
+
+    // Set value if it's still valid, otherwise use first valid option
+    if (validTargets.includes(currentValue)) {
+        targetSel.value = currentValue
+    } else if (validTargets.length > 0) {
+        targetSel.value = validTargets[0]
+    }
 }
 
 function parseFeedbackFromTextarea(ta) {
@@ -156,13 +200,26 @@ function buildEditorForm(existing) {
     idIn.value = existing.id || ''
 
     const whenWrap = document.createElement('div')
+    const whenCheckboxes = []
+    const radioGroupName = 'when-' + Date.now() // Unique name for this modal instance
     VALID_WHEN.forEach(w => {
         const cb = document.createElement('label')
         cb.style.marginRight = '8px'
         const inp = document.createElement('input')
-        inp.type = 'checkbox'
+        inp.type = 'radio'
+        inp.name = radioGroupName
         inp.value = w
-        inp.checked = (existing.when || []).includes(w)
+        // Check if this value should be selected (default to 'run' if none specified)
+        const currentWhen = existing.when || ['run']
+        // If existing config has both edit and run (from old checkbox system), prefer run
+        if (currentWhen.includes('run')) {
+            inp.checked = (w === 'run')
+        } else if (currentWhen.includes('edit')) {
+            inp.checked = (w === 'edit')
+        } else {
+            inp.checked = (w === 'run') // Default to run
+        }
+        whenCheckboxes.push(inp)
         cb.appendChild(inp)
         cb.appendChild(document.createTextNode(' ' + w))
         whenWrap.appendChild(cb)
@@ -173,11 +230,19 @@ function buildEditorForm(existing) {
         const o = document.createElement('option')
         o.value = t; o.textContent = t; patternType.appendChild(o)
     })
-    patternType.value = (existing.pattern && existing.pattern.type) || 'regex'
+    patternType.value = (existing.pattern && existing.pattern.type) || 'string'
 
     const targetSel = document.createElement('select')
-    VALID_TARGETS.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; targetSel.appendChild(o) })
-    targetSel.value = (existing.pattern && existing.pattern.target) || 'code'
+    const initialTarget = (existing.pattern && existing.pattern.target) || 'stdout' // Default to stdout for run-time feedback
+    // Initialize with filtered options based on current when selection
+    updateTargetOptions(targetSel, whenCheckboxes, initialTarget)
+
+    // Add event listeners to update target options when "when" radio buttons change
+    whenCheckboxes.forEach(radio => {
+        radio.addEventListener('change', () => {
+            updateTargetOptions(targetSel, whenCheckboxes, targetSel.value)
+        })
+    })
 
     const fileTargetIn = document.createElement('input')
     fileTargetIn.type = 'text'
@@ -195,6 +260,51 @@ function buildEditorForm(existing) {
     flags.style.width = '100%'
     flags.placeholder = 'e.g. i'
     flags.value = (existing.pattern && existing.pattern.flags) || ''
+
+    // Create wrapper elements for conditional fields
+    const exprRow = labeled('Expression', expr, 'Text to search for (string) or regex pattern to match (regex).')
+    const flagsRow = labeled('Flags [optional]', flags, 'Optional regex flags (e.g. "i" for case-insensitive). Only used for regex patterns.')
+
+    // Function to update field visibility and labels based on pattern type
+    function updatePatternFields() {
+        const isString = patternType.value === 'string'
+        const isRegex = patternType.value === 'regex'
+
+        if (isString) {
+            // For string patterns, show simpler field labels and hide flags
+            const exprLabel = exprRow.querySelector('div')
+            if (exprLabel) {
+                const labelSpan = exprLabel.querySelector('span')
+                if (labelSpan) labelSpan.textContent = 'Text'
+                const helpIcon = exprLabel.querySelector('.info-tooltip')
+                if (helpIcon) helpIcon.textContent = 'Enter the exact text to search for (case-sensitive).'
+            }
+            flagsRow.style.display = 'none'
+        } else if (isRegex) {
+            // For regex patterns, show full labels and flags field
+            const exprLabel = exprRow.querySelector('div')
+            if (exprLabel) {
+                const labelSpan = exprLabel.querySelector('span')
+                if (labelSpan) labelSpan.textContent = 'Expression'
+                const helpIcon = exprLabel.querySelector('.info-tooltip')
+                if (helpIcon) helpIcon.textContent = 'Enter a regular expression pattern to match against the text.'
+            }
+            flagsRow.style.display = ''
+        } else {
+            // For ast or other types, use generic labels
+            const exprLabel = exprRow.querySelector('div')
+            if (exprLabel) {
+                const labelSpan = exprLabel.querySelector('span')
+                if (labelSpan) labelSpan.textContent = 'Expression'
+                const helpIcon = exprLabel.querySelector('.info-tooltip')
+                if (helpIcon) helpIcon.textContent = 'Pattern expression for matching.'
+            }
+            flagsRow.style.display = 'none'
+        }
+    }
+
+    // Add event listener to pattern type dropdown
+    patternType.addEventListener('change', updatePatternFields)
 
     const message = document.createElement('textarea')
     message.style.width = '100%'
@@ -226,25 +336,28 @@ function buildEditorForm(existing) {
     visibleLabel.appendChild(visible)
     visibleLabel.appendChild(document.createTextNode('Visible by default'))
     whenRow.appendChild(visibleLabel)
-    root.appendChild(labeled('When', whenRow, 'Choose when this feedback applies: edit (while editing) or run (at runtime).', true))
-    root.appendChild(labeled('Pattern type', patternType, 'Type of pattern matcher. "regex" matches text; "ast" uses the parsed code structure (advanced).'))
-    root.appendChild(labeled('Pattern target', targetSel, 'Which program area to match: source code, filename, stdout/stderr, or stdin.'))
-    root.appendChild(labeled('File target', fileTargetIn, 'Filename to apply code/AST checks against (e.g. main.py). Defaults to main.py.'))
-    root.appendChild(labeled('Expression', expr, 'The match expression. For regex, enter the pattern without delimiters.'))
-    root.appendChild(labeled('Flags [optional]', flags, 'Optional regex flags (e.g. "i" for case-insensitive).'))
+    root.appendChild(labeled('When', whenRow, 'Choose when this feedback applies: edit (while editing code) or run (when program executes).', true))
+    root.appendChild(labeled('Pattern type', patternType, 'Type of pattern matcher. "string" for simple text matching (recommended), "regex" for pattern matching, "ast" for code structure (advanced).'))
+    root.appendChild(labeled('Pattern target', targetSel, 'Which program area to match. Options shown depend on when the feedback runs: edit-time (code, filename) or run-time (stdin, stdout, stderr, filename).'))
+    root.appendChild(labeled('File target', fileTargetIn, 'Which file to check (for code target). Usually "main.py".', true))
+    root.appendChild(exprRow)
+    root.appendChild(flagsRow)
     root.appendChild(labeled('Message', message, 'Message shown to the author when the feedback triggers. Use plain text or simple markdown.'))
     root.appendChild(labeled('Style', severity, 'The visual style for the feedback: info, warning, or error.'))
+
+    // Initialize field visibility based on current pattern type
+    updatePatternFields()
 
     return {
         root,
         get() {
             const when = []
-            Array.from(whenWrap.querySelectorAll('input[type=checkbox]')).forEach(cb => { if (cb.checked) when.push(cb.value) })
+            Array.from(whenWrap.querySelectorAll('input[type=radio]')).forEach(radio => { if (radio.checked) when.push(radio.value) })
             return {
                 id: idIn.value || undefined,
                 title: title.value || '',
-                when: when.length ? when : ['edit'],
-                pattern: { type: patternType.value || 'regex', target: targetSel.value || 'code', fileTarget: fileTargetIn.value || 'main.py', expression: expr.value || '', flags: flags.value || '' },
+                when: when.length ? when : ['run'], // Default to 'run' if none selected
+                pattern: { type: patternType.value || 'string', target: targetSel.value || 'stdout', fileTarget: fileTargetIn.value || 'main.py', expression: expr.value || '', flags: flags.value || '' },
                 message: message.value || '',
                 severity: severity.value || 'success',
                 visibleByDefault: !!visible.checked
@@ -496,7 +609,7 @@ export function initAuthorFeedback() {
     }
 
     addBtn.addEventListener('click', () => {
-        const newItem = { id: genId(), title: 'New feedback', when: ['edit'], pattern: { type: 'regex', target: 'code', expression: '' }, message: '', severity: 'info', visibleByDefault: true }
+        const newItem = { id: genId(), title: 'New feedback', when: ['edit'], pattern: { type: 'string', target: 'stdout', expression: '' }, message: '', severity: 'info', visibleByDefault: true }
         // open editor for the new item without adding it to the array yet
         openModalEditNew(newItem)
     })
