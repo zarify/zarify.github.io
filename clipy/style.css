@@ -309,6 +309,11 @@ textarea#code {
     border: 1px solid transparent
 }
 
+.btn-small {
+    padding: 4px 8px;
+    font-size: 0.85rem;
+}
+
 /* Snapshot modal: single-line snapshot items */
 .snapshot-item {
     display: flex;
@@ -759,6 +764,11 @@ pre#terminal-output {
     /* Ensure modal content doesn't overflow the viewport; allow internal scrolling when tall */
     max-height: 80vh;
     overflow: auto;
+}
+
+/* Load drafts modal: remove overflow from content to prevent double scrollbars */
+#load-drafts-modal .modal-content {
+    overflow: visible;
 }
 
 /* Snapshot list container: limit height and allow scrolling when many snapshots exist */

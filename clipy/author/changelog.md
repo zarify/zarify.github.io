@@ -1,4 +1,5 @@
 ## 2025-09-04
+- Saving and loading of drafts in authoring
 - Download of user workspace to single file or zip
 - Easier switching between authoring and user views
 - URL parameter `?author` to enable switch from config load modal

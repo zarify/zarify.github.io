@@ -26,13 +26,20 @@ const STORE = 'author_configs'
 function openDb() {
     return new Promise((resolve, reject) => {
         if (!window.indexedDB) return reject(new Error('IndexedDB unavailable'))
-        const req = indexedDB.open(DB_NAME, 1)
-        req.onupgradeneeded = (ev) => {
-            const db = ev.target.result
-            if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id' })
+
+        try {
+            const req = indexedDB.open(DB_NAME, 1)
+            req.onupgradeneeded = (ev) => {
+                const db = ev.target.result
+                if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id' })
+            }
+            req.onsuccess = () => resolve(req.result)
+            req.onerror = () => reject(req.error || new Error('IndexedDB open failed'))
+            req.onblocked = () => reject(new Error('IndexedDB blocked'))
+        } catch (e) {
+            // In private browsing mode, indexedDB.open() might throw immediately
+            reject(e)
         }
-        req.onsuccess = () => resolve(req.result)
-        req.onerror = () => reject(req.error)
     })
 }
 
@@ -58,9 +65,7 @@ export async function saveDraft(rec) {
             return rec
         } catch (_e) { throw e }
     }
-}
-
-export async function listDrafts() {
+} export async function listDrafts() {
     try {
         const db = await openDb()
         return new Promise((resolve, reject) => {

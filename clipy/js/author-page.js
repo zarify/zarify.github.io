@@ -1,5 +1,5 @@
 import { validateAndNormalizeConfig } from './config.js'
-import { saveAuthorConfigToLocalStorage, getAuthorConfigFromLocalStorage, clearAuthorConfigInLocalStorage, saveDraft, listDrafts, loadDraft } from './author-storage.js'
+import { saveAuthorConfigToLocalStorage, getAuthorConfigFromLocalStorage, clearAuthorConfigInLocalStorage, saveDraft, listDrafts, loadDraft, deleteDraft } from './author-storage.js'
 import { initAuthorFeedback } from './author-feedback.js'
 import { initAuthorTests } from './author-tests.js'
 import { showConfirmModal, openModal, closeModal } from './modals.js'
@@ -508,13 +508,36 @@ function setupHandlers() {
         } catch (e) { alert('Failed to read file: ' + (e && e.message ? e.message : e)) }
     })
 
-    // Draft buttons are stubs for now; explicit IndexedDB draft functionality will be added later
-    $('save-draft').addEventListener('click', () => {
-        alert('Save Draft not implemented yet — drafts will be added later.')
+    // Draft functionality using imported storage functions
+    $('save-draft').addEventListener('click', async () => {
+        try {
+            await saveCurrentDraft()
+        } catch (e) {
+            alert('Failed to save draft: ' + (e && e.message ? e.message : e))
+        }
     })
-    $('load-draft').addEventListener('click', () => {
-        alert('Load Drafts not implemented yet — drafts will be added later.')
-    })
+
+    $('load-draft').addEventListener('click', async () => {
+        try {
+            await openLoadDraftsModal()
+        } catch (e) {
+            alert('Failed to open drafts: ' + (e && e.message ? e.message : e))
+        }
+    })    // Load drafts modal close button
+    const loadDraftsClose = $('load-drafts-close')
+    if (loadDraftsClose) {
+        loadDraftsClose.addEventListener('click', () => {
+            closeLoadDraftsModal()
+        })
+    }
+
+    // Save draft success modal close button
+    const saveDraftSuccessClose = $('save-draft-success-close')
+    if (saveDraftSuccessClose) {
+        saveDraftSuccessClose.addEventListener('click', () => {
+            closeSaveDraftSuccessModal()
+        })
+    }
 
     // Changelog modal
     $('changelog-btn').addEventListener('click', async () => {
@@ -594,11 +617,23 @@ function closeChangelogModal() {
         // Use shared modal function for proper cleanup
         closeModal(modal)
     }
-}// Close changelog modal when clicking outside content
+}
+
+// Close modals when clicking outside content
 document.addEventListener('click', (e) => {
     const modal = $('changelog-modal')
     if (modal && e.target === modal) {
         closeChangelogModal()
+    }
+
+    const loadDraftsModal = $('load-drafts-modal')
+    if (loadDraftsModal && e.target === loadDraftsModal) {
+        closeLoadDraftsModal()
+    }
+
+    const saveDraftSuccessModal = $('save-draft-success-modal')
+    if (saveDraftSuccessModal && e.target === saveDraftSuccessModal) {
+        closeSaveDraftSuccessModal()
     }
 })
 
@@ -675,4 +710,243 @@ function applyImportedConfig(obj) {
         // fallback: save raw
         saveAuthorConfigToLocalStorage(cfg)
     }
+}
+
+// Draft Management Functions using imported storage functions
+async function saveCurrentDraft() {
+    const config = buildCurrentConfig()
+
+    // Create draft record with metadata
+    const timestamp = new Date().toLocaleString()
+    const configTitle = config.title || 'Untitled'
+    const draftName = `${configTitle} (${timestamp})`
+
+    const draft = {
+        name: draftName,
+        config: config,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+    }
+
+    // Use imported saveDraft function
+    const savedDraft = await saveDraft(draft)
+
+    // Show success message in modal
+    showSaveDraftSuccessModal(draftName)
+}
+
+async function openLoadDraftsModal() {
+    const modal = $('load-drafts-modal')
+    const contentEl = $('load-drafts-content')
+
+    if (!modal || !contentEl) return
+
+    try {
+        // Use imported listDrafts function
+        const draftEntries = await listDrafts()
+
+        if (draftEntries.length === 0) {
+            contentEl.innerHTML = `
+                <div style="text-align:center;padding:40px;">
+                    <h3 style="color:#666;margin-bottom:12px;">📄 No Drafts Found</h3>
+                    <p style="color:#888;margin-bottom:16px;">You haven't saved any draft configurations yet.</p>
+                    <p style="color:#999;font-size:0.9em;">Use the "Save Draft" button to save your current configuration.</p>
+                </div>
+            `
+        } else {
+            // Sort drafts by updatedAt (newest first)
+            draftEntries.sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0))
+
+            let html = '<div style="display:flex;flex-direction:column;gap:8px;">'
+
+            for (const draft of draftEntries) {
+                const config = draft.config || {}
+                const title = config.title || 'Untitled'
+                const id = config.id || 'No ID'
+                const version = config.version || 'No version'
+                const timestamp = draft.updatedAt ? new Date(draft.updatedAt).toLocaleString() : 'Unknown'
+                const draftName = draft.name || `${title} (${timestamp})`
+
+                html += `
+                    <div style="border:1px solid #ddd;border-radius:6px;padding:12px;background:#f8f9fa;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                            <div>
+                                <h4 style="margin:0;color:#333;">${escapeHtml(draftName)}</h4>
+                                <p style="margin:4px 0 0 0;color:#666;font-size:0.9em;">ID: ${escapeHtml(id)} | Version: ${escapeHtml(version)}</p>
+                                <p style="margin:4px 0 0 0;color:#999;font-size:0.85em;">Saved: ${escapeHtml(timestamp)}</p>
+                            </div>
+                            <div style="display:flex;gap:8px;">
+                                <button class="btn btn-small load-draft-btn" data-draft-id="${escapeHtml(draft.id)}">Load</button>
+                                <button class="btn btn-small btn-danger delete-draft-btn" data-draft-id="${escapeHtml(draft.id)}">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `
+            }
+
+            html += '</div>'
+            contentEl.innerHTML = html
+
+            // Add event listeners for load and delete buttons
+            const loadButtons = contentEl.querySelectorAll('.load-draft-btn')
+            const deleteButtons = contentEl.querySelectorAll('.delete-draft-btn')
+
+            loadButtons.forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const draftId = e.target.getAttribute('data-draft-id')
+                    await loadDraftById(draftId)
+                })
+            })
+
+            deleteButtons.forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const draftId = e.target.getAttribute('data-draft-id')
+                    await deleteDraftById(draftId)
+                })
+            })
+        }
+
+        // Open the modal
+        openModal(modal)
+    } catch (e) {
+        console.error('Failed to open load drafts modal:', e)
+        contentEl.innerHTML = `
+            <div style="text-align:center;padding:40px;">
+                <h3 style="color:#d32f2f;margin-bottom:12px;">⚠️ Error Loading Drafts</h3>
+                <p style="color:#888;margin-bottom:16px;">Failed to load draft configurations.</p>
+                <p style="color:#999;font-size:0.9em;">Check the console for details.</p>
+            </div>
+        `
+        openModal(modal)
+    }
+}
+
+function closeLoadDraftsModal() {
+    const modal = $('load-drafts-modal')
+    if (modal) {
+        closeModal(modal)
+    }
+}
+
+async function loadDraftById(draftId) {
+    try {
+        // Use imported loadDraft function
+        const draft = await loadDraft(draftId)
+
+        if (!draft) {
+            throw new Error('Draft not found')
+        }
+
+        // Close the drafts modal first to avoid modal stacking
+        closeLoadDraftsModal()
+
+        // Confirm overwrite using the existing modal system
+        let ok = false
+        try {
+            ok = await showConfirmModal('Load Draft Configuration', 'This will overwrite the current author configuration in this page and in localStorage. Continue?')
+        } catch (e) {
+            ok = window.confirm('This will overwrite the current author configuration in this page and in localStorage. Continue?')
+        }
+
+        if (!ok) return
+
+        // Apply the draft config
+        applyImportedConfig(draft.config)
+
+        // Show success message in the load drafts modal
+        const draftName = draft.name || 'Draft'
+        showLoadDraftSuccessInModal(draftName)
+
+    } catch (e) {
+        alert('Failed to load draft: ' + (e && e.message ? e.message : e))
+    }
+}
+
+async function deleteDraftById(draftId) {
+    try {
+        // First get the draft to get its name for the confirmation
+        const draft = await loadDraft(draftId)
+
+        if (!draft) {
+            throw new Error('Draft not found')
+        }
+
+        const draftName = draft.name || 'this draft'
+
+        // Confirm deletion
+        let ok = false
+        try {
+            ok = await showConfirmModal('Delete Draft', `Are you sure you want to delete "${draftName}"? This action cannot be undone.`)
+        } catch (e) {
+            ok = window.confirm(`Are you sure you want to delete "${draftName}"? This action cannot be undone.`)
+        }
+
+        if (!ok) return
+
+        // Use imported deleteDraft function
+        await deleteDraft(draftId)
+
+        // Refresh the modal content by reopening the drafts modal
+        await openLoadDraftsModal()
+
+    } catch (e) {
+        alert('Failed to delete draft: ' + (e && e.message ? e.message : e))
+    }
+}
+
+// Modal helper functions
+function showSaveDraftSuccessModal(draftName) {
+    const modal = $('save-draft-success-modal')
+    const contentEl = $('save-draft-success-content')
+
+    if (modal && contentEl) {
+        contentEl.innerHTML = `
+            <p style="margin:0;color:#333;font-size:1rem;margin-bottom:12px;">
+                <strong>Draft saved successfully!</strong>
+            </p>
+            <p style="margin:0;color:#666;font-size:0.9em;">
+                Saved as: "${escapeHtml(draftName)}"
+            </p>
+        `
+        openModal(modal)
+    }
+}
+
+function closeSaveDraftSuccessModal() {
+    const modal = $('save-draft-success-modal')
+    if (modal) {
+        closeModal(modal)
+    }
+}
+
+function showLoadDraftSuccessInModal(draftName) {
+    // Re-use the load drafts modal to show success message
+    const modal = $('load-drafts-modal')
+    const contentEl = $('load-drafts-content')
+    const titleEl = $('load-drafts-modal-title')
+
+    if (modal && contentEl && titleEl) {
+        // Change the title and content to show success
+        titleEl.textContent = 'Draft Loaded Successfully'
+        contentEl.innerHTML = `
+            <div style="text-align:center;padding:40px;">
+                <div style="color:#4caf50;font-size:48px;margin-bottom:16px;">✓</div>
+                <h3 style="color:#333;margin-bottom:12px;">Configuration Loaded</h3>
+                <p style="color:#666;margin-bottom:16px;">
+                    "${escapeHtml(draftName)}" has been loaded into the author page.
+                </p>
+                <p style="color:#999;font-size:0.9em;">
+                    The configuration has been applied and saved to localStorage.
+                </p>
+            </div>
+        `
+        openModal(modal)
+    }
+}
+
+// Helper function for HTML escaping
+function escapeHtml(text) {
+    const div = document.createElement('div')
+    div.textContent = text
+    return div.innerHTML
 }

@@ -1,6 +1,9 @@
 // Modal management and accessibility helpers
 import { $ } from './utils.js'
 
+// Track current z-index for modal stacking
+let currentZIndex = 1000
+
 // Get focusable elements within a container
 function _getFocusable(container) {
     return Array.from(container.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'))
@@ -12,6 +15,11 @@ export function openModal(modal) {
     try {
         console.debug && console.debug('[modals] openModal', modal && modal.id)
         if (!modal) return
+
+        // Set z-index for proper stacking
+        currentZIndex += 10
+        modal.style.zIndex = currentZIndex
+        modal.__zIndex = currentZIndex
 
         // Record previously focused element for restore
         modal.__previousActive = document.activeElement
@@ -64,6 +72,12 @@ export function closeModal(modal) {
 
         modal.setAttribute('aria-hidden', 'true')
         modal.removeAttribute('aria-modal')
+
+        // Reset z-index when closing
+        if (modal.__zIndex) {
+            modal.style.zIndex = ''
+            delete modal.__zIndex
+        }
 
         try {
             document.removeEventListener('keydown', modal.__keydownHandler, true)
