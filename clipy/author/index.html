@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Clipy — Authoring</title>
+    <link rel="stylesheet" href="../style.css">
+    <!-- CodeMirror 5 (classic) from CDN for quick editor integration -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+    <!-- Markdown renderer and syntax highlighting for preview -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/styles/github.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.8.0/build/highlight.min.js"></script>
+</head>
+
+<body>
+    <header>
+        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <h1>Clipy | Author</h1>
+                <button id="changelog-btn" class="btn btn-ghost" title="View Changelog">
+                    <span class="icon" aria-hidden="true">📋</span>
+                    <span>Changelog</span>
+                </button>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+                <button id="back-to-app" class="btn btn-ghost">Back to App</button>
+                <button id="new-config" class="btn">New</button>
+                <button id="save-draft" class="btn">Save Draft</button>
+                <button id="load-draft" class="btn">Load Drafts</button>
+                <input id="import-file" type="file" accept="application/json" style="display:none" />
+                <button id="import-btn" class="btn">Import</button>
+                <button id="export-btn" class="btn">Export</button>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding:12px; display:block;">
+        <div class="author-tabs"
+            style="display:block;border-bottom:1px solid #ddd;padding-bottom:8px;margin-bottom:8px">
+            <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+                <button class="tab-btn btn" data-tab="metadata">Metadata</button>
+                <button class="tab-btn btn" data-tab="instructions">Instructions</button>
+                <button class="tab-btn btn" data-tab="code">Code & Files</button>
+                <button class="tab-btn btn" data-tab="feedback">Feedback</button>
+                <button class="tab-btn btn" data-tab="tests">Tests</button>
+            </div>
+        </div>
+
+        <div id="tab-metadata" class="author-tab" style="margin-top:12px">
+            <div class="panel">
+                <h2>Metadata</h2>
+                <label>Title<br /><input id="meta-title" style="width:100%" /></label>
+                <label>ID<br /><input id="meta-id" style="width:100%" /></label>
+                <label>Version<br /><input id="meta-version" style="width:100%" /></label>
+                <div style="margin-top:8px">
+                    <label>Description<br /><textarea id="meta-description" style="width:100%"
+                            rows="4"></textarea></label>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-instructions" class="author-tab" style="margin-top:12px">
+            <div class="panel">
+                <h2>Instructions</h2>
+                <p>Write instructions using Markdown.</p>
+                <textarea id="instructions-editor" style="width:100%;height:320px"
+                    placeholder="Author instructions or starter description"></textarea>
+                <h2>Preview</h2>
+                <div id="instructions-preview"
+                    style="margin-top:12px;background:#fff;border:1px solid #eee;padding:12px;border-radius:6px;max-height:360px;overflow:auto">
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-code" class="author-tab" style="margin-top:12px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <div id="file-tabs" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+                <div style="margin-left:auto;display:flex;gap:8px">
+                    <button id="add-file" class="btn">New file</button>
+                    <input id="file-upload" class="btn" type="file" />
+                </div>
+            </div>
+
+            <div style="border:1px solid #eee;padding:8px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                    <div id="editor-current-file" style="font-size:0.95em;color:#333">/main.py</div>
+                </div>
+                <textarea id="file-editor" placeholder="# edit file content here"
+                    style="height:420px;width:100%"></textarea>
+            </div>
+
+            <div class="panel" style="margin-top:8px">
+                <h3>Validation</h3>
+                <div id="validation" style="min-height:40px;color:#b00020"></div>
+            </div>
+        </div>
+
+        <div id="tab-feedback" class="author-tab" style="margin-top:12px">
+            <div class="panel">
+                <h2>Feedback (JSON)</h2>
+                <textarea id="feedback-editor" style="width:100%;height:420px"
+                    placeholder='[ { "file": "/main.py", "line": 1, "pattern": "..." } ]'></textarea>
+            </div>
+        </div>
+
+        <div id="tab-tests" class="author-tab" style="margin-top:12px">
+            <div class="panel">
+                <h2>Tests (JSON)</h2>
+                <textarea id="tests-editor" style="width:100%;height:420px"
+                    placeholder='[ { "name": "t1", "stdin": "", "expected": "..." } ]'></textarea>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="../js/author-page.js"></script>
+
+    <!-- Generic confirmation modal (used by import flow) -->
+    <div id="confirm-modal" class="modal" role="dialog" aria-hidden="true" aria-labelledby="confirm-modal-title"
+        aria-describedby="confirm-modal-message">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="confirm-modal-title">Confirm</h3>
+            </div>
+            <div class="modal-body">
+                <div id="confirm-modal-message">Are you sure?</div>
+                <div id="confirm-modal-meta" style="margin-top:8px;color:#666;font-size:0.95rem"></div>
+                <div class="modal-actions">
+                    <button id="confirm-yes" class="btn btn-danger">Confirm</button>
+                    <button id="confirm-no" class="btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Changelog modal -->
+    <div id="changelog-modal" class="modal" role="dialog" aria-hidden="true" aria-labelledby="changelog-modal-title">
+        <div class="modal-content" style="max-width:800px;">
+            <div class="modal-header">
+                <h3 id="changelog-modal-title">Changelog</h3>
+                <button id="changelog-close" class="btn modal-close-btn">Close</button>
+            </div>
+            <div class="modal-body">
+                <div id="changelog-content"
+                    style="max-height:500px;overflow-y:auto;padding:12px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;">
+                    <p style="text-align:center;color:#666;font-style:italic;">Loading changelog...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Drafts modal -->
+    <div id="load-drafts-modal" class="modal" role="dialog" aria-hidden="true"
+        aria-labelledby="load-drafts-modal-title">
+        <div class="modal-content" style="max-width:700px;">
+            <div class="modal-header">
+                <h3 id="load-drafts-modal-title">Load Draft Configuration</h3>
+                <button id="load-drafts-close" class="btn modal-close-btn">Close</button>
+            </div>
+            <div class="modal-body">
+                <div id="load-drafts-content" style="max-height:400px;overflow-y:auto;padding:12px;">
+                    <p style="text-align:center;color:#666;font-style:italic;">Loading drafts...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Draft Success modal -->
+    <div id="save-draft-success-modal" class="modal" role="dialog" aria-hidden="true"
+        aria-labelledby="save-draft-success-title">
+        <div class="modal-content" style="max-width:500px;">
+            <div class="modal-header">
+                <h3 id="save-draft-success-title">Draft Saved</h3>
+                <button id="save-draft-success-close" class="btn modal-close-btn">Close</button>
+            </div>
+            <div class="modal-body">
+                <div id="save-draft-success-content" style="text-align:center;">
+                    <p style="margin:0;color:#333;font-size:1rem;">Your draft has been saved successfully!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script data-goatcounter="https://headtilt_me.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+
+</html>
