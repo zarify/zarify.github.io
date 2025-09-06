@@ -1,7 +1,7 @@
 {
   "id": "authoring-demo",
   "title": "Authoring Demo",
-  "version": "1.1",
+  "version": "1.2",
   "description": "A demo script for authoring.",
   "instructions": "You should **write some Python code**!\n\nTry `print`ing some text.\n\nOr getting some `input`!\n\nOr...\n\n```python\nname = input(\"What is your name? \")\nprint(f\"Hello {name}!\")\n```",
   "feedback": [
@@ -117,20 +117,22 @@
             }
           },
           {
-            "id": "t-mf7v47eu-ojyxk",
-            "description": "Checking for the correct output with a different name.",
-            "stdin": "Douglas",
-            "expected_stdout": "Hello Douglas!",
+            "id": "t-mf2hbjkt-gczpf",
+            "description": "Checking for the correct output.",
+            "stdin": "Rob",
+            "expected_stdout": "Hello Rob!",
+            "failureMessage": "Combine the greeting \"Hello\" with the name and punctuation.",
             "conditional": {
               "runIf": "previous_passed",
               "alwaysRun": false
             }
           },
           {
-            "id": "t-mf2hbjkt-gczpf",
-            "description": "Checking for the correct output.",
-            "stdin": "Rob",
-            "expected_stdout": "Hello Rob!",
+            "id": "t-mf7v47eu-ojyxk",
+            "description": "Checking for the correct output with a different name.",
+            "stdin": "Douglas",
+            "expected_stdout": "Hello Douglas!",
+            "failureMessage": "Check you are using your variable and not just printing the same name every time.",
             "conditional": {
               "runIf": "previous_passed",
               "alwaysRun": false

@@ -1028,17 +1028,6 @@ function createTestResultRow(r, cfgMap, groupMap, isGrouped) {
             codeA.textContent = (r.stdout != null) ? String(r.stdout) : ''
             preA.appendChild(codeA)
             compareWrap.appendChild(preA)
-            // Show author-provided failureMessage beneath the compare block when present
-            try {
-                if (meta && meta.failureMessage) {
-                    const fm = document.createElement('div')
-                    fm.className = 'test-failure-message'
-                    fm.style.marginTop = '6px'
-                    fm.style.color = '#d33'
-                    fm.textContent = String(meta.failureMessage)
-                    compareWrap.appendChild(fm)
-                }
-            } catch (_e) { }
 
             const expectedLabel = document.createElement('div')
             expectedLabel.textContent = 'Expected:'
