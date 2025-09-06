@@ -59,6 +59,7 @@ export function buildASTTestForm(existing = {}) {
     const desc = document.createElement('input')
     desc.style.width = '100%'
     desc.value = existing.description || existing.name || ''
+    desc.placeholder = 'What is being tested, descriptive language'
 
     // AST rule builder
     const astRuleBuilder = createASTRuleBuilder(existing.astRule || {}, 'test')
@@ -185,14 +186,14 @@ export function createDefaultASTTest() {
     return {
         type: 'ast',
         id: genId(),
-        description: 'Function definition check',
+        description: '',
         astRule: {
             type: 'ast',
             target: 'code',
-            expression: 'function_exists:calculate_average',
-            matcher: 'result && result.name === "calculate_average"'
+            expression: '',
+            matcher: ''
         },
-        failureMessage: 'Function calculate_average is missing or incorrectly defined'
+        failureMessage: ''
     }
 }
 

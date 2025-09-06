@@ -4,6 +4,13 @@
   - Test running can rely on previous test success
   - Test groups can rely on previous group success
 - **Note:** This will break previous test configuratons
+- Expanded AST rules:
+  - Class analysis
+  - Import statements
+  - Magic numbers
+  - Exception handling
+  - Type hints added to variable report
+  - Comprehension checks
 
 ## 2025-09-05
 - Proof of concept Abstract Syntax Tree feedback and test options

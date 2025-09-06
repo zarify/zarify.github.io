@@ -301,7 +301,8 @@ textarea#code {
 .btn-primary {
     background: var(--accent);
     color: #fff;
-    border-color: rgba(11, 92, 255, 0.9)
+    border-color: rgba(11, 92, 255, 0.9);
+    margin-right: 5px;
 }
 
 .btn-danger {
@@ -763,7 +764,7 @@ pre#terminal-output {
 
 .modal-content {
     background: var(--panel);
-    padding: 3px;
+    padding: 5px 10px;
     /* Remove padding since header/body will handle their own */
     border-radius: 6px;
     max-width: 720px;
