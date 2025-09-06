@@ -1,6 +1,7 @@
 // File management and VFS integration (client-facing)
 import { $ } from './utils.js'
 import { appendTerminal, appendTerminalDebug } from './terminal.js'
+import { warn as logWarn, error as logError, info as logInfo } from './logger.js'
 import { safeSetItem } from './storage-manager.js'
 
 // Name of the protected main program file (normalized)
@@ -89,7 +90,7 @@ function setupNotificationSystem() {
                     map[n] = content
                     const result = safeSetItem('ssg_files_v1', JSON.stringify(map))
                     if (!result.success) {
-                        console.warn('Failed to update localStorage mirror:', result.error)
+                        logWarn('Failed to update localStorage mirror:', result.error)
                     }
                 } catch (_e) { }
 
@@ -186,7 +187,7 @@ let FileManager = {
     },
     delete(path) {
         if (this._norm(path) === MAIN_FILE) {
-            console.warn('Attempt to delete protected main file ignored:', path)
+            logWarn('Attempt to delete protected main file ignored:', path)
             return Promise.resolve()
         }
         const m = this._load()
@@ -307,19 +308,19 @@ export async function initializeVFS(cfg) {
                     map[n] = content
                     const result = safeSetItem('ssg_files_v1', JSON.stringify(map))
                     if (!result.success) {
-                        console.warn('Failed to update localStorage mirror:', result.error)
+                        logWarn('Failed to update localStorage mirror:', result.error)
                     }
                 } catch (_e) { }
 
                 return backend.write(n, content).catch(e => {
-                    console.error('VFS write failed', e)
+                    logError('VFS write failed', e)
                     throw e
                 })
             },
             delete(path) {
                 const n = path && path.startsWith('/') ? path : ('/' + path)
                 if (n === MAIN_FILE) {
-                    console.warn('Attempt to delete protected main file ignored:', path)
+                    logWarn('Attempt to delete protected main file ignored:', path)
                     return Promise.resolve()
                 }
 
@@ -330,7 +331,7 @@ export async function initializeVFS(cfg) {
                     delete map[n]
                     const result = safeSetItem('ssg_files_v1', JSON.stringify(map))
                     if (!result.success) {
-                        console.warn('Failed to update localStorage mirror:', result.error)
+                        logWarn('Failed to update localStorage mirror:', result.error)
                     }
                 } catch (_e) { }
 
@@ -346,7 +347,7 @@ export async function initializeVFS(cfg) {
                 } catch (_e) { }
 
                 return backend.delete(n).catch(e => {
-                    console.error('VFS delete failed', e)
+                    logError('VFS delete failed', e)
                     throw e
                 })
             }

@@ -118,3 +118,18 @@ export async function deleteDraft(id) {
         try { localStorage.removeItem(key); return true } catch (_e) { return false }
     }
 }
+
+// Find existing draft by config ID and version
+export async function findDraftByConfigIdAndVersion(configId, configVersion) {
+    if (!configId) return null
+
+    try {
+        const drafts = await listDrafts()
+        return drafts.find(draft => {
+            const config = draft.config || {}
+            return config.id === configId && config.version === configVersion
+        })
+    } catch (e) {
+        return null
+    }
+}

@@ -1,13 +1,13 @@
 {
-  "id": "feedback-playground",
-  "title": "Python Playground",
-  "version": "1.0",
-  "description": "A Python programming environment",
-  "instructions": "Write **Python** code and click Run to execute it.\n\n```python\nprint(\"Hello!\")\n```\n\n# Feedback\n\nCreate a file called `foo.txt` to test filename feedback.\n\nRun a program with `Rob` as user input.\n\n# Tests\n\nThere are some basic tests set up that look for a program that does this:\n\n```python\nname = input(\"What is your name? \")\nprint(f\"Hello {name}!\")\n```",
+  "id": "authoring-demo",
+  "title": "Authoring Demo",
+  "version": "1.1",
+  "description": "A demo script for authoring.",
+  "instructions": "You should **write some Python code**!\n\nTry `print`ing some text.\n\nOr getting some `input`!\n\nOr...\n\n```python\nname = input(\"What is your name? \")\nprint(f\"Hello {name}!\")\n```",
   "feedback": [
     {
-      "id": "fb-mezkx6hw-tabvo",
-      "title": "Print something",
+      "id": "fb-mf2h24jy-56uzm",
+      "title": "Used an input with a prompt",
       "when": [
         "edit"
       ],
@@ -15,16 +15,16 @@
         "type": "regex",
         "target": "code",
         "fileTarget": "main.py",
-        "expression": "print\\(f?([\"']).+?\\1\\)",
+        "expression": "input\\((['\"]).+\\1\\)",
         "flags": ""
       },
-      "message": "Excellent, you used a print statement correctly.",
+      "message": "Nice work, you used an input with a prompt!",
       "severity": "success",
       "visibleByDefault": true
     },
     {
-      "id": "fb-mf1pozvi-68ifd",
-      "title": "Testing for an f-string",
+      "id": "fb-mf2h3q74-65kql",
+      "title": "Make sure you use a prompt!",
       "when": [
         "edit"
       ],
@@ -32,16 +32,16 @@
         "type": "regex",
         "target": "code",
         "fileTarget": "main.py",
-        "expression": "print\\(f([\"']).+\\1\\)",
+        "expression": "input\\(\\)",
         "flags": ""
       },
-      "message": "Good show, you used an f-string for printing.",
+      "message": "Make sure you use a prompt in your input like this: `input(\"Name: \")`",
       "severity": "info",
-      "visibleByDefault": true
+      "visibleByDefault": false
     },
     {
-      "id": "fb-mf3xfuoi-yrpn9",
-      "title": "Use braces for a variable placeholder in a string.",
+      "id": "fb-mf2h5sg1-en5gd",
+      "title": "Assigned user input to a variable",
       "when": [
         "edit"
       ],
@@ -49,39 +49,191 @@
         "type": "regex",
         "target": "code",
         "fileTarget": "main.py",
-        "expression": "([\"']).*\\{[A-z]\\w*\\}.*\\1",
+        "expression": "[A-z]\\w* ?= ?input\\(.*\\)",
         "flags": ""
       },
-      "message": "I can see braces around a {variable} in a string.",
+      "message": "Yes, you assigned your input to a variable.",
+      "severity": "success",
+      "visibleByDefault": true
+    },
+    {
+      "id": "fb-mf2h1de6-8esz9",
+      "title": "Used a print statement",
+      "when": [
+        "edit"
+      ],
+      "pattern": {
+        "type": "regex",
+        "target": "code",
+        "fileTarget": "main.py",
+        "expression": "print\\(.+\\)",
+        "flags": ""
+      },
+      "message": "Good work, we need to print out our greeting.",
+      "severity": "success",
+      "visibleByDefault": true
+    },
+    {
+      "id": "fb-mf2h7lnx-lpwq0",
+      "title": "Printed using an f-string",
+      "when": [
+        "edit"
+      ],
+      "pattern": {
+        "type": "regex",
+        "target": "code",
+        "fileTarget": "main.py",
+        "expression": "print\\(f([\"']).*\\{.+\\}.*\\1\\)",
+        "flags": ""
+      },
+      "message": "Nice work, f-strings make mixing strings and variables easy.",
       "severity": "success",
       "visibleByDefault": true
     }
   ],
-  "tests": [
-    {
-      "id": "t-mezkycs6-o7jv9",
-      "description": "Successfully printed something",
-      "expected_stdout": {
-        "type": "regex",
-        "expression": ".+",
-        "flags": ""
+  "tests": {
+    "groups": [
+      {
+        "id": "group-mf7v0zo5-facex",
+        "name": "Output",
+        "collapsed": false,
+        "conditional": {
+          "runIf": "always",
+          "alwaysRun": false
+        },
+        "tests": [
+          {
+            "id": "t-mf7v1fpx-71psb",
+            "description": "Checking if anything at all was output.",
+            "expected_stdout": {
+              "type": "regex",
+              "expression": ".+",
+              "flags": ""
+            },
+            "failureMessage": "Make sure you use a \"print\" in your code.",
+            "conditional": {
+              "runIf": "always",
+              "alwaysRun": false
+            }
+          },
+          {
+            "id": "t-mf7v47eu-ojyxk",
+            "description": "Checking for the correct output with a different name.",
+            "stdin": "Douglas",
+            "expected_stdout": "Hello Douglas!",
+            "conditional": {
+              "runIf": "previous_passed",
+              "alwaysRun": false
+            }
+          },
+          {
+            "id": "t-mf2hbjkt-gczpf",
+            "description": "Checking for the correct output.",
+            "stdin": "Rob",
+            "expected_stdout": "Hello Rob!",
+            "conditional": {
+              "runIf": "previous_passed",
+              "alwaysRun": false
+            }
+          }
+        ]
+      },
+      {
+        "id": "group-mf7v0r2f-9nurg",
+        "name": "Input",
+        "collapsed": false,
+        "conditional": {
+          "runIf": "always",
+          "alwaysRun": false
+        },
+        "tests": [
+          {
+            "id": "t-mf2h96v1-t3t8i",
+            "description": "Checking if an input with a prompt was used.",
+            "stdin": "Rob",
+            "expected_stdout": {
+              "type": "regex",
+              "expression": ".+Rob",
+              "flags": ""
+            },
+            "conditional": {
+              "runIf": "previous_passed",
+              "alwaysRun": false
+            }
+          },
+          {
+            "id": "t-mf2haqyp-pulls",
+            "description": "Checking the correct prompt was used.",
+            "stdin": "Rob",
+            "expected_stdout": "What is your name? Rob",
+            "conditional": {
+              "runIf": "previous_passed",
+              "alwaysRun": false
+            }
+          },
+          {
+            "id": "t-mf7v34tu-a1pkb",
+            "description": "Checking a different name for input.",
+            "stdin": "Douglas",
+            "expected_stdout": "What is your name? Douglas",
+            "conditional": {
+              "runIf": "previous_passed",
+              "alwaysRun": false
+            }
+          }
+        ]
+      },
+      {
+        "id": "group-mf7v4yjo-bxpmd",
+        "name": "AST tests",
+        "collapsed": false,
+        "conditional": {
+          "runIf": "always",
+          "alwaysRun": false
+        },
+        "tests": [
+          {
+            "type": "ast",
+            "astRule": {
+              "type": "ast",
+              "target": "code",
+              "expression": "variable_usage",
+              "matcher": "result && result.variables && result.variables.length >= 1",
+              "fileTarget": "main.py"
+            },
+            "id": "ast-test-mf7vdqoc-dyvfj",
+            "description": "Checking a variable has been defined.",
+            "failureMessage": "No variables have been defined in your code!",
+            "conditional": {
+              "runIf": "previous_passed",
+              "alwaysRun": false
+            }
+          },
+          {
+            "type": "ast",
+            "astRule": {
+              "type": "ast",
+              "target": "code",
+              "expression": "variable_usage",
+              "matcher": "result && result.variables && result.variables.some((v) => v.report.used)",
+              "fileTarget": "main.py"
+            },
+            "id": "ast-test-mf7v567z-vj62q",
+            "description": "Checking that a variable was defined and used.",
+            "failureMessage": "You need to create a variable and use its value!",
+            "conditional": {
+              "runIf": "previous_passed",
+              "alwaysRun": false
+            }
+          }
+        ]
       }
-    },
-    {
-      "id": "t-mf0nw60r-cqvl8",
-      "description": "Used the correct prompt",
-      "stdin": "Rob",
-      "expected_stdout": "What is your name? Rob"
-    },
-    {
-      "id": "t-mf4lguda-oi4xi",
-      "description": "Used the correct output format.",
-      "stdin": "Rob",
-      "expected_stdout": "What is your name? Rob\nHello Rob!"
-    }
-  ],
-  "starter": "\"This is the author test starter code\"\n\"hi\"",
+    ],
+    "ungrouped": [],
+    "showGroupsToUsers": true
+  },
+  "starter": "\"Hello!\"\n",
   "files": {
-    "/main.py": "\"This is the author test starter code\"\n\"hi\""
+    "/main.py": "\"Hello!\"\n"
   }
 }

@@ -1,5 +1,6 @@
 // Configuration loading and management
 import { $, renderMarkdown } from './utils.js'
+import { debug as logDebug, info as logInfo, warn as logWarn, error as logError } from './logger.js'
 
 // Use relative path so the app works from any directory
 export const configUrl = './config/sample.json'
@@ -72,26 +73,26 @@ export async function loadConfigFromFile(file) {
 
 export async function loadConfig() {
     if (config) {
-        console.log('loadConfig: returning cached config:', config.id, config.version)
+        logDebug('loadConfig: returning cached config:', config.id, config.version)
         return config
     }
 
     try {
-        console.log('loadConfig: fetching from', configUrl)
+        logDebug('loadConfig: fetching from', configUrl)
         const res = await fetch(configUrl)
-        console.log('loadConfig: fetch response status:', res.status)
+        logDebug('loadConfig: fetch response status:', res.status)
         const rawConfig = await res.json()
-        console.log('loadConfig: loaded raw config:', rawConfig.id, rawConfig.version)
+        logDebug('loadConfig: loaded raw config:', rawConfig.id, rawConfig.version)
 
         // Validate and normalize configuration
         config = validateAndNormalizeConfigInternal(rawConfig)
-        console.log('loadConfig: validated config:', config.id, config.version)
+        logInfo('loadConfig: validated config:', config.id, config.version)
 
         return config
     } catch (e) {
-        console.error('Failed to load configuration from', configUrl, ':', e)
+        logError('Failed to load configuration from', configUrl, ':', e)
         config = getDefaultConfig()
-        console.log('loadConfig: using fallback config:', config.id, config.version)
+        logWarn('loadConfig: using fallback config:', config.id, config.version)
         return config
     }
 }
@@ -167,8 +168,12 @@ function validateAndNormalizeConfigInternal(rawConfig) {
                 regex: Array.isArray(rawConfig.feedback?.regex) ? rawConfig.feedback.regex : []
             }
         ,
-        // Include author-provided tests array if present
-        tests: Array.isArray(rawConfig.tests) ? rawConfig.tests : []
+        // Include author-provided tests (support both legacy array and new grouped format)
+        tests: Array.isArray(rawConfig.tests)
+            ? rawConfig.tests  // Legacy format: array of tests
+            : (rawConfig.tests && (rawConfig.tests.groups || rawConfig.tests.ungrouped))
+                ? rawConfig.tests  // New grouped format: {groups: [...], ungrouped: [...]}
+                : []  // Default: empty array
         ,
         // Preserve any files object provided by the authoring config so callers
         // (like applyConfigToWorkspace) can write them into the FileManager.
@@ -296,7 +301,7 @@ export function saveCurrentConfig(cfg) {
             localStorage.setItem(CURRENT_CONFIG_KEY, JSON.stringify(cfg))
         }
     } catch (e) {
-        console.warn('Failed to save current config to localStorage:', e)
+        logWarn('Failed to save current config to localStorage:', e)
     }
 }
 
@@ -304,29 +309,29 @@ export function loadCurrentConfig() {
     try {
         if (typeof localStorage !== 'undefined') {
             const stored = localStorage.getItem(CURRENT_CONFIG_KEY)
-            console.log('Raw stored config:', stored ? 'exists' : 'null')
+            logDebug('Raw stored config:', stored ? 'exists' : 'null')
             if (stored) {
                 let parsed
                 try {
                     parsed = JSON.parse(stored)
-                    console.log('Parsed current config:', parsed.id || 'unknown', parsed.version || 'unknown')
+                    logDebug('Parsed current config:', parsed.id || 'unknown', parsed.version || 'unknown')
                 } catch (parseError) {
-                    console.error('JSON parse error for stored config:', parseError)
+                    logError('JSON parse error for stored config:', parseError)
                     return null
                 }
 
                 try {
                     const validated = validateAndNormalizeConfigInternal(parsed)
-                    console.log('Validated current config:', validated.id, validated.version)
+                    logDebug('Validated current config:', validated.id, validated.version)
                     return validated
                 } catch (validationError) {
-                    console.error('Validation error for stored config:', validationError)
+                    logError('Validation error for stored config:', validationError)
                     return null
                 }
             }
         }
     } catch (e) {
-        console.warn('Failed to load current config from localStorage:', e)
+        logWarn('Failed to load current config from localStorage:', e)
     }
     return null
 }
@@ -337,35 +342,35 @@ export function clearCurrentConfig() {
             localStorage.removeItem(CURRENT_CONFIG_KEY)
         }
     } catch (e) {
-        console.warn('Failed to clear current config from localStorage:', e)
+        logWarn('Failed to clear current config from localStorage:', e)
     }
 }
 
 // Debug function to inspect current config state
 export function debugCurrentConfig() {
-    console.log('=== Current Config Debug ===')
+    logDebug('=== Current Config Debug ===')
     try {
         if (typeof localStorage !== 'undefined') {
             const stored = localStorage.getItem(CURRENT_CONFIG_KEY)
-            console.log('Stored config exists:', !!stored)
+            logDebug('Stored config exists:', !!stored)
             if (stored) {
-                console.log('Stored config length:', stored.length)
-                console.log('Stored config preview:', stored.substring(0, 200) + '...')
+                logDebug('Stored config length:', stored.length)
+                logDebug('Stored config preview:', stored.substring(0, 200) + '...')
                 try {
                     const parsed = JSON.parse(stored)
-                    console.log('Parsed config keys:', Object.keys(parsed))
-                    console.log('Config ID:', parsed.id)
-                    console.log('Config version:', parsed.version)
+                    logDebug('Parsed config keys:', Object.keys(parsed))
+                    logDebug('Config ID:', parsed.id)
+                    logDebug('Config version:', parsed.version)
                 } catch (e) {
-                    console.error('Parse error:', e)
+                    logError('Parse error:', e)
                 }
             }
         }
-        console.log('In-memory config:', getConfig()?.id, getConfig()?.version)
+        logDebug('In-memory config:', getConfig()?.id, getConfig()?.version)
     } catch (e) {
-        console.error('Debug error:', e)
+        logError('Debug error:', e)
     }
-    console.log('=== End Debug ===')
+    logDebug('=== End Debug ===')
 }
 
 // Version compatibility check for snapshot restoration

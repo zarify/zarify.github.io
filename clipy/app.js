@@ -27,8 +27,33 @@ import { runPythonCode } from './js/execution.js'
 import { runTests } from './js/test-runner.js'
 import { setupInputHandling } from './js/input-handling.js'
 
+import { debug as logDebug, info as logInfo, warn as logWarn, error as logError, setDebug as setLogDebug } from './js/logger.js'
+
 // Code transformation 
 import { transformAndWrap, highlightMappedTracebackInEditor, highlightFeedbackLine, clearAllErrorHighlights, clearAllFeedbackHighlights } from './js/code-transform.js'
+
+// Quiet specific tagged debug messages unless window.__SSG_DEBUG is true.
+// This wrapper filters console.debug calls whose first argument is a
+// string starting with [app], [runner], or [sandbox]. Other debug calls
+// are passed through unchanged.
+try {
+    (function () {
+        if (typeof console === 'undefined' || typeof console.debug !== 'function') return
+        const _origDebug = console.debug.bind(console)
+        console.debug = function (...args) {
+            try {
+                const first = args && args.length ? args[0] : null
+                if (typeof first === 'string' && (first.startsWith('[app]') || first.startsWith('[runner]') || first.startsWith('[sandbox]'))) {
+                    if (typeof window !== 'undefined' && window.__SSG_DEBUG) {
+                        return _origDebug(...args)
+                    }
+                    return
+                }
+            } catch (_e) { }
+            return _origDebug(...args)
+        }
+    })()
+} catch (_e) { }
 
 // Additional features
 import { setupSnapshotSystem } from './js/snapshots.js'
@@ -69,7 +94,7 @@ function ensureAuthorFlag() {
             }
         }
     } catch (e) {
-        console.warn('Failed to ensure author flag:', e)
+        logWarn('Failed to ensure author flag:', e)
     }
 }
 
@@ -106,14 +131,27 @@ try {
 
 function dbg(...args) {
     try {
-        if (typeof window !== 'undefined' && window.__ssg_debug_startup) console.log(...args)
+        if (typeof window !== 'undefined' && window.__ssg_debug_startup) {
+            // Prefer centralized debug when global debug is enabled, otherwise
+            // fall back to console.log for the special startup flag so
+            // developers can enable early startup logging independently.
+            try {
+                if (typeof window !== 'undefined' && window.__SSG_DEBUG) {
+                    logDebug(...args)
+                } else {
+                    console.log(...args)
+                }
+            } catch (_e) {
+                try { console.log(...args) } catch (_e2) { }
+            }
+        }
     } catch (_e) { }
 }
 
 // Main initialization function
 async function main() {
     try {
-        console.log('🚀 Initializing Clipy application...')
+        logInfo('🚀 Initializing Clipy application...')
         // Suppress automatic terminal auto-switching during startup
         try { if (typeof window !== 'undefined') window.__ssg_suppress_terminal_autoswitch = true } catch (_e) { }
 
@@ -136,7 +174,7 @@ async function main() {
                             cfg = await loadConfigFromStringOrUrl(toLoad)
                             dbg('dbg: loaded config from ?config= parameter')
                         } catch (e) {
-                            console.warn('Failed to load config from ?config= parameter:', e)
+                            logWarn('Failed to load config from ?config= parameter:', e)
                             // Surface the error to the user by opening the config modal
                             try { showConfigError('Failed to load configuration from URL: ' + (e && e.message ? e.message : e), document.getElementById('config-modal')) } catch (_e) { }
                             // fall back to normal load below
@@ -149,26 +187,26 @@ async function main() {
         // If no URL config, try loading saved current config
         if (!cfg) {
             try {
-                console.log('main: attempting to load current config from localStorage')
+                logInfo('main: attempting to load current config from localStorage')
                 const savedConfig = loadCurrentConfig()
                 if (savedConfig) {
                     cfg = savedConfig
                     // Set this as the current config so helpers reflect the right identity
                     setCurrentConfig(cfg)
-                    console.log('main: loaded config from current_config localStorage:', cfg.id, cfg.version)
+                    logInfo('main: loaded config from current_config localStorage:', cfg.id, cfg.version)
                 } else {
-                    console.log('main: no current config found in localStorage')
+                    logInfo('main: no current config found in localStorage')
                 }
             } catch (e) {
-                console.warn('Failed to load current config:', e)
+                logWarn('Failed to load current config:', e)
             }
         }
 
         // Fall back to default sample config
         if (!cfg) {
-            console.log('main: no saved config, loading default sample config')
+            logInfo('main: no saved config, loading default sample config')
             cfg = await loadConfig()
-            console.log('main: loaded default config:', cfg.id, cfg.version)
+            logInfo('main: loaded default config:', cfg.id, cfg.version)
         }
 
         // Save the loaded config as current (whether from URL, localStorage, or default)
@@ -176,11 +214,11 @@ async function main() {
             setCurrentConfig(cfg)
             saveCurrentConfig(cfg)
             // Debug what was actually saved
-            console.log('=== Config Loading Debug ===')
-            console.log('Final loaded config:', cfg.id, cfg.version)
+            logDebug('=== Config Loading Debug ===')
+            logDebug('Final loaded config:', cfg.id, cfg.version)
             debugCurrentConfig()
         } catch (e) {
-            console.warn('Failed to save current config:', e)
+            logWarn('Failed to save current config:', e)
         }
 
         initializeInstructions(cfg)
@@ -330,12 +368,34 @@ async function main() {
         // Listen for Run tests button and execute author-defined tests if present
         try {
             window.addEventListener('ssg:run-tests-click', async () => {
-                try { console.debug && console.debug('[app] received ssg:run-tests-click') } catch (_e) { }
+                try { logDebug('[app] received ssg:run-tests-click') } catch (_e) { }
                 try {
                     const cfg = window.Config && window.Config.current ? window.Config.current : null
-                    try { console.debug && console.debug('[app] current config', !!cfg, cfg && Array.isArray(cfg.tests) ? cfg.tests.length : 0) } catch (_e) { }
-                    const tests = (cfg && Array.isArray(cfg.tests)) ? cfg.tests : []
-                    if (!tests || !tests.length) {
+                    try { logDebug('[app] config available:', !!cfg, 'tests:', cfg && cfg.tests) } catch (_e) { }
+
+                    // Handle both legacy and grouped test formats
+                    let isGroupedFormat = false
+                    let testsConfig = null
+                    let testCount = 0
+
+                    if (cfg && cfg.tests) {
+                        if (Array.isArray(cfg.tests)) {
+                            // Legacy format: direct array of tests
+                            testsConfig = cfg.tests
+                            testCount = testsConfig.length
+                        } else if (cfg.tests.groups || cfg.tests.ungrouped) {
+                            // Grouped format: object with groups and ungrouped arrays
+                            isGroupedFormat = true
+                            testsConfig = cfg.tests
+                            const groupCount = (testsConfig.groups || []).reduce((sum, g) => sum + (g.tests || []).length, 0)
+                            const ungroupedCount = (testsConfig.ungrouped || []).length
+                            testCount = groupCount + ungroupedCount
+                        }
+                    }
+
+                    try { logDebug('[app] current config', !!cfg, isGroupedFormat ? 'grouped' : 'legacy', testCount) } catch (_e) { }
+
+                    if (!testsConfig || testCount === 0) {
                         try { appendTerminal('No tests defined in config', 'runtime') } catch (_e) { }
                         return
                     }
@@ -358,9 +418,12 @@ async function main() {
                                 const runtimeUrl = (cfg && cfg.runtime && cfg.runtime.url) || './vendor/micropython.mjs'
                                 // Convert runtime URL to be relative to tests/ directory since iframe runs there
                                 const testsRelativeRuntimeUrl = runtimeUrl.startsWith('./') ? '../' + runtimeUrl.slice(2) : runtimeUrl
-                                runFn = sandbox.createSandboxedRunFn({ runtimeUrl: testsRelativeRuntimeUrl, filesSnapshot: { [MAIN_FILE]: mainContent } })
+                                const snapshot = { [MAIN_FILE]: mainContent }
+                                logDebug('[app] creating sandboxed runFn with snapshot keys:', Object.keys(snapshot))
+                                runFn = sandbox.createSandboxedRunFn({ runtimeUrl: testsRelativeRuntimeUrl, filesSnapshot: snapshot })
                             } catch (e) {
                                 appendTerminal('Failed to initialize sandboxed runner: ' + e, 'runtime')
+                                logWarn('[app] sandboxed runFn init failed, falling back to adapter', e)
                                 // fall through to adapter
                             }
                         }
@@ -369,20 +432,66 @@ async function main() {
                             const adapterMod = await import('./js/test-runner-adapter.js')
                             const createRunFn = adapterMod && adapterMod.createRunFn ? adapterMod.createRunFn : adapterMod.default && adapterMod.default.createRunFn
                             runFn = createRunFn({ getFileManager, MAIN_FILE, runPythonCode, getConfig: () => (window.Config && window.Config.current) ? window.Config.current : {} })
+                            logDebug('[app] using adapter runFn')
                         }
 
                         // Show loading modal immediately so it doesn't block Run button
                         try { if (typeof window.__ssg_show_test_results_loading === 'function') window.__ssg_show_test_results_loading() } catch (_e) { }
-                        // Run tests using the created runFn
-                        const results = await runTests(tests, { runFn })
+
+                        // Import the appropriate runner function based on test format
+                        let runnerFunction = null
+                        let testData = null
+
+                        if (isGroupedFormat) {
+                            const testRunnerMod = await import('./js/test-runner.js')
+                            runnerFunction = testRunnerMod.runGroupedTests
+                            testData = testsConfig
+                            // DEBUG: log grouped test structure
+                            try {
+                                const groupSummary = (testsConfig.groups || []).map(g => ({ name: g.name, count: (g.tests || []).length, runIf: g.conditional?.runIf }))
+                                const ungroupedCount = (testsConfig.ungrouped || []).length
+                                logDebug('[app] grouped tests summary - groups:', groupSummary, 'ungrouped:', ungroupedCount)
+                                logDebug('[app] about to call runGroupedTests with:', testData)
+                            } catch (_e) { }
+                        } else {
+                            const testRunnerMod = await import('./js/test-runner.js')
+                            runnerFunction = testRunnerMod.runTests || testRunnerMod.default
+                            testData = testsConfig
+                            // DEBUG: log test shapes to help diagnose AST test detection
+                            try {
+                                const summary = (testsConfig || []).map(t => ({ id: t && t.id, type: t && t.type, keys: Object.keys(t || {}) }))
+                                logDebug('[app] legacy tests summary before runTests:', summary)
+                            } catch (_e) { }
+                        }
+
+                        // Run tests using the appropriate runner function
+                        let runnerResult
+                        try {
+                            runnerResult = await runnerFunction(testData, { runFn })
+                        } catch (error) {
+                            console.error('[app] Error during test execution:', error)
+                            try { appendTerminal('Test execution failed: ' + error.message, 'runtime') } catch (_e) { }
+                            return
+                        }
+
+                        // Handle different return formats
+                        let results
+                        if (isGroupedFormat && runnerResult && runnerResult.flatResults) {
+                            // Grouped runner returns {flatResults, groupResults, ...}
+                            results = runnerResult.flatResults
+                        } else {
+                            // Legacy runner returns array directly
+                            results = runnerResult
+                        }
+
                         try { appendTerminal('Test run complete. ' + results.length + ' tests executed.', 'runtime') } catch (_e) { }
 
                         // Update UI with results and feed failures into Feedback
                         try {
                             if (typeof window.__ssg_set_test_results === 'function') {
-                                try { console.debug && console.debug('[app] publishing test results', results && results.length) } catch (_e) { }
+                                try { logDebug('[app] publishing test results', results && results.length) } catch (_e) { }
                                 window.__ssg_set_test_results(results)
-                                try { console.debug && console.debug('[app] published test results') } catch (_e) { }
+                                try { logDebug('[app] published test results') } catch (_e) { }
                             }
                             // Explicitly open/refresh the modal now that results exist
                             try { if (typeof window.__ssg_show_test_results === 'function') window.__ssg_show_test_results(results) } catch (_e) { }
@@ -399,25 +508,6 @@ async function main() {
                         try { appendTerminal('Test run failed to start: ' + _e, 'runtime') } catch (_err) { }
                         return
                     }
-                    // Run tests and publish results
-                    const results = await runTests(tests, { runFn })
-                    try {
-                        appendTerminal('Test run complete. ' + results.length + ' tests executed.', 'runtime')
-                    } catch (_e) { }
-
-                    // Push results into Feedback as runMatches (create simple feedback entries per failing test)
-                    try {
-                        // Update Feedback UI test results if setter is available
-                        try { if (typeof window.__ssg_set_test_results === 'function') window.__ssg_set_test_results(results) } catch (_e) { }
-                        if (window.Feedback && typeof window.Feedback.evaluateFeedbackOnRun === 'function') {
-                            for (const r of results) {
-                                if (!r.passed) {
-                                    // Emit a feedback run evaluation with the stderr/stdout so configured patterns may match
-                                    try { window.Feedback.evaluateFeedbackOnRun({ stdout: r.stdout || '', stderr: r.stderr || '' }) } catch (_e) { }
-                                }
-                            }
-                        }
-                    } catch (_e) { }
                 } catch (_err) { }
             })
         } catch (_e) { }
@@ -545,6 +635,11 @@ async function main() {
 
                 // Get the main file content and run it
                 const code = FileManager.read(MAIN_FILE) || ''
+                // DEBUG: print tests shapes so we can see ast rule presence
+                try {
+                    const summary = (tests || []).map(t => ({ id: t && t.id, type: t && t.type, keys: Object.keys(t || {}) }))
+                    logDebug('[app] running tests summary:', JSON.stringify(summary, null, 2))
+                } catch (_e) { }
                 await runPythonCode(code, cfg)
             })
         }
@@ -680,9 +775,9 @@ async function main() {
 
                 // Log authoring mode status
                 if (authoringEnabled) {
-                    console.log('✨ Authoring mode enabled - config modal available')
+                    logInfo('✨ Authoring mode enabled - config modal available')
                 } else {
-                    console.log('👤 User mode - config modal disabled')
+                    logInfo('👤 User mode - config modal disabled')
                 }
 
                 // Update cursor style based on authoring mode
@@ -696,7 +791,7 @@ async function main() {
                 try {
                     sessionStorage.removeItem('returningFromAuthor')
                 } catch (e) {
-                    console.warn('Failed to clear session flag:', e)
+                    logWarn('Failed to clear session flag:', e)
                 }
 
                 // Click and keyboard handler to open modal
@@ -704,11 +799,11 @@ async function main() {
                     try {
                         // Check if authoring mode is enabled
                         if (!isAuthoringEnabled()) {
-                            console.debug('[app] config modal disabled - authoring mode not enabled')
+                            logDebug('[app] config modal disabled - authoring mode not enabled')
                             return
                         }
 
-                        console.debug('[app] config header activated', ev && ev.type)
+                        logDebug('[app] config header activated', ev && ev.type)
                         openModal(configModal)
 
                         // Show/hide author page button based on authoring mode
@@ -720,9 +815,9 @@ async function main() {
                         // Verify the modal became visible; if not, force it and log
                         try {
                             const vis = configModal.getAttribute && configModal.getAttribute('aria-hidden')
-                            console.debug && console.debug('[app] configModal aria-hidden after open:', vis)
+                            logDebug('[app] configModal aria-hidden after open:', vis)
                             if (vis !== 'false') {
-                                console.debug && console.debug('[app] forcing modal visible')
+                                logDebug('[app] forcing modal visible')
                                 configModal.setAttribute('aria-hidden', 'false')
                             }
                         } catch (_e) { }
@@ -755,7 +850,7 @@ async function main() {
                                     try {
                                         const raw = JSON.parse(rawJson || 'null')
 
-                                        // Handle tests parsing (same as before)
+                                        // Handle tests parsing
                                         try {
                                             if (raw && typeof raw.tests === 'string' && raw.tests.trim()) {
                                                 const parsedTests = JSON.parse(raw.tests)
@@ -763,7 +858,7 @@ async function main() {
                                             }
                                         } catch (_e) { /* leave raw.tests as-is if parsing fails */ }
 
-                                        // Sanitize test entries (same as before)
+                                        // Sanitize test entries
                                         try {
                                             if (raw && Array.isArray(raw.tests)) {
                                                 raw.tests = raw.tests.map(t => {
@@ -802,9 +897,10 @@ async function main() {
                                             listContainer.appendChild(btn)
                                             hasConfigs = true
                                         }
-                                    } catch (_e) {
-                                        // Malformed JSON or validation failed; surface a minimal inline error
-                                        try { showConfigError('Invalid local author config in localStorage', configModal) } catch (_err) { }
+                                    } catch (e) {
+                                        // Malformed local author config or failed validation
+                                        logWarn('Invalid local author config in localStorage', e)
+                                        try { showConfigError('Invalid local author config in localStorage', configModal) } catch (_e) { }
                                     }
                                 }
                             } catch (_e) { }
@@ -851,7 +947,7 @@ async function main() {
                                                 try {
                                                     const msg = 'Failed to load config: ' + (e && e.message ? e.message : e)
                                                     if (errorEl) errorEl.textContent = msg
-                                                    console.error('Failed to load config', e)
+                                                    logError('Failed to load config', e)
                                                     // Also set the global inline config error so it's visible when modal is opened next
                                                     try { showConfigError(msg, configModal) } catch (_e) { }
                                                 } catch (_err) { }
@@ -978,18 +1074,18 @@ async function main() {
                         // Navigate to author page
                         window.location.href = 'author/'
                     } catch (e) {
-                        console.error('Failed to navigate to author page:', e)
+                        logError('Failed to navigate to author page:', e)
                     }
                 })
             }
         } catch (_e) { }
 
-        console.log('✅ Clipy application initialized successfully')
+        logInfo('✅ Clipy application initialized successfully')
         // Clear startup suppression so user actions can switch to terminal normally
         try { if (typeof window !== 'undefined') window.__ssg_suppress_terminal_autoswitch = false } catch (_e) { }
 
     } catch (error) {
-        console.error('❌ Failed to initialize Clipy application:', error)
+        logError('❌ Failed to initialize Clipy application:', error)
 
         // Show error to user
         const instructionsContent = $('instructions-content')

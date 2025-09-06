@@ -2,6 +2,7 @@
 import { appendTerminal, appendTerminalDebug, setTerminalInputEnabled } from './terminal.js'
 import { $ } from './utils.js'
 import { createInputHandler, createHostModule } from './input-handling.js'
+import { debug as logDebug, info as logInfo, warn as logWarn, error as logError } from './logger.js'
 
 // Global state
 let runtimeAdapter = null
@@ -118,18 +119,18 @@ export function setupMicroPythonAPI() {
         // User-friendly interrupt function
         window.interruptPython = function () {
             if (!executionState.isRunning) {
-                console.log('No Python execution is currently running')
+                logInfo('No Python execution is currently running')
                 return false
             }
 
-            console.log('Interrupting Python execution...')
+            logInfo('Interrupting Python execution...')
             const success = interruptMicroPythonVM()
 
             if (success) {
-                console.log('KeyboardInterrupt sent to MicroPython VM')
+                logInfo('KeyboardInterrupt sent to MicroPython VM')
                 setExecutionRunning(false)
             } else {
-                console.log('VM interrupt failed, falling back to AbortController')
+                logWarn('VM interrupt failed, falling back to AbortController')
                 if (executionState.currentAbortController) {
                     executionState.currentAbortController.abort()
                     setExecutionRunning(false)
@@ -142,37 +143,37 @@ export function setupMicroPythonAPI() {
         // NEW: Expose yielding controls globally for debugging
         window.setMicroPythonYielding = function (enabled) {
             if (!runtimeAdapter) {
-                console.log('No runtime adapter available')
+                logWarn('No runtime adapter available')
                 return false
             }
 
             if (!runtimeAdapter.setYielding) {
-                console.log('Yielding control not available (requires asyncify build)')
+                logWarn('Yielding control not available (requires asyncify build)')
                 return false
             }
 
             try {
                 runtimeAdapter.setYielding(enabled)
-                console.log(`✅ MicroPython yielding ${enabled ? 'enabled' : 'disabled'}`)
+                logInfo(`✅ MicroPython yielding ${enabled ? 'enabled' : 'disabled'}`)
 
                 if (enabled) {
-                    console.log('💡 Yielding enabled - loops with time.sleep() should be interruptible')
-                    console.log('💡 Browser should remain responsive during Python execution')
+                    logInfo('💡 Yielding enabled - loops with time.sleep() should be interruptible')
+                    logInfo('💡 Browser should remain responsive during Python execution')
                 } else {
-                    console.log('⚠️ Yielding disabled - maximum speed but may not be interruptible')
-                    console.log('⚠️ Browser may become unresponsive during long operations')
+                    logWarn('⚠️ Yielding disabled - maximum speed but may not be interruptible')
+                    logWarn('⚠️ Browser may become unresponsive during long operations')
                 }
 
                 return true
             } catch (err) {
-                console.log('❌ Failed to set yielding:', err)
+                logError('❌ Failed to set yielding:', err)
                 return false
             }
         }
 
         window.clearMicroPythonInterrupt = function () {
             if (!runtimeAdapter) {
-                console.log('No runtime adapter available')
+                logInfo('No runtime adapter available')
                 return false
             }
 
@@ -182,10 +183,10 @@ export function setupMicroPythonAPI() {
             if (runtimeAdapter.clearInterrupt) {
                 try {
                     runtimeAdapter.clearInterrupt()
-                    console.log('✅ Interrupt state cleared with asyncify API')
+                    logInfo('✅ Interrupt state cleared with asyncify API')
                     success = true
                 } catch (err) {
-                    console.log('Asyncify clear interrupt failed:', err)
+                    logDebug('Asyncify clear interrupt failed:', err)
                 }
             }
 
@@ -196,18 +197,18 @@ export function setupMicroPythonAPI() {
                 // Reset asyncify internals if accessible
                 if (Module.Asyncify) {
                     try {
-                        console.log('Attempting to reset Asyncify state...')
+                        logDebug('Attempting to reset Asyncify state...')
                         if (Module.Asyncify.currData !== undefined) {
                             Module.Asyncify.currData = 0
-                            console.log('✅ Asyncify.currData reset')
+                            logDebug('✅ Asyncify.currData reset')
                         }
                         if (Module.Asyncify.state !== undefined) {
                             Module.Asyncify.state = 0  // Normal state
-                            console.log('✅ Asyncify.state reset')
+                            logDebug('✅ Asyncify.state reset')
                         }
                         success = true
                     } catch (err) {
-                        console.log('Asyncify state reset failed:', err)
+                        logWarn('Asyncify state reset failed:', err)
                     }
                 }
 
@@ -215,10 +216,10 @@ export function setupMicroPythonAPI() {
                 if (typeof Module.ccall === 'function') {
                     try {
                         Module.ccall('mp_js_repl_init', 'null', [], [])
-                        console.log('✅ REPL state reset')
+                        logDebug('✅ REPL state reset')
                         success = true
                     } catch (err) {
-                        console.log('REPL reset failed:', err)
+                        logWarn('REPL reset failed:', err)
                     }
                 }
             }
@@ -226,17 +227,17 @@ export function setupMicroPythonAPI() {
             // Also try to clean up any pending input state
             try {
                 if (window.__ssg_pending_input) {
-                    console.log('Cleaning up pending input state...')
+                    logDebug('Cleaning up pending input state...')
                     delete window.__ssg_pending_input
                 }
                 setExecutionRunning(false)
                 success = true
             } catch (err) {
-                console.log('Failed to clean up input state:', err)
+                logWarn('Failed to clean up input state:', err)
             }
 
             if (!success) {
-                console.log('❌ Could not clear interrupt state - may need page refresh')
+                logWarn('❌ Could not clear interrupt state - may need page refresh')
             }
 
             return success
@@ -262,14 +263,14 @@ export function setupMicroPythonAPI() {
                 status.availableMethods.push('AbortController (non-VM)')
             }
 
-            console.log('MicroPython Interrupt Status:', status)
+            logInfo('MicroPython Interrupt Status:', status)
             return status
         }
 
         // State clearing function to reset Python globals between runs
         window.clearMicroPythonState = function () {
             if (!runtimeAdapter || !runtimeAdapter._module) {
-                console.log('❌ No runtime adapter or module available for state clearing')
+                logWarn('❌ No runtime adapter or module available for state clearing')
                 return false
             }
 
@@ -277,7 +278,7 @@ export function setupMicroPythonAPI() {
                 // Access MicroPython instance globals
                 const mpInstance = runtimeAdapter._module
                 if (!mpInstance.globals || !mpInstance.globals.__dict__) {
-                    console.log('❌ Unable to access MicroPython globals.__dict__')
+                    logWarn('❌ Unable to access MicroPython globals.__dict__')
                     return false
                 }
 
@@ -296,14 +297,14 @@ export function setupMicroPythonAPI() {
                         delete globalsDict[key]
                         cleared++
                     } catch (err) {
-                        console.log(`❌ Failed to clear variable '${key}':`, err)
+                        logDebug(`❌ Failed to clear variable '${key}':`, err)
                     }
                 }
 
-                console.log(`✅ Cleared ${cleared} user variables from Python globals`)
+                logInfo(`✅ Cleared ${cleared} user variables from Python globals`)
                 return true
             } catch (err) {
-                console.log('❌ Failed to clear MicroPython state:', err)
+                logError('❌ Failed to clear MicroPython state:', err)
                 return false
             }
         }

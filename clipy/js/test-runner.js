@@ -16,6 +16,8 @@
 //  - a string -> we check `actual` includes the string
 //  - an object { type: 'regex', expression: '...' } -> RegExp test
 //  - a RegExp instance
+import { debug as logDebug } from './logger.js'
+
 function matchExpectation(actual, expected) {
     const s = String(actual || '')
     if (expected == null) return { matched: true }
@@ -128,6 +130,8 @@ async function runTests(tests, options = {}) {
             const start = Date.now()
             const runResult = await runFn(t)
             const end = Date.now()
+            // Debug: log the raw runFn result so we can diagnose empty stdout/stderr
+            try { logDebug('[runTests] raw runResult for', String(t.id || ''), runResult) } catch (_e) { }
             const duration = typeof runResult.durationMs === 'number' ? runResult.durationMs : (end - start)
             res.durationMs = duration
             res.stdout = runResult.stdout || ''
@@ -143,7 +147,7 @@ async function runTests(tests, options = {}) {
 
             // Debug trace: show what we're about to match so UI logs can be used
             // to diagnose surprising pass/fail outcomes.
-            try { console.debug && console.debug('[runTests] test', String(t.id || ''), 'stdout(actual):', String(res.stdout).slice(0, 200), 'expected_stdout:', res.expected_stdout) } catch (_e) { }
+            try { logDebug('[runTests] test', String(t.id || ''), 'stdout(actual):', String(res.stdout).slice(0, 200), 'expected_stdout:', res.expected_stdout) } catch (_e) { }
 
             // Timeout handling
             if (typeof t.timeoutMs === 'number' && duration > t.timeoutMs) {
@@ -154,8 +158,18 @@ async function runTests(tests, options = {}) {
             }
 
             // Check expected_stdout and expected_stderr (both optional)
+            // Support short-circuit AST tests: if runFn returned astPassed, use it
             let ok = true
             let details = {}
+            if (runResult && typeof runResult.astPassed === 'boolean') {
+                ok = !!runResult.astPassed
+                // include astResult for debugging details
+                if (runResult.astResult) details.ast = runResult.astResult
+                res.passed = ok
+                res.details = Object.keys(details).length ? details : undefined
+                results.push(res)
+                continue
+            }
 
             // If the program produced stderr but we expected stdout, this is a failure
             if (res.stderr && t.expected_stdout != null) {
@@ -215,5 +229,204 @@ async function runTests(tests, options = {}) {
 }
 
 // Expose for Node require and ES imports
-if (typeof module !== 'undefined' && module.exports) module.exports = { runTests, matchExpectation }
-export { runTests, matchExpectation }
+if (typeof module !== 'undefined' && module.exports) module.exports = { runTests, matchExpectation, runGroupedTests }
+export { runTests, matchExpectation, runGroupedTests }
+
+/**
+ * Run grouped tests with conditional execution support
+ * @param {Object} testConfig - The grouped test configuration
+ * @param {Object} options - Same options as runTests
+ * @returns {Promise<Object>} Results with groupResults and flatResults
+ */
+async function runGroupedTests(testConfig, options = {}) {
+    try {
+        const groupResults = []
+        const flatResults = []
+
+        // Helper function to check if a test/group should run
+        function shouldRun(item, previousResults) {
+            // Debug: show what we're checking and what the previous results look like
+            try {
+                const idOrName = item && (item.id || item.name) ? (item.id || item.name) : '<unknown>'
+                logDebug('[test-runner] shouldRun check for', idOrName, 'runIf=', item?.conditional?.runIf, 'prevCount=', previousResults ? previousResults.length : 0)
+            } catch (_e) { }
+
+            if (!item.conditional || item.conditional.runIf === 'always') {
+                return { shouldRun: true, reason: null }
+            }
+
+            if (item.conditional.alwaysRun) {
+                return { shouldRun: true, reason: null }
+            }
+
+            if (item.conditional.runIf === 'previous_passed') {
+                const previous = previousResults && previousResults.length ? previousResults[previousResults.length - 1] : null
+                try { logDebug('[test-runner] previous_passed check, last previous=', previous ? previous.id || previous.description || '<anon>' : null, 'passed=', previous ? previous.passed : null) } catch (_e) { }
+                if (!previous || !previous.passed) {
+                    return { shouldRun: false, reason: 'previous_test_failed' }
+                }
+            }
+
+            if (item.conditional.runIf === 'previous_group_passed') {
+                const previousGroup = groupResults[groupResults.length - 1]
+                try { logDebug('[test-runner] previous_group_passed check, previousGroup=', previousGroup ? previousGroup.name || previousGroup.id : null, 'passed=', previousGroup ? previousGroup.passed : null) } catch (_e) { }
+                if (!previousGroup || !previousGroup.passed) {
+                    return { shouldRun: false, reason: 'previous_group_failed' }
+                }
+            }
+
+            return { shouldRun: true, reason: null }
+        }
+
+        // Process groups
+        if (testConfig.groups) {
+            for (const group of testConfig.groups) {
+                const groupResult = {
+                    id: group.id,
+                    name: group.name,
+                    passed: false,
+                    skipped: false,
+                    skipReason: null,
+                    testResults: [],
+                    testsRun: 0,
+                    testsPassed: 0,
+                    testsSkipped: 0
+                }
+
+                // Check if group should run
+                const groupCheck = shouldRun(group, flatResults)
+                if (!groupCheck.shouldRun) {
+                    groupResult.skipped = true
+                    groupResult.skipReason = groupCheck.reason
+
+                    try { logDebug('[test-runner] skipping entire group', group.name, 'reason:', groupCheck.reason) } catch (_e) { }
+
+                    // Mark all tests in group as skipped
+                    for (const test of group.tests) {
+                        const testResult = {
+                            id: test.id,
+                            description: test.description,
+                            passed: null,
+                            skipped: true,
+                            skipReason: 'group_skipped',
+                            stdout: null,
+                            stderr: null,
+                            durationMs: 0
+                        }
+                        groupResult.testResults.push(testResult)
+                        flatResults.push(testResult)
+                        groupResult.testsSkipped++
+                    }
+
+                    groupResults.push(groupResult)
+                    continue
+                }
+
+                // Run tests in group sequentially so "previous_passed" semantics
+                // correctly inspect the immediately previous test's result.
+                const skippedThisGroup = []
+                const queuedIds = []
+
+                for (let testIdx = 0; testIdx < group.tests.length; testIdx++) {
+                    const test = group.tests[testIdx]
+
+                    // First test in group should always run (unless explicitly set otherwise)
+                    let testCheck
+                    if (testIdx === 0 && test.conditional?.runIf === 'previous_passed') {
+                        // Override: first test in group runs automatically
+                        testCheck = { shouldRun: true, reason: null }
+                    } else {
+                        // Use the combined previous results (flatResults includes earlier groups
+                        // and groupResult.testResults contains earlier tests/skips in this group)
+                        const combinedPrevious = flatResults.concat(groupResult.testResults)
+                        testCheck = shouldRun(test, combinedPrevious)
+                    }
+
+                    if (!testCheck.shouldRun) {
+                        try { logDebug('[test-runner] skipping test', test.id, 'in group', group.name, 'reason:', testCheck.reason) } catch (_e) { }
+                        skippedThisGroup.push({ id: test.id, reason: testCheck.reason })
+                        const testResult = {
+                            id: test.id,
+                            description: test.description,
+                            passed: null,
+                            skipped: true,
+                            skipReason: testCheck.reason,
+                            stdout: null,
+                            stderr: null,
+                            durationMs: 0
+                        }
+                        groupResult.testResults.push(testResult)
+                        flatResults.push(testResult)
+                        groupResult.testsSkipped++
+                        // continue to next test
+                        continue
+                    }
+
+                    // If we get here, this test will be executed now. Run it and append
+                    // its result immediately so subsequent tests can see its outcome.
+                    try { queuedIds.push(test.id) } catch (_e) { }
+                    try { logDebug('[test-runner] executing 1 test for group', group.name, test.id) } catch (_e) { }
+                    const testResults = await runTests([test], options)
+                    for (const result of testResults) {
+                        groupResult.testResults.push(result)
+                        flatResults.push(result)
+                        groupResult.testsRun++
+                        if (result.passed) groupResult.testsPassed++
+                    }
+                }
+
+                // Report queued vs skipped for this group
+                try { logDebug('[test-runner] group', group.name, 'queued:', queuedIds, 'skipped:', skippedThisGroup) } catch (_e) { }
+
+                // Group passes if all run tests passed
+                groupResult.passed = groupResult.testsRun > 0 && groupResult.testsPassed === groupResult.testsRun
+                groupResults.push(groupResult)
+            }
+        }
+
+        // Process ungrouped tests
+        if (testConfig.ungrouped) {
+            for (const test of testConfig.ungrouped) {
+                const testCheck = shouldRun(test, flatResults)
+                if (!testCheck.shouldRun) {
+                    const testResult = {
+                        id: test.id,
+                        description: test.description,
+                        passed: null,
+                        skipped: true,
+                        skipReason: testCheck.reason,
+                        stdout: null,
+                        stderr: null,
+                        durationMs: 0
+                    }
+                    flatResults.push(testResult)
+                } else {
+                    const testResults = await runTests([test], options)
+                    flatResults.push(...testResults)
+                }
+            }
+        }
+
+        logDebug('[test-runner] runGroupedTests returning:', { groupResults: groupResults.length, flatResults: flatResults.length })
+        return {
+            groupResults,
+            flatResults,
+            totalTests: flatResults.length,
+            totalPassed: flatResults.filter(r => r.passed === true).length,
+            totalSkipped: flatResults.filter(r => r.skipped === true).length,
+            totalFailed: flatResults.filter(r => r.passed === false).length
+        }
+
+    } catch (error) {
+        console.error('[test-runner] Error in runGroupedTests:', error)
+        return {
+            groupResults: [],
+            flatResults: [],
+            totalTests: 0,
+            totalPassed: 0,
+            totalSkipped: 0,
+            totalFailed: 0,
+            error: error.message
+        }
+    }
+}

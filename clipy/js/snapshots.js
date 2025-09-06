@@ -25,6 +25,7 @@ import { openModal, closeModal, showConfirmModal } from './modals.js'
 import { appendTerminal, activateSideTab } from './terminal.js'
 import { getConfigKey, getConfigIdentity, getConfig } from './config.js'
 import { safeSetItem, checkStorageHealth, showStorageInfo } from './storage-manager.js'
+import { debug as logDebug, error as logError } from './logger.js'
 
 export function setupSnapshotSystem() {
     const saveSnapshotBtn = $('save-snapshot')
@@ -72,7 +73,7 @@ export function setupSnapshotSystem() {
                     }
                     await clearStorage()
                 } catch (e) {
-                    console.error('Clear storage error:', e)
+                    logError('Clear storage error:', e)
                 } finally {
                     // Re-enable the button after a short delay
                     setTimeout(() => {
@@ -116,7 +117,7 @@ function getSnapshotsForCurrentConfig() {
             return false
         })
     } catch (e) {
-        console.error('Failed to load snapshots:', e)
+        logError('Failed to load snapshots:', e)
         return []
     }
 }
@@ -132,7 +133,7 @@ function saveSnapshotsForCurrentConfig(snapshots) {
             appendTerminal('Snapshots saved after storage cleanup')
         }
     } catch (e) {
-        console.error('Failed to save snapshots:', e)
+        logError('Failed to save snapshots:', e)
         throw e
     }
 }
@@ -374,7 +375,7 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
                 try { saveSnapshotsForCurrentConfig(snaps) } catch (_e) { /* non-fatal */ }
             }
         } catch (e) {
-            console.error('Failed to persist current-as-history copy before restore:', e)
+            logError('Failed to persist current-as-history copy before restore:', e)
         }
 
         const snap = s
@@ -395,12 +396,12 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
                         try {
                             await backend.delete(filePath)
                         } catch (e) {
-                            console.error('Failed to delete existing file from backend:', filePath, e)
+                            logError('Failed to delete existing file from backend:', filePath, e)
                         }
                     }
                 }
             } catch (e) {
-                console.error('Backend clear/delete failed:', e)
+                logError('Backend clear/delete failed:', e)
             }
 
             // Write snapshot files to backend
@@ -408,7 +409,7 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
                 try {
                     await backend.write(path, content)
                 } catch (e) {
-                    console.error('Failed to write to backend:', path, e)
+                    logError('Failed to write to backend:', path, e)
                 }
             }
 
@@ -419,7 +420,7 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
                     for (const p of Object.keys(snap.files || {})) mem[p] = snap.files[p]
                 }
             } catch (e) {
-                console.error('Failed to update mem:', e)
+                logError('Failed to update mem:', e)
             }
         } else if (mem) {
             // Replace mem entirely so files from other snapshots are removed
@@ -427,7 +428,7 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
                 Object.keys(mem).forEach(k => delete mem[k])
                 for (const p of Object.keys(snap.files || {})) mem[p] = snap.files[p]
             } catch (e) {
-                console.error('Failed to update mem directly:', e)
+                logError('Failed to update mem directly:', e)
             }
 
             try {
@@ -435,7 +436,7 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
                 for (const k of Object.keys(mem)) newMap[k] = mem[k]
                 localStorage.setItem('ssg_files_v1', JSON.stringify(newMap))
             } catch (e) {
-                console.error('Failed to update localStorage:', e)
+                logError('Failed to update localStorage:', e)
             }
         }
 
@@ -450,19 +451,19 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
                             await Promise.resolve(FileManager.delete(p))
                         }
                     } catch (e) {
-                        console.error('Failed to delete file:', p, e)
+                        logError('Failed to delete file:', p, e)
                     }
                 }
                 for (const p of Object.keys(snap.files || {})) {
                     try {
                         await Promise.resolve(FileManager.write(p, snap.files[p]))
                     } catch (e) {
-                        console.error('Failed to write via FileManager:', p, e)
+                        logError('Failed to write via FileManager:', p, e)
                     }
                 }
             }
         } catch (e) {
-            console.error('FileManager reconciliation failed:', e)
+            logError('FileManager reconciliation failed:', e)
         }
 
         // Definitively replace in-memory map with snapshot contents to avoid any stale entries
@@ -473,11 +474,11 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
                 try {
                     localStorage.setItem('ssg_files_v1', JSON.stringify(mem))
                 } catch (e) {
-                    console.error('Final localStorage update failed:', e)
+                    logError('Final localStorage update failed:', e)
                 }
             }
         } catch (e) {
-            console.error('Final mem update failed:', e)
+            logError('Final mem update failed:', e)
         }
 
         const modal = $('snapshot-modal')
@@ -492,10 +493,10 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
                     if (typeof window !== 'undefined') {
                         window.__ssg_last_snapshot_restore = Date.now()
                     }
-                } catch (e) { console.error('Failed to set restore flag (delayed):', e) }
+                } catch (e) { logError('Failed to set restore flag (delayed):', e) }
             }, 100)
         } catch (e) {
-            console.error('Failed to schedule restore flag:', e)
+            logError('Failed to schedule restore flag:', e)
         }
 
         // If this restore was initiated by an interactive action, activate the terminal tab.
@@ -532,7 +533,7 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
                 window.TabManager.selectTab(MAIN_FILE)
             }
         } catch (e) {
-            console.error('Tab management failed:', e)
+            logError('Tab management failed:', e)
         }
         // Persist the restored snapshot as the special '__current__' snapshot so
         // subsequent autosave/restore semantics see this as the current working copy.
@@ -544,10 +545,10 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
             filtered.push({ id: CURRENT_ID, ts: Date.now(), config: snap.config, files: snap.files })
             saveSnapshotsForCurrentConfig(filtered)
         } catch (e) {
-            console.error('Failed to persist restored snapshot as __current__:', e)
+            logError('Failed to persist restored snapshot as __current__:', e)
         }
     } catch (e) {
-        console.error('restoreSnapshot failed:', e)
+        logError('restoreSnapshot failed:', e)
         appendTerminal('Snapshot restore failed: ' + e, 'runtime')
     }
 }
@@ -592,7 +593,7 @@ function showStorageInfoInTerminal() {
 
 // Debug function to inspect localStorage snapshot keys
 function debugSnapshotStorage() {
-    console.log('=== Snapshot Storage Debug ===')
+    logDebug('=== Snapshot Storage Debug ===')
     try {
         const allKeys = []
         const snapshotKeys = []
@@ -603,16 +604,16 @@ function debugSnapshotStorage() {
                 if (key.startsWith('snapshots_')) {
                     snapshotKeys.push(key)
                     const value = localStorage.getItem(key)
-                    console.log(`${key}: ${value ? JSON.parse(value).length : 0} snapshots`)
+                    logDebug(`${key}: ${value ? JSON.parse(value).length : 0} snapshots`)
                 }
             }
         }
-        console.log('All localStorage keys:', allKeys)
-        console.log('Snapshot keys:', snapshotKeys)
+        logDebug('All localStorage keys:', allKeys)
+        logDebug('Snapshot keys:', snapshotKeys)
     } catch (e) {
-        console.error('Debug error:', e)
+        logError('Debug error:', e)
     }
-    console.log('=== End Debug ===')
+    logDebug('=== End Debug ===')
 }
 
 function closeSnapshotModal() {

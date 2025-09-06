@@ -11,9 +11,11 @@ function _getFocusable(container) {
 }
 
 // Open modal with accessibility features
+import { debug as logDebug } from './logger.js'
+
 export function openModal(modal) {
     try {
-        console.debug && console.debug('[modals] openModal', modal && modal.id)
+        logDebug && logDebug('[modals] openModal', modal && modal.id)
         if (!modal) return
 
         // Set z-index for proper stacking
@@ -67,7 +69,7 @@ export function openModal(modal) {
 // Close modal and restore focus
 export function closeModal(modal) {
     try {
-        console.debug && console.debug('[modals] closeModal', modal && modal.id)
+        logDebug && logDebug('[modals] closeModal', modal && modal.id)
         if (!modal) return
 
         modal.setAttribute('aria-hidden', 'true')

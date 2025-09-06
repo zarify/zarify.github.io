@@ -1,6 +1,10 @@
 // Minimal Feedback subsystem (core infra)
 // Exports: resetFeedback(config), evaluateFeedbackOnEdit(code, path), evaluateFeedbackOnRun(ioCapture), on/off for events
 
+// Import AST analyzer for AST pattern support
+import { analyzeCode, getASTAnalyzer } from './ast-analyzer.js';
+import { debug as logDebug, info as logInfo, warn as logWarn, error as logError } from './logger.js'
+
 // Lightweight event emitter that works in browser and node
 const _listeners = new Map()
 function on(evt, cb) {
@@ -76,7 +80,7 @@ function _applyRegex(expr, flags) {
     try { return new RegExp(expr, flags || '') } catch (e) { return null }
 }
 
-function _applyPattern(pattern, text) {
+async function _applyPattern(pattern, text) {
     if (pattern.type === 'string') {
         // Simple string matching - check if text contains the expression
         const searchText = String(pattern.expression || '')
@@ -91,9 +95,70 @@ function _applyPattern(pattern, text) {
         const re = _applyRegex(pattern.expression, pattern.flags)
         if (!re) return null
         return text.match(re)
+    } else if (pattern.type === 'ast') {
+        // AST pattern matching for Python code
+        if (!text || typeof text !== 'string') return null
+        try {
+            const result = await analyzeCode(text, pattern.expression)
+            if (result) {
+                // If a matcher is provided, evaluate it
+                if (pattern.matcher && pattern.matcher.trim()) {
+                    try {
+                        // Create a safe evaluation function for the matcher
+                        const evaluateMatch = new Function('result', `
+                            try {
+                                return ${pattern.matcher.trim()};
+                            } catch (e) {
+                                console.warn('AST matcher evaluation error:', e.message);
+                                return false;
+                            }
+                        `);
+                        const matchResult = evaluateMatch(result);
+
+                        // Only proceed if matcher returns truthy value
+                        if (matchResult) {
+                            return _convertASTToMatch(result, pattern.expression)
+                        } else {
+                            return null
+                        }
+                    } catch (error) {
+                        logWarn('AST matcher function creation failed:', error)
+                        return null
+                    }
+                } else {
+                    // No matcher provided, use result as-is
+                    return _convertASTToMatch(result, pattern.expression)
+                }
+            }
+        } catch (error) {
+            logWarn('AST pattern matching failed:', error)
+        }
+        return null
     }
-    // ast and other types not implemented yet
+    // Other types not implemented
     return null
+}
+
+/**
+ * Convert AST analysis result to match-like format for compatibility
+ */
+function _convertASTToMatch(result, expression) {
+    if (!result) return null
+
+    // Create a match array with the result summary as first element
+    const match = [JSON.stringify(result)]
+
+    // Add specific details based on analysis type
+    if (result.name) match.push(result.name)
+    if (result.count !== undefined) match.push(result.count.toString())
+    if (result.functions && Array.isArray(result.functions)) {
+        match.push(result.functions.map(f => f.name).join(', '))
+    }
+    if (result.details && Array.isArray(result.details)) {
+        match.push(result.details.length.toString())
+    }
+
+    return match
 }
 
 function _formatMessage(template, groups) {
@@ -102,16 +167,18 @@ function _formatMessage(template, groups) {
     return template.replace(/\$(\d+)/g, (_, n) => groups && groups[n] ? groups[n] : '')
 }
 
-function evaluateFeedbackOnEdit(code, path) {
+async function evaluateFeedbackOnEdit(code, path) {
     // Clear run-time matches when the user edits
     _store.runMatches = []
 
     const matches = []
     if (!_config || !_config.feedback) return matches
+
     for (const entry of _config.feedback) {
         if (!entry.when.includes('edit')) continue
         const p = entry.pattern
-        if (p.type === 'regex' || p.type === 'string') {
+
+        if (p.type === 'regex' || p.type === 'string' || p.type === 'ast') {
             if (p.target === 'code') {
                 // Determine which file's content to check. If a fileTarget is
                 // provided on the pattern use that, otherwise fall back to the
@@ -137,7 +204,13 @@ function evaluateFeedbackOnEdit(code, path) {
 
                 if (p.type === 'string') {
                     // For string matching, check the entire content
-                    const m = _applyPattern(p, contentToCheck)
+                    const m = await _applyPattern(p, contentToCheck)
+                    if (m) {
+                        matches.push({ file: (targetFile.startsWith('/') ? targetFile : ('/' + targetFile)), message: _formatMessage(entry.message, m), id: entry.id })
+                    }
+                } else if (p.type === 'ast') {
+                    // For AST matching, analyze the entire content
+                    const m = await _applyPattern(p, contentToCheck)
                     if (m) {
                         matches.push({ file: (targetFile.startsWith('/') ? targetFile : ('/' + targetFile)), message: _formatMessage(entry.message, m), id: entry.id })
                     }
@@ -155,14 +228,14 @@ function evaluateFeedbackOnEdit(code, path) {
                     }
                 }
             } else if (p.target === 'filename') {
-                const m = _applyPattern(p, path)
+                const m = await _applyPattern(p, path)
                 if (m) {
                     matches.push({ file: path, message: _formatMessage(entry.message, m), id: entry.id })
                 }
             }
         }
-        // AST matchers not implemented yet - skip
     }
+
     _store.editMatches = matches
     const combined = [].concat(_store.editMatches || [], _store.runMatches || [])
     _store.matches = combined
@@ -170,13 +243,15 @@ function evaluateFeedbackOnEdit(code, path) {
     return matches
 }
 
-function evaluateFeedbackOnRun(ioCapture) {
+async function evaluateFeedbackOnRun(ioCapture) {
     const matches = []
     if (!_config || !_config.feedback) return matches
+
     for (const entry of _config.feedback) {
         if (!entry.when.includes('run') && !entry.when.includes('test')) continue
         const p = entry.pattern
-        if (p.type === 'regex' || p.type === 'string') {
+
+        if (p.type === 'regex' || p.type === 'string' || p.type === 'ast') {
             const target = p.target
             if (target === 'filename') {
                 // Support filename being provided as an array or a string
@@ -185,7 +260,7 @@ function evaluateFeedbackOnRun(ioCapture) {
                 if (Array.isArray(val)) {
                     for (const fname of val) {
                         try {
-                            const m = _applyPattern(p, String(fname || ''))
+                            const m = await _applyPattern(p, String(fname || ''))
                             if (m) { found = fname; break }
                         } catch (_e) { }
                     }
@@ -195,7 +270,7 @@ function evaluateFeedbackOnRun(ioCapture) {
                     const parts = s.split(/\r?\n/).map(x => x.trim()).filter(x => x)
                     for (const fname of parts) {
                         try {
-                            const m = _applyPattern(p, String(fname))
+                            const m = await _applyPattern(p, String(fname))
                             if (m) { found = fname; break }
                         } catch (_e) { }
                     }
@@ -205,13 +280,14 @@ function evaluateFeedbackOnRun(ioCapture) {
                 }
             } else {
                 const text = String((ioCapture && ioCapture[target]) || '')
-                const m = _applyPattern(p, text)
+                const m = await _applyPattern(p, text)
                 if (m) {
                     matches.push({ message: _formatMessage(entry.message, m), id: entry.id, target })
                 }
             }
         }
     }
+
     _store.runMatches = matches
     const combined = [].concat(_store.editMatches || [], _store.runMatches || [])
     _store.matches = combined

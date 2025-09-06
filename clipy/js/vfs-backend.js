@@ -117,7 +117,9 @@ async function createIndexedDBBackend() {
                     for (const seg of parts) { if (!seg) continue; dir += '/' + seg; try { FS.mkdir(dir) } catch (_) { } }
                     FS.writeFile(p, content)
                 } catch (e) {
-                    if (window.__ssg_debug_logs) console.warn('VFS: mount skip', p, e)
+                    if (window.__ssg_debug_logs) {
+                        try { const { warn: logWarn } = await import('./logger.js'); logWarn('VFS: mount skip', p, e) } catch (_e) { console.warn('VFS: mount skip', p, e) }
+                    }
                 }
             }
         },
@@ -129,7 +131,9 @@ async function createIndexedDBBackend() {
                     const content = typeof FS.readFile === 'function' ? FS.readFile(p, { encoding: 'utf8' }) : null
                     if (content != null) await this.write(p, content)
                 } catch (e) {
-                    if (window.__ssg_debug_logs) console.warn('VFS: sync skip', p, e)
+                    if (window.__ssg_debug_logs) {
+                        try { const { warn: logWarn } = await import('./logger.js'); logWarn('VFS: sync skip', p, e) } catch (_e) { console.warn('VFS: sync skip', p, e) }
+                    }
                 }
             }
         }

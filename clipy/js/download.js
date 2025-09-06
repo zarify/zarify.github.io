@@ -32,7 +32,7 @@ function getSafeConfigId() {
             return sanitizeFilename(configId)
         }
     } catch (e) {
-        console.warn('Could not get config identity:', e)
+        import('./logger.js').then(m => m.warn('Could not get config identity:', e)).catch(() => console.warn('Could not get config identity:', e))
     }
     return 'workspace'
 }
@@ -173,7 +173,7 @@ async function downloadWorkspace() {
     try {
         const FileManager = getFileManager()
         if (!FileManager) {
-            console.error('FileManager not available')
+            import('./logger.js').then(m => m.error('FileManager not available')).catch(() => console.error('FileManager not available'))
             return
         }
 
@@ -206,7 +206,7 @@ async function downloadWorkspace() {
             triggerDownload(zipBlob, filename)
         }
     } catch (error) {
-        console.error('Download failed:', error)
+        import('./logger.js').then(m => m.error('Download failed:', error)).catch(() => console.error('Download failed:', error))
         alert('Download failed: ' + error.message)
     }
 }

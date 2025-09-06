@@ -4,6 +4,8 @@
 // - Keeps the textarea JSON in sync (so autosave in author-page.js continues to work)
 
 import { openModal as openModalHelper, closeModal as closeModalHelper } from './modals.js'
+import { warn as logWarn, error as logError } from './logger.js'
+import { createASTRuleBuilder, createDefaultASTFeedback } from './ast-rule-builder.js'
 
 const VALID_PATTERN_TYPES = ['string', 'regex', 'ast']
 const VALID_TARGETS = ['code', 'filename', 'stdout', 'stderr', 'stdin']
@@ -82,7 +84,7 @@ function writeFeedbackToTextarea(ta, arr) {
         // fire input so author-page autosave picks it up
         ta.dispatchEvent(new Event('input', { bubbles: true }))
     } catch (e) {
-        console.error('failed to write feedback json', e)
+        logError('failed to write feedback json', e)
     }
 }
 
@@ -261,7 +263,10 @@ function buildEditorForm(existing) {
     flags.placeholder = 'e.g. i'
     flags.value = (existing.pattern && existing.pattern.flags) || ''
 
-    // Create wrapper elements for conditional fields
+    // Create AST rule builder
+    const astRuleBuilder = createASTRuleBuilder(existing.pattern || {}, 'feedback')
+    const astBuilder = astRuleBuilder.root
+
     const exprRow = labeled('Expression', expr, 'Text to search for (string) or regex pattern to match (regex).')
     const flagsRow = labeled('Flags [optional]', flags, 'Optional regex flags (e.g. "i" for case-insensitive). Only used for regex patterns.')
 
@@ -269,6 +274,7 @@ function buildEditorForm(existing) {
     function updatePatternFields() {
         const isString = patternType.value === 'string'
         const isRegex = patternType.value === 'regex'
+        const isAST = patternType.value === 'ast'
 
         if (isString) {
             // For string patterns, show simpler field labels and hide flags
@@ -280,6 +286,8 @@ function buildEditorForm(existing) {
                 if (helpIcon) helpIcon.textContent = 'Enter the exact text to search for (case-sensitive).'
             }
             flagsRow.style.display = 'none'
+            astBuilder.style.display = 'none'
+            exprRow.style.display = ''
         } else if (isRegex) {
             // For regex patterns, show full labels and flags field
             const exprLabel = exprRow.querySelector('div')
@@ -290,8 +298,17 @@ function buildEditorForm(existing) {
                 if (helpIcon) helpIcon.textContent = 'Enter a regular expression pattern to match against the text.'
             }
             flagsRow.style.display = ''
+            astBuilder.style.display = 'none'
+            exprRow.style.display = ''
+        } else if (isAST) {
+            // For AST patterns, show AST builder and hide string/regex fields
+            astBuilder.style.display = ''
+            exprRow.style.display = 'none'
+            flagsRow.style.display = 'none'
+            // Update AST expression when switching to AST mode
+            astRuleBuilder.updateExpression()
         } else {
-            // For ast or other types, use generic labels
+            // For other types, use generic labels
             const exprLabel = exprRow.querySelector('div')
             if (exprLabel) {
                 const labelSpan = exprLabel.querySelector('span')
@@ -300,6 +317,8 @@ function buildEditorForm(existing) {
                 if (helpIcon) helpIcon.textContent = 'Pattern expression for matching.'
             }
             flagsRow.style.display = 'none'
+            astBuilder.style.display = 'none'
+            exprRow.style.display = ''
         }
     }
 
@@ -340,6 +359,7 @@ function buildEditorForm(existing) {
     root.appendChild(labeled('Pattern type', patternType, 'Type of pattern matcher. "string" for simple text matching (recommended), "regex" for pattern matching, "ast" for code structure (advanced).'))
     root.appendChild(labeled('Pattern target', targetSel, 'Which program area to match. Options shown depend on when the feedback runs: edit-time (code, filename) or run-time (stdin, stdout, stderr, filename).'))
     root.appendChild(labeled('File target', fileTargetIn, 'Which file to check (for code target). Usually "main.py".', true))
+    root.appendChild(astBuilder)
     root.appendChild(exprRow)
     root.appendChild(flagsRow)
     root.appendChild(labeled('Message', message, 'Message shown to the author when the feedback triggers. Use plain text or simple markdown.'))
@@ -353,11 +373,27 @@ function buildEditorForm(existing) {
         get() {
             const when = []
             Array.from(whenWrap.querySelectorAll('input[type=radio]')).forEach(radio => { if (radio.checked) when.push(radio.value) })
+
+            let pattern
+            if (patternType.value === 'ast') {
+                // Use AST rule builder
+                pattern = astRuleBuilder.get()
+            } else {
+                // Regular string/regex patterns
+                pattern = {
+                    type: patternType.value || 'string',
+                    target: targetSel.value || 'stdout',
+                    fileTarget: fileTargetIn.value || 'main.py',
+                    expression: expr.value || '',
+                    flags: flags.value || ''
+                }
+            }
+
             return {
                 id: idIn.value || undefined,
                 title: title.value || '',
                 when: when.length ? when : ['run'], // Default to 'run' if none selected
-                pattern: { type: patternType.value || 'string', target: targetSel.value || 'stdout', fileTarget: fileTargetIn.value || 'main.py', expression: expr.value || '', flags: flags.value || '' },
+                pattern: pattern,
                 message: message.value || '',
                 severity: severity.value || 'success',
                 visibleByDefault: !!visible.checked
@@ -379,6 +415,13 @@ export function initAuthorFeedback() {
     addBtn.className = 'btn'
     addBtn.textContent = 'Add feedback'
     addBtn.style.marginBottom = '8px'
+    addBtn.style.marginRight = '8px'
+
+    // const addASTBtn = document.createElement('button')
+    // addASTBtn.className = 'btn btn-secondary'
+    // addASTBtn.textContent = 'Add AST feedback'
+    // addASTBtn.style.marginBottom = '8px'
+    // addASTBtn.title = 'Add feedback that analyzes code structure using AST patterns'
 
     const list = document.createElement('div')
     list.id = 'author-feedback-list'
@@ -387,6 +430,7 @@ export function initAuthorFeedback() {
     list.style.gap = '8px'
 
     container.appendChild(addBtn)
+    // container.appendChild(addASTBtn)
     container.appendChild(list)
 
     // Insert UI and replace visible textarea with a read-only JSON view.
@@ -470,6 +514,7 @@ export function initAuthorFeedback() {
         content.appendChild(header)
         const body = document.createElement('div')
         body.id = 'author-feedback-modal-body'
+        body.className = 'modal-body'
         content.appendChild(body)
         modal.appendChild(content)
         document.body.appendChild(modal)
@@ -482,7 +527,13 @@ export function initAuthorFeedback() {
         const err = document.createElement('div')
         err.style.color = '#b00020'
         err.style.marginTop = '6px'
-        editor.root.appendChild(err)
+
+        // Create a wrapper with proper padding for the content
+        const contentWrapper = document.createElement('div')
+        contentWrapper.style.padding = '0 12px 12px 12px'
+        contentWrapper.appendChild(editor.root)
+        contentWrapper.appendChild(err)
+
         const actions = document.createElement('div')
         actions.style.marginTop = '8px'
         const save = document.createElement('button')
@@ -493,12 +544,12 @@ export function initAuthorFeedback() {
         cancel.textContent = 'Cancel'
         actions.appendChild(save)
         actions.appendChild(cancel)
-        editor.root.appendChild(actions)
+        contentWrapper.appendChild(actions)
 
         const m = ensureModal()
         const body = m.querySelector('#author-feedback-modal-body')
         body.innerHTML = ''
-        body.appendChild(editor.root)
+        body.appendChild(contentWrapper)
         // inject Save/Cancel into modal header actions so they're always visible
         const actionHolder = m.querySelector('.modal-header-actions')
         actionHolder.innerHTML = ''
@@ -536,7 +587,13 @@ export function initAuthorFeedback() {
         const err = document.createElement('div')
         err.style.color = '#b00020'
         err.style.marginTop = '6px'
-        editor.root.appendChild(err)
+
+        // Create a wrapper with proper padding for the content
+        const contentWrapper = document.createElement('div')
+        contentWrapper.style.padding = '0 12px 12px 12px'
+        contentWrapper.appendChild(editor.root)
+        contentWrapper.appendChild(err)
+
         const actions = document.createElement('div')
         actions.style.marginTop = '8px'
         const save = document.createElement('button')
@@ -547,12 +604,12 @@ export function initAuthorFeedback() {
         cancel.textContent = 'Cancel'
         actions.appendChild(save)
         actions.appendChild(cancel)
-        editor.root.appendChild(actions)
+        contentWrapper.appendChild(actions)
 
         const m = ensureModal()
         const body = m.querySelector('#author-feedback-modal-body')
         body.innerHTML = ''
-        body.appendChild(editor.root)
+        body.appendChild(contentWrapper)
         // inject Save/Cancel into modal header actions so they're always visible
         const actionHolder = m.querySelector('.modal-header-actions')
         actionHolder.innerHTML = ''
@@ -609,12 +666,24 @@ export function initAuthorFeedback() {
     }
 
     addBtn.addEventListener('click', () => {
-        const newItem = { id: genId(), title: 'New feedback', when: ['edit'], pattern: { type: 'string', target: 'stdout', expression: '' }, message: '', severity: 'info', visibleByDefault: true }
+        const newItem = {
+            id: genId(),
+            title: 'New feedback',
+            when: ['edit'],
+            pattern: { type: 'string', target: 'code', expression: '' },
+            message: '',
+            severity: 'info',
+            visibleByDefault: true
+        }
         // open editor for the new item without adding it to the array yet
         openModalEditNew(newItem)
     })
 
-    // keep in sync if textarea changes programmatically
+    // addASTBtn.addEventListener('click', () => {
+    //     const newItem = createDefaultASTFeedback()
+    //     // open editor for the new item without adding it to the array yet
+    //     openModalEditNew(newItem)
+    // })    // keep in sync if textarea changes programmatically
     ta.addEventListener('input', () => { items = parseFeedbackFromTextarea(ta); try { jsonView.textContent = JSON.stringify(items, null, 2) } catch (_e) { jsonView.textContent = '' }; render() })
     // initial render and populate read-only view
     try { jsonView.textContent = JSON.stringify(items, null, 2) } catch (_e) { jsonView.textContent = '' }

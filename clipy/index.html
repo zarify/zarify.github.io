@@ -139,28 +139,35 @@
           </button>
         </div>
       </div>
-      <div id="snapshot-list">(loading)</div>
-      <div id="snapshot-modal-footer" style="margin-top:8px;font-size:0.9em;color:#444">
-        <div id="snapshot-storage-summary">No snapshots • 0B total</div>
-      </div>
-      <div class="modal-actions" style="justify-content:space-between;align-items:center">
-        <div class="snapshot-clear-placeholder"></div>
-        <div>
-          <button id="close-snapshots" class="btn modal-close-btn">Close</button>
+      <div class="modal-body">
+        <div id="snapshot-list">(loading)</div>
+        <div id="snapshot-modal-footer" style="margin-top:8px;font-size:0.9em;color:#444">
+          <div id="snapshot-storage-summary">No snapshots • 0B total</div>
+        </div>
+        <div class="modal-actions" style="justify-content:space-between;align-items:center">
+          <div class="snapshot-clear-placeholder"></div>
+          <div>
+            <button id="close-snapshots" class="btn modal-close-btn">Close</button>
+          </div>
         </div>
       </div>
     </div>
+  </div>
   </div>
   <!-- Generic confirmation modal (used for clear-storage and other confirmations) -->
   <div id="confirm-modal" class="modal" role="dialog" aria-hidden="true" aria-labelledby="confirm-modal-title"
     aria-describedby="confirm-modal-message">
     <div class="modal-content">
-      <h3 id="confirm-modal-title">Confirm</h3>
-      <div id="confirm-modal-message">Are you sure?</div>
-      <div id="confirm-modal-meta" style="margin-top:8px;color:#666;font-size:0.95rem"></div>
-      <div class="modal-actions">
-        <button id="confirm-yes" class="btn btn-danger">Confirm</button>
-        <button id="confirm-no" class="btn">Cancel</button>
+      <div class="modal-header">
+        <h3 id="confirm-modal-title">Confirm</h3>
+      </div>
+      <div class="modal-body">
+        <div id="confirm-modal-message">Are you sure?</div>
+        <div id="confirm-modal-meta" style="margin-top:8px;color:#666;font-size:0.95rem"></div>
+        <div class="modal-actions">
+          <button id="confirm-yes" class="btn btn-danger">Confirm</button>
+          <button id="confirm-no" class="btn">Cancel</button>
+        </div>
       </div>
     </div>
   </div>
@@ -173,45 +180,51 @@
         <button id="config-close" class="btn modal-close-btn">Close</button>
       </div>
 
-      <div style="margin-bottom:12px">
-        <strong>Available configurations</strong>
-        <div id="config-server-list" class="config-server-list" style="margin-top:6px">(loading...)</div>
-      </div>
-
-      <div style="margin-bottom:12px">
-        <div style="display:flex;gap:8px;align-items:center">
-          <strong>Load from URL</strong>
-          <input id="config-url-input" placeholder="https://example.com/config.json" style="flex:1" />
-          <button id="config-load-url" class="btn">Load</button>
+      <div class="modal-body">
+        <div style="margin-bottom:12px">
+          <strong>Available configurations</strong>
+          <div id="config-server-list" class="config-server-list" style="margin-top:6px">(loading...)</div>
         </div>
-      </div>
 
-      <div style="margin-bottom:12px">
-        <div style="display:flex;gap:8px;align-items:center">
-          <strong>Load a file</strong>
-          <div id="config-drop-area" style="border:1px dashed #ccc;padding:8px;text-align:center;flex:1">Drop a JSON
-            file here or <button id="config-file-picker" class="btn">Choose file</button></div>
+        <div style="margin-bottom:12px">
+          <div style="display:flex;gap:8px;align-items:center">
+            <strong>Load from URL</strong>
+            <input id="config-url-input" placeholder="https://example.com/config.json" style="flex:1" />
+            <button id="config-load-url" class="btn">Load</button>
+          </div>
         </div>
-        <input id="config-file-input" type="file" accept="application/json" style="display:none" />
-      </div>
 
-      <!-- Inline error area for configuration loading failures (404, CORS, parse errors) -->
-      <div id="config-error" role="alert" aria-live="assertive"
-        style="color:var(--text-error,#b00020);font-size:0.95em;margin-top:6px;display:none"></div>
+        <div style="margin-bottom:12px">
+          <div style="display:flex;gap:8px;align-items:center">
+            <strong>Load a file</strong>
+            <div id="config-drop-area" style="border:1px dashed #ccc;padding:8px;text-align:center;flex:1">Drop a JSON
+              file here or <button id="config-file-picker" class="btn">Choose file</button></div>
+          </div>
+          <input id="config-file-input" type="file" accept="application/json" style="display:none" />
+        </div>
+
+        <!-- Inline error area for configuration loading failures (404, CORS, parse errors) -->
+        <div id="config-error" role="alert" aria-live="assertive"
+          style="color:var(--text-error,#b00020);font-size:0.95em;margin-top:6px;display:none"></div>
+      </div>
     </div>
   </div>
   <!-- Input modal for accessible prompt replacements -->
   <div id="input-modal" class="modal" role="dialog" aria-hidden="true" aria-labelledby="input-modal-title"
     aria-describedby="input-modal-desc">
     <div class="modal-content">
-      <h3 id="input-modal-title">Input</h3>
-      <div id="input-modal-desc">Please provide input</div>
-      <div style="margin-top:8px">
-        <input id="input-modal-field" style="width:100%" />
+      <div class="modal-header">
+        <h3 id="input-modal-title">Input</h3>
       </div>
-      <div class="modal-actions">
-        <button id="input-modal-ok" class="btn btn-primary">OK</button>
-        <button id="input-modal-cancel" class="btn">Cancel</button>
+      <div class="modal-body">
+        <div id="input-modal-desc">Please provide input</div>
+        <div style="margin-top:8px">
+          <input id="input-modal-field" style="width:100%" />
+        </div>
+        <div class="modal-actions">
+          <button id="input-modal-ok" class="btn btn-primary">OK</button>
+          <button id="input-modal-cancel" class="btn">Cancel</button>
+        </div>
       </div>
     </div>
   </div>
@@ -222,7 +235,6 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.8.0/build/highlight.min.js"></script>
-  <script data-goatcounter="https://headtilt_me.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 
   <script type="module" src="./app.js"></script>
 </body>

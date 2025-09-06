@@ -4,65 +4,303 @@
 // - Keeps the textarea JSON in sync (so autosave in author-page.js continues to work)
 
 import { openModal as openModalHelper, closeModal as closeModalHelper } from './modals.js'
+import { error as logError } from './logger.js'
+import { buildASTTestForm, createDefaultASTTest } from './ast-test-builder.js'
 
 function $(sel, root = document) { return root.querySelector(sel) }
 
 function genId() { return 't-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7) }
+function genGroupId() { return 'group-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7) }
+
+// Group management utilities
+function createGroup(name = 'New Group') {
+    return {
+        id: genGroupId(),
+        name: name,
+        collapsed: false,
+        conditional: { runIf: 'previous_group_passed', alwaysRun: false },
+        tests: []
+    }
+}
+
+function getAllTests(testConfig) {
+    const allTests = []
+    if (testConfig.groups) {
+        testConfig.groups.forEach(group => {
+            group.tests.forEach(test => allTests.push(test))
+        })
+    }
+    if (testConfig.ungrouped) {
+        testConfig.ungrouped.forEach(test => allTests.push(test))
+    }
+    return allTests
+}
+
+function calculateTestNumbers(testConfig) {
+    const numbers = new Map()
+    let globalIndex = 1
+
+    if (testConfig.groups) {
+        testConfig.groups.forEach((group, groupIdx) => {
+            const groupNum = groupIdx + 1
+            group.tests.forEach((test, testIdx) => {
+                numbers.set(test.id, `${groupNum}.${testIdx + 1}`)
+            })
+            globalIndex += group.tests.length
+        })
+    }
+
+    if (testConfig.ungrouped) {
+        testConfig.ungrouped.forEach((test, idx) => {
+            numbers.set(test.id, `${globalIndex + idx}`)
+        })
+    }
+
+    return numbers
+}
+
+function populateGroupSelector(groupSelect, testConfig, currentGroupId = null) {
+    groupSelect.innerHTML = ''
+
+    // Add "Ungrouped" option
+    const ungroupedOption = document.createElement('option')
+    ungroupedOption.value = '__ungrouped__'
+    ungroupedOption.textContent = 'Ungrouped'
+    groupSelect.appendChild(ungroupedOption)
+
+    // Add existing groups
+    if (testConfig.groups) {
+        testConfig.groups.forEach((group, idx) => {
+            const option = document.createElement('option')
+            option.value = group.id
+            option.textContent = `Group ${idx + 1}: ${group.name}`
+            groupSelect.appendChild(option)
+        })
+    }
+
+    // Set current selection
+    if (currentGroupId) {
+        groupSelect.value = currentGroupId
+    } else {
+        groupSelect.value = '__ungrouped__'
+    }
+}
 
 function parseTestsFromTextarea(ta) {
-    if (!ta) return []
+    if (!ta) return { groups: [], ungrouped: [] }
     const raw = ta.value || ''
-    if (!raw.trim()) return []
+    if (!raw.trim()) return { groups: [], ungrouped: [] }
     try {
         const parsed = JSON.parse(raw)
-        if (Array.isArray(parsed)) return parsed
-        if (parsed && Array.isArray(parsed.tests)) return parsed.tests
+
+        // Handle legacy format (flat array)
+        if (Array.isArray(parsed)) {
+            return migrateFromLegacyFormat(parsed)
+        }
+
+        // Handle legacy nested format with .tests property
+        if (parsed && Array.isArray(parsed.tests)) {
+            return migrateFromLegacyFormat(parsed.tests)
+        }
+
+        // Handle new grouped format
+        if (parsed && (parsed.groups || parsed.ungrouped)) {
+            return {
+                groups: parsed.groups || [],
+                ungrouped: parsed.ungrouped || [],
+                showGroupsToUsers: parsed.showGroupsToUsers !== false // default true
+            }
+        }
+
+        return { groups: [], ungrouped: [], showGroupsToUsers: true }
     } catch (e) {
         // invalid JSON - return empty and let UI show error
     }
-    return []
+    return { groups: [], ungrouped: [] }
 }
 
-function writeTestsToTextarea(ta, arr) {
-    if (!ta) return
-    try {
-        ta.value = JSON.stringify(arr, null, 2)
-        ta.dispatchEvent(new Event('input', { bubbles: true }))
-    } catch (e) {
-        console.error('failed to write tests json', e)
+function migrateFromLegacyFormat(testArray) {
+    return {
+        groups: [],
+        ungrouped: testArray.map(test => ({
+            ...test,
+            conditional: { runIf: 'previous_passed', alwaysRun: false }
+        })),
+        showGroupsToUsers: true
     }
 }
 
-function createCard(item, idx, onEdit, onMoveUp, onMoveDown, onDelete) {
+function writeTestsToTextarea(ta, testConfig) {
+    if (!ta) return
+    try {
+        // If we received a legacy flat array, convert it
+        if (Array.isArray(testConfig)) {
+            testConfig = migrateFromLegacyFormat(testConfig)
+        }
+
+        ta.value = JSON.stringify(testConfig, null, 2)
+        ta.dispatchEvent(new Event('input', { bubbles: true }))
+    } catch (e) {
+        logError('failed to write tests json', e)
+    }
+}
+
+function createGroupHeader(group, groupIndex, onToggleCollapse, onEditGroup, onDeleteGroup, onMoveGroupUp, onMoveGroupDown, totalGroups) {
+    const div = document.createElement('div')
+    div.className = 'group-header'
+    div.style.cssText = `
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 4px;
+        margin-bottom: 4px;
+        font-weight: 600;
+    `
+
+    // Collapse/expand toggle
+    const toggleBtn = document.createElement('button')
+    toggleBtn.className = 'btn-icon'
+    toggleBtn.style.cssText = 'margin-right: 8px; padding: 2px 6px; font-size: 12px;'
+    toggleBtn.textContent = group.collapsed ? '▶' : '▼'
+    toggleBtn.title = group.collapsed ? 'Expand group' : 'Collapse group'
+    toggleBtn.addEventListener('click', () => onToggleCollapse(group.id))
+
+    // Group number and name
+    const nameSpan = document.createElement('span')
+    nameSpan.textContent = `Group ${groupIndex + 1}: ${group.name}`
+    nameSpan.style.flex = '1'
+
+    // Test count indicator
+    const countSpan = document.createElement('span')
+    countSpan.textContent = `(${group.tests.length} test${group.tests.length !== 1 ? 's' : ''})`
+    countSpan.style.cssText = 'color: #666; font-size: 0.9em; margin-left: 8px; margin-right: 12px;'
+
+    // Move up button
+    const moveUpBtn = document.createElement('button')
+    moveUpBtn.className = 'btn btn-sm'
+    moveUpBtn.textContent = '↑'
+    moveUpBtn.title = 'Move group up'
+    moveUpBtn.style.cssText = 'margin-right: 4px; font-size: 0.8em; padding: 2px 8px;'
+    moveUpBtn.disabled = groupIndex === 0
+    moveUpBtn.addEventListener('click', () => onMoveGroupUp(groupIndex))
+
+    // Move down button
+    const moveDownBtn = document.createElement('button')
+    moveDownBtn.className = 'btn btn-sm'
+    moveDownBtn.textContent = '↓'
+    moveDownBtn.title = 'Move group down'
+    moveDownBtn.style.cssText = 'margin-right: 8px; font-size: 0.8em; padding: 2px 8px;'
+    moveDownBtn.disabled = groupIndex === totalGroups - 1
+    moveDownBtn.addEventListener('click', () => onMoveGroupDown(groupIndex))
+
+    // Edit button
+    const editBtn = document.createElement('button')
+    editBtn.className = 'btn btn-sm'
+    editBtn.textContent = 'Edit'
+    editBtn.style.cssText = 'margin-left: 8px; font-size: 0.8em; padding: 2px 8px;'
+    editBtn.addEventListener('click', () => onEditGroup(group))
+
+    // Delete button
+    const deleteBtn = document.createElement('button')
+    deleteBtn.className = 'btn btn-sm btn-danger'
+    deleteBtn.textContent = 'Delete'
+    deleteBtn.style.cssText = 'margin-left: 4px; font-size: 0.8em; padding: 2px 8px;'
+    deleteBtn.addEventListener('click', () => {
+        if (group.tests.length > 0) {
+            if (!confirm(`Delete group "${group.name}" and move its ${group.tests.length} test(s) to ungrouped tests?`)) return
+        } else {
+            if (!confirm(`Delete group "${group.name}"?`)) return
+        }
+        onDeleteGroup(group.id)
+    })
+
+    div.appendChild(toggleBtn)
+    div.appendChild(nameSpan)
+    div.appendChild(countSpan)
+    div.appendChild(moveUpBtn)
+    div.appendChild(moveDownBtn)
+    div.appendChild(editBtn)
+    div.appendChild(deleteBtn)
+
+    return div
+}
+
+function createCard(item, idx, onEdit, onMoveUp, onMoveDown, onDelete, testNumber) {
     const div = document.createElement('div')
     div.className = 'feedback-entry' // reuse styling
     const titleRow = document.createElement('div')
     titleRow.className = 'feedback-title-row'
+
+    // Test number indicator
+    const numberSpan = document.createElement('span')
+    numberSpan.textContent = testNumber || (idx + 1)
+    numberSpan.style.cssText = `
+        display: inline-block;
+        width: 24px;
+        text-align: center;
+        background: #007acc;
+        color: white;
+        border-radius: 12px;
+        font-size: 0.8em;
+        font-weight: 600;
+        margin-right: 8px;
+        line-height: 20px;
+    `
+
     const h = document.createElement('div')
     h.className = 'feedback-title'
     h.textContent = item.description || item.name || ('Test ' + (idx + 1))
+
+    // Conditional execution indicator
+    const conditionalSpan = document.createElement('span')
+    if (item.conditional && item.conditional.runIf !== 'previous_passed') {
+        let condText = ''
+        if (item.conditional.runIf === 'always') condText = '!'
+        else if (item.conditional.runIf === 'previous_group_passed') condText = '⚡⚡'
+
+        conditionalSpan.textContent = condText
+        conditionalSpan.title = `Conditional execution: ${item.conditional.runIf}`
+        conditionalSpan.style.cssText = 'margin-left: 8px; color: #ff6b35; font-weight: bold;'
+    }
+
     const meta = document.createElement('div')
     meta.style.marginLeft = 'auto'
     meta.style.fontSize = '0.85em'
     meta.style.color = '#666'
     meta.textContent = item.id || ''
+
+    titleRow.appendChild(numberSpan)
     titleRow.appendChild(h)
+    titleRow.appendChild(conditionalSpan)
     titleRow.appendChild(meta)
 
     const body = document.createElement('div')
     body.className = 'feedback-msg'
-    // Render expected_stdout/stderr safely: if it's an object (regex), show /expr/flags
-    function renderExpected(v) {
-        if (v == null) return ''
-        if (typeof v === 'string') return v
-        try {
-            if (typeof v === 'object' && v.type === 'regex') return `/${v.expression}/${v.flags || ''}`
-        } catch (_e) { }
-        try { return JSON.stringify(v) } catch (_e) { return String(v) }
-    }
-    body.textContent = 'stdin: ' + (item.stdin || '') + '  •  expected_stdout: ' + renderExpected(item.expected_stdout)
-    if (item.hide_actual_expected) {
-        body.textContent += '  •  [hide actual/expected]'
+
+    // Check if this is an AST test
+    if (item.type === 'ast' || item.astRule) {
+        body.textContent = 'AST Test: ' + (item.astRule?.expression || 'No expression') +
+            (item.expectedMessage ? '  •  ' + item.expectedMessage : '')
+        if (item.hide_actual_expected) {
+            body.textContent += '  •  [hide AST details]'
+        }
+    } else {
+        // Regular test display (existing logic)
+        // Render expected_stdout/stderr safely: if it's an object (regex), show /expr/flags
+        function renderExpected(v) {
+            if (v == null) return ''
+            if (typeof v === 'string') return v
+            try {
+                if (typeof v === 'object' && v.type === 'regex') return `/${v.expression}/${v.flags || ''}`
+            } catch (_e) { }
+            try { return JSON.stringify(v) } catch (_e) { return String(v) }
+        }
+        body.textContent = 'stdin: ' + (item.stdin || '') + '  •  expected_stdout: ' + renderExpected(item.expected_stdout)
+        if (item.hide_actual_expected) {
+            body.textContent += '  •  [hide actual/expected]'
+        }
     }
 
     const actions = document.createElement('div')
@@ -101,6 +339,12 @@ function createCard(item, idx, onEdit, onMoveUp, onMoveDown, onDelete) {
 }
 
 function buildEditorForm(existing) {
+    // Check if this is an AST test
+    if (existing.type === 'ast' || existing.astRule) {
+        return buildASTTestForm(existing)
+    }
+
+    // Regular test form (existing logic)
     const root = document.createElement('div')
     root.style.border = '1px solid #eee'
     root.style.padding = '8px'
@@ -181,6 +425,13 @@ function buildEditorForm(existing) {
     setup.style.width = '100%'
     setup.rows = 3
     setup.value = existing.setup ? JSON.stringify(existing.setup, null, 2) : ''
+
+    // Failure message (optional) - shown on failure beneath default messages
+    const failureMessage = document.createElement('textarea')
+    failureMessage.style.width = '100%'
+    failureMessage.rows = 2
+    failureMessage.placeholder = 'Optional short failure message to display when this test fails'
+    failureMessage.value = existing.failureMessage || ''
 
     // Hide actual/expected checkbox
     const hideActualExpected = document.createElement('input')
@@ -277,7 +528,50 @@ function buildEditorForm(existing) {
 
     root.appendChild(labeled('Timeout (ms) [optional]', timeout))
     root.appendChild(labeled('Setup (JSON) [optional]', setup))
+    root.appendChild(labeled('Failure Message [optional]', failureMessage))
     root.appendChild(labeled('Display options', hideActualExpectedWrap))
+
+    // Conditional execution controls
+    const conditionalWrap = document.createElement('div')
+
+    const runIfSelect = document.createElement('select')
+    runIfSelect.className = 'form-input'
+    runIfSelect.style.marginBottom = '8px'
+
+    const runIfOptions = [
+        { value: 'previous_passed', text: 'Only run if previous test passed (default)' },
+        { value: 'always', text: 'Always run this test' }
+    ]
+    runIfOptions.forEach(opt => {
+        const option = document.createElement('option')
+        option.value = opt.value
+        option.textContent = opt.text
+        runIfSelect.appendChild(option)
+    })
+
+    conditionalWrap.appendChild(runIfSelect)
+
+    // Set initial values for conditional execution (default to previous_passed)
+    if (existing?.conditional) {
+        runIfSelect.value = existing.conditional.runIf || 'previous_passed'
+    } else {
+        runIfSelect.value = 'previous_passed'
+    }
+
+    root.appendChild(labeled('Run Conditions', conditionalWrap))
+
+    // Group assignment control
+    const groupSelectWrap = document.createElement('div')
+
+    const groupSelect = document.createElement('select')
+    groupSelect.className = 'form-input'
+    groupSelect.id = 'group-selector' // Add ID for easy identification
+
+    // This will be populated dynamically when the modal opens
+    // since we need access to the current testConfig
+
+    groupSelectWrap.appendChild(groupSelect)
+    root.appendChild(labeled('Assign to Group', groupSelectWrap))
 
     return {
         root,
@@ -318,7 +612,90 @@ function buildEditorForm(existing) {
             if (timeout.value) out.timeoutMs = Number(timeout.value)
             if (setupVal !== null && setupVal !== undefined && setupVal !== '') out.setup = setupVal
             if (hideActualExpected.checked) out.hide_actual_expected = true
+
+            // Optional author-provided failure message
+            if (failureMessage.value && failureMessage.value.trim() !== '') out.failureMessage = failureMessage.value.trim()
+
+            // Add conditional execution settings (simplified - no alwaysRun override)
+            out.conditional = {
+                runIf: runIfSelect.value,
+                alwaysRun: false
+            }
+
+            // Add group assignment (will be handled by the calling modal function)
+            out._selectedGroupId = groupSelect.value
+
             return out
+        }
+    }
+}
+
+function buildGroupEditorForm(existing) {
+    const root = document.createElement('div')
+
+    function labeled(labelText, element) {
+        const label = document.createElement('label')
+        label.textContent = labelText
+        label.style.display = 'block'
+        label.style.marginBottom = '4px'
+        label.style.fontWeight = 'bold'
+        const wrapper = document.createElement('div')
+        wrapper.style.marginBottom = '12px'
+        wrapper.appendChild(label)
+        wrapper.appendChild(element)
+        return wrapper
+    }
+
+    // Group name
+    const nameInput = document.createElement('input')
+    nameInput.type = 'text'
+    nameInput.className = 'form-input'
+    nameInput.value = existing?.name || ''
+    nameInput.placeholder = 'Group name'
+
+    // Conditional execution settings
+    const conditionalWrap = document.createElement('div')
+
+    const runIfSelect = document.createElement('select')
+    runIfSelect.className = 'form-input'
+    runIfSelect.style.marginBottom = '8px'
+
+    const runIfOptions = [
+        { value: 'previous_group_passed', text: 'Only run if previous group passed (default)' },
+        { value: 'always', text: 'Always run this group' }
+    ]
+    runIfOptions.forEach(opt => {
+        const option = document.createElement('option')
+        option.value = opt.value
+        option.textContent = opt.text
+        runIfSelect.appendChild(option)
+    })
+
+    conditionalWrap.appendChild(runIfSelect)
+
+    // Set initial values (default to previous_group_passed, but first group should be always)
+    if (existing?.conditional) {
+        runIfSelect.value = existing.conditional.runIf || 'previous_group_passed'
+    } else {
+        runIfSelect.value = 'previous_group_passed'
+    }
+
+    root.appendChild(labeled('Group Name', nameInput))
+    root.appendChild(labeled('Run Conditions', conditionalWrap))
+
+    return {
+        root,
+        get() {
+            return {
+                id: existing?.id || genGroupId(),
+                name: nameInput.value || 'New Group',
+                collapsed: existing?.collapsed || false,
+                conditional: {
+                    runIf: runIfSelect.value,
+                    alwaysRun: false
+                },
+                tests: existing?.tests || []
+            }
         }
     }
 }
@@ -335,6 +712,48 @@ export function initAuthorTests() {
     addBtn.className = 'btn'
     addBtn.textContent = 'Add test'
     addBtn.style.marginBottom = '8px'
+    addBtn.style.marginRight = '8px'
+
+    const addASTBtn = document.createElement('button')
+    addASTBtn.className = 'btn'
+    addASTBtn.textContent = 'Add AST test'
+    addASTBtn.style.marginBottom = '8px'
+    addASTBtn.style.marginRight = '8px'
+    addASTBtn.title = 'Add test that analyzes code structure using AST patterns'
+
+    const addGroupBtn = document.createElement('button')
+    addGroupBtn.className = 'btn'
+    addGroupBtn.textContent = 'Create Group'
+    addGroupBtn.style.marginBottom = '8px'
+    addGroupBtn.style.marginRight = '8px'
+    addGroupBtn.title = 'Create a new test group'
+
+    // Add "Show Groups to Users" toggle
+    const groupVisibilityWrap = document.createElement('div')
+    groupVisibilityWrap.style.marginBottom = '8px'
+    groupVisibilityWrap.style.display = 'flex'
+    groupVisibilityWrap.style.alignItems = 'center'
+
+    const groupVisibilityLabel = document.createElement('label')
+    groupVisibilityLabel.style.display = 'flex'
+    groupVisibilityLabel.style.alignItems = 'center'
+    groupVisibilityLabel.style.cursor = 'pointer'
+    groupVisibilityLabel.style.fontSize = '14px'
+    groupVisibilityLabel.style.marginRight = '16px'
+
+    const groupVisibilityCheck = document.createElement('input')
+    groupVisibilityCheck.type = 'checkbox'
+    groupVisibilityCheck.id = 'groups-visible-to-users'
+    groupVisibilityCheck.style.marginRight = '6px'
+    // Will be set after testConfig is parsed
+
+    const groupVisibilityText = document.createElement('span')
+    groupVisibilityText.textContent = 'Show Groups to Users'
+    groupVisibilityText.title = 'When enabled, test groups will be visible to users in the test results'
+
+    groupVisibilityLabel.appendChild(groupVisibilityCheck)
+    groupVisibilityLabel.appendChild(groupVisibilityText)
+    groupVisibilityWrap.appendChild(groupVisibilityLabel)
 
     const list = document.createElement('div')
     list.id = 'author-tests-list'
@@ -343,6 +762,9 @@ export function initAuthorTests() {
     list.style.gap = '8px'
 
     container.appendChild(addBtn)
+    container.appendChild(addASTBtn)
+    container.appendChild(addGroupBtn)
+    container.appendChild(groupVisibilityWrap)
     container.appendChild(list)
 
     ta.parentNode.insertBefore(container, ta)
@@ -360,39 +782,202 @@ export function initAuthorTests() {
     jsonView.style.whiteSpace = 'pre-wrap'
     container.appendChild(jsonView)
 
-    let items = parseTestsFromTextarea(ta)
+    let testConfig = parseTestsFromTextarea(ta)
+
+    // Set checkbox state after testConfig is available
+    groupVisibilityCheck.checked = testConfig.showGroupsToUsers !== false
+
+    // Initial sync with global config
+    try {
+        if (window.Config && window.Config.current) {
+            window.Config.current.tests = testConfig
+            console.log('[author-tests] Initial sync with window.Config.current.tests', testConfig)
+        }
+    } catch (e) {
+        console.warn('[author-tests] Failed initial global config sync:', e)
+    }
 
     function render() {
         list.innerHTML = ''
-        items.forEach((it, idx) => {
-            const card = createCard(it, idx, (i) => openModalEdit(i), (i) => moveUp(i), (i) => moveDown(i), (i) => deleteItem(i))
-            card.draggable = true
-            card.dataset.index = String(idx)
-            card.addEventListener('dragstart', (ev) => { ev.dataTransfer.setData('text/plain', String(idx)); try { ev.dataTransfer.effectAllowed = 'move' } catch (_e) { }; card.classList.add('dragging') })
-            card.addEventListener('dragend', () => { card.classList.remove('dragging') })
-            card.addEventListener('dragover', (ev) => { ev.preventDefault(); card.classList.add('drag-over') })
-            card.addEventListener('dragleave', () => { card.classList.remove('drag-over') })
-            card.addEventListener('drop', (ev) => {
-                ev.preventDefault()
-                card.classList.remove('drag-over')
-                const from = Number(ev.dataTransfer.getData('text/plain'))
-                const to = Number(card.dataset.index)
-                if (!Number.isFinite(from) || !Number.isFinite(to)) return
-                if (from === to) return
-                const a = items.slice()
-                const [m] = a.splice(from, 1)
-                a.splice(to, 0, m)
-                items = a
-                persist()
+        const testNumbers = calculateTestNumbers(testConfig)
+
+        // Render groups
+        if (testConfig.groups && testConfig.groups.length > 0) {
+            testConfig.groups.forEach((group, groupIdx) => {
+                const groupHeader = createGroupHeader(
+                    group,
+                    groupIdx,
+                    (groupId) => toggleGroupCollapse(groupId),
+                    (group) => openGroupEditModal(group),
+                    (groupId) => deleteGroup(groupId),
+                    (groupIdx) => moveGroupUp(groupIdx),
+                    (groupIdx) => moveGroupDown(groupIdx),
+                    testConfig.groups.length
+                )
+                list.appendChild(groupHeader)
+
+                // Render tests in group (if not collapsed)
+                if (!group.collapsed) {
+                    const groupContainer = document.createElement('div')
+                    groupContainer.style.marginLeft = '20px'
+                    groupContainer.style.marginBottom = '8px'
+
+                    group.tests.forEach((test, testIdx) => {
+                        const testNumber = testNumbers.get(test.id)
+                        const card = createCard(
+                            test,
+                            testIdx,
+                            () => openTestEditModal(test, groupIdx, testIdx),
+                            () => moveTestUp(groupIdx, testIdx),
+                            () => moveTestDown(groupIdx, testIdx),
+                            () => deleteTest(groupIdx, testIdx),
+                            testNumber
+                        )
+                        groupContainer.appendChild(card)
+                    })
+
+                    list.appendChild(groupContainer)
+                }
             })
-            list.appendChild(card)
-        })
+        }
+
+        // Render ungrouped tests
+        if (testConfig.ungrouped && testConfig.ungrouped.length > 0) {
+            if (testConfig.groups && testConfig.groups.length > 0) {
+                const separator = document.createElement('div')
+                separator.textContent = 'Ungrouped Tests'
+                separator.style.cssText = `
+                    margin: 16px 0 8px 0;
+                    font-weight: bold;
+                    color: #666;
+                    border-bottom: 1px solid #eee;
+                    padding-bottom: 4px;
+                `
+                list.appendChild(separator)
+            }
+
+            testConfig.ungrouped.forEach((test, testIdx) => {
+                const testNumber = testNumbers.get(test.id)
+                const card = createCard(
+                    test,
+                    testIdx,
+                    () => openTestEditModal(test, null, testIdx),
+                    () => moveUngroupedTestUp(testIdx),
+                    () => moveUngroupedTestDown(testIdx),
+                    () => deleteUngroupedTest(testIdx),
+                    testNumber
+                )
+                list.appendChild(card)
+            })
+        }
     }
 
     function persist() {
-        writeTestsToTextarea(ta, items)
-        try { jsonView.textContent = JSON.stringify(items, null, 2) } catch (_e) { jsonView.textContent = '' }
+        writeTestsToTextarea(ta, testConfig)
+        try { jsonView.textContent = JSON.stringify(testConfig, null, 2) } catch (_e) { jsonView.textContent = '' }
         render()
+
+        // Update global config so feedback UI can see the new tests
+        try {
+            if (window.Config && window.Config.current) {
+                // Update the global config with the new tests structure
+                window.Config.current.tests = testConfig
+                console.log('[author-tests] Updated window.Config.current.tests', testConfig)
+            }
+        } catch (e) {
+            console.warn('[author-tests] Failed to update global config:', e)
+        }
+    }
+
+    // Group operations
+    function toggleGroupCollapse(groupId) {
+        const group = testConfig.groups.find(g => g.id === groupId)
+        if (group) {
+            group.collapsed = !group.collapsed
+            persist()
+        }
+    }
+
+    function deleteGroup(groupId) {
+        const groupIdx = testConfig.groups.findIndex(g => g.id === groupId)
+        if (groupIdx >= 0) {
+            const group = testConfig.groups[groupIdx]
+            // Move tests to ungrouped
+            testConfig.ungrouped = testConfig.ungrouped || []
+            testConfig.ungrouped.push(...group.tests)
+            testConfig.groups.splice(groupIdx, 1)
+            persist()
+        }
+    }
+
+    // Group movement operations
+    function moveGroupUp(groupIdx) {
+        if (groupIdx <= 0) return
+        const groups = testConfig.groups
+            ;[groups[groupIdx - 1], groups[groupIdx]] = [groups[groupIdx], groups[groupIdx - 1]]
+        persist()
+    }
+
+    function moveGroupDown(groupIdx) {
+        if (groupIdx >= testConfig.groups.length - 1) return
+        const groups = testConfig.groups
+            ;[groups[groupIdx + 1], groups[groupIdx]] = [groups[groupIdx], groups[groupIdx + 1]]
+        persist()
+    }
+
+    // Test movement operations
+    function moveTestUp(groupIdx, testIdx) {
+        if (testIdx <= 0) return
+        const group = testConfig.groups[groupIdx]
+        const tests = group.tests
+            ;[tests[testIdx - 1], tests[testIdx]] = [tests[testIdx], tests[testIdx - 1]]
+        persist()
+        // Defensive sync: ensure textarea & global config reflect new order immediately
+        try { writeTestsToTextarea(ta, testConfig); if (window.Config && window.Config.current) window.Config.current.tests = testConfig } catch (_e) { }
+    }
+
+    function moveTestDown(groupIdx, testIdx) {
+        const group = testConfig.groups[groupIdx]
+        if (testIdx >= group.tests.length - 1) return
+        const tests = group.tests
+            ;[tests[testIdx + 1], tests[testIdx]] = [tests[testIdx], tests[testIdx + 1]]
+        persist()
+        // Defensive sync: ensure textarea & global config reflect new order immediately
+        try { writeTestsToTextarea(ta, testConfig); if (window.Config && window.Config.current) window.Config.current.tests = testConfig } catch (_e) { }
+    }
+
+    function moveUngroupedTestUp(testIdx) {
+        if (testIdx <= 0) return
+        const tests = testConfig.ungrouped
+            ;[tests[testIdx - 1], tests[testIdx]] = [tests[testIdx], tests[testIdx - 1]]
+        persist()
+        // Defensive sync: ensure textarea & global config reflect new order immediately
+        try { writeTestsToTextarea(ta, testConfig); if (window.Config && window.Config.current) window.Config.current.tests = testConfig } catch (_e) { }
+    }
+
+    function moveUngroupedTestDown(testIdx) {
+        if (testIdx >= testConfig.ungrouped.length - 1) return
+        const tests = testConfig.ungrouped
+            ;[tests[testIdx + 1], tests[testIdx]] = [tests[testIdx], tests[testIdx + 1]]
+        persist()
+        // Defensive sync: ensure textarea & global config reflect new order immediately
+        try { writeTestsToTextarea(ta, testConfig); if (window.Config && window.Config.current) window.Config.current.tests = testConfig } catch (_e) { }
+    }
+
+    // Test deletion operations
+    function deleteTest(groupIdx, testIdx) {
+        const group = testConfig.groups[groupIdx]
+        const test = group.tests[testIdx]
+        if (!confirm(`Delete test "${test.description || test.id}"?`)) return
+        group.tests.splice(testIdx, 1)
+        persist()
+    }
+
+    function deleteUngroupedTest(testIdx) {
+        const test = testConfig.ungrouped[testIdx]
+        if (!confirm(`Delete test "${test.description || test.id}"?`)) return
+        testConfig.ungrouped.splice(testIdx, 1)
+        persist()
     }
 
     // Modal editor
@@ -407,7 +992,7 @@ export function initAuthorTests() {
         const header = document.createElement('div')
         header.className = 'modal-header'
         const h3 = document.createElement('h3')
-        h3.textContent = 'Edit test'
+        h3.textContent = 'Edit'
         const actionHolder = document.createElement('div')
         actionHolder.className = 'modal-header-actions'
         header.appendChild(h3)
@@ -415,19 +1000,33 @@ export function initAuthorTests() {
         content.appendChild(header)
         const body = document.createElement('div')
         body.id = 'author-tests-modal-body'
+        body.className = 'modal-body'
         content.appendChild(body)
         modal.appendChild(content)
         document.body.appendChild(modal)
         return modal
     }
 
-    function openModalEdit(idx) {
-        const existing = Object.assign({}, items[idx])
+    function openTestEditModal(test, groupIdx, testIdx) {
+        const existing = Object.assign({}, test)
         const editor = buildEditorForm(existing)
-        const err = document.createElement('div')
-        err.style.color = '#b00020'
-        err.style.marginTop = '6px'
-        editor.root.appendChild(err)
+
+        // Find which group this test is currently in
+        let currentGroupId = null
+        if (groupIdx !== null && testConfig.groups && testConfig.groups[groupIdx]) {
+            currentGroupId = testConfig.groups[groupIdx].id
+        }
+
+        // Populate the group selector
+        const groupSelect = editor.root.querySelector('#group-selector')
+        if (groupSelect) {
+            populateGroupSelector(groupSelect, testConfig, currentGroupId)
+        }
+
+        const contentWrapper = document.createElement('div')
+        contentWrapper.style.padding = '0 12px 12px 12px'
+        contentWrapper.appendChild(editor.root)
+
         const actions = document.createElement('div')
         actions.style.marginTop = '8px'
         const save = document.createElement('button')
@@ -438,22 +1037,61 @@ export function initAuthorTests() {
         cancel.textContent = 'Cancel'
         actions.appendChild(save)
         actions.appendChild(cancel)
-        editor.root.appendChild(actions)
+        contentWrapper.appendChild(actions)
 
         const m = ensureModal()
+        const h3 = m.querySelector('h3')
+        h3.textContent = 'Edit Test'
         const body = m.querySelector('#author-tests-modal-body')
         body.innerHTML = ''
-        body.appendChild(editor.root)
-        const actionHolder = m.querySelector('.modal-header-actions')
-        actionHolder.innerHTML = ''
-        actionHolder.appendChild(save)
-        actionHolder.appendChild(cancel)
+        body.appendChild(contentWrapper)
+
         try { openModalHelper(m) } catch (_e) { m.setAttribute('aria-hidden', 'false'); m.style.display = 'flex' }
 
         function validateAndSave() {
             const val = editor.get()
             if (!val.id) val.id = genId()
-            items[idx] = val
+
+            const selectedGroupId = val._selectedGroupId
+            delete val._selectedGroupId // Remove the temporary field
+
+            // Remember original location so we can re-insert at the same index
+            const originalGroupId = (groupIdx !== null && testConfig.groups && testConfig.groups[groupIdx]) ? testConfig.groups[groupIdx].id : '__ungrouped__'
+            const originalTestIdx = testIdx
+
+            // Remove test from current location
+            if (groupIdx !== null) {
+                testConfig.groups[groupIdx].tests.splice(testIdx, 1)
+            } else {
+                testConfig.ungrouped.splice(testIdx, 1)
+            }
+
+            // Add test to new location. If saving back into the same group/ungrouped,
+            // insert at the original index to preserve ordering; otherwise append.
+            if (selectedGroupId === '__ungrouped__') {
+                testConfig.ungrouped = testConfig.ungrouped || []
+                if (originalGroupId === '__ungrouped__') {
+                    const idx = Math.min(originalTestIdx, testConfig.ungrouped.length)
+                    testConfig.ungrouped.splice(idx, 0, val)
+                } else {
+                    testConfig.ungrouped.push(val)
+                }
+            } else {
+                const targetGroup = testConfig.groups.find(g => g.id === selectedGroupId)
+                if (targetGroup) {
+                    if (selectedGroupId === originalGroupId) {
+                        const idx = Math.min(originalTestIdx, targetGroup.tests.length)
+                        targetGroup.tests.splice(idx, 0, val)
+                    } else {
+                        targetGroup.tests.push(val)
+                    }
+                } else {
+                    // Fallback to ungrouped if group not found
+                    testConfig.ungrouped = testConfig.ungrouped || []
+                    testConfig.ungrouped.push(val)
+                }
+            }
+
             persist()
             try { closeModalHelper(m) } catch (_e) { m.setAttribute('aria-hidden', 'true'); m.style.display = 'none' }
         }
@@ -461,12 +1099,60 @@ export function initAuthorTests() {
         cancel.addEventListener('click', () => { try { closeModalHelper(m) } catch (_e) { m.setAttribute('aria-hidden', 'true'); m.style.display = 'none' } })
     }
 
-    function openModalEditNew(newItem) {
+    function openGroupEditModal(group) {
+        const editor = buildGroupEditorForm(group)
+
+        const contentWrapper = document.createElement('div')
+        contentWrapper.style.padding = '0 12px 12px 12px'
+        contentWrapper.appendChild(editor.root)
+
+        const actions = document.createElement('div')
+        actions.style.marginTop = '8px'
+        const save = document.createElement('button')
+        save.className = 'btn btn-primary'
+        save.textContent = 'Save'
+        const cancel = document.createElement('button')
+        cancel.className = 'btn'
+        cancel.textContent = 'Cancel'
+        actions.appendChild(save)
+        actions.appendChild(cancel)
+        contentWrapper.appendChild(actions)
+
+        const m = ensureModal()
+        const h3 = m.querySelector('h3')
+        h3.textContent = 'Edit Group'
+        const body = m.querySelector('#author-tests-modal-body')
+        body.innerHTML = ''
+        body.appendChild(contentWrapper)
+
+        try { openModalHelper(m) } catch (_e) { m.setAttribute('aria-hidden', 'false'); m.style.display = 'flex' }
+
+        function validateAndSave() {
+            const val = editor.get()
+            const groupIdx = testConfig.groups.findIndex(g => g.id === group.id)
+            if (groupIdx >= 0) {
+                testConfig.groups[groupIdx] = { ...testConfig.groups[groupIdx], ...val }
+                persist()
+            }
+            try { closeModalHelper(m) } catch (_e) { m.setAttribute('aria-hidden', 'true'); m.style.display = 'none' }
+        }
+        save.addEventListener('click', validateAndSave)
+        cancel.addEventListener('click', () => { try { closeModalHelper(m) } catch (_e) { m.setAttribute('aria-hidden', 'true'); m.style.display = 'none' } })
+    }
+
+    function openNewTestModal(newItem) {
         const editor = buildEditorForm(newItem)
-        const err = document.createElement('div')
-        err.style.color = '#b00020'
-        err.style.marginTop = '6px'
-        editor.root.appendChild(err)
+
+        // Populate the group selector
+        const groupSelect = editor.root.querySelector('#group-selector')
+        if (groupSelect) {
+            populateGroupSelector(groupSelect, testConfig)
+        }
+
+        const contentWrapper = document.createElement('div')
+        contentWrapper.style.padding = '0 12px 12px 12px'
+        contentWrapper.appendChild(editor.root)
+
         const actions = document.createElement('div')
         actions.style.marginTop = '8px'
         const save = document.createElement('button')
@@ -477,45 +1163,140 @@ export function initAuthorTests() {
         cancel.textContent = 'Cancel'
         actions.appendChild(save)
         actions.appendChild(cancel)
-        editor.root.appendChild(actions)
+        contentWrapper.appendChild(actions)
 
         const m = ensureModal()
+        const h3 = m.querySelector('h3')
+        h3.textContent = 'New Test'
         const body = m.querySelector('#author-tests-modal-body')
         body.innerHTML = ''
-        body.appendChild(editor.root)
-        const actionHolder = m.querySelector('.modal-header-actions')
-        actionHolder.innerHTML = ''
-        actionHolder.appendChild(save)
-        actionHolder.appendChild(cancel)
+        body.appendChild(contentWrapper)
+
         try { openModalHelper(m) } catch (_e) { m.setAttribute('aria-hidden', 'false'); m.style.display = 'flex' }
 
         function validateAndSave() {
             const val = editor.get()
             if (!val.id) val.id = genId()
-            // Only add to items array when save is clicked
-            items.push(val)
+
+            const selectedGroupId = val._selectedGroupId
+            delete val._selectedGroupId // Remove the temporary field
+
+            // Add to appropriate location
+            if (selectedGroupId === '__ungrouped__') {
+                testConfig.ungrouped = testConfig.ungrouped || []
+                testConfig.ungrouped.push(val)
+            } else {
+                const targetGroup = testConfig.groups.find(g => g.id === selectedGroupId)
+                if (targetGroup) {
+                    targetGroup.tests.push(val)
+                } else {
+                    // Fallback to ungrouped if group not found
+                    testConfig.ungrouped = testConfig.ungrouped || []
+                    testConfig.ungrouped.push(val)
+                }
+            }
+
             persist()
             try { closeModalHelper(m) } catch (_e) { m.setAttribute('aria-hidden', 'true'); m.style.display = 'none' }
         }
         save.addEventListener('click', validateAndSave)
-        // Cancel just closes modal without adding item
         cancel.addEventListener('click', () => { try { closeModalHelper(m) } catch (_e) { m.setAttribute('aria-hidden', 'true'); m.style.display = 'none' } })
     }
 
-    function closeModal() { if (!modal) return; try { closeModalHelper(modal) } catch (_e) { modal.setAttribute('aria-hidden', 'true'); modal.style.display = 'none' } }
+    function openNewGroupModal() {
+        const newGroup = createGroup()
 
-    function moveUp(idx) { if (idx <= 0) return; const a = items.slice();[a[idx - 1], a[idx]] = [a[idx], a[idx - 1]]; items = a; persist() }
-    function moveDown(idx) { if (idx >= items.length - 1) return; const a = items.slice();[a[idx + 1], a[idx]] = [a[idx], a[idx + 1]]; items = a; persist() }
-    function deleteItem(idx) { if (!confirm('Delete test "' + (items[idx] && (items[idx].description || items[idx].id)) + '"?')) return; items.splice(idx, 1); persist() }
+        // First group should always run by default
+        if (!testConfig.groups || testConfig.groups.length === 0) {
+            newGroup.conditional.runIf = 'always'
+        }
 
+        const editor = buildGroupEditorForm(newGroup)
+
+        const contentWrapper = document.createElement('div')
+        contentWrapper.style.padding = '0 12px 12px 12px'
+        contentWrapper.appendChild(editor.root)
+
+        const actions = document.createElement('div')
+        actions.style.marginTop = '8px'
+        const save = document.createElement('button')
+        save.className = 'btn btn-primary'
+        save.textContent = 'Create Group'
+        const cancel = document.createElement('button')
+        cancel.className = 'btn'
+        cancel.textContent = 'Cancel'
+        actions.appendChild(save)
+        actions.appendChild(cancel)
+        contentWrapper.appendChild(actions)
+
+        const m = ensureModal()
+        const h3 = m.querySelector('h3')
+        h3.textContent = 'Create Group'
+        const body = m.querySelector('#author-tests-modal-body')
+        body.innerHTML = ''
+        body.appendChild(contentWrapper)
+
+        try { openModalHelper(m) } catch (_e) { m.setAttribute('aria-hidden', 'false'); m.style.display = 'flex' }
+
+        function validateAndSave() {
+            const val = editor.get()
+            testConfig.groups = testConfig.groups || []
+            testConfig.groups.push(val)
+            persist()
+            try { closeModalHelper(m) } catch (_e) { m.setAttribute('aria-hidden', 'true'); m.style.display = 'none' }
+        }
+        save.addEventListener('click', validateAndSave)
+        cancel.addEventListener('click', () => { try { closeModalHelper(m) } catch (_e) { m.setAttribute('aria-hidden', 'true'); m.style.display = 'none' } })
+    }
+
+    // Button event listeners
     addBtn.addEventListener('click', () => {
-        const newItem = { id: genId(), description: 'New test', stdin: '', expected_stdout: '', expected_stderr: '', timeoutMs: undefined, hide_actual_expected: false }
-        // open editor for the new item without adding it to the array yet
-        openModalEditNew(newItem)
+        const newItem = {
+            id: genId(),
+            description: 'New test',
+            stdin: '',
+            expected_stdout: '',
+            expected_stderr: '',
+            timeoutMs: undefined,
+            hide_actual_expected: false,
+            conditional: { runIf: 'previous_passed', alwaysRun: false }
+        }
+        openNewTestModal(newItem)
     })
 
-    ta.addEventListener('input', () => { items = parseTestsFromTextarea(ta); try { jsonView.textContent = JSON.stringify(items, null, 2) } catch (_e) { jsonView.textContent = '' }; render() })
-    try { jsonView.textContent = JSON.stringify(items, null, 2) } catch (_e) { jsonView.textContent = '' }
+    addASTBtn.addEventListener('click', () => {
+        const newItem = createDefaultASTTest()
+        newItem.conditional = { runIf: 'previous_passed', alwaysRun: false }
+        openNewTestModal(newItem)
+    })
+
+    addGroupBtn.addEventListener('click', () => {
+        openNewGroupModal()
+    })
+
+    groupVisibilityCheck.addEventListener('change', () => {
+        testConfig.showGroupsToUsers = groupVisibilityCheck.checked
+        persist()
+    })
+
+    ta.addEventListener('input', () => {
+        testConfig = parseTestsFromTextarea(ta)
+        groupVisibilityCheck.checked = testConfig.showGroupsToUsers !== false
+        try { jsonView.textContent = JSON.stringify(testConfig, null, 2) } catch (_e) { jsonView.textContent = '' }
+        render()
+
+        // Update global config when textarea is manually edited
+        try {
+            if (window.Config && window.Config.current) {
+                window.Config.current.tests = testConfig
+                console.log('[author-tests] Updated window.Config.current.tests from textarea input', testConfig)
+            }
+        } catch (e) {
+            console.warn('[author-tests] Failed to update global config from textarea:', e)
+        }
+    })
+
+    try { jsonView.textContent = JSON.stringify(testConfig, null, 2) } catch (_e) { jsonView.textContent = '' }
     render()
 }
 

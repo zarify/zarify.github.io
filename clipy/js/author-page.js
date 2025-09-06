@@ -1,8 +1,9 @@
 import { validateAndNormalizeConfig } from './config.js'
-import { saveAuthorConfigToLocalStorage, getAuthorConfigFromLocalStorage, clearAuthorConfigInLocalStorage, saveDraft, listDrafts, loadDraft, deleteDraft } from './author-storage.js'
+import { saveAuthorConfigToLocalStorage, getAuthorConfigFromLocalStorage, clearAuthorConfigInLocalStorage, saveDraft, listDrafts, loadDraft, deleteDraft, findDraftByConfigIdAndVersion } from './author-storage.js'
 import { initAuthorFeedback } from './author-feedback.js'
 import { initAuthorTests } from './author-tests.js'
 import { showConfirmModal, openModal, closeModal } from './modals.js'
+import { debug as logDebug, warn as logWarn, error as logError } from './logger.js'
 import { renderMarkdown } from './utils.js'
 
 function $(id) { return document.getElementById(id) }
@@ -34,7 +35,7 @@ function loadEditor() {
         // ensure initial layout is correct
         try { if (editor && typeof editor.refresh === 'function') editor.refresh() } catch (_e) { }
     } catch (e) {
-        console.warn('CodeMirror not available, falling back to textarea')
+        logWarn('CodeMirror not available, falling back to textarea')
         ta.addEventListener('input', () => {
             files[currentFile] = ta.value
             debounceSave()
@@ -171,13 +172,15 @@ function saveToLocalStorage() {
                 const parsed = JSON.parse(cfg.feedback)
                 if (Array.isArray(parsed)) cfg.feedback = parsed
             }
-            // Likewise, parse tests if the textarea contains a JSON array so
-            // the saved author_config carries the tests as a structured array
-            // (the main app expects cfg.tests to be an array when running
-            // author-defined tests).
+            // Likewise, parse tests if the textarea contains a JSON structure so
+            // the saved author_config carries the tests as a structured object/array
+            // (the main app expects cfg.tests to be structured when running tests).
             if (typeof cfg.tests === 'string' && cfg.tests.trim()) {
                 const parsedTests = JSON.parse(cfg.tests)
-                if (Array.isArray(parsedTests)) cfg.tests = parsedTests
+                // Handle both legacy format (array) and new grouped format (object)
+                if (Array.isArray(parsedTests) || (parsedTests && (parsedTests.groups || parsedTests.ungrouped))) {
+                    cfg.tests = parsedTests
+                }
             }
         } catch (_e) { /* keep raw string if invalid JSON */ }
         // try to validate/normalize but don't block autosave on failure
@@ -190,7 +193,7 @@ function saveToLocalStorage() {
             try { localStorage.setItem('author_config', JSON.stringify(cfg)) } catch (_e) { }
             $('validation').textContent = 'Validation: ' + (e && e.message ? e.message : e)
         }
-    } catch (e) { console.error('autosave failed', e) }
+    } catch (e) { logError('autosave failed', e) }
 }
 
 function buildCurrentConfig() {
@@ -318,7 +321,7 @@ async function handleUpload(ev) {
             debounceSave()
             return
         } catch (e) {
-            console.warn('Failed to read as text file, treating as binary:', e)
+            logWarn('Failed to read as text file, treating as binary:', e)
             // Fall through to binary handling
         }
     }
@@ -392,7 +395,7 @@ function setupHandlers() {
             // Navigate back to main app
             window.location.href = '../index.html'
         } catch (e) {
-            console.error('Failed to navigate back to app:', e)
+            logError('Failed to navigate back to app:', e)
             // Fallback navigation
             window.location.href = '../index.html'
         }
@@ -436,7 +439,10 @@ function setupHandlers() {
             try {
                 if (typeof cfg.tests === 'string' && cfg.tests.trim()) {
                     const parsed = JSON.parse(cfg.tests)
-                    if (Array.isArray(parsed)) cfg.tests = parsed
+                    // Handle both legacy format (array) and new grouped format (object)
+                    if (Array.isArray(parsed) || (parsed && (parsed.groups || parsed.ungrouped))) {
+                        cfg.tests = parsed
+                    }
                 }
             } catch (_e) { }
             const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' })
@@ -475,7 +481,7 @@ function setupHandlers() {
             }
             if (!ok) return
             // apply the parsed config
-            try { console.debug && console.debug('[author] applying imported config', parsed); applyImportedConfig(parsed) } catch (e) { alert('Failed to apply config: ' + (e && e.message ? e.message : e)); return }
+            try { logDebug('[author] applying imported config', parsed); applyImportedConfig(parsed) } catch (e) { alert('Failed to apply config: ' + (e && e.message ? e.message : e)); return }
             // After applying, show a simple modal indicating success and a close-only button.
             try {
                 const modal = document.createElement('div')
@@ -594,7 +600,7 @@ async function openChangelogModal() {
                 `
             }
         } catch (error) {
-            console.error('Failed to load changelog:', error)
+            logError('Failed to load changelog:', error)
             contentEl.innerHTML = `
                 <div style="text-align:center;padding:40px;">
                     <h3 style="color:#d32f2f;margin-bottom:12px;">⚠️ Error Loading Changelog</h3>
@@ -607,7 +613,7 @@ async function openChangelogModal() {
         // Use shared modal function for accessibility (ESC key, focus management, etc.)
         openModal(modal)
     } catch (e) {
-        console.error('Failed to open changelog modal:', e)
+        logError('Failed to open changelog modal:', e)
     }
 }
 
@@ -716,23 +722,40 @@ function applyImportedConfig(obj) {
 async function saveCurrentDraft() {
     const config = buildCurrentConfig()
 
-    // Create draft record with metadata
+    // Check if a draft with the same config ID and version already exists
+    const existingDraft = await findDraftByConfigIdAndVersion(config.id, config.version)
+
+    let draft
+    let draftName
     const timestamp = new Date().toLocaleString()
     const configTitle = config.title || 'Untitled'
-    const draftName = `${configTitle} (${timestamp})`
 
-    const draft = {
-        name: draftName,
-        config: config,
-        createdAt: Date.now(),
-        updatedAt: Date.now()
+    if (existingDraft) {
+        // Overwrite existing draft with same config ID and version
+        draft = {
+            ...existingDraft,  // Keep existing draft metadata (id, createdAt)
+            name: existingDraft.name || `${configTitle} (${timestamp})`,
+            config: config,
+            updatedAt: Date.now()
+        }
+        draftName = existingDraft.name || `${configTitle} (updated)`
+    } else {
+        // Create new draft
+        draftName = `${configTitle} (${timestamp})`
+        draft = {
+            name: draftName,
+            config: config,
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+        }
     }
 
     // Use imported saveDraft function
     const savedDraft = await saveDraft(draft)
 
     // Show success message in modal
-    showSaveDraftSuccessModal(draftName)
+    const action = existingDraft ? 'Updated' : 'Saved'
+    showSaveDraftSuccessModal(`${action}: ${draftName}`)
 }
 
 async function openLoadDraftsModal() {
@@ -809,7 +832,7 @@ async function openLoadDraftsModal() {
         // Open the modal
         openModal(modal)
     } catch (e) {
-        console.error('Failed to open load drafts modal:', e)
+        logError('Failed to open load drafts modal:', e)
         contentEl.innerHTML = `
             <div style="text-align:center;padding:40px;">
                 <h3 style="color:#d32f2f;margin-bottom:12px;">⚠️ Error Loading Drafts</h3>

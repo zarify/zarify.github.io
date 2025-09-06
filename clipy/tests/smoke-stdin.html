@@ -45,7 +45,7 @@
         window.addEventListener('message', (ev) => {
             try {
                 const m = ev.data || {}
-                try { console.log('[smoke-stdin message]', m) } catch (e) { }
+                // quiet: removed noisy console.log
                 if (m && (m.type === 'stdout' || m.type === 'stderr' || m.type === 'debug')) {
                     logEl('log', `[${m.type}] ${m.text}`)
                 }

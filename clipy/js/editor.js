@@ -1,6 +1,7 @@
 // CodeMirror editor initialization and management
 import { $ } from './utils.js'
 import { getConfig } from './config.js'
+import { info as logInfo, warn as logWarn, error as logError } from './logger.js'
 
 let cm = null
 let textarea = null
@@ -13,7 +14,7 @@ export function initializeEditor() {
     const host = $('editor-host')
 
     if (!textarea || !host) {
-        console.error('Required editor elements not found')
+        logError('Required editor elements not found')
         return null
     }
 
@@ -45,13 +46,13 @@ export function initializeEditor() {
             window.cm = cm
             // Expose mode helper for other modules (avoid import cycles)
             window.setEditorModeForPath = setEditorModeForPath
-            console.log('CodeMirror initialized:', {
+            logInfo('CodeMirror initialized:', {
                 readOnly: cm.getOption('readOnly'),
                 value: cm.getValue(),
                 mode: cm.getOption('mode')
             })
         } catch (e) {
-            console.error('Error exposing CodeMirror:', e)
+            logError('Error exposing CodeMirror:', e)
         }
 
         // Position textarea outside visible area but still detectable by tests
@@ -120,7 +121,7 @@ export function initializeEditor() {
 
         return cm
     } else {
-        console.warn('CodeMirror not available, using textarea fallback')
+        logWarn('CodeMirror not available, using textarea fallback')
         return null
     }
 }

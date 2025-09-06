@@ -1,7 +1,7 @@
 // Lightweight test runner stub for Playwright (served from src/tests)
 // This is the same stub used by the tests directory but copied here so
 // servers serving the `src` directory can load it as a proper module.
-const post = (o) => { try { console.log('[stub post]', o) } catch (_) { } try { window.parent.postMessage(o, '*') } catch (e) { } }
+const post = (o) => { try { window.parent.postMessage(o, '*') } catch (e) { } }
 post({ type: 'loaded' })
 post({ type: 'checkpoint', name: 'stub_loaded' })
 
@@ -32,8 +32,7 @@ window.addEventListener('message', async (ev) => {
         const finalResult = { type: 'testResult', id: test.id || 'stub', passed: true, stdout: stdout.join('\n'), stderr: '', durationMs: 1 }
         // Expose on window so Playwright page.evaluate polling can read it reliably
         try { window.__last_stub_result = finalResult } catch (_) { }
-        // For Playwright tests: emit an unambiguous console line so tests can detect the final result
-        try { console.log('[stub-result]' + JSON.stringify(finalResult)) } catch (_) { }
+        // For Playwright tests: expose final result on window for test harness
         post(finalResult)
         post({ type: 'checkpoint', name: 'stub_done' })
     } else if (m.type === 'stdinResponse') {

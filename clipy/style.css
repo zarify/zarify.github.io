@@ -92,7 +92,10 @@ header {
         max-width: 720px;
         width: 90%;
         max-height: 80vh;
-        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        /* Changed from auto to hidden */
     }
 
     .modal-header {
@@ -104,7 +107,10 @@ header {
         background: var(--panel);
         z-index: 2;
         padding-bottom: 8px;
+        margin-bottom: 8px;
         border-bottom: 1px solid #eee;
+        flex-shrink: 0;
+        /* Prevent header from shrinking */
     }
 
     .modal-header-actions {
@@ -757,18 +763,46 @@ pre#terminal-output {
 
 .modal-content {
     background: var(--panel);
-    padding: 12px;
+    padding: 3px;
+    /* Remove padding since header/body will handle their own */
     border-radius: 6px;
     max-width: 720px;
     width: 90%;
     /* Ensure modal content doesn't overflow the viewport; allow internal scrolling when tall */
     max-height: 80vh;
-    overflow: auto;
+    overflow: hidden;
+    /* Let the body handle scrolling */
+    display: flex;
+    flex-direction: column;
 }
 
-/* Load drafts modal: remove overflow from content to prevent double scrollbars */
+/* Modal content body - scrollable area */
+.modal-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0;
+    /* Remove padding since content inside will have its own padding */
+    min-height: 0;
+    /* Important for flex containers to allow shrinking */
+}
+
+/* Load drafts modal: ensure proper overflow handling with new structure */
 #load-drafts-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+}
+
+#load-drafts-modal .modal-body {
+    flex: 1;
     overflow: visible;
+    min-height: 0;
+}
+
+#load-drafts-modal #load-drafts-content {
+    max-height: 400px;
+    overflow-y: auto;
 }
 
 /* Snapshot list container: limit height and allow scrolling when many snapshots exist */
@@ -797,9 +831,21 @@ pre#terminal-output {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
+    padding: 12px 12px 8px 12px;
+    /* Add padding since modal-content padding was removed */
+    margin-bottom: 0;
+    /* Remove margin since we're using padding */
     border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    /* Ensure consistent background */
+    border-radius: 6px 6px 0 0;
+    /* Match modal border radius */
+    /* Sticky positioning */
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    /* Prevent shrinking */
+    flex-shrink: 0;
 }
 
 .modal-header h3 {
@@ -1025,4 +1071,64 @@ pre#terminal-output {
     border-radius: 4px;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace;
     font-size: 0.95em;
+}
+
+/* AST Pattern Builder Styles */
+.ast-pattern-builder {
+    margin: 8px 0;
+}
+
+.ast-pattern-builder .ast-preview {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace;
+}
+
+.ast-tester {
+    margin-top: 12px;
+}
+
+.ast-tester textarea {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px;
+    resize: vertical;
+}
+
+.ast-tester .test-result {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace;
+}
+
+.ast-tester .test-result pre {
+    background: transparent;
+    margin: 8px 0 0 0;
+    padding: 0;
+    border: none;
+    font-size: 0.85em;
+    max-height: 200px;
+    overflow: auto;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    border: 1px solid #6c757d;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+    border-color: #545b62;
+}
+
+.matcher-examples {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 8px;
+}
+
+.matcher-examples code {
+    background: #e9ecef;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 0.85em;
 }

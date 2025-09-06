@@ -93,10 +93,12 @@ export function appendTerminal(text, kind = 'stdout') {
 }
 
 // Lightweight debug appender that only logs when debug flag is enabled.
+import { debug as logDebug } from './logger.js'
+
 export function appendTerminalDebug(...args) {
     try {
-        if (!window.__ssg_debug_logs) return
-        try { console.debug(...args) } catch (_e) { }
+        if (!window.__ssg_debug_logs && !window.__SSG_DEBUG) return
+        try { logDebug(...args) } catch (_e) { }
         const out = $('terminal-output')
         if (!out) return
         const div = document.createElement('div')
