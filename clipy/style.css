@@ -727,7 +727,9 @@ pre#terminal-output {
 }
 
 /* Feedback panel styling */
+#fdbk-list,
 #feedback-list {
+    /* Prefer new id but keep legacy selector for compatibility */
     display: flex;
     flex-direction: column;
     gap: 8px;

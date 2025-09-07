@@ -504,10 +504,12 @@ export function activateSideTab(name) {
         const fbBtn = $('tab-btn-feedback')
         const instrPanel = $('instructions')
         const termPanel = $('terminal')
-        const fbPanel = $('feedback')
+        // Support both legacy 'feedback' name and new 'fdbk' id. Prefer the
+        // new id which avoids content-blocker keyword matches.
+        const fbPanel = $('fdbk') || $('feedback')
 
-    // Be tolerant of missing elements (some pages or embed targets may
-    // omit certain panels). Only operate on elements that exist.
+        // Be tolerant of missing elements (some pages or embed targets may
+        // omit certain panels). Only operate on elements that exist.
 
         if (name === 'terminal') {
             try { instrBtn && instrBtn.setAttribute('aria-selected', 'false') } catch (_e) { }
@@ -523,7 +525,7 @@ export function activateSideTab(name) {
                     termPanel.querySelector('#terminal-output')?.focus()
                 }
             } catch (_e) { }
-        } else if (name === 'feedback') {
+        } else if (name === 'feedback' || name === 'fdbk') {
             // feedback tab
             try { instrBtn && instrBtn.setAttribute('aria-selected', 'false') } catch (_e) { }
             try { termBtn && termBtn.setAttribute('aria-selected', 'false') } catch (_e) { }

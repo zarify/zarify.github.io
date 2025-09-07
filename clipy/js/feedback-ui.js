@@ -11,7 +11,9 @@ let _prevMatchedIds = new Set()
 
 function renderList() {
     try {
-        const host = $('feedback-list')
+        // Prefer new id to avoid content-blocker problems; fall back to legacy
+        // id for older pages/tests.
+        const host = $('fdbk-list') || $('feedback-list')
         if (!host) return
         // Clear host first, then add run-tests control at top
         host.innerHTML = ''
