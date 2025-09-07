@@ -6,6 +6,8 @@ let _matches = []
 let _config = { feedback: [] }
 let _testResults = []
 let _streamBuffers = {}
+// Track previously-seen matched feedback IDs so we can detect newly added matches
+let _prevMatchedIds = new Set()
 
 function renderList() {
     try {
@@ -564,17 +566,45 @@ export function setFeedbackConfig(cfg) {
 }
 
 export function setFeedbackMatches(matches) {
-    _matches = matches || []
+    // Compute the set of match ids from the incoming matches
+    const newMatches = matches || []
+    const newIds = new Set()
+    try {
+        for (const m of newMatches) {
+            try {
+                if (m && (m.id !== undefined && m.id !== null)) newIds.add(String(m.id))
+            } catch (_e) { }
+        }
+    } catch (_e) { }
+
+    // Detect if any id is newly added compared to previous state
+    let hasNewlyAdded = false
+    try {
+        for (const id of newIds) {
+            if (!_prevMatchedIds.has(id)) { hasNewlyAdded = true; break }
+        }
+    } catch (_e) { }
+
+    _matches = newMatches
     renderList()
     try {
         const fbBtn = document.getElementById('tab-btn-feedback')
-        // If any match is present and the feedback tab isn't selected, mark it
-        const hasMatch = Array.isArray(_matches) && _matches.length > 0
+        const hasMatch = newIds.size > 0
         if (fbBtn) {
-            if (hasMatch && fbBtn.getAttribute('aria-selected') !== 'true') fbBtn.classList.add('has-new-feedback')
-            else if (!hasMatch) fbBtn.classList.remove('has-new-feedback')
+            // Only mark as new if there are newly added matched rule ids and
+            // the tab is not currently selected. Do not re-add the indicator
+            // on re-runs that don't introduce new matches.
+            if (hasNewlyAdded && fbBtn.getAttribute('aria-selected') !== 'true') {
+                fbBtn.classList.add('has-new-feedback')
+            } else if (!hasMatch) {
+                // If there are no matches any more, clear the indicator
+                fbBtn.classList.remove('has-new-feedback')
+            }
         }
     } catch (_e) { }
+
+    // Update previous ids snapshot for next comparison
+    _prevMatchedIds = newIds
 }
 
 export function setTestResults(results) {
