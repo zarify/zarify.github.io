@@ -15,6 +15,7 @@
 export function createASTRuleBuilder(existing = {}, ruleType = 'feedback') {
     const root = document.createElement('div')
     root.className = 'ast-rule-builder'
+    // ...existing code... (do not add 'author-tab' here to avoid hiding the builder)
     root.style.border = '1px solid #e0e0e0'
     root.style.borderRadius = '4px'
     root.style.padding = '16px'
@@ -292,7 +293,7 @@ class Calculator:
 
     // Test button functionality
     testButton.addEventListener('click', async () => {
-        const code = testCode.value.trim()
+        const code = (codeMirrorEditor && typeof codeMirrorEditor.getValue === 'function') ? codeMirrorEditor.getValue().trim() : testCode.value.trim()
         const expression = expressionField.value.trim()
 
         if (!code) {
@@ -373,6 +374,51 @@ class Calculator:
     testArea.appendChild(testCode)
     testArea.appendChild(testButton)
     testArea.appendChild(testResult)
+
+    // Try to initialize CodeMirror (fromTextArea) for nicer editing if CodeMirror is available.
+    // If not available, keep the plain textarea as a fallback.
+    let codeMirrorEditor = null
+    try {
+        if (typeof window !== 'undefined' && window.CodeMirror && typeof window.CodeMirror.fromTextArea === 'function') {
+            codeMirrorEditor = window.CodeMirror.fromTextArea(testCode, {
+                mode: 'python',
+                lineNumbers: true,
+                indentUnit: 4,
+                tabSize: 4,
+                matchBrackets: true,
+                autoCloseBrackets: true,
+                extraKeys: {
+                    Tab: function (cm) {
+                        if (cm.somethingSelected()) cm.indentSelection('add')
+                        else cm.replaceSelection('    ', 'end')
+                    }
+                }
+            })
+            // Set sensible height
+            try { codeMirrorEditor.setSize('100%', 160) } catch (_e) { }
+        }
+    } catch (_e) {
+        codeMirrorEditor = null
+    }
+
+    // If the editor is created inside a modal or hidden container, CodeMirror
+    // may need a refresh once it becomes visible. Simple refresh when visible.
+    if (codeMirrorEditor) {
+        const refreshWhenVisible = () => {
+            try {
+                if (testArea.offsetParent !== null) {
+                    codeMirrorEditor.refresh()
+                    return true
+                }
+                return false
+            } catch (_e) { return true }
+        }
+
+        if (!refreshWhenVisible()) {
+            // If not visible now, try again after a short delay
+            setTimeout(refreshWhenVisible, 100)
+        }
+    }
 
     return testArea
 }

@@ -244,14 +244,6 @@ function renderSnapshots() {
         div.style.justifyContent = 'space-between'
         div.style.padding = '6px 4px'
 
-        // Left: load icon (accessible button)
-        const leftBtn = document.createElement('button')
-        leftBtn.className = 'btn btn-ghost snapshot-load-btn'
-        leftBtn.title = 'Load snapshot'
-        leftBtn.setAttribute('aria-label', 'Load snapshot')
-        leftBtn.innerHTML = '⤓' // load icon
-        leftBtn.addEventListener('click', () => restoreSnapshot(i, snaps))
-
         // Middle: single-line info (timestamp + files + size)
         const fileCount = Object.keys(s.files || {}).length
         const sizeBytes = computeSnapshotSize(s)
@@ -266,13 +258,23 @@ function renderSnapshots() {
         mid.style.justifyContent = 'flex-start'
         mid.style.gap = '8px'
         mid.innerHTML = `<span class="snapshot-ts">${new Date(s.ts).toLocaleString()}</span> <small class="snapshot-meta" style="color:#666">(${fileCount} file${fileCount === 1 ? '' : 's'}, ${sizeText} used)</small>`
+        // Actions: textual Load and Delete buttons on the right
+        const actions = document.createElement('div')
+        actions.style.display = 'inline-flex'
+        actions.style.gap = '8px'
 
-        // Right: delete (trash) icon as accessible button
+        const loadBtn = document.createElement('button')
+        loadBtn.className = 'btn btn-small snapshot-load-btn'
+        loadBtn.title = 'Load snapshot'
+        loadBtn.setAttribute('aria-label', 'Load snapshot')
+        loadBtn.textContent = 'Load'
+        loadBtn.addEventListener('click', () => restoreSnapshot(i, snaps))
+
         const delBtn = document.createElement('button')
-        delBtn.className = 'btn btn-ghost snapshot-delete-btn'
+        delBtn.className = 'btn btn-small btn-danger snapshot-delete-btn'
         delBtn.title = 'Delete snapshot'
         delBtn.setAttribute('aria-label', 'Delete snapshot')
-        delBtn.innerHTML = '🗑️'
+        delBtn.textContent = 'Delete'
         delBtn.addEventListener('click', async () => {
             const ok = await showConfirmModal('Delete snapshot', 'Delete this snapshot? This action cannot be undone.')
             if (!ok) return
@@ -291,9 +293,11 @@ function renderSnapshots() {
             }
         })
 
-        div.appendChild(leftBtn)
+        actions.appendChild(loadBtn)
+        actions.appendChild(delBtn)
+
         div.appendChild(mid)
-        div.appendChild(delBtn)
+        div.appendChild(actions)
         snapshotList.appendChild(div)
     })
 

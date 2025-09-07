@@ -5,6 +5,7 @@ import { initAuthorTests } from './author-tests.js'
 import { showConfirmModal, openModal, closeModal } from './modals.js'
 import { debug as logDebug, warn as logWarn, error as logError } from './logger.js'
 import { renderMarkdown } from './utils.js'
+import { initVerificationTab, renderStudentsList } from './author-verification.js'
 
 function $(id) { return document.getElementById(id) }
 
@@ -187,11 +188,11 @@ function saveToLocalStorage() {
         try {
             const norm = validateAndNormalizeConfig(cfg)
             saveAuthorConfigToLocalStorage(norm)
-            $('validation').textContent = ''
+            // Validation passed; nothing to show in UI (author view removed)
         } catch (e) {
-            // keep raw config but show validation message
+            // keep raw config but persist; surface validation failure to console
             try { localStorage.setItem('author_config', JSON.stringify(cfg)) } catch (_e) { }
-            $('validation').textContent = 'Validation: ' + (e && e.message ? e.message : e)
+            console.warn('Author config validation failed (autosave preserved raw config):', e && e.message ? e.message : e)
         }
     } catch (e) { logError('autosave failed', e) }
 }
@@ -365,18 +366,25 @@ function setupHandlers() {
                 try { openFile(currentFile) } catch (_e) { }
             }, 40)
         }
+        // If switching to verification tab, update codes with current config
+        if (tab === 'verification') {
+            setTimeout(updateVerificationCodes, 40)
+        }
     }
 
     // Metadata & editors
-    $('meta-title').addEventListener('input', debounceSave)
-    $('meta-id').addEventListener('input', debounceSave)
-    $('meta-version').addEventListener('input', debounceSave)
+    $('meta-title').addEventListener('input', () => { debounceSave(); updateVerificationCodesDebounced(); })
+    $('meta-id').addEventListener('input', () => { debounceSave(); updateVerificationCodesDebounced(); })
+    $('meta-version').addEventListener('input', () => { debounceSave(); updateVerificationCodesDebounced(); })
     if ($('meta-description')) $('meta-description').addEventListener('input', debounceSave)
     if ($('instructions-editor')) {
         $('instructions-editor').addEventListener('input', () => { debounceSave(); try { updateInstructionsPreview() } catch (_e) { } })
     }
     if ($('feedback-editor')) $('feedback-editor').addEventListener('input', debounceSave)
-    if ($('tests-editor')) $('tests-editor').addEventListener('input', debounceSave)
+    if ($('tests-editor')) $('tests-editor').addEventListener('input', () => {
+        debounceSave();
+        updateVerificationCodesDebounced();
+    })
     $('add-file').addEventListener('click', () => {
         const name = prompt('File path (e.g. /lib/util.py)')
         if (!name) return
@@ -643,6 +651,33 @@ document.addEventListener('click', (e) => {
     }
 })
 
+// Verification code update helpers
+let verificationUpdateTimer = null
+
+function updateVerificationCodes() {
+    try {
+        const currentConfig = buildCurrentConfig()
+        // Display config identity (id@version) in the verification panel
+        try {
+            const el = document.getElementById('verification-config-id')
+            if (el) {
+                const id = currentConfig.id || (currentConfig.title ? currentConfig.title.replace(/\s+/g, '-') : 'unknown')
+                const version = currentConfig.version || '1.0'
+                el.textContent = `${id}@${version}`
+            }
+        } catch (_e) { }
+
+        renderStudentsList(currentConfig)
+    } catch (e) {
+        logDebug('Failed to update verification codes:', e)
+    }
+}
+
+function updateVerificationCodesDebounced() {
+    if (verificationUpdateTimer) clearTimeout(verificationUpdateTimer)
+    verificationUpdateTimer = setTimeout(updateVerificationCodes, 500)
+}
+
 // Initialize
 window.addEventListener('DOMContentLoaded', () => {
     loadEditor()
@@ -650,6 +685,7 @@ window.addEventListener('DOMContentLoaded', () => {
     setupHandlers()
     try { initAuthorFeedback() } catch (_e) { }
     try { initAuthorTests() } catch (_e) { }
+    try { initVerificationTab(updateVerificationCodes) } catch (_e) { }
     // Show metadata tab by default so inputs are visible for tests
     try { document.querySelector('.tab-btn[data-tab="metadata"]').click() } catch (_e) { }
 })
@@ -716,6 +752,9 @@ function applyImportedConfig(obj) {
         // fallback: save raw
         saveAuthorConfigToLocalStorage(cfg)
     }
+
+    // Update verification codes after importing config
+    updateVerificationCodesDebounced()
 }
 
 // Draft Management Functions using imported storage functions

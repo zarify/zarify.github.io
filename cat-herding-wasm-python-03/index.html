@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>WASM Python - Cat Herding 03 | Headtilt</title>
+<meta name="keywords" content="ai, python, llm, agents, cat-herding, wasm-python">
+<meta name="description" content="Pre(r)amble
+This is part of a(n aspirationally) series of posts documenting some of the process of
+(building|cat herding an AI agent to build)
+an easily hosted Python teaching tool built with just front-end JS and a WASM port of
+MicroPython.
+
+You can find Part 1 here
+You can find Part 2 here
+
+This week I was really excited about getting the Abstract Syntax Tree feedback and
+testing working, as well as just tightening up the user experience a bit, hiding
+knobs and dials when they weren&rsquo;t used, etc. I&rsquo;m getting close to the end of my
+initial feature list!">
+<meta name="author" content="Rob">
+<link rel="canonical" href="https://headtilt.me/cat-herding-wasm-python-03/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.1d79e034ed3fae3cce466e1b13b697315f9998d1ba8d908def178611b372b49f.css" integrity="sha256-HXngNO0/rjzORm4bE7aXMV&#43;ZmNG6jZCN7xeGEbNytJ8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://headtilt.me/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://headtilt.me/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://headtilt.me/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://headtilt.me/apple-touch-icon.png">
+<link rel="mask-icon" href="https://headtilt.me/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://headtilt.me/cat-herding-wasm-python-03/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/css/formatting.css">
+
+
+
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://headtilt.me/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="https://headtilt.me/images/headtilt.png" alt="" aria-label="logo"
+                    height="30">Adjust your angle</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://headtilt.me/post" title="posts">
+                    <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/page/about/" title="about">
+                    <span><i class="fa-solid fa-circle-info"></i> about</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/categories/" title="categories">
+                    <span><i class="fa-solid fa-layer-group"></i> categories</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/tags/" title="tags">
+                    <span><i class="fa-solid fa-tags"></i> tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      WASM Python - Cat Herding 03
+    </h1>
+    <div class="post-meta"><span title='2025-09-07 05:55:27 +0800 AWST'>Sun, Sep 7, 2025</span>&nbsp;·&nbsp;Rob
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#preramble" aria-label="Pre(r)amble">Pre(r)amble</a></li>
+                <li>
+                    <a href="#what-we-had-before" aria-label="What we had before">What we had before</a></li>
+                <li>
+                    <a href="#whats-happened-since" aria-label="What&rsquo;s happened since">What&rsquo;s happened since</a><ul>
+                        
+                <li>
+                    <a href="#abstract-syntax-tree-feedback-and-tests" aria-label="Abstract Syntax Tree feedback and tests">Abstract Syntax Tree feedback and tests</a></li>
+                <li>
+                    <a href="#authoring-workflow-improvements" aria-label="Authoring workflow improvements">Authoring workflow improvements</a></li>
+                <li>
+                    <a href="#test-groups-and-run-conditions" aria-label="Test groups and run conditions">Test groups and run conditions</a></li>
+                <li>
+                    <a href="#user-editing-and-running-improvements" aria-label="User editing and running improvements">User editing and running improvements</a></li></ul>
+                </li>
+                <li>
+                    <a href="#aintrospection" aria-label="(A)Introspection">(A)Introspection</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h2 id="preramble">Pre(r)amble<a hidden class="anchor" aria-hidden="true" href="#preramble">#</a></h2>
+<p>This is part of a(n aspirationally) series of posts documenting some of the process of
+(building|cat herding an AI agent to build)
+an easily hosted Python teaching tool built with just front-end JS and a WASM port of
+MicroPython.</p>
+<ul>
+<li><a href="https://headtilt.me/cat-herding-wasm-python-01/">You can find Part 1 here</a></li>
+<li><a href="https://headtilt.me/cat-herding-wasm-python-02/">You can find Part 2 here</a></li>
+</ul>
+<p>This week I was really excited about getting the Abstract Syntax Tree feedback and
+testing working, as well as just tightening up the user experience a bit, hiding
+knobs and dials when they weren&rsquo;t used, etc. I&rsquo;m getting close to the end of my
+initial feature list!</p>
+<h2 id="what-we-had-before">What we had before<a hidden class="anchor" aria-hidden="true" href="#what-we-had-before">#</a></h2>
+<p>See <a href="https://headtilt.me/cat-herding-wasm-python-02/">last week&rsquo;s post</a> for
+some of the details and screenshots.</p>
+<ul>
+<li>Unit testing for user code (stdin/stdout/sterr)</li>
+<li>Methods for loading different programming problem configurations</li>
+<li>Basic authoring page for configuring configurations</li>
+</ul>
+<h2 id="whats-happened-since">What&rsquo;s happened since<a hidden class="anchor" aria-hidden="true" href="#whats-happened-since">#</a></h2>
+<p>Here are some screenshots of the latest version with some of the new features.</p>
+<style>
+    .image-gallery {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1%;
+        margin-left: -1% !important;
+    }
+
+    .image-gallery li {
+        list-style: none;
+        width: 19%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .image-gallery li a {
+        text-align: center;
+        text-decoration: none !important;
+        color: #777;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        justify-content: space-between;
+        box-shadow: none !important;
+    }
+
+    .image-gallery li a span {
+        display: block;
+        padding: 3px 0;
+        white-space: normal;
+        font-size: 0.8em;
+    }
+
+    .image-gallery li a img {
+        width: 100%;
+        display: block;
+    }
+
+     
+    @media (max-width: 1200px) {
+        .image-gallery li {
+            width: 24%;
+             
+        }
+    }
+
+    @media (max-width: 992px) {
+        .image-gallery li {
+            width: 32%;
+             
+        }
+    }
+
+    @media (max-width: 768px) {
+        .image-gallery li {
+            width: 49%;
+             
+        }
+    }
+
+    @media (max-width: 576px) {
+        .image-gallery li {
+            width: 100%;
+             
+        }
+    }
+</style>
+
+
+<ul class="image-gallery">
+    <li>
+        <a href="/gallery/clipy/week3/01_feedback_indicator.png" title="01_feedback_indicator" class="lightbox-image">
+            <img src="/gallery/clipy/week3/01_feedback_indicator.png" alt="01_feedback_indicator" title="01_feedback_indicator">
+            <span>01_feedback_indicator</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/clipy/week3/02_user_code_ui.png" title="02_user_code_ui" class="lightbox-image">
+            <img src="/gallery/clipy/week3/02_user_code_ui.png" alt="02_user_code_ui" title="02_user_code_ui">
+            <span>02_user_code_ui</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/clipy/week3/03_editor_feedback.png" title="03_editor_feedback" class="lightbox-image">
+            <img src="/gallery/clipy/week3/03_editor_feedback.png" alt="03_editor_feedback" title="03_editor_feedback">
+            <span>03_editor_feedback</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/clipy/week3/04_input_tests.png" title="04_input_tests" class="lightbox-image">
+            <img src="/gallery/clipy/week3/04_input_tests.png" alt="04_input_tests" title="04_input_tests">
+            <span>04_input_tests</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/clipy/week3/05_ast_tests.png" title="05_ast_tests" class="lightbox-image">
+            <img src="/gallery/clipy/week3/05_ast_tests.png" alt="05_ast_tests" title="05_ast_tests">
+            <span>05_ast_tests</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/clipy/week3/06_save_draft.png" title="06_save_draft" class="lightbox-image">
+            <img src="/gallery/clipy/week3/06_save_draft.png" alt="06_save_draft" title="06_save_draft">
+            <span>06_save_draft</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/clipy/week3/07_load_draft.png" title="07_load_draft" class="lightbox-image">
+            <img src="/gallery/clipy/week3/07_load_draft.png" alt="07_load_draft" title="07_load_draft">
+            <span>07_load_draft</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/clipy/week3/08_ast_builder_1.png" title="08_ast_builder_1" class="lightbox-image">
+            <img src="/gallery/clipy/week3/08_ast_builder_1.png" alt="08_ast_builder_1" title="08_ast_builder_1">
+            <span>08_ast_builder_1</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/clipy/week3/09_ast_builder_2.png" title="09_ast_builder_2" class="lightbox-image">
+            <img src="/gallery/clipy/week3/09_ast_builder_2.png" alt="09_ast_builder_2" title="09_ast_builder_2">
+            <span>09_ast_builder_2</span>
+        </a>
+    </li>
+    <li>
+        <a href="/gallery/clipy/week3/10_test_groups.png" title="10_test_groups" class="lightbox-image">
+            <img src="/gallery/clipy/week3/10_test_groups.png" alt="10_test_groups" title="10_test_groups">
+            <span>10_test_groups</span>
+        </a>
+    </li>
+    
+</ul>
+<h3 id="abstract-syntax-tree-feedback-and-tests">Abstract Syntax Tree feedback and tests<a hidden class="anchor" aria-hidden="true" href="#abstract-syntax-tree-feedback-and-tests">#</a></h3>
+<p>I had started playing around with Abstract Syntax Trees as a method for giving students
+feedback on their code in my old job, but since I wasn&rsquo;t in an engineering role I didn&rsquo;t
+have too much opportunity to implement them in anything other than limited scenarios.
+This project has been an opportunity to dig back into the topic and it&rsquo;s been pretty fun!</p>
+<p>The scenario author can now get reports on different types of language feature use in
+user code, interrogate the results (via a JS expression on the returned info), and provide
+feedback. Here are the different types of feedback available so far:</p>
+<ul>
+<li>Defined functions</li>
+<li>Variable usage</li>
+<li>Control structures</li>
+<li>Use of docstrings</li>
+<li>Defined classes and methods</li>
+<li>Import statements</li>
+<li>Magic numbers</li>
+<li>Exception handling</li>
+<li>Comprehensions</li>
+</ul>
+<p>Most of them can be narrowed down by name (e.g. has a certain variable been defined, used,
+modified, used type hints etc) or provide a general overview of their use which the author
+can then write a test for (e.g. are there any recursive functions defined). Requiring the
+author to write a JS expression isn&rsquo;t ideal since some of them are a bit clunky, but flexibility
+comes at a cost. When authors are writing an AST test or feedback item, they can provide
+some example Python code in the rule builder and run their rule against it in real time
+to check if it works.</p>
+<h3 id="authoring-workflow-improvements">Authoring workflow improvements<a hidden class="anchor" aria-hidden="true" href="#authoring-workflow-improvements">#</a></h3>
+<p>Authors can now save and load drafts using IndexedDB using the configuration ID and version.
+This makes it easier to develop and refine different scenario configs over time. The import
+and export to JSON file feature is still there too so configs can be stored somewhere other
+than the browser and loaded into a repo (or into the server config folder) when they&rsquo;re ready
+for use.</p>
+<p>I also tweaked the feedback and test builders so that only options that were relevant to
+the feedback or test being built were active. For example <code>stdout</code> checks obviously can&rsquo;t
+happen at edit time, so those are hidden from the builder UI unless the context is run time.</p>
+<h3 id="test-groups-and-run-conditions">Test groups and run conditions<a hidden class="anchor" aria-hidden="true" href="#test-groups-and-run-conditions">#</a></h3>
+<p>Test groups have been added, as well as run conditions for both test groups and individual
+tests within those groups. This means that groups and tests can be set to either:</p>
+<ul>
+<li>Always run</li>
+<li>Run only if the preceding test or group of tests passed</li>
+</ul>
+<p>In the example config that I put together this meant I could assemble three groups of tests:</p>
+<ul>
+<li>Input tests</li>
+<li>Output tests</li>
+<li>AST code analysis tests</li>
+</ul>
+<p>Each one of the groups ran independently, but I could have the tests within each of the groups
+only run if the previous test in the group ran, providing scaffolded feedback about how the
+program was responding. For example, in the AST tests, if the user has not defined any
+variables we can provide targeted feedback. If they have defined a variable but not used it,
+different feedback.</p>
+<h3 id="user-editing-and-running-improvements">User editing and running improvements<a hidden class="anchor" aria-hidden="true" href="#user-editing-and-running-improvements">#</a></h3>
+<p>Apart from a few UI changes, I&rsquo;ve made some QoL improvements to the user side of the app as
+well.</p>
+<ul>
+<li>Ctrl/Cmd-enter can be used to run code when the edito has focus</li>
+<li>A feedback activity indicator has been added to the tab to show when background feedback as appeared</li>
+<li>Added a download button to the code workspace so users can take their project and continue it elsewhere</li>
+</ul>
+<h2 id="aintrospection">(A)Introspection<a hidden class="anchor" aria-hidden="true" href="#aintrospection">#</a></h2>
+<p>I use Github Copilot and pay for the Pro tier, so have some number of &ldquo;premium&rdquo; requests per
+month. I tend to use Claude for the model, which is one of their &ldquo;1x&rdquo; models, and ran out
+requests towards the end of August, leaving me with a choice of GPT-4.1, GPT-4o, GPT-5 mini, and Grok Code Fast 1 (which I tried briefly and it was a complete disaster).</p>
+<p>Running out of tokens was an interesting experience, since Claude is so damned good at implementing
+new features (even if the pseudo-personality is insufferable). Even after the month rolled over
+I found myself thinking more about some of the things that I had cheerfully just thrown at the
+LLM the previous month, and doing things myself, as well as model switching for different types of
+tasks. GPT-5 mini has generally been better about considered bug fixes than Claude (and is currently
+in the 0x free tier model list), so I would get Claude to kick off a set of features, and then
+when it got stuck, I&rsquo;d switch to GPT-5 mini for the debugging and fixing.</p>
+<p>I continue to be amazed and how good the models can be at rapidly implementing fairly significant new
+features. For example, the AST rules, building the analyzer, and wiring it into the app took maybe
+half an hour (with a few hours more of me refining what it&rsquo;d done).</p>
+<p>On the other hand they are so spectacularly bad at other things. For example last night I wanted
+to make the test code editing space in the AST rule builder a CodeMirror editor so the author could
+get syntax highlighting, indenting etc. The result was a messed up gutter and line numbers that
+appeared over the top of the code. Around an hour of trying to get the agent to fix things (both
+Claude and GPT-5 mini) I finally really read the code myself and I had to write one line of CSS.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://headtilt.me/tags/ai/">Ai</a></li>
+      <li><a href="https://headtilt.me/tags/python/">Python</a></li>
+      <li><a href="https://headtilt.me/tags/llm/">Llm</a></li>
+      <li><a href="https://headtilt.me/tags/agents/">Agents</a></li>
+      <li><a href="https://headtilt.me/tags/cat-herding/">Cat-Herding</a></li>
+      <li><a href="https://headtilt.me/tags/wasm-python/">Wasm-Python</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>Rob Poulter</span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a><script type="text/javascript" src="/js/lightbox.js"></script>
+<link rel="stylesheet" href="/css/lightbox.css">
+<script data-goatcounter="https://headtilt_me.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

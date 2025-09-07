@@ -530,6 +530,8 @@ export function activateSideTab(name) {
             try { instrPanel.style.display = 'none' } catch (_e) { }
             try { termPanel.style.display = 'none' } catch (_e) { }
             try { if (fbPanel) fbPanel.style.display = 'block' } catch (_e) { }
+            // Clear new-feedback badge when user views the feedback tab
+            try { if (fbBtn && fbBtn.classList) fbBtn.classList.remove('has-new-feedback') } catch (_e) { }
         } else {
             instrBtn.setAttribute('aria-selected', 'true')
             termBtn.setAttribute('aria-selected', 'false')

@@ -5,6 +5,9 @@
 import { loadConfig, initializeInstructions, getConfig, getConfigIdentity, getConfigKey, validateAndNormalizeConfig, fetchAvailableServerConfigs, loadConfigFromStringOrUrl, loadConfigFromFile, setCurrentConfig, saveCurrentConfig, loadCurrentConfig, clearCurrentConfig, isConfigCompatibleWithSnapshot, debugCurrentConfig } from './js/config.js'
 import { $ } from './js/utils.js'
 
+// Zero-knowledge verification system
+import { getStudentIdentifier, setStudentIdentifier } from './js/zero-knowledge-verification.js'
+
 import { openModal, closeModal } from './js/modals.js'
 
 // Terminal and UI
@@ -524,7 +527,10 @@ async function main() {
         setupSnapshotSystem()
         setupDownloadSystem()
 
-        // Wire reset config button if present: restore loaded config from remote and refresh UI
+        // 10. Initialize student identifier input
+        initializeStudentIdentifier()
+
+        // 11. Wire reset config button if present: restore loaded config from remote and refresh UI
         try {
             const resetBtn = document.getElementById('reset-config-btn')
             if (resetBtn) {
@@ -606,7 +612,7 @@ async function main() {
             }
         } catch (_e) { }
 
-        // 10. Wire up the Run button
+        // 12. Wire up the Run button
         const runBtn = $('run')
         if (runBtn) {
             runBtn.addEventListener('click', async () => {
@@ -643,6 +649,23 @@ async function main() {
                 await runPythonCode(code, cfg)
             })
         }
+
+        // Keyboard shortcut: Ctrl+Enter (Windows/Linux) or Cmd+Enter (macOS) to run when editor has focus
+        try {
+            document.addEventListener('keydown', (ev) => {
+                try {
+                    if (ev.key !== 'Enter') return
+                    if (!(ev.ctrlKey || ev.metaKey)) return
+                    // Only trigger when editor has focus to avoid accidental runs
+                    const editorHasFocus = (cm && typeof cm.hasFocus === 'function') ? cm.hasFocus() : (document.activeElement === textarea)
+                    if (!editorHasFocus) return
+                    ev.preventDefault()
+                    if (runBtn && typeof runBtn.click === 'function') {
+                        runBtn.click()
+                    }
+                } catch (_e) { }
+            })
+        } catch (_e) { }
 
         // Top-level helper: apply a loaded/normalized config to the workspace (rewrite FS & refresh UI)
         async function applyConfigToWorkspace(newCfg) {
@@ -766,7 +789,10 @@ async function main() {
 
         // Wire config modal UI (open on header click, server list population, URL load, file upload/drop)
         try {
-            const configInfoEl = document.querySelector('.config-info') || document.querySelector('.config-title-line')
+            // Prefer the visible config title element for activation so
+            // interactive controls inside the header (reset button, student ID input)
+            // don't accidentally open the config modal via event bubbling.
+            const configInfoEl = document.querySelector('.config-title-line') || document.querySelector('.config-info')
             const configModal = document.getElementById('config-modal')
             if (configInfoEl && configModal) {
                 // Handle authoring mode setup
@@ -1092,6 +1118,47 @@ async function main() {
         if (instructionsContent) {
             instructionsContent.textContent = `Failed to initialize application: ${error.message || error}`
         }
+    }
+}
+
+// Initialize the student identifier input field
+function initializeStudentIdentifier() {
+    try {
+        const studentIdInput = document.getElementById('student-id-input')
+        if (!studentIdInput) return
+
+        // Keep layout simple: student-id container is inline and will flow
+        // naturally after the config title. Avoid absolute positioning to
+        // prevent overlap on narrow viewports.
+
+        // Load saved student identifier
+        const savedId = getStudentIdentifier()
+        if (savedId) {
+            studentIdInput.value = savedId
+        }
+
+        // Save on input change with debouncing
+        let timeoutId = null
+        studentIdInput.addEventListener('input', () => {
+            clearTimeout(timeoutId)
+            timeoutId = setTimeout(() => {
+                setStudentIdentifier(studentIdInput.value)
+                logDebug('Student identifier updated:', studentIdInput.value || '(cleared)')
+            }, 500) // 500ms debounce
+        })
+
+        // Save immediately on blur
+        studentIdInput.addEventListener('blur', () => {
+            clearTimeout(timeoutId)
+            setStudentIdentifier(studentIdInput.value)
+        })
+
+        // Initial alignment after DOM/setup
+        try { if (typeof alignStudentId === 'function') alignStudentId() } catch (_e) { }
+
+        logDebug('Student identifier input initialized')
+    } catch (e) {
+        logWarn('Failed to initialize student identifier:', e)
     }
 }
 

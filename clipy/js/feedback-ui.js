@@ -1,5 +1,6 @@
 import { $ } from './utils.js'
 import { debug as logDebug } from './logger.js'
+import { getStudentIdentifier, generateVerificationCode, shouldShowVerificationCode } from './zero-knowledge-verification.js'
 
 let _matches = []
 let _config = { feedback: [] }
@@ -436,24 +437,10 @@ function renderList() {
             const sev = (entry.severity || 'success').toLowerCase()
             wrapper.classList.add('severity-' + sev)
 
-            // title row with icon
+            // title row (icon moved to the message block below)
             const titleRow = document.createElement('div')
             titleRow.className = 'feedback-title-row'
 
-            const icon = document.createElement('span')
-            icon.className = 'feedback-icon'
-            if (sev === 'hint') {
-                icon.textContent = '💡'
-            } else if (sev === 'warning') {
-                icon.textContent = '⚠️'
-            } else if (sev === 'info') {
-                icon.textContent = 'ℹ️'
-            } else if (sev === 'success') {
-                icon.textContent = '😊'
-            } else {
-                icon.textContent = '•'
-            }
-            titleRow.appendChild(icon)
 
             const titleEl = document.createElement('div')
             titleEl.className = 'feedback-title'
@@ -466,7 +453,22 @@ function renderList() {
             if (matched && matched.message) {
                 const msg = document.createElement('div')
                 msg.className = 'feedback-msg feedback-msg-matched matched-' + sev
+                // set the message text first, then insert the severity icon before it
                 msg.textContent = matched.message
+                const iconMsg = document.createElement('span')
+                iconMsg.className = 'feedback-icon'
+                if (sev === 'hint') {
+                    iconMsg.textContent = '💡'
+                } else if (sev === 'warning') {
+                    iconMsg.textContent = '⚠️'
+                } else if (sev === 'info') {
+                    iconMsg.textContent = 'ℹ️'
+                } else if (sev === 'success') {
+                    iconMsg.textContent = '😊'
+                } else {
+                    iconMsg.textContent = '•'
+                }
+                try { msg.insertBefore(iconMsg, msg.firstChild) } catch (_e) { }
                 wrapper.appendChild(msg)
             } else if (entry.visibleByDefault) {
                 // Show an empty placeholder or hint for visible-by-default entries
@@ -550,11 +552,29 @@ export function setFeedbackConfig(cfg) {
 
     _config = normalizedCfg
     renderList()
+    // Mark feedback tab as having new feedback if there are visible entries
+    try {
+        const fbBtn = document.getElementById('tab-btn-feedback')
+        const hasVisible = Array.isArray(_config.feedback) && _config.feedback.length > 0
+        if (fbBtn) {
+            if (hasVisible && fbBtn.getAttribute('aria-selected') !== 'true') fbBtn.classList.add('has-new-feedback')
+            else fbBtn.classList.remove('has-new-feedback')
+        }
+    } catch (_e) { }
 }
 
 export function setFeedbackMatches(matches) {
     _matches = matches || []
     renderList()
+    try {
+        const fbBtn = document.getElementById('tab-btn-feedback')
+        // If any match is present and the feedback tab isn't selected, mark it
+        const hasMatch = Array.isArray(_matches) && _matches.length > 0
+        if (fbBtn) {
+            if (hasMatch && fbBtn.getAttribute('aria-selected') !== 'true') fbBtn.classList.add('has-new-feedback')
+            else if (!hasMatch) fbBtn.classList.remove('has-new-feedback')
+        }
+    } catch (_e) { }
 }
 
 export function setTestResults(results) {
@@ -597,6 +617,14 @@ export function setTestResults(results) {
         } catch (_e) { }
     } catch (e) { }
     renderList()
+    try {
+        const fbBtn = document.getElementById('tab-btn-feedback')
+        const visibleCount = Array.isArray(_testResults) ? _testResults.filter(r => !r.skipped).length : 0
+        if (fbBtn) {
+            if (visibleCount > 0 && fbBtn.getAttribute('aria-selected') !== 'true') fbBtn.classList.add('has-new-feedback')
+            else if (visibleCount === 0) fbBtn.classList.remove('has-new-feedback')
+        }
+    } catch (_e) { }
 }
 
 export function appendTestOutput({ id, type, text }) {
@@ -693,6 +721,41 @@ function createResultsModal() {
     title.style.marginBottom = '12px'
     box.appendChild(title)
 
+    // Verification code display area (initially hidden)
+    const verificationDiv = document.createElement('div')
+    verificationDiv.id = 'verification-code-display'
+    verificationDiv.style.display = 'none'
+    verificationDiv.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)'
+    verificationDiv.style.color = 'white'
+    verificationDiv.style.padding = '12px 16px'
+    verificationDiv.style.borderRadius = '8px'
+    verificationDiv.style.marginBottom = '16px'
+    verificationDiv.style.textAlign = 'center'
+    verificationDiv.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)'
+
+    const verificationTitle = document.createElement('div')
+    verificationTitle.style.fontSize = '0.9em'
+    verificationTitle.style.marginBottom = '4px'
+    verificationTitle.textContent = '🎉 All tests passed! Your verification code:'
+    verificationDiv.appendChild(verificationTitle)
+
+    const verificationCode = document.createElement('div')
+    verificationCode.id = 'verification-code-text'
+    verificationCode.style.fontSize = '1.3em'
+    verificationCode.style.fontWeight = 'bold'
+    verificationCode.style.fontFamily = 'monospace'
+    verificationCode.style.letterSpacing = '2px'
+    verificationDiv.appendChild(verificationCode)
+
+    const verificationSubtext = document.createElement('div')
+    verificationSubtext.style.fontSize = '0.8em'
+    verificationSubtext.style.marginTop = '6px'
+    verificationSubtext.style.opacity = '0.9'
+    verificationSubtext.textContent = 'Share this code with your teacher as proof of completion'
+    verificationDiv.appendChild(verificationSubtext)
+
+    box.appendChild(verificationDiv)
+
     const content = document.createElement('div')
     content.className = 'test-results-content'
     box.appendChild(content)
@@ -751,6 +814,35 @@ function closeTestResultsModal() {
         if (modal._detachAccessibility) modal._detachAccessibility()
         modal.remove()
     } catch (e) { modal.style.display = 'none' }
+}
+
+async function handleVerificationCodeDisplay(results, config) {
+    const verificationDiv = document.getElementById('verification-code-display')
+    const verificationCodeText = document.getElementById('verification-code-text')
+
+    if (!verificationDiv || !verificationCodeText) return
+
+    try {
+        // Check if verification code should be shown
+        const allTestsPassed = shouldShowVerificationCode(results)
+        const studentId = getStudentIdentifier()
+
+        if (allTestsPassed && studentId) {
+            // Generate verification code
+            const verificationCode = await generateVerificationCode(config, studentId, true)
+
+            if (verificationCode) {
+                verificationCodeText.textContent = verificationCode.toUpperCase()
+                verificationDiv.style.display = 'block'
+                logDebug('Displaying verification code:', verificationCode)
+            }
+        } else {
+            verificationDiv.style.display = 'none'
+        }
+    } catch (e) {
+        logDebug('Error handling verification code display:', e)
+        verificationDiv.style.display = 'none'
+    }
 }
 
 function showTestResultsModal(results) {
@@ -818,6 +910,9 @@ function showTestResultsModal(results) {
         // Legacy format - render normally
         renderTestResults(results, cfgMap, groupMap, false)
     }
+
+    // Handle verification code display
+    handleVerificationCodeDisplay(results, _config)
 
     // Focus for a11y
     const box = modal.querySelector('.test-results-box')
