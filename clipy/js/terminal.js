@@ -506,15 +506,16 @@ export function activateSideTab(name) {
         const termPanel = $('terminal')
         const fbPanel = $('feedback')
 
-        if (!instrBtn || !termBtn || !instrPanel || !termPanel) return
+    // Be tolerant of missing elements (some pages or embed targets may
+    // omit certain panels). Only operate on elements that exist.
 
         if (name === 'terminal') {
-            instrBtn.setAttribute('aria-selected', 'false')
-            termBtn.setAttribute('aria-selected', 'true')
-            instrPanel.style.display = 'none'
-            termPanel.style.display = 'block'
-            if (fbBtn) fbBtn.setAttribute('aria-selected', 'false')
-            if (fbPanel) fbPanel.style.display = 'none'
+            try { instrBtn && instrBtn.setAttribute('aria-selected', 'false') } catch (_e) { }
+            try { termBtn && termBtn.setAttribute('aria-selected', 'true') } catch (_e) { }
+            try { instrPanel && (instrPanel.style.display = 'none') } catch (_e) { }
+            try { termPanel && (termPanel.style.display = 'block') } catch (_e) { }
+            try { fbBtn && fbBtn.setAttribute('aria-selected', 'false') } catch (_e) { }
+            try { fbPanel && (fbPanel.style.display = 'none') } catch (_e) { }
             // Respect global suppression used during app initialization to
             // avoid stealing focus while the app is still booting.
             try {
@@ -524,21 +525,21 @@ export function activateSideTab(name) {
             } catch (_e) { }
         } else if (name === 'feedback') {
             // feedback tab
-            try { instrBtn.setAttribute('aria-selected', 'false') } catch (_e) { }
-            try { termBtn.setAttribute('aria-selected', 'false') } catch (_e) { }
-            try { fbBtn.setAttribute('aria-selected', 'true') } catch (_e) { }
-            try { instrPanel.style.display = 'none' } catch (_e) { }
-            try { termPanel.style.display = 'none' } catch (_e) { }
-            try { if (fbPanel) fbPanel.style.display = 'block' } catch (_e) { }
+            try { instrBtn && instrBtn.setAttribute('aria-selected', 'false') } catch (_e) { }
+            try { termBtn && termBtn.setAttribute('aria-selected', 'false') } catch (_e) { }
+            try { fbBtn && fbBtn.setAttribute('aria-selected', 'true') } catch (_e) { }
+            try { instrPanel && (instrPanel.style.display = 'none') } catch (_e) { }
+            try { termPanel && (termPanel.style.display = 'none') } catch (_e) { }
+            try { fbPanel && (fbPanel.style.display = 'block') } catch (_e) { }
             // Clear new-feedback badge when user views the feedback tab
             try { if (fbBtn && fbBtn.classList) fbBtn.classList.remove('has-new-feedback') } catch (_e) { }
         } else {
-            instrBtn.setAttribute('aria-selected', 'true')
-            termBtn.setAttribute('aria-selected', 'false')
-            if (fbBtn) fbBtn.setAttribute('aria-selected', 'false')
-            instrPanel.style.display = 'block'
-            termPanel.style.display = 'none'
-            if (fbPanel) fbPanel.style.display = 'none'
+            try { instrBtn && instrBtn.setAttribute('aria-selected', 'true') } catch (_e) { }
+            try { termBtn && termBtn.setAttribute('aria-selected', 'false') } catch (_e) { }
+            try { fbBtn && fbBtn.setAttribute('aria-selected', 'false') } catch (_e) { }
+            try { instrPanel && (instrPanel.style.display = 'block') } catch (_e) { }
+            try { termPanel && (termPanel.style.display = 'none') } catch (_e) { }
+            try { fbPanel && (fbPanel.style.display = 'none') } catch (_e) { }
         }
     } catch (_e) { }
 }
@@ -548,9 +549,19 @@ export function setupSideTabs() {
         const instrBtn = $('tab-btn-instructions')
         const termBtn = $('tab-btn-terminal')
         const fbBtn = $('tab-btn-feedback')
-        if (instrBtn) instrBtn.addEventListener('click', () => activateSideTab('instructions'))
-        if (termBtn) termBtn.addEventListener('click', () => activateSideTab('terminal'))
-        if (fbBtn) fbBtn.addEventListener('click', () => activateSideTab('feedback'))
+        if (instrBtn) {
+            instrBtn.addEventListener('click', () => activateSideTab('instructions'))
+            // pointerdown improves responsiveness on touch devices (iPhone)
+            instrBtn.addEventListener('pointerdown', () => activateSideTab('instructions'), { passive: true })
+        }
+        if (termBtn) {
+            termBtn.addEventListener('click', () => activateSideTab('terminal'))
+            termBtn.addEventListener('pointerdown', () => activateSideTab('terminal'), { passive: true })
+        }
+        if (fbBtn) {
+            fbBtn.addEventListener('click', () => activateSideTab('feedback'))
+            fbBtn.addEventListener('pointerdown', () => activateSideTab('feedback'), { passive: true })
+        }
 
         // Default to instructions tab (original behavior)
         activateSideTab('instructions')
