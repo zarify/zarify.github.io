@@ -18,8 +18,15 @@
   <header>
     <h1>Client-side Python Playground</h1>
     <div class="config-info">
-      <span class="config-title-line">Loading...</span>
-      <button id="reset-config-btn" class="btn btn-ghost" title="Reset to loaded config" style="margin-left:8px">
+      <div class="config-stack">
+        <span class="config-title-line">Loading...</span>
+        <div class="student-id-container">
+          <input id="student-id-input" type="text" placeholder="Student ID (optional)"
+            title="Enter your student ID for test verification"
+            style="font-size:0.85em;padding:4px 8px;border:1px solid #ddd;border-radius:4px;min-width:160px;max-width:360px;width:220px" />
+        </div>
+      </div>
+      <button id="reset-config-btn" class="btn btn-ghost" title="Reset to loaded config" style="margin-left:12px">
         <span class="icon" aria-hidden="true">↺</span>
       </button>
     </div>
@@ -55,7 +62,7 @@
             <input id="stdin-box" class="term-prompt-input" placeholder="Type input and press Enter" autocomplete="off"
               aria-label="Program stdin input" />
             <button id="stdin-send" class="btn btn-ghost" title="Send stdin">
-              <span class="icon" aria-hidden="true">✉️</span>
+              <span class="icon" aria-hidden="true">&uarr;</span>
               <span>Send</span>
             </button>
           </form>
@@ -83,7 +90,7 @@
       <div class="editor-controls">
         <div class="editor-actions" style="display:flex;align-items:center;">
           <div style="display:flex;gap:8px;align-items:center">
-            <button id="run" class="btn btn-primary" title="Run">
+            <button id="run" class="btn btn-primary" title="Run (Ctrl/Cmd+Enter)" aria-label="Run (Ctrl/Cmd+Enter)">
               <span class="icon" aria-hidden="true">▶️</span>
               <span>Run</span>
             </button>
