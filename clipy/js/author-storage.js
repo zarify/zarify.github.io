@@ -3,6 +3,7 @@
 // is not present so existing tests and usage that expect sync behaviour keep
 // working.
 import { saveSetting, loadSetting, clearSetting } from './unified-storage.js'
+import { error as logError, warn as logWarn } from './logger.js'
 
 // Always use unified-storage async APIs. Do not read/write localStorage.
 // Tests should use the in-memory fallback provided by unified-storage.
@@ -11,7 +12,7 @@ let getAuthorConfigFromLocalStorage = async function () {
         const result = await loadSetting('author_config')
         return result
     } catch (e) {
-        console.error('[author-storage] getAuthorConfigFromLocalStorage failed:', e)
+        logError('[author-storage] getAuthorConfigFromLocalStorage failed:', e)
         return null
     }
 }
@@ -21,7 +22,7 @@ let saveAuthorConfigToLocalStorage = async function (obj) {
         await saveSetting('author_config', obj)
         return true
     } catch (e) {
-        console.error('[author-storage] saveAuthorConfigToLocalStorage failed:', e)
+        logError('[author-storage] saveAuthorConfigToLocalStorage failed:', e)
         return false
     }
 }

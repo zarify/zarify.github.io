@@ -1,10 +1,10 @@
 // Interactive helpers for authoring test entries
+import { debug as logDebug, warn as logWarn, error as logError } from './logger.js'
 // - Renders a small UI above the existing #tests-editor textarea
 // - Allows add/edit/delete/reorder of tests
 // - Keeps the textarea JSON in sync (so autosave in author-page.js continues to work)
 
 import { openModal as openModalHelper, closeModal as closeModalHelper } from './modals.js'
-import { error as logError } from './logger.js'
 import { buildASTTestForm, createDefaultASTTest } from './ast-test-builder.js'
 
 function $(sel, root = document) { return root.querySelector(sel) }
@@ -1320,10 +1320,10 @@ export function initAuthorTests() {
     try {
         if (window.Config && window.Config.current) {
             window.Config.current.tests = testConfig
-            console.log('[author-tests] Initial sync with window.Config.current.tests', testConfig)
+            logDebug('[author-tests] Initial sync with window.Config.current.tests', testConfig)
         }
     } catch (e) {
-        console.warn('[author-tests] Failed initial global config sync:', e)
+        logWarn('[author-tests] Failed initial global config sync:', e)
     }
 
     function render() {
@@ -1411,10 +1411,10 @@ export function initAuthorTests() {
             if (window.Config && window.Config.current) {
                 // Update the global config with the new tests structure
                 window.Config.current.tests = testConfig
-                console.log('[author-tests] Updated window.Config.current.tests', testConfig)
+                logDebug('[author-tests] Updated window.Config.current.tests', testConfig)
             }
         } catch (e) {
-            console.warn('[author-tests] Failed to update global config:', e)
+            logWarn('[author-tests] Failed to update global config:', e)
         }
     }
 
@@ -1889,10 +1889,10 @@ export function initAuthorTests() {
         try {
             if (window.Config && window.Config.current) {
                 window.Config.current.tests = testConfig
-                console.log('[author-tests] Updated window.Config.current.tests from textarea input', testConfig)
+                logDebug('[author-tests] Updated window.Config.current.tests from textarea input', testConfig)
             }
         } catch (e) {
-            console.warn('[author-tests] Failed to update global config from textarea:', e)
+            logWarn('[author-tests] Failed to update global config from textarea:', e)
         }
     })
 

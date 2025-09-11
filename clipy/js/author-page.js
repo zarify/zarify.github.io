@@ -409,15 +409,15 @@ function setupHandlers() {
     })
     $('add-file').addEventListener('click', () => {
         const name = prompt('File path (e.g. /lib/util.py)')
-        console.log('[author-page] add-file clicked, prompt ->', name)
+        logDebug('[author-page] add-file clicked, prompt ->', name)
         if (!name) return
         files[name] = ''
-        console.log('[author-page] files after add:', Object.keys(files))
+        logDebug('[author-page] files after add:', Object.keys(files))
         renderFileList()
         openFile(name)
         debounceSave()
     })
-    console.log('[author-page] setupHandlers: add-file listener attached')
+    logDebug('[author-page] setupHandlers: add-file listener attached')
     $('file-upload').addEventListener('change', handleUpload)
 
     // Back to app navigation with session flag
@@ -808,10 +808,10 @@ async function applyImportedConfig(obj) {
             const saved = await getAuthorConfigFromLocalStorage()
             const savedPreview = JSON.stringify(saved || {}).slice(0, 2000)
             const origPreview = JSON.stringify(norm || {}).slice(0, 2000)
-            console.log('[author-page] verify saved author_config, match=', savedPreview === origPreview)
-            if (savedPreview !== origPreview) console.log('[author-page] savedPreview=', savedPreview)
+            logDebug('[author-page] verify saved author_config, match=', savedPreview === origPreview)
+            if (savedPreview !== origPreview) logDebug('[author-page] savedPreview=', savedPreview)
         } catch (e) {
-            console.log('[author-page] verify read-back failed', e && e.message)
+            logWarn('[author-page] verify read-back failed', e && e.message)
         }
     } catch (e) {
         // fallback: save raw
