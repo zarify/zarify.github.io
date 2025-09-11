@@ -79,7 +79,7 @@ export async function forceClose(path) {
     const FileManager = getFileManager()
 
     // delete from storage without confirmation
-    try { FileManager.delete(n) } catch (_e) { }
+    try { await FileManager.delete(n) } catch (_e) { }
 
     openTabs = openTabs.filter(x => x !== n)
     if (active === n) {
@@ -100,19 +100,46 @@ export async function closeTab(path) {
     const n = _normalizePath(path)
     const FileManager = getFileManager()
 
+    appendTerminalDebug('TabManager.closeTab called -> ' + n)
+
     // delete from storage and close tab — use accessible confirm modal
     try {
         const ok = await showConfirmModal('Close and delete', 'Close and delete file "' + n + '"? This will remove it from storage.')
+        appendTerminalDebug('TabManager.closeTab confirmation -> ' + ok)
         if (!ok) return
     } catch (_e) {
+        appendTerminalDebug('TabManager.closeTab confirmation error -> ' + _e)
         return
     }
 
-    FileManager.delete(n)
+    appendTerminalDebug('TabManager.closeTab deleting file -> ' + n)
+    try {
+        await FileManager.delete(n)
+        appendTerminalDebug('TabManager.closeTab file deleted -> ' + n)
+    } catch (_e) {
+        appendTerminalDebug('TabManager.closeTab delete error -> ' + _e)
+    }
+
+    // Also attempt to remove any copy that may exist in the runtime FS (interpreter).
+    // Some runtime FS implementations are available at window.__ssg_runtime_fs (Emscripten/MicroPython).
+    try {
+        const fs = typeof window !== 'undefined' ? window.__ssg_runtime_fs : null
+        if (fs) {
+            try {
+                if (typeof fs.unlink === 'function') fs.unlink(n)
+                else if (typeof fs.unlinkSync === 'function') fs.unlinkSync(n)
+                appendTerminalDebug('TabManager.closeTab runtime fs unlinked -> ' + n)
+            } catch (_e) { }
+        }
+    } catch (_e) { }
+
+    appendTerminalDebug('TabManager.closeTab before openTabs filter -> ' + openTabs.join(','))
     openTabs = openTabs.filter(x => x !== n)
+    appendTerminalDebug('TabManager.closeTab after openTabs filter -> ' + openTabs.join(','))
 
     if (active === n) {
         active = openTabs.length ? openTabs[openTabs.length - 1] : null
+        appendTerminalDebug('TabManager.closeTab new active tab -> ' + active)
     }
 
     if (active) {
@@ -123,7 +150,9 @@ export async function closeTab(path) {
         else if (textarea) textarea.value = ''
     }
 
+    appendTerminalDebug('TabManager.closeTab calling render')
     render()
+    appendTerminalDebug('TabManager.closeTab completed -> ' + n)
 }
 
 // Close a tab from the UI without deleting the underlying storage entry.

@@ -298,7 +298,7 @@ export function initializeInstructions(cfg) {
                     // Try to dynamically load highlight.js if it's not already present.
                     try {
                         const script = document.createElement('script')
-                        script.src = 'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.8.0/build/highlight.min.js'
+                        script.src = './vendor/highlight.min.js'
                         script.async = true
                         script.onload = () => {
                             try {

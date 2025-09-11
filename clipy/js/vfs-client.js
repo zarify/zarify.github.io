@@ -138,12 +138,11 @@ function setupNotificationSystem() {
                     scheduleMirrorSave(n, content)
                 } catch (_e) { }
 
-                // Queue the path for the UI to open later via the existing pending-tabs flow.
-                // Avoid calling TabManager.openTab/refresh directly from here to prevent
-                // write->notify->UI-write recursion and timing races. The UI reload/sync
-                // logic will process `__ssg_pending_tabs` and open tabs at a safe point.
+                // Queue the path for the UI to open later via the existing pending-tabs flow,
+                // but only for actual file writes (content != null). For deletions (content == null),
+                // don't queue the file to be reopened.
                 try {
-                    if (n !== MAIN_FILE) {
+                    if (n !== MAIN_FILE && content != null) {
                         try { window.__ssg_pending_tabs = (window.__ssg_pending_tabs || []).concat([n]) } catch (_e) { }
                     }
                 } catch (_e) { }
@@ -202,7 +201,7 @@ export function createNotificationSystem(host = window) {
                     } catch (_e) { }
 
                     try {
-                        if (n !== MAIN_FILE) {
+                        if (n !== MAIN_FILE && content != null) {
                             try { host.__ssg_pending_tabs = (host.__ssg_pending_tabs || []).concat([n]) } catch (_e) { }
                         }
                     } catch (_e) { }

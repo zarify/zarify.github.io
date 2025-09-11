@@ -163,9 +163,9 @@ function deleteFile(path) {
         }
     }
 
-    // Re-render the file list and save
+    // Re-render the file list and save immediately (not debounced)
     renderFileList()
-    debounceSave()
+    saveToLocalStorage()
 }
 
 async function saveToLocalStorage() {
