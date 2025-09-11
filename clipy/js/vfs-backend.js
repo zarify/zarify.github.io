@@ -4,6 +4,26 @@
 const DB_NAME = 'ssg_vfs_db'
 const STORE_NAME = 'files'
 
+// Helper: decode ArrayBuffer/Uint8Array to UTF-8 string with fallbacks
+function decodeToString(buf) {
+    if (buf == null) return buf
+    try {
+        if (typeof buf === 'string') return buf
+        // ArrayBuffer or TypedArray view
+        if (buf instanceof ArrayBuffer) buf = new Uint8Array(buf)
+        if (ArrayBuffer.isView(buf)) {
+            if (typeof TextDecoder !== 'undefined') return new TextDecoder('utf-8').decode(buf)
+            try {
+                // Node fallback
+                const util = require && require('util')
+                if (util && util.TextDecoder) return new util.TextDecoder('utf-8').decode(buf)
+            } catch (_) { }
+            try { return Buffer.from(buf).toString('utf8') } catch (_) { return String(buf) }
+        }
+        return String(buf)
+    } catch (e) { return String(buf) }
+}
+
 function normalizePath(p) {
     if (typeof p !== 'string') p = String(p || '')
     p = p.trim().replace(/\\/g, '/')
@@ -128,7 +148,8 @@ async function createIndexedDBBackend() {
             const files = listFilesFromFS(FS, '/')
             for (const p of files) {
                 try {
-                    const content = typeof FS.readFile === 'function' ? FS.readFile(p, { encoding: 'utf8' }) : null
+                    const raw = typeof FS.readFile === 'function' ? FS.readFile(p, { encoding: 'utf8' }) : null
+                    const content = raw != null ? decodeToString(raw) : null
                     if (content != null) await this.write(p, content)
                 } catch (e) {
                     if (window.__ssg_debug_logs) {

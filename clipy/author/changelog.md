@@ -1,7 +1,21 @@
+## 2025-09-11
+- Change: Removing reliance on localStorage in favour of indexedDB (issues with dual storage mechanisms - hopefully this didn't break things)
+- Fix: Tab focus on loading to ensure `main.py` is selected.
+
+## 2025-09-10
+- Enhancement: Check AST matcher expressions for syntax and truthy values
+- Enhancement: Test builder modal now has a sticky header like Feedback builder modals
+
+## 2025-09-09
+- Fix: Tests now receive the full user workspace, not just `main.py`
+- Enhancement: Authoring now allows files to be added to each test
+- Enhancement: Tests now allow for exact or partial matching
+
 ## 2025-09-07
 - Feature: Student verification codes
   - Verification codes for students when all tests are passed
   - List of student IDs and verification codes in authoring with list of codes for current config
+- Fix: Changed feedback panel IDs because they got hidden by some ad blockers 🫠
 
 ## 2025-09-06
 - Fix: Saving drafts in authoring mode won't create multiple copies

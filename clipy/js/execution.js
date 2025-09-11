@@ -142,31 +142,34 @@ async function syncVFSAfterRun() {
             appendTerminalDebug('VFS synced from runtime FS after execution')
         } else {
             // ensure localStorage fallback is updated for MAIN_FILE so tests can read it
+            // Only update the legacy localStorage mirror when IndexedDB is not available
             try {
-                // Prefer the authoritative FileManager copy of MAIN_FILE when available.
-                try {
-                    const FileManager = getFileManager()
-                    let mainContent = null
-                    if (FileManager && typeof FileManager.read === 'function') {
-                        mainContent = FileManager.read(MAIN_FILE)
-                    }
-                    // Fallback to the current editor content only if FileManager doesn't have MAIN_FILE
-                    if (mainContent == null) {
+                if (typeof window !== 'undefined' && !window.indexedDB) {
+                    // Prefer the authoritative FileManager copy of MAIN_FILE when available.
+                    try {
+                        const FileManager = getFileManager()
+                        let mainContent = null
+                        if (FileManager && typeof FileManager.read === 'function') {
+                            mainContent = FileManager.read(MAIN_FILE)
+                        }
+                        // Fallback to the current editor content only if FileManager doesn't have MAIN_FILE
+                        if (mainContent == null) {
+                            const cm = window.cm
+                            const textarea = document.getElementById('code')
+                            mainContent = (cm ? cm.getValue() : (textarea ? textarea.value : ''))
+                        }
+                        const map = JSON.parse(localStorage.getItem('ssg_files_v1') || '{}')
+                        map[MAIN_FILE] = mainContent || ''
+                        localStorage.setItem('ssg_files_v1', JSON.stringify(map))
+                    } catch (_e) {
+                        // Best-effort fallback: write current editor content if anything fails
                         const cm = window.cm
                         const textarea = document.getElementById('code')
-                        mainContent = (cm ? cm.getValue() : (textarea ? textarea.value : ''))
+                        const cur = (cm ? cm.getValue() : (textarea ? textarea.value : ''))
+                        const map = JSON.parse(localStorage.getItem('ssg_files_v1') || '{}')
+                        map['/main.py'] = cur
+                        localStorage.setItem('ssg_files_v1', JSON.stringify(map))
                     }
-                    const map = JSON.parse(localStorage.getItem('ssg_files_v1') || '{}')
-                    map[MAIN_FILE] = mainContent || ''
-                    localStorage.setItem('ssg_files_v1', JSON.stringify(map))
-                } catch (_e) {
-                    // Best-effort fallback: write current editor content if anything fails
-                    const cm = window.cm
-                    const textarea = document.getElementById('code')
-                    const cur = (cm ? cm.getValue() : (textarea ? textarea.value : ''))
-                    const map = JSON.parse(localStorage.getItem('ssg_files_v1') || '{}')
-                    map['/main.py'] = cur
-                    localStorage.setItem('ssg_files_v1', JSON.stringify(map))
                 }
             } catch (_e) { }
         }

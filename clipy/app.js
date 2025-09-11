@@ -158,10 +158,20 @@ async function main() {
         // Suppress automatic terminal auto-switching during startup
         try { if (typeof window !== 'undefined') window.__ssg_suppress_terminal_autoswitch = true } catch (_e) { }
 
+        // 0. Migrate existing localStorage data to unified storage
+        try {
+            const { migrateFromLocalStorage, initUnifiedStorage } = await import('./js/unified-storage.js')
+            await initUnifiedStorage()
+            await migrateFromLocalStorage()
+            logInfo('Storage migration completed')
+        } catch (e) {
+            logWarn('Storage migration failed (continuing anyway):', e)
+        }
+
         // 1. Load configuration
         // Priority order:
         // 1. URL ?config= parameter (overrides everything)
-        // 2. Saved current_config from localStorage
+        // 2. Saved current_config from unified storage
         // 3. Default sample config
         let cfg = null
         try {
@@ -190,15 +200,15 @@ async function main() {
         // If no URL config, try loading saved current config
         if (!cfg) {
             try {
-                logInfo('main: attempting to load current config from localStorage')
-                const savedConfig = loadCurrentConfig()
+                logInfo('main: attempting to load current config from unified storage')
+                const savedConfig = await loadCurrentConfig()
                 if (savedConfig) {
                     cfg = savedConfig
                     // Set this as the current config so helpers reflect the right identity
                     setCurrentConfig(cfg)
-                    logInfo('main: loaded config from current_config localStorage:', cfg.id, cfg.version)
+                    logInfo('main: loaded config from unified storage:', cfg.id, cfg.version)
                 } else {
-                    logInfo('main: no current config found in localStorage')
+                    logInfo('main: no current config found in unified storage')
                 }
             } catch (e) {
                 logWarn('Failed to load current config:', e)
@@ -212,10 +222,10 @@ async function main() {
             logInfo('main: loaded default config:', cfg.id, cfg.version)
         }
 
-        // Save the loaded config as current (whether from URL, localStorage, or default)
+        // Save the loaded config as current (whether from URL, unified storage, or default)
         try {
             setCurrentConfig(cfg)
-            saveCurrentConfig(cfg)
+            await saveCurrentConfig(cfg)
             // Debug what was actually saved
             logDebug('=== Config Loading Debug ===')
             logDebug('Final loaded config:', cfg.id, cfg.version)
@@ -360,7 +370,7 @@ async function main() {
                     if (payload.action && payload.action.type === 'open-file' && payload.action.path) {
                         try {
                             const p = payload.action.path
-                            if (window.TabManager && typeof window.TabManager.openTab === 'function') window.TabManager.openTab(p)
+                            if (window.TabManager && typeof window.TabManager.openTab === 'function') window.TabManager.openTab(p, { select: false })
                             if (window.TabManager && typeof window.TabManager.selectTab === 'function') window.TabManager.selectTab(p)
                         } catch (_e) { }
                     }
@@ -417,11 +427,35 @@ async function main() {
                             try {
                                 const sandbox = await import('./js/test-runner-sandbox.js')
                                 const FileManager = (typeof getFileManager === 'function') ? getFileManager() : null
-                                const mainContent = (FileManager ? (FileManager.read(MAIN_FILE) || '') : '')
                                 const runtimeUrl = (cfg && cfg.runtime && cfg.runtime.url) || './vendor/micropython.mjs'
                                 // Convert runtime URL to be relative to tests/ directory since iframe runs there
                                 const testsRelativeRuntimeUrl = runtimeUrl.startsWith('./') ? '../' + runtimeUrl.slice(2) : runtimeUrl
-                                const snapshot = { [MAIN_FILE]: mainContent }
+
+                                // Create snapshot with ALL user workspace files, not just main.py
+                                const snapshot = {}
+                                if (FileManager) {
+                                    try {
+                                        const allFiles = (typeof FileManager.list === 'function') ? FileManager.list() : []
+                                        for (const filePath of allFiles) {
+                                            try {
+                                                const content = FileManager.read(filePath)
+                                                if (content !== null) {
+                                                    snapshot[filePath] = content
+                                                }
+                                            } catch (e) {
+                                                logWarn('[app] failed to read file for snapshot:', filePath, e)
+                                            }
+                                        }
+                                    } catch (e) {
+                                        logWarn('[app] failed to list files for snapshot:', e)
+                                        // Fallback to just main file
+                                        const mainContent = FileManager.read(MAIN_FILE) || ''
+                                        snapshot[MAIN_FILE] = mainContent
+                                    }
+                                } else {
+                                    logWarn('[app] no FileManager available for snapshot')
+                                }
+
                                 logDebug('[app] creating sandboxed runFn with snapshot keys:', Object.keys(snapshot))
                                 runFn = sandbox.createSandboxedRunFn({ runtimeUrl: testsRelativeRuntimeUrl, filesSnapshot: snapshot })
                             } catch (e) {
@@ -868,13 +902,25 @@ async function main() {
 
                             let hasConfigs = false
 
-                            // Add authoring config first if available
+                            // Add authoring config first if available (try unified storage then localStorage)
                             try {
                                 const AUTHOR_CONFIG_KEY = 'author_config'
-                                const rawJson = localStorage.getItem(AUTHOR_CONFIG_KEY)
-                                if (rawJson) {
+                                let raw = null
+                                try {
+                                    // Prefer unified-storage async API if available
+                                    const { loadSetting } = await import('./js/unified-storage.js')
+                                    raw = await loadSetting(AUTHOR_CONFIG_KEY)
+                                } catch (_e) {
+                                    // unified storage not available; do nothing (no localStorage read in production)
+                                }
+                                if (raw) {
                                     try {
-                                        const raw = JSON.parse(rawJson || 'null')
+                                        // Use `raw` directly
+                                        // Handle tests parsing
+                                        if (raw && typeof raw.tests === 'string' && raw.tests.trim()) {
+                                            const parsedTests = JSON.parse(raw.tests)
+                                            if (Array.isArray(parsedTests)) raw.tests = parsedTests
+                                        }
 
                                         // Handle tests parsing
                                         try {
@@ -924,9 +970,9 @@ async function main() {
                                             hasConfigs = true
                                         }
                                     } catch (e) {
-                                        // Malformed local author config or failed validation
-                                        logWarn('Invalid local author config in localStorage', e)
-                                        try { showConfigError('Invalid local author config in localStorage', configModal) } catch (_e) { }
+                                        // Malformed author config or failed validation
+                                        logWarn('Invalid local author config in storage', e)
+                                        try { showConfigError('Invalid local author config in storage', configModal) } catch (_e) { }
                                     }
                                 }
                             } catch (_e) { }

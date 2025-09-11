@@ -288,12 +288,13 @@ function createCard(item, idx, onEdit, onMoveUp, onMoveDown, onDelete, testNumbe
         }
     } else {
         // Regular test display (existing logic)
-        // Render expected_stdout/stderr safely: if it's an object (regex), show /expr/flags
+        // Render expected_stdout/stderr safely: if it's an object (regex/exact), show appropriate format
         function renderExpected(v) {
             if (v == null) return ''
             if (typeof v === 'string') return v
             try {
                 if (typeof v === 'object' && v.type === 'regex') return `/${v.expression}/${v.flags || ''}`
+                if (typeof v === 'object' && v.type === 'exact') return `[exact: ${v.expression}]`
             } catch (_e) { }
             try { return JSON.stringify(v) } catch (_e) { return String(v) }
         }
@@ -376,11 +377,12 @@ function buildEditorForm(existing) {
     stdin.rows = 3
     stdin.value = existing.stdin || ''
 
-    // Expected stdout editor: allow String or Regex modes
+    // Expected stdout editor: allow String, Exact, or Regex modes
     const expectedOutMode = document.createElement('select')
-    const optS = document.createElement('option'); optS.value = 'string'; optS.textContent = 'String'
+    const optS = document.createElement('option'); optS.value = 'string'; optS.textContent = 'String (contains)'
+    const optE = document.createElement('option'); optE.value = 'exact'; optE.textContent = 'Exact match'
     const optR = document.createElement('option'); optR.value = 'regex'; optR.textContent = 'Regex'
-    expectedOutMode.appendChild(optS); expectedOutMode.appendChild(optR)
+    expectedOutMode.appendChild(optS); expectedOutMode.appendChild(optE); expectedOutMode.appendChild(optR)
 
     const expectedOutText = document.createElement('textarea')
     expectedOutText.style.width = '100%'
@@ -396,11 +398,12 @@ function buildEditorForm(existing) {
     expectedOutFlags.style.width = '100%'
     expectedOutFlags.placeholder = 'flags (e.g. i)'
 
-    // Expected stderr editor
+    // Expected stderr editor: allow String, Exact, or Regex modes
     const expectedErrMode = document.createElement('select')
-    const eOptS = document.createElement('option'); eOptS.value = 'string'; eOptS.textContent = 'String'
+    const eOptS = document.createElement('option'); eOptS.value = 'string'; eOptS.textContent = 'String (contains)'
+    const eOptE = document.createElement('option'); eOptE.value = 'exact'; eOptE.textContent = 'Exact match'
     const eOptR = document.createElement('option'); eOptR.value = 'regex'; eOptR.textContent = 'Regex'
-    expectedErrMode.appendChild(eOptS); expectedErrMode.appendChild(eOptR)
+    expectedErrMode.appendChild(eOptS); expectedErrMode.appendChild(eOptE); expectedErrMode.appendChild(eOptR)
 
     const expectedErrText = document.createElement('textarea')
     expectedErrText.style.width = '100%'
@@ -425,6 +428,501 @@ function buildEditorForm(existing) {
     setup.style.width = '100%'
     setup.rows = 3
     setup.value = existing.setup ? JSON.stringify(existing.setup, null, 2) : ''
+
+    // Files field - allows attaching files specific to this test
+    const filesContainer = document.createElement('div')
+    filesContainer.style.border = '1px solid #ddd'
+    filesContainer.style.borderRadius = '4px'
+    filesContainer.style.padding = '12px'
+    filesContainer.style.backgroundColor = '#fafafa'
+
+    // File upload area
+    const uploadArea = document.createElement('div')
+    uploadArea.style.cssText = `
+        border: 2px dashed #ccc;
+        border-radius: 4px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: border-color 0.3s;
+    `
+    uploadArea.innerHTML = `
+        <div>📁 Drop files here or click to browse</div>
+        <div style="font-size: 0.8em; color: #666; margin-top: 4px">Files will be available to the test at their specified paths</div>
+    `
+
+    const fileInput = document.createElement('input')
+    fileInput.type = 'file'
+    fileInput.multiple = true
+    fileInput.style.display = 'none'
+
+    // File list display
+    const fileList = document.createElement('div')
+    fileList.style.marginBottom = '12px'
+
+    // JSON textarea (hidden by default, shown when "Edit JSON" is clicked)
+    const files = document.createElement('textarea')
+    files.style.width = '100%'
+    files.rows = 6
+    files.value = existing.files ? JSON.stringify(existing.files, null, 2) : ''
+    files.style.display = 'none'
+    files.placeholder = '{\n  "/data.txt": "line1\\nline2\\nline3",\n  "/config.json": "{\\"key\\": \\"value\\"}"\n}'
+
+    // Toggle button for JSON editing
+    const toggleJsonBtn = document.createElement('button')
+    toggleJsonBtn.type = 'button'
+    toggleJsonBtn.className = 'btn btn-sm'
+    toggleJsonBtn.textContent = 'Edit JSON'
+    toggleJsonBtn.style.marginBottom = '8px'
+    toggleJsonBtn.style.marginRight = '8px'
+
+    // New file button
+    const newFileBtn = document.createElement('button')
+    newFileBtn.type = 'button'
+    newFileBtn.className = 'btn btn-sm'
+    newFileBtn.textContent = 'New File'
+    newFileBtn.style.marginBottom = '8px'
+    newFileBtn.title = 'Create a new empty file'
+
+    const buttonContainer = document.createElement('div')
+    buttonContainer.appendChild(toggleJsonBtn)
+    buttonContainer.appendChild(newFileBtn)
+
+    filesContainer.appendChild(uploadArea)
+    filesContainer.appendChild(fileList)
+    filesContainer.appendChild(buttonContainer)
+    filesContainer.appendChild(files)
+
+    // Track files in memory
+    let filesData = existing.files || {}
+
+    function renderFileList() {
+        fileList.innerHTML = ''
+        if (Object.keys(filesData).length === 0) {
+            fileList.innerHTML = '<div style="color: #666; font-style: italic;">No files attached</div>'
+            return
+        }
+
+        Object.entries(filesData).forEach(([path, content]) => {
+            const fileItem = document.createElement('div')
+            fileItem.style.cssText = `
+                display: flex;
+                align-items: center;
+                padding: 8px;
+                background: white;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                margin-bottom: 4px;
+            `
+
+            const pathInput = document.createElement('input')
+            pathInput.type = 'text'
+            pathInput.value = path
+            pathInput.style.cssText = `
+                font-family: monospace;
+                padding: 4px 8px;
+                border: 1px solid #ccc;
+                border-radius: 2px;
+                margin-right: 8px;
+                width: 200px;
+            `
+
+            const sizeInfo = document.createElement('span')
+            sizeInfo.textContent = `${content.length} chars`
+            sizeInfo.style.cssText = `
+                color: #666;
+                font-size: 0.8em;
+                margin-right: 8px;
+                flex: 1;
+            `
+
+            const editBtn = document.createElement('button')
+            editBtn.type = 'button'
+            editBtn.className = 'btn btn-sm'
+            editBtn.textContent = 'Edit'
+            editBtn.style.marginRight = '4px'
+
+            const deleteBtn = document.createElement('button')
+            deleteBtn.type = 'button'
+            deleteBtn.className = 'btn btn-sm btn-danger'
+            deleteBtn.textContent = '×'
+
+            // Update file path
+            pathInput.addEventListener('change', () => {
+                if (pathInput.value !== path && pathInput.value.trim()) {
+                    delete filesData[path]
+                    filesData[pathInput.value.trim()] = content
+                    updateJsonTextarea()
+                    renderFileList()
+                }
+            })
+
+            // Edit file content
+            editBtn.addEventListener('click', () => {
+                createFileEditor(path, content,
+                    (newContent) => {
+                        filesData[path] = newContent
+                        updateJsonTextarea()
+                        renderFileList()
+                    },
+                    () => {
+                        // Cancel - do nothing
+                    }
+                )
+            })
+
+            // Delete file
+            deleteBtn.addEventListener('click', () => {
+                delete filesData[path]
+                updateJsonTextarea()
+                renderFileList()
+            })
+
+            fileItem.appendChild(pathInput)
+            fileItem.appendChild(sizeInfo)
+            fileItem.appendChild(editBtn)
+            fileItem.appendChild(deleteBtn)
+            fileList.appendChild(fileItem)
+        })
+    }
+
+    function updateJsonTextarea() {
+        files.value = Object.keys(filesData).length > 0 ? JSON.stringify(filesData, null, 2) : ''
+    }
+
+    function addFile(filename, content, suggestedPath = null) {
+        const path = suggestedPath || prompt(`Enter path for ${filename} (e.g., /data/${filename}):`, `/${filename}`)
+        if (path && path.trim()) {
+            filesData[path.trim()] = content
+            updateJsonTextarea()
+            renderFileList()
+        }
+    }
+
+    function createFileEditor(filePath, content, onSave, onCancel) {
+        const modal = document.createElement('div')
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        `
+        modal.tabIndex = -1 // Make modal focusable
+
+        const dialog = document.createElement('div')
+        dialog.style.cssText = `
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            height: 70%;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        `
+
+        const header = document.createElement('div')
+        header.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 12px;
+        `
+
+        const title = document.createElement('h3')
+        title.textContent = `Edit: ${filePath}`
+        title.style.margin = '0'
+        title.style.fontFamily = 'monospace'
+
+        const headerButtons = document.createElement('div')
+
+        const saveBtn = document.createElement('button')
+        saveBtn.type = 'button'
+        saveBtn.className = 'btn btn-primary'
+        saveBtn.textContent = 'Save'
+        saveBtn.style.marginRight = '8px'
+
+        const cancelBtn = document.createElement('button')
+        cancelBtn.type = 'button'
+        cancelBtn.className = 'btn'
+        cancelBtn.textContent = 'Cancel'
+
+        headerButtons.appendChild(saveBtn)
+        headerButtons.appendChild(cancelBtn)
+        header.appendChild(title)
+        header.appendChild(headerButtons)
+
+        const editorContainer = document.createElement('div')
+        editorContainer.style.cssText = `
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        `
+
+        // Create a textarea fallback that looks like CodeMirror
+        const textarea = document.createElement('textarea')
+        textarea.style.cssText = `
+            width: 100%;
+            height: 100%;
+            border: none;
+            outline: none;
+            padding: 12px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            resize: none;
+            background: #fafafa;
+        `
+        textarea.value = content
+
+        editorContainer.appendChild(textarea)
+
+        // Find and temporarily disable the parent modal's escape handler
+        let parentModal = null
+        let originalKeydownHandler = null
+
+        // Look for a parent modal (test editor modal)
+        const existingModals = document.querySelectorAll('[aria-modal="true"]')
+        if (existingModals.length > 0) {
+            parentModal = existingModals[existingModals.length - 1] // Get the topmost modal
+            if (parentModal && parentModal.__keydownHandler) {
+                originalKeydownHandler = parentModal.__keydownHandler
+                document.removeEventListener('keydown', originalKeydownHandler, true)
+            }
+        }
+
+        function closeModal() {
+            document.body.removeChild(modal)
+
+            // Re-enable the parent modal's escape handler
+            if (parentModal && originalKeydownHandler) {
+                document.addEventListener('keydown', originalKeydownHandler, true)
+            }
+
+            onCancel()
+        }
+
+        function saveAndClose(newContent) {
+            document.body.removeChild(modal)
+
+            // Re-enable the parent modal's escape handler
+            if (parentModal && originalKeydownHandler) {
+                document.addEventListener('keydown', originalKeydownHandler, true)
+            }
+
+            onSave(newContent)
+        }
+
+        // Try to use CodeMirror if available, otherwise fallback to textarea
+        let editor = textarea
+        if (typeof window.CodeMirror !== 'undefined') {
+            try {
+                editor = window.CodeMirror.fromTextArea(textarea, {
+                    mode: 'text/plain',
+                    lineNumbers: true,
+                    gutters: ['CodeMirror-linenumbers'],
+                    fixedGutter: true,
+                    lineNumberFormatter: function (line) {
+                        return String(line);
+                    },
+                    indentUnit: 4,
+                    tabSize: 4,
+                    matchBrackets: true,
+                    autoCloseBrackets: true,
+                    scrollbarStyle: 'native',
+                    lineWrapping: true,
+                    extraKeys: {
+                        Tab: function (cm) {
+                            if (cm.somethingSelected()) cm.indentSelection('add')
+                            else cm.replaceSelection('    ', 'end')
+                        }
+                    }
+                })
+                editor.setSize('100%', '100%')
+
+                // Force refresh after a brief delay to ensure proper gutter rendering
+                setTimeout(() => {
+                    if (editor && typeof editor.refresh === 'function') {
+                        editor.refresh()
+                    }
+                }, 50)
+            } catch (e) {
+                console.warn('CodeMirror initialization failed, using textarea fallback', e)
+                editor = textarea
+            }
+        }
+
+        // Simple escape key handler for the file editor
+        const fileEditorEscapeHandler = (e) => {
+            if (e.key === 'Escape') {
+                e.stopPropagation()
+                e.preventDefault()
+                closeModal()
+            }
+        }
+        document.addEventListener('keydown', fileEditorEscapeHandler)
+
+        // Update closeModal to clean up the escape handler
+        const originalCloseModal = closeModal
+        closeModal = function () {
+            document.removeEventListener('keydown', fileEditorEscapeHandler)
+            originalCloseModal()
+        }
+
+        // Update saveAndClose to clean up the escape handler
+        const originalSaveAndClose = saveAndClose
+        saveAndClose = function (newContent) {
+            document.removeEventListener('keydown', fileEditorEscapeHandler)
+            originalSaveAndClose(newContent)
+        }
+
+        function getValue() {
+            if (editor && typeof editor.getValue === 'function') {
+                return editor.getValue()
+            }
+            return textarea.value
+        }
+
+        saveBtn.addEventListener('click', () => {
+            const newContent = getValue()
+            saveAndClose(newContent)
+        })
+
+        cancelBtn.addEventListener('click', closeModal)
+
+        // Close on background click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal()
+            }
+        })
+
+        dialog.appendChild(header)
+        dialog.appendChild(editorContainer)
+        modal.appendChild(dialog)
+        document.body.appendChild(modal)
+
+        // Focus the modal first so it can receive keyboard events
+        modal.focus()
+
+        // Focus the editor and ensure proper rendering
+        setTimeout(() => {
+            if (editor && typeof editor.focus === 'function') {
+                editor.focus()
+                // Additional refresh after modal is fully rendered
+                if (typeof editor.refresh === 'function') {
+                    editor.refresh()
+                }
+            } else {
+                textarea.focus()
+            }
+        }, 100)
+    }
+
+    // File upload handling
+    function handleFiles(files) {
+        Array.from(files).forEach(file => {
+            const reader = new FileReader()
+            reader.onload = (e) => {
+                addFile(file.name, e.target.result)
+            }
+            reader.readAsText(file)
+        })
+    }
+
+    uploadArea.addEventListener('click', () => fileInput.click())
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault()
+        uploadArea.style.borderColor = '#007acc'
+    })
+    uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault()
+        uploadArea.style.borderColor = '#ccc'
+    })
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault()
+        uploadArea.style.borderColor = '#ccc'
+        handleFiles(e.dataTransfer.files)
+    })
+
+    fileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files)
+    })
+
+    // JSON toggle
+    let jsonMode = false
+    toggleJsonBtn.addEventListener('click', () => {
+        jsonMode = !jsonMode
+        if (jsonMode) {
+            files.style.display = 'block'
+            fileList.style.display = 'none'
+            uploadArea.style.display = 'none'
+            toggleJsonBtn.textContent = 'Visual Editor'
+            updateJsonTextarea()
+        } else {
+            files.style.display = 'none'
+            fileList.style.display = 'block'
+            uploadArea.style.display = 'block'
+            toggleJsonBtn.textContent = 'Edit JSON'
+            // Parse JSON back to filesData
+            try {
+                filesData = files.value ? JSON.parse(files.value) : {}
+            } catch (e) {
+                alert('Invalid JSON in files field. Please fix or clear it.')
+                return
+            }
+            renderFileList()
+        }
+    })
+
+    // Sync JSON changes back to filesData when in JSON mode
+    files.addEventListener('input', () => {
+        try {
+            const parsed = files.value ? JSON.parse(files.value) : {}
+            filesData = parsed
+        } catch (e) {
+            // Invalid JSON, don't update filesData yet
+        }
+    })
+
+    // New file functionality
+    newFileBtn.addEventListener('click', () => {
+        // Generate a unique filename
+        let counter = 1
+        let filename = 'newfile.txt'
+
+        while (filesData[`/${filename}`]) {
+            filename = `newfile${counter}.txt`
+            counter++
+        }
+
+        const path = `/${filename}`
+
+        // Create the file with empty content and open editor immediately
+        createFileEditor(path, '',
+            (content) => {
+                filesData[path] = content
+                updateJsonTextarea()
+                renderFileList()
+            },
+            () => {
+                // Cancel - don't create the file
+            }
+        )
+    })
+
+    // Initial render
+    renderFileList()
 
     // Failure message (optional) - shown on failure beneath default messages
     const failureMessage = document.createElement('textarea')
@@ -470,6 +968,11 @@ function buildEditorForm(existing) {
             expectedOutExpr.value = existing.expected_stdout.expression || ''
             expectedOutFlags.value = existing.expected_stdout.flags || ''
             expectedOutText.style.display = 'none'
+        } else if (existing.expected_stdout && typeof existing.expected_stdout === 'object' && existing.expected_stdout.type === 'exact') {
+            expectedOutMode.value = 'exact'
+            expectedOutText.value = existing.expected_stdout.expression || ''
+            expectedOutExpr.style.display = 'none'
+            expectedOutFlags.style.display = 'none'
         } else {
             expectedOutMode.value = 'string'
             expectedOutText.value = existing.expected_stdout || ''
@@ -489,6 +992,11 @@ function buildEditorForm(existing) {
             expectedErrExpr.value = existing.expected_stderr.expression || ''
             expectedErrFlags.value = existing.expected_stderr.flags || ''
             expectedErrText.style.display = 'none'
+        } else if (existing.expected_stderr && typeof existing.expected_stderr === 'object' && existing.expected_stderr.type === 'exact') {
+            expectedErrMode.value = 'exact'
+            expectedErrText.value = existing.expected_stderr.expression || ''
+            expectedErrExpr.style.display = 'none'
+            expectedErrFlags.style.display = 'none'
         } else {
             expectedErrMode.value = 'string'
             expectedErrText.value = existing.expected_stderr || ''
@@ -528,6 +1036,7 @@ function buildEditorForm(existing) {
 
     root.appendChild(labeled('Timeout (ms) [optional]', timeout))
     root.appendChild(labeled('Setup (JSON) [optional]', setup))
+    root.appendChild(labeled('Test Files [optional]', filesContainer))
     root.appendChild(labeled('Failure Message [optional]', failureMessage))
     root.appendChild(labeled('Display options', hideActualExpectedWrap))
 
@@ -578,23 +1087,42 @@ function buildEditorForm(existing) {
         get() {
             let setupVal = null
             try { setupVal = setup.value ? JSON.parse(setup.value) : null } catch (_e) { setupVal = setup.value || null }
-            // expected stdout: respect selected mode (string or regex)
+
+            // Parse files value (get from filesData in visual mode, or textarea in JSON mode)
+            let filesVal = null
+            try {
+                if (jsonMode) {
+                    filesVal = files.value ? JSON.parse(files.value) : null
+                } else {
+                    filesVal = Object.keys(filesData).length > 0 ? filesData : null
+                }
+            } catch (_e) {
+                filesVal = files.value || null
+            }
+
+            // expected stdout: respect selected mode (string, exact, or regex)
             let expectedOutVal = undefined
             if (typeof expectedOutMode !== 'undefined' && expectedOutMode.value === 'regex') {
                 const expr = (expectedOutExpr.value || '').trim()
                 const flagsV = (expectedOutFlags.value || '').trim()
                 if (expr !== '') expectedOutVal = { type: 'regex', expression: expr, flags: flagsV || '' }
+            } else if (typeof expectedOutMode !== 'undefined' && expectedOutMode.value === 'exact') {
+                const v = (expectedOutText.value || '').trim()
+                expectedOutVal = v === '' ? undefined : { type: 'exact', expression: v }
             } else {
                 const v = (expectedOutText.value || '').trim()
                 expectedOutVal = v === '' ? undefined : v
             }
 
-            // expected stderr: respect selected mode
+            // expected stderr: respect selected mode (string, exact, or regex)
             let expectedErrVal = undefined
             if (typeof expectedErrMode !== 'undefined' && expectedErrMode.value === 'regex') {
                 const expr = (expectedErrExpr.value || '').trim()
                 const flagsV = (expectedErrFlags.value || '').trim()
                 if (expr !== '') expectedErrVal = { type: 'regex', expression: expr, flags: flagsV || '' }
+            } else if (typeof expectedErrMode !== 'undefined' && expectedErrMode.value === 'exact') {
+                const v = (expectedErrText.value || '').trim()
+                expectedErrVal = v === '' ? undefined : { type: 'exact', expression: v }
             } else {
                 const v = (expectedErrText.value || '').trim()
                 expectedErrVal = v === '' ? undefined : v
@@ -611,6 +1139,7 @@ function buildEditorForm(existing) {
             if (expectedErrVal !== undefined) out.expected_stderr = expectedErrVal
             if (timeout.value) out.timeoutMs = Number(timeout.value)
             if (setupVal !== null && setupVal !== undefined && setupVal !== '') out.setup = setupVal
+            if (filesVal !== null && filesVal !== undefined && filesVal !== '') out.files = filesVal
             if (hideActualExpected.checked) out.hide_actual_expected = true
 
             // Optional author-provided failure message
@@ -1027,29 +1556,64 @@ export function initAuthorTests() {
         contentWrapper.style.padding = '0 12px 12px 12px'
         contentWrapper.appendChild(editor.root)
 
-        const actions = document.createElement('div')
-        actions.style.marginTop = '8px'
+        const m = ensureModal()
+        // Use modal header actions so buttons are sticky and visible top-right
+        const header = m.querySelector('.modal-header')
+        const h3 = header ? header.querySelector('h3') : null
+        if (h3) h3.textContent = 'Edit Test'
+
+        // Header message area for validation/failure messages
+        let headerMessage = header ? header.querySelector('.modal-header-message') : null
+        if (!headerMessage && header) {
+            headerMessage = document.createElement('div')
+            headerMessage.className = 'modal-header-message'
+            headerMessage.style.color = '#b00020'
+            headerMessage.style.fontSize = '0.9em'
+            headerMessage.style.marginLeft = '12px'
+            headerMessage.style.flex = '1'
+            headerMessage.style.alignSelf = 'center'
+            // insert headerMessage between title and actions
+            const actionHolder = header.querySelector('.modal-header-actions')
+            header.insertBefore(headerMessage, actionHolder)
+        }
+
+        // Inject Save/Cancel into header action holder
+        const actionHolder = header ? header.querySelector('.modal-header-actions') : null
+        actionHolder && (actionHolder.innerHTML = '')
         const save = document.createElement('button')
         save.className = 'btn btn-primary'
         save.textContent = 'Save'
         const cancel = document.createElement('button')
         cancel.className = 'btn'
         cancel.textContent = 'Cancel'
-        actions.appendChild(save)
-        actions.appendChild(cancel)
-        contentWrapper.appendChild(actions)
+        actionHolder && actionHolder.appendChild(save)
+        actionHolder && actionHolder.appendChild(cancel)
 
-        const m = ensureModal()
-        const h3 = m.querySelector('h3')
-        h3.textContent = 'Edit Test'
         const body = m.querySelector('#author-tests-modal-body')
         body.innerHTML = ''
         body.appendChild(contentWrapper)
 
         try { openModalHelper(m) } catch (_e) { m.setAttribute('aria-hidden', 'false'); m.style.display = 'flex' }
 
+        // Clear header message when any input in the editor changes (covers matcher edits)
+        try {
+            editor.root.addEventListener('input', () => { if (headerMessage) headerMessage.textContent = '' })
+            editor.root.addEventListener('change', () => { if (headerMessage) headerMessage.textContent = '' })
+        } catch (_e) { }
+
         function validateAndSave() {
             const val = editor.get()
+            // If this is an AST test, ensure the AST tester did not produce
+            // a non-boolean truthy matcher result. If it did, block saving.
+            try {
+                if ((val.type && val.type === 'ast') || val.astRule) {
+                    const testResultEl = m && m.querySelector ? m.querySelector('.ast-rule-builder .test-result') : null
+                    if (testResultEl && testResultEl.dataset && testResultEl.dataset.nonBoolean) {
+                        if (headerMessage) headerMessage.textContent = 'Cannot save: AST matcher returned a non-boolean truthy value. Please make the matcher return true or false.'
+                        return
+                    }
+                }
+            } catch (_e) { /* ignore DOM-check failures */ }
             if (!val.id) val.id = genId()
 
             const selectedGroupId = val._selectedGroupId
@@ -1105,6 +1669,10 @@ export function initAuthorTests() {
         const contentWrapper = document.createElement('div')
         contentWrapper.style.padding = '0 12px 12px 12px'
         contentWrapper.appendChild(editor.root)
+        const err = document.createElement('div')
+        err.style.color = '#b00020'
+        err.style.marginTop = '6px'
+        contentWrapper.appendChild(err)
 
         const actions = document.createElement('div')
         actions.style.marginTop = '8px'
@@ -1153,29 +1721,61 @@ export function initAuthorTests() {
         contentWrapper.style.padding = '0 12px 12px 12px'
         contentWrapper.appendChild(editor.root)
 
-        const actions = document.createElement('div')
-        actions.style.marginTop = '8px'
+        const m = ensureModal()
+        const header = m.querySelector('.modal-header')
+        const h3 = header ? header.querySelector('h3') : null
+        if (h3) h3.textContent = 'New Test'
+
+        // Header message area for validation/failure messages
+        let headerMessage = header ? header.querySelector('.modal-header-message') : null
+        if (!headerMessage && header) {
+            headerMessage = document.createElement('div')
+            headerMessage.className = 'modal-header-message'
+            headerMessage.style.color = '#b00020'
+            headerMessage.style.fontSize = '0.9em'
+            headerMessage.style.marginLeft = '12px'
+            headerMessage.style.flex = '1'
+            headerMessage.style.alignSelf = 'center'
+            const actionHolder = header.querySelector('.modal-header-actions')
+            header.insertBefore(headerMessage, actionHolder)
+        }
+
+        // Inject Save/Cancel into header action holder
+        const actionHolder = header ? header.querySelector('.modal-header-actions') : null
+        actionHolder && (actionHolder.innerHTML = '')
         const save = document.createElement('button')
         save.className = 'btn btn-primary'
         save.textContent = 'Save'
         const cancel = document.createElement('button')
         cancel.className = 'btn'
         cancel.textContent = 'Cancel'
-        actions.appendChild(save)
-        actions.appendChild(cancel)
-        contentWrapper.appendChild(actions)
+        actionHolder && actionHolder.appendChild(save)
+        actionHolder && actionHolder.appendChild(cancel)
 
-        const m = ensureModal()
-        const h3 = m.querySelector('h3')
-        h3.textContent = 'New Test'
         const body = m.querySelector('#author-tests-modal-body')
         body.innerHTML = ''
         body.appendChild(contentWrapper)
 
         try { openModalHelper(m) } catch (_e) { m.setAttribute('aria-hidden', 'false'); m.style.display = 'flex' }
 
+        // Clear header message when any input in the editor changes (covers matcher edits)
+        try {
+            editor.root.addEventListener('input', () => { if (headerMessage) headerMessage.textContent = '' })
+            editor.root.addEventListener('change', () => { if (headerMessage) headerMessage.textContent = '' })
+        } catch (_e) { }
+
         function validateAndSave() {
             const val = editor.get()
+            // Block save for AST tests whose matcher returned a non-boolean truthy value
+            try {
+                if ((val.type && val.type === 'ast') || val.astRule) {
+                    const testResultEl = m && m.querySelector ? m.querySelector('.ast-rule-builder .test-result') : null
+                    if (testResultEl && testResultEl.dataset && testResultEl.dataset.nonBoolean) {
+                        if (headerMessage) headerMessage.textContent = 'Cannot save: AST matcher returned a non-boolean truthy value. Please make the matcher return true or false.'
+                        return
+                    }
+                }
+            } catch (_e) { /* ignore DOM-check failures */ }
             if (!val.id) val.id = genId()
 
             const selectedGroupId = val._selectedGroupId

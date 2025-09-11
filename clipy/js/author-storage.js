@@ -1,27 +1,49 @@
-// Simple wrapper for localStorage-backed author config and an IndexedDB draft store (minimal)
+// Adapter for author config persistence. Prefer unified-storage (IndexedDB)
+// when available; fall back to synchronous localStorage APIs when IndexedDB
+// is not present so existing tests and usage that expect sync behaviour keep
+// working.
+import { saveSetting, loadSetting, clearSetting } from './unified-storage.js'
 
-export function getAuthorConfigFromLocalStorage() {
+// Always use unified-storage async APIs. Do not read/write localStorage.
+// Tests should use the in-memory fallback provided by unified-storage.
+let getAuthorConfigFromLocalStorage = async function () {
     try {
-        const raw = localStorage.getItem('author_config')
-        if (!raw) return null
-        try { return JSON.parse(raw) } catch (_e) { return null }
-    } catch (e) { return null }
+        const result = await loadSetting('author_config')
+        return result
+    } catch (e) {
+        console.error('[author-storage] getAuthorConfigFromLocalStorage failed:', e)
+        return null
+    }
 }
 
-export function saveAuthorConfigToLocalStorage(obj) {
+let saveAuthorConfigToLocalStorage = async function (obj) {
     try {
-        localStorage.setItem('author_config', JSON.stringify(obj))
+        await saveSetting('author_config', obj)
         return true
-    } catch (e) { return false }
+    } catch (e) {
+        console.error('[author-storage] saveAuthorConfigToLocalStorage failed:', e)
+        return false
+    }
 }
 
-export function clearAuthorConfigInLocalStorage() {
-    try { localStorage.removeItem('author_config'); return true } catch (e) { return false }
+let clearAuthorConfigInLocalStorage = async function () {
+    try {
+        await clearSetting('author_config')
+        return true
+    } catch (e) {
+        return false
+    }
 }
+
+export { getAuthorConfigFromLocalStorage, saveAuthorConfigToLocalStorage, clearAuthorConfigInLocalStorage }
 
 // IndexedDB-backed draft store
 const DB_NAME = 'clipy-authoring'
 const STORE = 'author_configs'
+
+// In-memory fallback for drafts when IndexedDB is unavailable. Kept in-memory
+// so we avoid writing to localStorage in production.
+const inMemoryDrafts = new Map()
 
 function openDb() {
     return new Promise((resolve, reject) => {
@@ -44,28 +66,31 @@ function openDb() {
 }
 
 export async function saveDraft(rec) {
+    // Ensure id and timestamps exist regardless of storage backend
+    const now = Date.now()
+    if (!rec.id) rec.id = String(now)
+    if (!rec.createdAt) rec.createdAt = now
+    rec.updatedAt = now
+
     try {
         const db = await openDb()
         return new Promise((resolve, reject) => {
             const tx = db.transaction(STORE, 'readwrite')
             const store = tx.objectStore(STORE)
-            const now = Date.now()
-            rec.updatedAt = now
-            if (!rec.id) rec.id = String(now)
-            if (!rec.createdAt) rec.createdAt = now
             const r = store.put(rec)
             r.onsuccess = () => resolve(rec)
             r.onerror = () => reject(r.error)
         })
     } catch (e) {
-        // fallback to localStorage per-spec
+        // fallback to in-memory map
         try {
-            const key = 'author_draft:' + (rec.id || Date.now())
-            localStorage.setItem(key, JSON.stringify(rec))
+            inMemoryDrafts.set(rec.id, rec)
             return rec
         } catch (_e) { throw e }
     }
-} export async function listDrafts() {
+}
+
+export async function listDrafts() {
     try {
         const db = await openDb()
         return new Promise((resolve, reject) => {
@@ -76,14 +101,8 @@ export async function saveDraft(rec) {
             req.onerror = () => reject(req.error)
         })
     } catch (e) {
-        // fallback: scan localStorage keys
-        const out = []
-        for (let i = 0; i < localStorage.length; i++) {
-            const k = localStorage.key(i)
-            if (!k || !k.startsWith('author_draft:')) continue
-            try { out.push(JSON.parse(localStorage.getItem(k))) } catch (_e) { }
-        }
-        return out
+        // fallback: read from in-memory drafts map
+        return Array.from(inMemoryDrafts.values())
     }
 }
 
@@ -98,8 +117,7 @@ export async function loadDraft(id) {
             req.onerror = () => reject(req.error)
         })
     } catch (e) {
-        const key = 'author_draft:' + id
-        try { return JSON.parse(localStorage.getItem(key)) } catch (_e) { return null }
+        try { return inMemoryDrafts.get(id) || null } catch (_e) { return null }
     }
 }
 
@@ -114,8 +132,7 @@ export async function deleteDraft(id) {
             req.onerror = () => reject(req.error)
         })
     } catch (e) {
-        const key = 'author_draft:' + id
-        try { localStorage.removeItem(key); return true } catch (_e) { return false }
+        try { inMemoryDrafts.delete(id); return true } catch (_e) { return false }
     }
 }
 

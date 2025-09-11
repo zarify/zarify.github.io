@@ -1,9 +1,9 @@
 // Exported for use in autosave.js
-export { getSnapshotsForCurrentConfig, saveSnapshotsForCurrentConfig, debugSnapshotStorage }
+export { getSnapshotsForCurrentConfig, saveSnapshotsForCurrentConfig, debugSnapshotStorage, renderSnapshots, restoreSnapshot, clearStorage }
 
 // Restore from the special 'current' snapshot if it exists
 export async function restoreCurrentSnapshotIfExists() {
-    let snaps = getSnapshotsForCurrentConfig()
+    let snaps = await getSnapshotsForCurrentConfig()
     // Show most-recent snapshots first
     try {
         snaps = snaps.sort((a, b) => (b && b.ts || 0) - (a && a.ts || 0))
@@ -26,6 +26,11 @@ import { appendTerminal, activateSideTab } from './terminal.js'
 import { getConfigKey, getConfigIdentity, getConfig } from './config.js'
 import { safeSetItem, checkStorageHealth, showStorageInfo } from './storage-manager.js'
 import { debug as logDebug, error as logError } from './logger.js'
+
+// In-memory fallback for environments without unified storage / IndexedDB.
+// This ensures we do not write to localStorage in production. Tests may
+// install their own shims if they require a synchronous storage API.
+const inMemorySnapshots = Object.create(null)
 
 export function setupSnapshotSystem() {
     const saveSnapshotBtn = $('save-snapshot')
@@ -97,12 +102,18 @@ function getSnapshotStorageKey() {
     return `snapshots_${identity}`
 }
 
-function getSnapshotsForCurrentConfig() {
-    const storageKey = getSnapshotStorageKey()
+async function getSnapshotsForCurrentConfig() {
     const configIdentity = getConfigIdentity()
 
     try {
-        const snaps = JSON.parse(localStorage.getItem(storageKey) || '[]')
+        const { loadSnapshots } = await import('./unified-storage.js')
+        const snaps = await loadSnapshots(configIdentity)
+
+        // Ensure snaps is always an array before filtering
+        if (!Array.isArray(snaps)) {
+            logError('loadSnapshots returned non-array:', typeof snaps, snaps)
+            return []
+        }
 
         // Filter to only include snapshots that match current config identity
         return snaps.filter(snap => {
@@ -117,30 +128,51 @@ function getSnapshotsForCurrentConfig() {
             return false
         })
     } catch (e) {
-        logError('Failed to load snapshots:', e)
-        return []
+        logError('Failed to load snapshots from unified storage:', e)
+        // Fallback to an in-memory map for environments without IndexedDB.
+        try {
+            const arr = inMemorySnapshots[configIdentity] || []
+            // Ensure the fallback is also an array
+            if (!Array.isArray(arr)) {
+                logError('In-memory snapshots is not an array:', typeof arr, arr)
+                return []
+            }
+            return arr.filter(snap => {
+                if (!snap.config) return false
+                if (typeof snap.config === 'string') return snap.config === configIdentity
+                if (snap.config.id && snap.config.version) return `${snap.config.id}@${snap.config.version}` === configIdentity
+                return false
+            })
+        } catch (fallbackError) {
+            logError('Failed to load snapshots from in-memory fallback:', fallbackError)
+            return []
+        }
     }
 }
 
-function saveSnapshotsForCurrentConfig(snapshots) {
-    const storageKey = getSnapshotStorageKey()
+async function saveSnapshotsForCurrentConfig(snapshots) {
+    const configIdentity = getConfigIdentity()
     try {
-        const result = safeSetItem(storageKey, JSON.stringify(snapshots))
-        if (!result.success) {
-            throw new Error(result.error || 'Failed to save snapshots')
-        }
-        if (result.recovered) {
-            appendTerminal('Snapshots saved after storage cleanup')
-        }
+        const { saveSnapshots } = await import('./unified-storage.js')
+        await saveSnapshots(configIdentity, snapshots)
+        logDebug('Snapshots saved to unified storage for config:', configIdentity)
     } catch (e) {
-        logError('Failed to save snapshots:', e)
-        throw e
+        logError('Failed to save snapshots to unified storage:', e)
+        // Do not write to localStorage in production. Use an in-memory
+        // fallback so the app remains functional in non-IDB environments.
+        try {
+            inMemorySnapshots[configIdentity] = Array.isArray(snapshots) ? snapshots.slice() : []
+            appendTerminal('Snapshots saved to in-memory fallback (no IndexedDB)')
+        } catch (fallbackError) {
+            logError('Failed to save snapshots to in-memory fallback:', fallbackError)
+            throw fallbackError
+        }
     }
 }
 
 async function saveSnapshot() {
     try {
-        const snaps = getSnapshotsForCurrentConfig()
+        const snaps = await getSnapshotsForCurrentConfig()
         const configIdentity = getConfigIdentity()
 
         const snap = {
@@ -176,21 +208,16 @@ async function saveSnapshot() {
                     } catch (_e) { }
                 }
             } else {
-                // fallback to localStorage mirror
-                try {
-                    const map = JSON.parse(localStorage.getItem('ssg_files_v1') || '{}')
-                    for (const k of Object.keys(map)) snap.files[k] = map[k]
-                } catch (_e) { }
+                // No backend/FileManager available; avoid using localStorage.
+                // Leave snap.files empty rather than writing/reading legacy mirrors.
+                // Tests may populate window.__ssg_mem or provide a backend.
             }
         } catch (e) {
-            try {
-                const map = JSON.parse(localStorage.getItem('ssg_files_v1') || '{}')
-                for (const k of Object.keys(map)) snap.files[k] = map[k]
-            } catch (_e) { }
+            // On error, avoid touching localStorage; just continue with what we have.
         }
 
         snaps.push(snap)
-        saveSnapshotsForCurrentConfig(snaps)
+        await saveSnapshotsForCurrentConfig(snaps)
 
         const identity = getConfigIdentity()
         appendTerminal(`Snapshot saved for ${identity} (${new Date(snap.ts).toLocaleString()})`, 'runtime')
@@ -209,11 +236,11 @@ async function saveSnapshot() {
     }
 }
 
-function renderSnapshots() {
+async function renderSnapshots() {
     const snapshotList = $('snapshot-list')
     if (!snapshotList) return
 
-    const snaps = getSnapshotsForCurrentConfig()
+    const snaps = await getSnapshotsForCurrentConfig()
     const configIdentity = getConfigIdentity()
 
     if (!snaps.length) {
@@ -307,7 +334,12 @@ function renderSnapshots() {
         try {
             const totalFiles = snaps.reduce((acc, s) => acc + Object.keys(s.files || {}).length, 0)
             const totalText = grandTotal < 1024 ? `${grandTotal}B` : (grandTotal < 1024 * 1024 ? `${Math.round(grandTotal / 1024)}KB` : `${(grandTotal / (1024 * 1024)).toFixed(2)}MB`)
-            footer.textContent = `${snaps.length} snapshot(s), ${totalFiles} file(s), ${totalText} total`
+
+            if (snaps.length === 0) {
+                footer.textContent = 'No snapshots'
+            } else {
+                footer.textContent = `${snaps.length} snapshot(s), ${totalFiles} file(s), ${totalText} total`
+            }
         } catch (e) {
             // Fallback for when calculations fail
             footer.textContent = `0 snapshot(s), 0 file(s), 0B total`
@@ -318,28 +350,48 @@ function renderSnapshots() {
     const hdr = document.getElementById('snapshot-storage-summary-header')
     if (hdr) {
         try {
-            // Compute totals across all snapshot keys in localStorage
+            // Compute totals across all snapshots in unified storage
             let allGrand = 0
             let allSnapCount = 0
             let allFileCount = 0
 
-            for (let i = 0; i < localStorage.length; i++) {
-                try {
-                    const key = localStorage.key(i)
-                    if (!key || !key.startsWith('snapshots_')) continue
-                    const arr = JSON.parse(localStorage.getItem(key) || '[]')
-                    if (!Array.isArray(arr) || !arr.length) continue
-                    allSnapCount += arr.length
-                    for (const s of arr) {
-                        try {
-                            const files = s.files || {}
-                            allFileCount += Object.keys(files).length
-                            for (const k of Object.keys(files)) {
-                                try { allGrand += new TextEncoder().encode(String(files[k] || '')).length } catch (_e) { }
-                            }
-                        } catch (_e) { }
+            try {
+                // Try unified storage first
+                const { getAllSnapshots } = await import('./unified-storage.js')
+                const allSnapshotData = await getAllSnapshots()
+
+                for (const data of allSnapshotData) {
+                    if (data.snapshots && Array.isArray(data.snapshots)) {
+                        allSnapCount += data.snapshots.length
+                        for (const s of data.snapshots) {
+                            try {
+                                const files = s.files || {}
+                                allFileCount += Object.keys(files).length
+                                for (const k of Object.keys(files)) {
+                                    try { allGrand += new TextEncoder().encode(String(files[k] || '')).length } catch (_e) { }
+                                }
+                            } catch (_e) { }
+                        }
                     }
-                } catch (_e) { }
+                }
+            } catch (unifiedError) {
+                // Unified storage not available; scan the in-memory fallback
+                for (const key of Object.keys(inMemorySnapshots)) {
+                    try {
+                        const arr = inMemorySnapshots[key] || []
+                        if (!Array.isArray(arr) || !arr.length) continue
+                        allSnapCount += arr.length
+                        for (const s of arr) {
+                            try {
+                                const files = s.files || {}
+                                allFileCount += Object.keys(files).length
+                                for (const k of Object.keys(files)) {
+                                    try { allGrand += new TextEncoder().encode(String(files[k] || '')).length } catch (_e) { }
+                                }
+                            } catch (_e) { }
+                        }
+                    } catch (_e) { }
+                }
             }
 
             const totalText = allGrand < 1024 ? `${allGrand}B` : (allGrand < 1024 * 1024 ? `${Math.round(allGrand / 1024)}KB` : `${(allGrand / (1024 * 1024)).toFixed(2)}MB`)
@@ -360,7 +412,7 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
         try {
             const CURRENT_ID = '__current__'
             // Work with the passed snapshots array (it's sourced from storage)
-            const snaps = snapshots || getSnapshotsForCurrentConfig()
+            const snaps = snapshots || await getSnapshotsForCurrentConfig()
             const curIdx = snaps.findIndex(x => x && x.id === CURRENT_ID)
             // Only copy if there is a current snapshot and we're not restoring it
             if (curIdx !== -1 && curIdx !== index) {
@@ -376,7 +428,7 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
                 // Remove the special-current marker and append the copied snapshot into history
                 snaps.splice(curIdx, 1)
                 snaps.push(copySnap)
-                try { saveSnapshotsForCurrentConfig(snaps) } catch (_e) { /* non-fatal */ }
+                try { await saveSnapshotsForCurrentConfig(snaps) } catch (_e) { /* non-fatal */ }
             }
         } catch (e) {
             logError('Failed to persist current-as-history copy before restore:', e)
@@ -434,14 +486,6 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
             } catch (e) {
                 logError('Failed to update mem directly:', e)
             }
-
-            try {
-                const newMap = Object.create(null)
-                for (const k of Object.keys(mem)) newMap[k] = mem[k]
-                localStorage.setItem('ssg_files_v1', JSON.stringify(newMap))
-            } catch (e) {
-                logError('Failed to update localStorage:', e)
-            }
         }
 
         // Reconcile via FileManager to ensure mem/localStorage/backend are consistent
@@ -476,7 +520,7 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
                 Object.keys(mem).forEach(k => delete mem[k])
                 for (const p of Object.keys(snap.files || {})) mem[p] = snap.files[p]
                 try {
-                    localStorage.setItem('ssg_files_v1', JSON.stringify(mem))
+                    // Do not update legacy localStorage mirror.
                 } catch (e) {
                     logError('Final localStorage update failed:', e)
                 }
@@ -521,7 +565,7 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
                     } else if (window.TabManager && typeof window.TabManager.openTab === 'function') {
                         // Fallback: open each restored file explicitly
                         for (const p of restoredFiles) {
-                            try { window.TabManager.openTab(p) } catch (_e) { }
+                            try { window.TabManager.openTab(p, { select: false }) } catch (_e) { }
                         }
                     }
                 } catch (_e) { }
@@ -531,7 +575,8 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
         // Open only MAIN_FILE as focused tab
         try {
             if (window.TabManager && typeof window.TabManager.openTab === 'function') {
-                window.TabManager.openTab(MAIN_FILE)
+                // Open MAIN_FILE but don't let this call change focus; select explicitly below
+                window.TabManager.openTab(MAIN_FILE, { select: false })
             }
             if (window.TabManager && typeof window.TabManager.selectTab === 'function') {
                 window.TabManager.selectTab(MAIN_FILE)
@@ -543,11 +588,11 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
         // subsequent autosave/restore semantics see this as the current working copy.
         try {
             const CURRENT_ID = '__current__'
-            const snapsAll = getSnapshotsForCurrentConfig()
+            const snapsAll = await getSnapshotsForCurrentConfig()
             // Remove any existing current slot
             const filtered = snapsAll.filter(s => s && s.id !== CURRENT_ID)
             filtered.push({ id: CURRENT_ID, ts: Date.now(), config: snap.config, files: snap.files })
-            saveSnapshotsForCurrentConfig(filtered)
+            await saveSnapshotsForCurrentConfig(filtered)
         } catch (e) {
             logError('Failed to persist restored snapshot as __current__:', e)
         }
@@ -599,20 +644,15 @@ function showStorageInfoInTerminal() {
 function debugSnapshotStorage() {
     logDebug('=== Snapshot Storage Debug ===')
     try {
-        const allKeys = []
         const snapshotKeys = []
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i)
-            if (key) {
-                allKeys.push(key)
-                if (key.startsWith('snapshots_')) {
-                    snapshotKeys.push(key)
-                    const value = localStorage.getItem(key)
-                    logDebug(`${key}: ${value ? JSON.parse(value).length : 0} snapshots`)
-                }
-            }
+        for (const key of Object.keys(inMemorySnapshots)) {
+            try {
+                snapshotKeys.push(`snapshots_${key}`)
+                const value = inMemorySnapshots[key]
+                logDebug(`snapshots_${key}: ${value ? value.length : 0} snapshots`)
+            } catch (_e) { }
         }
-        logDebug('All localStorage keys:', allKeys)
+        logDebug('In-memory snapshot keys:', Object.keys(inMemorySnapshots))
         logDebug('Snapshot keys:', snapshotKeys)
     } catch (e) {
         logError('Debug error:', e)
@@ -628,25 +668,44 @@ function closeSnapshotModal() {
 // Note: bulk-delete / checkbox UI removed in favor of per-item delete buttons.
 
 async function clearStorage() {
-    // Compute summary across all snapshot keys in localStorage to show the user
+    // Compute summary across all snapshots to show the user
     // how many snapshots and how many distinct configurations will be affected.
     let totalSnapshots = 0
     const configs = new Set()
     const keysToDelete = []
+
     try {
-        for (let i = 0; i < localStorage.length; i++) {
-            try {
-                const key = localStorage.key(i)
-                if (!key || !key.startsWith('snapshots_')) continue
-                keysToDelete.push(key)
-                const arr = JSON.parse(localStorage.getItem(key) || '[]')
-                if (Array.isArray(arr) && arr.length) {
-                    totalSnapshots += arr.length
-                    configs.add(key.replace(/^snapshots_/, ''))
-                }
-            } catch (_e) { }
+        // First try unified storage
+        const { getAllSnapshots } = await import('./unified-storage.js')
+        const allSnapshotData = await getAllSnapshots()
+
+        for (const data of allSnapshotData) {
+            configs.add(data.id)
+            if (data.snapshots && Array.isArray(data.snapshots)) {
+                totalSnapshots += data.snapshots.length
+            }
         }
-    } catch (_e) { }
+
+        logDebug('Found snapshots in unified storage:', { totalSnapshots, configs: configs.size })
+    } catch (unifiedError) {
+        logDebug('Unified storage not available for clear, checking localStorage:', unifiedError)
+
+        // Fallback to localStorage scanning
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                try {
+                    const key = localStorage.key(i)
+                    if (!key || !key.startsWith('snapshots_')) continue
+                    keysToDelete.push(key)
+                    const arr = JSON.parse(localStorage.getItem(key) || '[]')
+                    if (Array.isArray(arr) && arr.length) {
+                        totalSnapshots += arr.length
+                        configs.add(key.replace(/^snapshots_/, ''))
+                    }
+                } catch (_e) { }
+            }
+        } catch (_e) { }
+    }
 
     // Populate confirm modal meta area with a friendly summary
     try {
@@ -670,15 +729,24 @@ async function clearStorage() {
     const clearedConfigs = configs.size
 
     try {
-        // Remove all snapshot keys from localStorage
         let actuallyDeleted = 0
-        for (const key of keysToDelete) {
-            try {
-                if (localStorage.getItem(key)) {
-                    localStorage.removeItem(key)
-                    actuallyDeleted++
-                }
-            } catch (_e) { }
+
+        // Try unified storage first
+        try {
+            const { clearAllSnapshots } = await import('./unified-storage.js')
+            await clearAllSnapshots()
+            actuallyDeleted = totalSnapshots
+            logDebug('Cleared all snapshots from unified storage')
+        } catch (unifiedError) {
+            logDebug('Unified storage clear failed, using in-memory fallback:', unifiedError)
+
+            // Fallback to in-memory removal
+            for (const key of Object.keys(inMemorySnapshots)) {
+                try {
+                    actuallyDeleted += (Array.isArray(inMemorySnapshots[key]) ? inMemorySnapshots[key].length : 0)
+                    delete inMemorySnapshots[key]
+                } catch (_e) { }
+            }
         }
 
         // Report what was actually cleared (only one message)
@@ -691,13 +759,36 @@ async function clearStorage() {
         try { activateSideTab('terminal') } catch (_e) { }
 
         // Update the modal if it's open - force a complete refresh
+        // We need to wait a moment for IndexedDB transactions to fully commit
+        await new Promise(resolve => setTimeout(resolve, 50))
+
         try {
-            renderSnapshots()
-            // Force update of storage calculations by triggering a fresh calculation
-            setTimeout(() => {
-                try { renderSnapshots() } catch (_e) { }
-            }, 100)
-        } catch (_e) { }
+            // Force a fresh render to update all displays
+            await renderSnapshots()
+
+            // Also clear any cached storage summaries
+            const summaryHeader = document.getElementById('snapshot-storage-summary-header')
+            if (summaryHeader) {
+                summaryHeader.textContent = '0 snaps • 0 files • 0B'
+            }
+
+            const summaryCurrent = document.getElementById('snapshot-storage-summary')
+            if (summaryCurrent) {
+                summaryCurrent.textContent = 'No snapshots'
+            }
+
+            // Double-check with another render after a brief delay to ensure consistency
+            setTimeout(async () => {
+                try {
+                    await renderSnapshots()
+                    logDebug('Storage display updated after clear operation')
+                } catch (e) {
+                    logError('Failed to update display after clear:', e)
+                }
+            }, 200)
+        } catch (e) {
+            logError('Failed to update snapshot display after clear:', e)
+        }
     } catch (e) {
         appendTerminal('Clear snapshots failed: ' + e, 'runtime')
     }

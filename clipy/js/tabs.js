@@ -54,14 +54,14 @@ function render() {
     } catch (_e) { }
 }
 
-export async function openTab(path) {
+export async function openTab(path, opts = { select: true }) {
     const n = _normalizePath(path)
     appendTerminalDebug('TabManager.openTab called -> ' + n)
 
     if (!openTabs.includes(n)) {
         openTabs.push(n)
     }
-    selectTab(n)
+    if (!opts || opts.select === undefined || opts.select) selectTab(n)
     render()
 
     // Signal an opened tab for external observers/tests
@@ -165,9 +165,9 @@ export async function syncWithFileManager() {
         } catch (_e) { }
     }
 
-    // Ensure MAIN_FILE is always present in the tabs
+    // Ensure MAIN_FILE is always present in the tabs (do not select here)
     try {
-        if (!openTabs.includes(MAIN_FILE)) openTab(MAIN_FILE)
+        if (!openTabs.includes(MAIN_FILE)) openTab(MAIN_FILE, { select: false })
     } catch (_e) { }
 
     // Remove any open tabs for files that no longer exist
@@ -183,11 +183,11 @@ export async function syncWithFileManager() {
         }
     } catch (_e) { }
 
-    // Re-open files present in the FileManager but not currently open
+    // Re-open files present in the FileManager but not currently open (don't auto-select)
     try {
         for (const p of files) {
             try {
-                if (!openTabs.includes(p)) openTab(p)
+                if (!openTabs.includes(p)) openTab(p, { select: false })
             } catch (_e) { }
         }
     } catch (_e) { }
@@ -197,10 +197,13 @@ export async function syncWithFileManager() {
         flushPendingTabs()
     } catch (_e) { }
 
-    // Ensure the active tab's editor content is refreshed
+    // Ensure the active tab's editor content is refreshed.
+    // Note: when syncing with FileManager we may open multiple files which
+    // cause `openTab()` to select the last opened file. For workspace reload
+    // semantics we want `/main.py` to be the focused tab by default, so
+    // explicitly select MAIN_FILE here after sync completes.
     try {
-        if (active) selectTab(active)
-        else if (MAIN_FILE) selectTab(MAIN_FILE)
+        if (MAIN_FILE) selectTab(MAIN_FILE)
     } catch (_e) { }
 }
 
@@ -416,7 +419,7 @@ export function initializeTabManager(codeMirror, textareaElement) {
             const files = FileManager.list() || []
             for (const p of files) {
                 try {
-                    if (p && p !== MAIN_FILE) openTab(p)
+                    if (p && p !== MAIN_FILE) openTab(p, { select: false })
                 } catch (_e) { }
             }
         }
@@ -433,7 +436,7 @@ export function initializeTabManager(codeMirror, textareaElement) {
                 try {
                     // Only open pending tabs that actually exist
                     if (p === MAIN_FILE || availableFiles.includes(p)) {
-                        openTab(p)
+                        openTab(p, { select: false })
                     }
                 } catch (_e) { }
             }
@@ -463,7 +466,7 @@ export function initializeTabManager(codeMirror, textareaElement) {
                         try {
                             // Only open pending tabs that actually exist
                             if (p === MAIN_FILE || availableFiles.includes(p)) {
-                                openTab(p)
+                                openTab(p, { select: false })
                             }
                         } catch (_e) { }
                     }

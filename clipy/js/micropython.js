@@ -455,7 +455,18 @@ export async function loadMicroPythonRuntime(cfg) {
                 appendTerminalDebug('Vendor module provides loadMicroPython(); initializing runtime...')
                 try {
                     let captured = ''
-                    const td = new TextDecoder()
+                    // Ensure TextDecoder is available in Node/Jest environments
+                    let TextDecoderCtor = typeof TextDecoder !== 'undefined' ? TextDecoder : null
+                    if (!TextDecoderCtor) {
+                        try {
+                            // dynamic import util.TextDecoder in Node
+                            const utilMod = await import('util')
+                            TextDecoderCtor = utilMod.TextDecoder
+                        } catch (_e) {
+                            TextDecoderCtor = null
+                        }
+                    }
+                    const td = TextDecoderCtor ? new TextDecoderCtor() : { decode: (buf) => { try { return Buffer.from(buf).toString('utf8') } catch (_e) { return String(buf || '') } } }
                     const stdout = (chunk) => {
                         let content = ''
 
@@ -548,12 +559,14 @@ export async function loadMicroPythonRuntime(cfg) {
                     // Set up custom input handler
                     const inputHandler = createInputHandler()
 
+                    appendTerminalDebug('Calling vendor loadMicroPython with url: ' + ((cfg && cfg.runtime && cfg.runtime.wasm) || './vendor/micropython.wasm'))
                     const mpInstance = await localMod.loadMicroPython({
                         url: (cfg?.runtime?.wasm) || './vendor/micropython.wasm',
                         stdout, stderr, stdin, linebuffer: true,
                         inputHandler: inputHandler
                     })
 
+                    // mpInstance returned
                     // NEW: Check if this is an asyncify build with yielding support
                     const hasYieldingSupport = typeof mpInstance.interruptExecution === 'function' &&
                         typeof mpInstance.setYielding === 'function' &&

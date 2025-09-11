@@ -28,8 +28,14 @@ export function initializeEditor() {
             // Default to no mode; we'll enable python mode only for .py files
             mode: null,
             lineNumbers: true,
+            gutters: ['CodeMirror-linenumbers'],
+            fixedGutter: true,
+            lineNumberFormatter: function (line) {
+                return String(line);
+            },
             indentUnit: 4,
             smartIndent: false,
+            scrollbarStyle: 'native',
             theme: 'default'
         })
 

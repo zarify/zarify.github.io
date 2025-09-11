@@ -8,7 +8,12 @@
 :root {
     --bg: #f6f7fb;
     --panel: #fff;
-    --accent: #0b5cff
+    --accent: #0b5cff;
+    --border: #e6e6e9;
+    --editor-bg: #fff;
+    --text: #111;
+    --text-disabled: #666;
+    --text-error: #b00020;
 }
 
 body {
@@ -97,38 +102,13 @@ header {
 
     .author-tab .CodeMirror {
         width: 100%;
-        background: #fff;
-        color: #111;
-        border: 1px solid #eee;
-        padding: 8px;
+        background: var(--editor-bg);
+        color: var(--text);
+        border: 1px solid var(--border);
         border-radius: 6px;
-        box-shadow: 0 6px 18px rgba(11, 92, 255, 0.08);
-        white-space: normal;
-        /* allow wrapping */
-        /* Size tooltips proportionally to modal width: prefer ~50-60% of modal.
-                 Modal is typically min(90vw, 720px) so 50% ~= min(360px,45vw) and
-                 60% ~= min(432px,54vw). Use viewport-based fallbacks so tooltips
-                 remain proportional across viewports. */
-        min-width: min(360px, 45vw);
-        max-width: min(432px, 54vw);
-        background: #f4f6fb;
-        border-right: 1px solid #e6e6e9;
     }
 
-    .author-tab .CodeMirror pre {
-        /* small left padding so code doesn't butt up against the gutter */
-        padding-left: 6px;
-        box-sizing: border-box;
-    }
 
-    /* Ensure the CodeMirror scroll area doesn't hide content behind the gutter */
-    .author-tab .CodeMirror-scroll {
-        padding-left: 6px !important;
-    }
-
-    .author-tab .CodeMirror {
-        position: relative;
-    }
 
     /* Feedback modal styles (small, reused modal pattern) */
     .modal {
@@ -461,10 +441,9 @@ textarea#code {
     height: 320px
 }
 
-/* CodeMirror gutter and content padding fixes so line numbers don't overlap code.
-   Scoped to the authoring page to avoid changing editor styles elsewhere. */
+/* CodeMirror styles for authoring page with proper JavaScript configuration */
 .author-tab .CodeMirror {
-    border: 1px solid #e6e6e9;
+    border: 1px solid var(--border);
     border-radius: 4px;
     box-sizing: border-box;
     min-height: 320px;
@@ -472,28 +451,12 @@ textarea#code {
 
 .author-tab .CodeMirror-gutters {
     background: #f4f6fb;
-    border-right: 1px solid #e6e6e9;
-    box-sizing: border-box;
+    border-right: 1px solid var(--border);
 }
 
-.author-tab .CodeMirror-gutters .CodeMirror-gutter {
-    /* let the gutter size itself but ensure a reasonable minimum */
-    min-width: 3.2em;
-    padding: 4px 6px;
-}
-
-/* Do not force heavy padding on CodeMirror internals — let the editor
-   handle layout. Provide a small scroll container padding so text doesn't
-   touch the right edge. */
-.author-tab .CodeMirror-scroll {
-    padding-right: 8px !important;
-}
-
-/* Scoped AST builder CodeMirror styles: mirror the main editor's gutter
-   and small left padding so the line-number gutter doesn't overlap code.
-   Kept scoped to `.ast-rule-builder` to avoid side effects. */
+/* Scoped AST builder CodeMirror styles: basic styling with proper JavaScript configuration */
 .ast-rule-builder .CodeMirror {
-    border: 1px solid #e6e6e9;
+    border: 1px solid var(--border);
     border-radius: 4px;
     box-sizing: border-box;
     position: relative;
@@ -502,37 +465,7 @@ textarea#code {
 
 .ast-rule-builder .CodeMirror-gutters {
     background: #f4f6fb;
-    border-right: 1px solid #e6e6e9;
-    box-sizing: border-box;
-    width: 2.4em;
-}
-
-.ast-rule-builder .CodeMirror-scroll {
-    padding-right: 8px !important;
-}
-
-.ast-rule-builder .CodeMirror pre {
-    /* small left padding so code doesn't butt up against the gutter */
-    padding-left: 4px;
-    box-sizing: border-box;
-}
-
-.ast-rule-builder .CodeMirror-scroll {
-    padding-left: 4px !important;
-    padding-right: 8px !important;
-}
-
-/* Ensure the gutter visually sits above the editor content so numbers
-   never appear to float over code. Also force LTR writing mode inside
-   the AST builder's CodeMirror to avoid inherited RTL from other containers. */
-.ast-rule-builder .CodeMirror-gutters {
-    z-index: 3;
-}
-
-/* Stronger layout rules for the AST builder's CodeMirror instance.
-   Some themes/containers can alter positioning; ensure clean layout. */
-.ast-rule-builder .CodeMirror {
-    position: relative;
+    border-right: 1px solid var(--border);
 }
 
 /* Error highlight for CodeMirror (marked by addLineClass 'cm-error-line') */
