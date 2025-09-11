@@ -1,6 +1,7 @@
 ## 2025-09-11
 - Change: Removing reliance on localStorage in favour of indexedDB (issues with dual storage mechanisms - hopefully this didn't break things)
 - Fix: Tab focus on loading to ensure `main.py` is selected.
+- Fix: Files not get created from a default config correctly
 
 ## 2025-09-10
 - Enhancement: Check AST matcher expressions for syntax and truthy values

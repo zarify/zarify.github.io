@@ -306,6 +306,45 @@ async function main() {
                     await TabManager.syncWithFileManager()
                 }
             } catch (_e) { }
+
+            // If no snapshot was restored, ensure any files declared in the
+            // loaded configuration are materialized into the FileManager so
+            // tabs are created and the runtime can see them (os.listdir, imports).
+            try {
+                if (!_restored) {
+                    try {
+                        // Use the FileManager instance returned from initializeVFS
+                        if (FileManager && typeof FileManager.write === 'function') {
+                            // Ensure MAIN_FILE is populated with the starter (best-effort)
+                            try { await FileManager.write(MAIN_FILE, cfg?.starter || '') } catch (_e) { }
+
+                            // Write extra files from the config.files map
+                            try {
+                                if (cfg && cfg.files && typeof cfg.files === 'object') {
+                                    for (const [p, content] of Object.entries(cfg.files)) {
+                                        try { await FileManager.write(p, String(content || '')) } catch (_e) { }
+                                    }
+                                }
+                            } catch (_e) { }
+                        }
+                    } catch (e) {
+                        try { if (typeof appendTerminal === 'function') appendTerminal('Failed to populate files from config: ' + e, 'runtime') } catch (_e) { }
+                    }
+
+                    // Refresh tabs/editor to reflect programmatic filesystem changes
+                    try {
+                        if (window.TabManager && typeof window.TabManager.syncWithFileManager === 'function') {
+                            try { await window.TabManager.syncWithFileManager() } catch (_e) { }
+                        }
+                    } catch (_e) { }
+
+                    try {
+                        if (window.TabManager && typeof window.TabManager.refreshOpenTabContents === 'function') {
+                            try { window.TabManager.refreshOpenTabContents() } catch (_e) { }
+                        }
+                    } catch (_e) { }
+                }
+            } catch (_e) { }
         } catch (_e) { /* ignore snapshot restore failures at startup */ }
 
         // 5. Initialize autosave
