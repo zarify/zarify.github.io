@@ -100,7 +100,8 @@ export function createTerminal(host = (typeof window !== 'undefined' ? window : 
             const div = (doc && doc.createElement) ? doc.createElement('div') : null
             if (!div) return
             div.className = 'terminal-line term-debug'
-            div.textContent = '[debug] ' + args.map(a => {
+            const prefix = (typeof host !== 'undefined' && host.__SSG_DEBUG) ? '[debug] ' : ''
+            div.textContent = prefix + args.map(a => {
                 try { return typeof a === 'string' ? a : JSON.stringify(a) } catch (_e) { return String(a) }
             }).join(' ')
             out.appendChild(div)

@@ -56,9 +56,32 @@ function listFilesFromFS(FS, root = '/') {
             try {
                 let isDir = false
                 if (typeof FS.isDir === 'function') {
-                    isDir = FS.isDir(full)
+                    // Try to get the node first to call isDir on the mode
+                    try {
+                        const lookup = FS.lookupPath(full)
+                        if (lookup && lookup.node && lookup.node.mode) {
+                            isDir = FS.isDir(lookup.node.mode)
+                        }
+                    } catch (_) {
+                        // Fallback to original method if lookupPath fails
+                        isDir = FS.isDir(full)
+                    }
                 } else {
-                    try { FS.readdir(full); isDir = true } catch (_) { isDir = false }
+                    // PERFORMANCE: Avoid expensive readdir test for directory detection
+                    // Instead, try a lightweight stat-like operation first
+                    try {
+                        const lookup = FS.lookupPath(full)
+                        if (lookup && lookup.node && lookup.node.mode) {
+                            // Use the mode bits directly - directories typically have mode & 0o170000 === 0o040000
+                            isDir = (lookup.node.mode & 61440) === 16384  // S_IFDIR = 0o040000 = 16384
+                        } else {
+                            // Last resort: expensive readdir test
+                            try { FS.readdir(full); isDir = true } catch (_) { isDir = false }
+                        }
+                    } catch (_) {
+                        // Last resort: expensive readdir test
+                        try { FS.readdir(full); isDir = true } catch (_) { isDir = false }
+                    }
                 }
                 if (isDir) stack.push(full)
                 else out.push(normalizePath(full))
@@ -145,15 +168,59 @@ async function createIndexedDBBackend() {
         },
         async syncFromEmscripten(FS) {
             if (!FS) return
-            const files = listFilesFromFS(FS, '/')
-            for (const p of files) {
+
+            // PERFORMANCE: Check if we can avoid full filesystem scan
+            // Only do full scan if we detect significant changes or it's been a while
+            const now = Date.now()
+            const lastFullSync = this._lastFullSync || 0
+            const FULL_SYNC_INTERVAL = 30000 // 30 seconds
+            const shouldDoFullSync = (now - lastFullSync) > FULL_SYNC_INTERVAL
+
+            // Debug: log filesystem size to help diagnose performance issues
+            if (window.__ssg_debug_logs) {
                 try {
-                    const raw = typeof FS.readFile === 'function' ? FS.readFile(p, { encoding: 'utf8' }) : null
-                    const content = raw != null ? decodeToString(raw) : null
-                    if (content != null) await this.write(p, content)
+                    const quickCount = listFilesFromFS(FS, '/').length
+                    console.log(`[VFS Debug] Filesystem has ${quickCount} files, shouldDoFullSync: ${shouldDoFullSync}`)
                 } catch (e) {
-                    if (window.__ssg_debug_logs) {
-                        try { const { warn: logWarn } = await import('./logger.js'); logWarn('VFS: sync skip', p, e) } catch (_e) { console.warn('VFS: sync skip', p, e) }
+                    console.log(`[VFS Debug] Could not count files: ${e.message}`)
+                }
+            }
+
+            if (shouldDoFullSync) {
+                // Full filesystem scan (expensive but comprehensive)
+                const files = listFilesFromFS(FS, '/')
+                this._lastFullSync = now
+
+                for (const p of files) {
+                    try {
+                        const raw = typeof FS.readFile === 'function' ? FS.readFile(p, { encoding: 'utf8' }) : null
+                        const content = raw != null ? decodeToString(raw) : null
+                        if (content != null) await this.write(p, content)
+                    } catch (e) {
+                        if (window.__ssg_debug_logs) {
+                            try { const { warn: logWarn } = await import('./logger.js'); logWarn('VFS: sync skip', p, e) } catch (_e) { console.warn('VFS: sync skip', p, e) }
+                        }
+                    }
+                }
+            } else {
+                // Quick sync: only sync known files that might have changed
+                // Focus on commonly modified files like /main.py
+                const priorityFiles = ['/main.py', '/output.txt', '/data.txt']
+
+                for (const p of priorityFiles) {
+                    try {
+                        // Check if file exists before trying to read it
+                        try {
+                            FS.lookupPath(p)
+                        } catch (_) {
+                            continue // File doesn't exist, skip
+                        }
+
+                        const raw = typeof FS.readFile === 'function' ? FS.readFile(p, { encoding: 'utf8' }) : null
+                        const content = raw != null ? decodeToString(raw) : null
+                        if (content != null) await this.write(p, content)
+                    } catch (e) {
+                        // Silently continue for priority files that don't exist
                     }
                 }
             }
@@ -172,7 +239,38 @@ function createLocalStorageBackend() {
         async write(path, content) { try { const m = load(); m[normalizePath(path)] = content; save(m) } catch (e) { throw e } },
         async delete(path) { try { const m = load(); delete m[normalizePath(path)]; save(m) } catch (e) { /* ignore */ } },
         async mountToEmscripten(FS) { if (!FS || typeof FS.writeFile !== 'function') return; const keys = await this.list(); for (const p of keys) { try { const content = await this.read(p) || ''; const parts = p.split('/'); parts.pop(); let dir = ''; for (const seg of parts) { if (!seg) continue; dir += '/' + seg; try { FS.mkdir(dir) } catch (_) { } } FS.writeFile(p, content) } catch (e) { console.warn('VFS: mount skip', p, e) } } },
-        async syncFromEmscripten(FS) { if (!FS) return; const files = listFilesFromFS(FS, '/'); for (const p of files) { try { const content = typeof FS.readFile === 'function' ? FS.readFile(p, { encoding: 'utf8' }) : null; if (content != null) await this.write(p, content) } catch (e) { console.warn('VFS: sync skip', p, e) } } }
+        async syncFromEmscripten(FS) {
+            if (!FS) return
+
+            // PERFORMANCE: Apply same optimization as IndexedDB backend
+            const now = Date.now()
+            const lastFullSync = this._lastFullSync || 0
+            const FULL_SYNC_INTERVAL = 30000 // 30 seconds
+            const shouldDoFullSync = (now - lastFullSync) > FULL_SYNC_INTERVAL
+
+            if (shouldDoFullSync) {
+                const files = listFilesFromFS(FS, '/')
+                this._lastFullSync = now
+                for (const p of files) {
+                    try {
+                        const content = typeof FS.readFile === 'function' ? FS.readFile(p, { encoding: 'utf8' }) : null
+                        if (content != null) await this.write(p, content)
+                    } catch (e) {
+                        console.warn('VFS: sync skip', p, e)
+                    }
+                }
+            } else {
+                // Quick sync of priority files only
+                const priorityFiles = ['/main.py', '/output.txt', '/data.txt']
+                for (const p of priorityFiles) {
+                    try {
+                        try { FS.lookupPath(p) } catch (_) { continue }
+                        const content = typeof FS.readFile === 'function' ? FS.readFile(p, { encoding: 'utf8' }) : null
+                        if (content != null) await this.write(p, content)
+                    } catch (e) { /* silently continue */ }
+                }
+            }
+        }
     }
 }
 

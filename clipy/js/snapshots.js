@@ -20,7 +20,7 @@ export async function restoreCurrentSnapshotIfExists() {
 }
 // Snapshot management system
 import { $ } from './utils.js'
-import { getFileManager, MAIN_FILE, getBackendRef, getMem } from './vfs-client.js'
+import { getFileManager, MAIN_FILE, getBackendRef, getMem, setSystemWriteMode } from './vfs-client.js'
 import { openModal, closeModal, showConfirmModal } from './modals.js'
 import { appendTerminal, activateSideTab } from './terminal.js'
 import { getConfigKey, getConfigIdentity, getConfig } from './config.js'
@@ -502,12 +502,17 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
                         logError('Failed to delete file:', p, e)
                     }
                 }
-                for (const p of Object.keys(snap.files || {})) {
-                    try {
-                        await Promise.resolve(FileManager.write(p, snap.files[p]))
-                    } catch (e) {
-                        logError('Failed to write via FileManager:', p, e)
+                try {
+                    setSystemWriteMode(true)
+                    for (const p of Object.keys(snap.files || {})) {
+                        try {
+                            await Promise.resolve(FileManager.write(p, snap.files[p]))
+                        } catch (e) {
+                            logError('Failed to write via FileManager:', p, e)
+                        }
                     }
+                } finally {
+                    setSystemWriteMode(false)
                 }
             }
         } catch (e) {

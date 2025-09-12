@@ -319,6 +319,18 @@ textarea#code {
     cursor: pointer
 }
 
+/* Read-only file indicators */
+.tabs .tab .tab-label.read-only {
+    font-style: italic;
+    opacity: 0.8;
+}
+
+.tabs .tab .read-only-indicator {
+    font-size: 0.8em;
+    opacity: 0.7;
+    margin-left: 4px;
+}
+
 .editor-controls {
     margin-top: 8px
 }
@@ -1243,4 +1255,32 @@ pre#terminal-output {
 
 #verification-config-id {
     margin-bottom: 8px;
+}
+
+/* Read-only indicators */
+.readonly-indicator {
+    font-size: 11px;
+    color: #666;
+    margin-left: 5px;
+    font-weight: normal;
+}
+
+.tab.readonly::after {
+    content: "🔒";
+    margin-left: 4px;
+    font-size: 10px;
+    opacity: 0.7;
+}
+
+/* Read-only editor styling */
+.cm-readonly {
+    background-color: #f8f8f8 !important;
+}
+
+.cm-readonly .CodeMirror-cursor {
+    display: none !important;
+}
+
+.cm-readonly .CodeMirror-code {
+    opacity: 0.8;
 }

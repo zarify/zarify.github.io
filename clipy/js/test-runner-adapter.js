@@ -3,6 +3,7 @@
  * This module isolates the logic so it can be unit-tested.
  */
 import { debug as logDebug, info as logInfo, warn as logWarn, error as logError } from './logger.js'
+import { setSystemWriteMode } from './vfs-client.js'
 
 export function createRunFn({ getFileManager, MAIN_FILE, runPythonCode, getConfig }) {
     if (!getFileManager) throw new Error('getFileManager required')
@@ -52,8 +53,9 @@ export function createRunFn({ getFileManager, MAIN_FILE, runPythonCode, getConfi
             // Suppress notifier while mutating FS for the test
             try { window.__ssg_suppress_notifier = true } catch (_e) { }
 
-            // Write setup and main
+            // Write setup and main (system operation - bypass read-only protection)
             try {
+                setSystemWriteMode(true)
                 if (t.setup && typeof t.setup === 'object') {
                     for (const [p, content] of Object.entries(t.setup)) {
                         try { await FileManager.write(p, content) } catch (_e) { }
@@ -63,6 +65,9 @@ export function createRunFn({ getFileManager, MAIN_FILE, runPythonCode, getConfi
                     try { await FileManager.write(MAIN_FILE, t.main) } catch (_e) { }
                 }
             } catch (_e) { }
+            finally {
+                setSystemWriteMode(false)
+            }
 
             // Read code and clear runtime globals
             let code = ''
@@ -140,15 +145,20 @@ export function createRunFn({ getFileManager, MAIN_FILE, runPythonCode, getConfi
                         try { await FileManager.delete(p) } catch (_e) { }
                     }
                 }
-                for (const p of Object.keys(origFiles)) {
-                    try {
-                        const desired = origFiles[p]
-                        if (desired == null) {
-                            try { if (p !== MAIN_FILE) await FileManager.delete(p) } catch (_e) { }
-                        } else {
-                            try { await FileManager.write(p, desired) } catch (_e) { }
-                        }
-                    } catch (_e) { }
+                try {
+                    setSystemWriteMode(true)
+                    for (const p of Object.keys(origFiles)) {
+                        try {
+                            const desired = origFiles[p]
+                            if (desired == null) {
+                                try { if (p !== MAIN_FILE) await FileManager.delete(p) } catch (_e) { }
+                            } else {
+                                try { await FileManager.write(p, desired) } catch (_e) { }
+                            }
+                        } catch (_e) { }
+                    }
+                } finally {
+                    setSystemWriteMode(false)
                 }
                 try { logDebug('DEBUG after restore main:', await FileManager.read(MAIN_FILE)) } catch (_e) { }
             } catch (_e) { }

@@ -125,6 +125,13 @@ export function createConfigManager(opts = {}) {
     function setCurrentConfig(newCfg) {
         config = newCfg
         try { if (typeof window !== 'undefined') window.Config = window.Config || {}; window.Config.current = config } catch (_e) { }
+
+        // Notify tab system of config change for read-only indicators
+        try {
+            if (typeof window !== 'undefined' && window.TabManager && typeof window.TabManager.updateConfig === 'function') {
+                window.TabManager.updateConfig(config)
+            }
+        } catch (_e) { }
     }
 
     function validateAndNormalizeConfig(rawConfig) {
@@ -242,7 +249,8 @@ function validateAndNormalizeConfigInternal(rawConfig) {
             : (parsedTests && (parsedTests.groups || parsedTests.ungrouped))
                 ? parsedTests
                 : [],
-        files: (rawConfig && typeof rawConfig.files === 'object') ? rawConfig.files : undefined
+        files: (rawConfig && typeof rawConfig.files === 'object') ? rawConfig.files : undefined,
+        fileReadOnlyStatus: (rawConfig && typeof rawConfig.fileReadOnlyStatus === 'object') ? rawConfig.fileReadOnlyStatus : {}
     }
 
     if (!normalized.runtime.url || typeof normalized.runtime.url !== 'string') {

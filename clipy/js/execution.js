@@ -1,7 +1,7 @@
 // Python code execution engine
 import { appendTerminal, appendTerminalDebug, setTerminalInputEnabled, activateSideTab, enableStderrBuffering, replaceBufferedStderr, flushStderrBufferRaw } from './terminal.js'
 import { getRuntimeAdapter, setExecutionRunning, getExecutionState, interruptMicroPythonVM } from './micropython.js'
-import { getFileManager, MAIN_FILE, markExpectedWrite } from './vfs-client.js'
+import { getFileManager, MAIN_FILE, markExpectedWrite, setSystemWriteMode } from './vfs-client.js'
 import { transformAndWrap, mapTracebackAndShow, highlightMappedTracebackInEditor, clearAllErrorHighlights, clearAllFeedbackHighlights } from './code-transform.js'
 
 export async function executeWithTimeout(executionPromise, timeoutMs, safetyTimeoutMs = 5000) {
@@ -68,15 +68,20 @@ async function syncVFSBeforeRun() {
         // First, ensure any UI FileManager contents are pushed into the backend so mount sees them
         try {
             if (backend && typeof backend.write === 'function' && typeof FileManager?.list === 'function') {
-                const files = FileManager.list()
-                for (const p of files) {
-                    try {
-                        const c = FileManager.read(p)
-                        // suppress notifier echoes while we push UI files into backend
-                        try { window.__ssg_suppress_notifier = true } catch (_e) { }
-                        await backend.write(p, c == null ? '' : c)
-                        try { window.__ssg_suppress_notifier = false } catch (_e) { }
-                    } catch (_e) { /* ignore per-file */ }
+                try {
+                    setSystemWriteMode(true)
+                    const files = FileManager.list()
+                    for (const p of files) {
+                        try {
+                            const c = FileManager.read(p)
+                            // suppress notifier echoes while we push UI files into backend
+                            try { window.__ssg_suppress_notifier = true } catch (_e) { }
+                            await backend.write(p, c == null ? '' : c)
+                            try { window.__ssg_suppress_notifier = false } catch (_e) { }
+                        } catch (_e) { /* ignore per-file */ }
+                    }
+                } finally {
+                    setSystemWriteMode(false)
                 }
                 appendTerminalDebug('Synced UI FileManager -> backend (pre-run)')
             } else if (fs && typeof fs.writeFile === 'function' && typeof FileManager?.list === 'function') {
@@ -115,11 +120,14 @@ async function syncVFSBeforeRun() {
             for (let attempt = 0; attempt < 3 && !mounted; attempt++) {
                 try {
                     try { window.__ssg_suppress_notifier = true } catch (_e) { }
+                    try { setSystemWriteMode(true) } catch (_e) { }
                     await backend.mountToEmscripten(fs)
+                    try { setSystemWriteMode(false) } catch (_e) { }
                     try { window.__ssg_suppress_notifier = false } catch (_e) { }
                     mounted = true
                     appendTerminalDebug('VFS mounted into MicroPython FS (pre-run)')
                 } catch (merr) {
+                    try { setSystemWriteMode(false) } catch (_e) { }
                     appendTerminalDebug('VFS pre-run mount attempt #' + (attempt + 1) + ' failed: ' + String(merr))
                     await new Promise(r => setTimeout(r, 150))
                 }
@@ -134,6 +142,12 @@ async function syncVFSBeforeRun() {
 // Sync VFS files after execution
 async function syncVFSAfterRun() {
     try {
+        // PERFORMANCE: Skip expensive sync if this was likely a read-only operation
+        if (window.__ssg_skip_sync_after_run) {
+            appendTerminalDebug('VFS sync skipped (read-only operation detected)')
+            return
+        }
+
         const backend = window.__ssg_vfs_backend
         const fs = window.__ssg_runtime_fs
 
@@ -188,6 +202,19 @@ export async function runPythonCode(code, cfg) {
 
     setExecutionRunning(true)
     appendTerminal('>>> Running...', 'runtime')
+
+    // PERFORMANCE: Detect likely read-only operations to skip expensive VFS sync
+    const codeStr = String(code || '').trim()
+    const isReadOnlyOperation = /^(import\s+os|from\s+os|os\.listdir|os\.getcwd|os\.path\.|print\s*\()/m.test(codeStr) &&
+        !/write|open\s*\(|file\s*=|with\s+open/m.test(codeStr) &&
+        codeStr.length < 200 // Only apply to short snippets
+
+    if (isReadOnlyOperation) {
+        window.__ssg_skip_sync_after_run = true
+        appendTerminalDebug('Detected read-only operation, will skip expensive sync')
+    } else {
+        window.__ssg_skip_sync_after_run = false
+    }
 
     // Initialize stdin history tracking for feedback system
     window.__ssg_stdin_history = ''

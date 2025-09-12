@@ -6,6 +6,26 @@ import { debug as logDebug, info as logInfo, warn as logWarn, error as logError 
 
 // Global state
 let runtimeAdapter = null
+
+// Helper: normalize a path for display to the user (strip any leading slashes)
+function _displayPathForUser(path) {
+    try {
+        if (path == null) return String(path)
+        const s = String(path)
+        // remove any leading slashes so paths are reported relative to main.py
+        return s.replace(/^\/+/g, '')
+    } catch (_e) { return String(path) }
+}
+
+// Helper: throw a read-only permission error consistently. If the FS
+// provides ErrnoError, prefer throwing that to match runtime expectations.
+function _throwReadOnly(fs, path, isDir) {
+    const display = _displayPathForUser(path)
+    if (fs && typeof fs.ErrnoError === 'function') throw new fs.ErrnoError(13)
+    const e = new Error('Permission denied: read-only ' + (isDir ? 'path ' : 'file ') + display)
+    e.errno = 13
+    throw e
+}
 let executionState = {
     isRunning: false,
     currentAbortController: null,
@@ -604,7 +624,10 @@ export async function loadMicroPythonRuntime(cfg) {
                     }
 
                     // expose runtime FS for persistence sync
-                    try { window.__ssg_runtime_fs = mpInstance.FS } catch (e) { }
+                    try {
+                        window.__ssg_runtime_fs = mpInstance.FS
+                        try { installRuntimeFsGuards(window.__ssg_runtime_fs) } catch (_e) { }
+                    } catch (e) { }
 
                     // Register the host module
                     try {
@@ -643,6 +666,70 @@ export async function loadMicroPythonRuntime(cfg) {
                         appendTerminalDebug('Filesystem notifications configured')
                     } catch (e) {
                         appendTerminalDebug('Could not setup filesystem notifications: ' + e)
+                    }
+
+                    // Wrap runtime FS write APIs to enforce read-only protection for user code.
+                    try {
+                        const fs = mpInstance.FS
+                        // Helper to check read-only (consult global config via window.currentConfig)
+                        function _isPathReadOnlyForUser(path) {
+                            try {
+                                // System writes may temporarily enable system mode
+                                if (typeof window !== 'undefined' && window.__ssg_system_write_mode) return false
+                                const cfg = (typeof window !== 'undefined' && window.currentConfig) ? window.currentConfig : null
+                                if (!cfg || !cfg.fileReadOnlyStatus) return false
+                                const n = String(path).startsWith('/') ? path : ('/' + String(path).replace(/^\/+/, ''))
+                                const bare = n.replace(/^\/+/, '')
+                                return !!(cfg.fileReadOnlyStatus[n] || cfg.fileReadOnlyStatus[bare])
+                            } catch (_e) { return false }
+                        }
+
+                        // Wrap writeFile (some runtimes expose writeFile)
+                        if (fs && typeof fs.writeFile === 'function') {
+                            const _origWriteFile = fs.writeFile.bind(fs)
+                            fs.writeFile = function (path, data, opts) {
+                                try {
+                                    if (_isPathReadOnlyForUser(path)) {
+                                        try { appendTerminalDebug('[vfs-guard] blocking writeFile to ' + _displayPathForUser(path)) } catch (_e) { }
+                                        _throwReadOnly(fs, path, false)
+                                    }
+                                } catch (_e) { }
+                                return _origWriteFile(path, data, opts)
+                            }
+                        }
+
+                        // Wrap createDataFile
+                        if (fs && typeof fs.createDataFile === 'function') {
+                            const _origCreate = fs.createDataFile.bind(fs)
+                            fs.createDataFile = function (parent, name, data, canRead, canWrite) {
+                                const path = (parent === '/' ? '' : parent) + '/' + name
+                                try {
+                                    if (_isPathReadOnlyForUser(path)) {
+                                        try { appendTerminalDebug('[vfs-guard] blocking createDataFile -> ' + _displayPathForUser(path)) } catch (_e) { }
+                                        _throwReadOnly(fs, path, false)
+                                    }
+                                } catch (_e) { }
+                                return _origCreate(parent, name, data, canRead, canWrite)
+                            }
+                        }
+
+                        // Wrap low-level write (fd-based) if present
+                        if (fs && typeof fs.write === 'function') {
+                            const _origWrite = fs.write.bind(fs)
+                            fs.write = function (fd, buffer, offset, length, position) {
+                                try {
+                                    const meta = fs.__ssg_fd_map && fs.__ssg_fd_map[fd]
+                                    const path = meta && meta.path ? meta.path : null
+                                    if (path && _isPathReadOnlyForUser(path)) {
+                                        try { appendTerminalDebug('[vfs-guard] blocking fd write to ' + _displayPathForUser(path)) } catch (_e) { }
+                                        _throwReadOnly(fs, path, false)
+                                    }
+                                } catch (_e) { }
+                                return _origWrite(fd, buffer, offset, length, position)
+                            }
+                        }
+                    } catch (_e) {
+                        appendTerminalDebug('Failed to install runtime FS write guards: ' + _e)
                     }
 
                     setRuntimeAdapter({
@@ -715,6 +802,25 @@ export async function loadMicroPythonRuntime(cfg) {
             s.crossOrigin = 'anonymous'
             document.head.appendChild(s)
             appendTerminalDebug('Runtime loader script appended: ' + runtimeUrl)
+
+            // Short polling fallback: some runtime loaders attach FS after a tick.
+            // Poll for a short time and install guards when FS appears.
+            try {
+                const start = Date.now()
+                const POLL_MS = 2000
+                const interval = setInterval(() => {
+                    try {
+                        if (window.__ssg_runtime_fs) {
+                            try { installRuntimeFsGuards(window.__ssg_runtime_fs) } catch (_e) { }
+                            clearInterval(interval)
+                            return
+                        }
+                        if (Date.now() - start > POLL_MS) {
+                            clearInterval(interval)
+                        }
+                    } catch (_e) { clearInterval(interval) }
+                }, 120)
+            } catch (_e) { }
 
             // TODO: Add runtime probing logic here if needed
         } catch (e) {
@@ -834,5 +940,307 @@ function setupFilesystemNotifications(mpInstance) {
         }
     } catch (e) {
         throw new Error('Failed to setup filesystem notifications: ' + e)
+    }
+}
+
+// Install runtime FS guards on a given FS object. This is factored out so
+// it can be called both when the vendor loader returns the FS and when an
+// externally-loaded runtime sets `window.__ssg_runtime_fs` later.
+function installRuntimeFsGuards(fs) {
+    try {
+        if (!fs || fs.__ssg_guards_installed) return
+        fs.__ssg_guards_installed = true
+
+        // Debug: list available fs methods
+        try {
+            const keys = Object.keys(fs).filter(k => typeof fs[k] === 'function')
+            appendTerminalDebug && appendTerminalDebug('[vfs-guard] installing on FS methods: ' + keys.join(','))
+        } catch (_e) { }
+
+        // Helper to check read-only (consult global config via window.currentConfig)
+        function _isPathReadOnlyForUser(path) {
+            try {
+                if (typeof window !== 'undefined' && window.__ssg_system_write_mode) return false
+                const cfg = (typeof window !== 'undefined' && window.currentConfig) ? window.currentConfig : null
+                if (!cfg || !cfg.fileReadOnlyStatus) return false
+                const n = String(path).startsWith('/') ? path : ('/' + String(path).replace(/^\/+/, ''))
+                const bare = n.replace(/^\/+/, '')
+                return !!(cfg.fileReadOnlyStatus[n] || cfg.fileReadOnlyStatus[bare])
+            } catch (_e) { return false }
+        }
+
+        if (typeof fs.writeFile === 'function') {
+            const _orig = fs.writeFile.bind(fs)
+            fs.writeFile = function (path, data, opts) {
+                if (_isPathReadOnlyForUser(path)) {
+                    try { appendTerminalDebug('[vfs-guard] blocking writeFile to ' + _displayPathForUser(path)) } catch (_e) { }
+                    _throwReadOnly(fs, path, false)
+                }
+                return _orig(path, data, opts)
+            }
+        }
+
+        // Wrap writeFileSync if present
+        if (typeof fs.writeFileSync === 'function') {
+            const _orig = fs.writeFileSync.bind(fs)
+            fs.writeFileSync = function (path, data, opts) {
+                if (_isPathReadOnlyForUser(path)) {
+                    try { appendTerminalDebug('[vfs-guard] blocking writeFileSync to ' + _displayPathForUser(path)) } catch (_e) { }
+                    _throwReadOnly(fs, path, false)
+                }
+                return _orig(path, data, opts)
+            }
+        }
+
+        if (typeof fs.createDataFile === 'function') {
+            const _orig = fs.createDataFile.bind(fs)
+            fs.createDataFile = function (parent, name, data, canRead, canWrite) {
+                const path = (parent === '/' ? '' : parent) + '/' + name
+                if (_isPathReadOnlyForUser(path)) {
+                    try { appendTerminalDebug('[vfs-guard] blocking createDataFile -> ' + _displayPathForUser(path)) } catch (_e) { }
+                    _throwReadOnly(fs, path, false)
+                }
+                return _orig(parent, name, data, canRead, canWrite)
+            }
+        }
+
+        if (typeof fs.write === 'function') {
+            const _orig = fs.write.bind(fs)
+            fs.write = function (fd, buffer, offset, length, position) {
+                const meta = fs.__ssg_fd_map && fs.__ssg_fd_map[fd]
+                const path = meta && meta.path ? meta.path : null
+                if (path && _isPathReadOnlyForUser(path)) {
+                    try { appendTerminalDebug('[vfs-guard] blocking fd write to ' + _displayPathForUser(path)) } catch (_e) { }
+                    _throwReadOnly(fs, path, false)
+                }
+                return _orig(fd, buffer, offset, length, position)
+            }
+        }
+
+        // Block creation APIs which the runtime can use to create files (mknod/createNode)
+        if (typeof fs.createNode === 'function') {
+            const _origCreateNode = fs.createNode.bind(fs)
+            fs.createNode = function (parent, name, mode, dev) {
+                // parent may be a path string or a node object; normalize to a path
+                let parentPath = null
+                try {
+                    if (typeof parent === 'string') parentPath = parent
+                    else if (typeof fs.getPath === 'function') parentPath = fs.getPath(parent)
+                    else if (parent && parent.name) {
+                        // best-effort: walk parents to build a path
+                        const parts = []
+                        let cur = parent
+                        while (cur && cur.name) { parts.unshift(cur.name); cur = cur.parent }
+                        parentPath = '/' + parts.join('/')
+                    }
+                } catch (_e) { parentPath = null }
+
+                const path = (parentPath === '/' ? '' : (parentPath || '')) + '/' + name
+                if (_isPathReadOnlyForUser(path)) {
+                    _throwReadOnly(fs, path, false)
+                }
+
+                return _origCreateNode(parent, name, mode, dev)
+            }
+        }
+
+        if (typeof fs.mknod === 'function') {
+            const _origMknod = fs.mknod.bind(fs)
+            fs.mknod = function (path, mode, dev) {
+                if (_isPathReadOnlyForUser(path)) {
+                    _throwReadOnly(fs, path, false)
+                }
+                return _origMknod(path, mode, dev)
+            }
+        }
+
+        // Wrap createStream to prevent creating writable streams on read-only paths
+        if (typeof fs.createStream === 'function') {
+            const _origCreateStream = fs.createStream.bind(fs)
+            fs.createStream = function (node, flags, mode) {
+                // attempt to resolve path from node
+                let path = null
+                try {
+                    if (typeof fs.getPath === 'function') path = fs.getPath(node)
+                    else if (node && node.name) {
+                        // best-effort: walk parents
+                        let parts = []
+                        let cur = node
+                        while (cur && cur.name) { parts.unshift(cur.name); cur = cur.parent }
+                        path = '/' + parts.join('/')
+                    }
+                } catch (_e) { }
+                // if flags indicate write/create (string or numeric), block
+                let writeMode = false
+                if (typeof flags === 'string' && /[wa+]/.test(flags)) writeMode = true
+                if (typeof flags === 'number' && (flags & 3) !== 0) writeMode = true
+                if (writeMode && path && _isPathReadOnlyForUser(path)) {
+                    _throwReadOnly(fs, path, false)
+                }
+                return _origCreateStream(node, flags, mode)
+            }
+        }
+
+        // If FS exposes stream_ops (shared stream op implementations), wrap write there
+        try {
+            if (fs.stream_ops && typeof fs.stream_ops.write === 'function') {
+                const _origStreamWrite = fs.stream_ops.write.bind(fs.stream_ops)
+                fs.stream_ops.write = function (stream, buffer, offset, length, position) {
+                    let path = null
+                    try { if (stream && stream.node && typeof fs.getPath === 'function') path = fs.getPath(stream.node) } catch (_e) { }
+                    if (path && _isPathReadOnlyForUser(path)) {
+                        _throwReadOnly(fs, path, false)
+                    }
+                    return _origStreamWrite(stream, buffer, offset, length, position)
+                }
+            }
+        } catch (_e) { }
+
+        // Wrap unlink/unlinkSync and rmdir/rmdirSync to block deletion of
+        // read-only files/directories when invoked from user code.
+        try {
+            if (typeof fs.unlink === 'function') {
+                const _origUnlink = fs.unlink.bind(fs)
+                fs.unlink = function (path) {
+                    if (_isPathReadOnlyForUser(path)) {
+                        try { appendTerminal && appendTerminal('OSError: [Errno 13] Permission denied: ' + _displayPathForUser(path), 'stderr') } catch (_e) { }
+                        _throwReadOnly(fs, path, false)
+                    }
+                    const res = _origUnlink(path)
+                    // Notify host/UI that runtime removed the file so FileManager can sync
+                    try { if (typeof window !== 'undefined' && typeof window.__ssg_notify_file_written === 'function') window.__ssg_notify_file_written(path, null) } catch (_e) { }
+                    return res
+                }
+            }
+
+            if (typeof fs.unlinkSync === 'function') {
+                const _origUnlinkSync = fs.unlinkSync.bind(fs)
+                fs.unlinkSync = function (path) {
+                    if (_isPathReadOnlyForUser(path)) {
+                        try { appendTerminal && appendTerminal('OSError: [Errno 13] Permission denied: ' + _displayPathForUser(path), 'stderr') } catch (_e) { }
+                        _throwReadOnly(fs, path, false)
+                    }
+                    const res = _origUnlinkSync(path)
+                    try { if (typeof window !== 'undefined' && typeof window.__ssg_notify_file_written === 'function') window.__ssg_notify_file_written(path, null) } catch (_e) { }
+                    return res
+                }
+            }
+
+            if (typeof fs.rmdir === 'function') {
+                const _origRmdir = fs.rmdir.bind(fs)
+                fs.rmdir = function (path) {
+                    if (_isPathReadOnlyForUser(path)) {
+                        try { appendTerminal && appendTerminal('OSError: [Errno 13] Permission denied: ' + _displayPathForUser(path), 'stderr') } catch (_e) { }
+                        _throwReadOnly(fs, path, true)
+                    }
+                    return _origRmdir(path)
+                }
+            }
+
+            if (typeof fs.rmdirSync === 'function') {
+                const _origRmdirSync = fs.rmdirSync.bind(fs)
+                fs.rmdirSync = function (path) {
+                    if (_isPathReadOnlyForUser(path)) {
+                        try { appendTerminal && appendTerminal('OSError: [Errno 13] Permission denied: ' + _displayPathForUser(path), 'stderr') } catch (_e) { }
+                        _throwReadOnly(fs, path, true)
+                    }
+                    return _origRmdirSync(path)
+                }
+            }
+        } catch (_e) { }
+
+        // Wrap open to block write-mode opens
+        if (typeof fs.open === 'function') {
+            const _origOpen = fs.open.bind(fs)
+            fs.open = function (path, flags, mode) {
+                try {
+                    // If flags is a string, detect write modes like 'w', 'a', '+'
+                    if (typeof flags === 'string' && /[wa+]/.test(flags)) {
+                        if (_isPathReadOnlyForUser(path)) {
+                            try { appendTerminalDebug('[vfs-guard] blocking open(write) -> ' + _displayPathForUser(path) + ' flags:' + flags) } catch (_e) { }
+                            _throwReadOnly(fs, path, false)
+                        }
+                    }
+                    // If flags is numeric, best-effort: block if common write bits set (O_WRONLY|O_RDWR)
+                    if (typeof flags === 'number') {
+                        // POSIX O_WRONLY=1, O_RDWR=2; check low bits
+                        const writeBits = (flags & 3)
+                        if (writeBits !== 0) {
+                            if (_isPathReadOnlyForUser(path)) {
+                                try { appendTerminalDebug('[vfs-guard] blocking open(write numeric) -> ' + _displayPathForUser(path) + ' flags:' + flags) } catch (_e) { }
+                                _throwReadOnly(fs, path, false)
+                            }
+                        }
+                    }
+                } catch (_e) { }
+                return _origOpen(path, flags, mode)
+            }
+        }
+
+        // After installing guards, add a lightweight tracer that wraps the
+        // final function-valued properties on the FS object. This records
+        // calls (method name + preview of args) to `window.__ssg_fs_call_log`
+        // and emits a debug line via appendTerminalDebug. The tracer is
+        // installed last so it wraps the final call-path the runtime uses
+        // (including any guard wrappers installed above).
+        // PERFORMANCE: Only install tracer if explicitly enabled for debugging
+        try {
+            const enableTracing = window.__ssg_enable_fs_tracing || window.__ssg_debug_logs
+            if (!fs.__ssg_tracer_installed && enableTracing) {
+                fs.__ssg_tracer_installed = true
+
+                // small helper to stringify args safely and keep output short
+                const _argPreview = (v) => {
+                    try {
+                        if (v === undefined) return 'undefined'
+                        if (v === null) return 'null'
+                        if (typeof v === 'string') return JSON.stringify(v).slice(0, 120)
+                        if (typeof v === 'number' || typeof v === 'boolean') return String(v)
+                        if (v && v.constructor && v.constructor.name === 'Uint8Array') return `Uint8Array(${v.length})`
+                        return String(v).slice(0, 120)
+                    } catch (_e) { return '[unstringifiable]' }
+                }
+
+                const fnKeys = Object.keys(fs).filter(k => typeof fs[k] === 'function')
+                fnKeys.forEach((k) => {
+                    try {
+                        const _orig = fs[k]
+                        // Use a non-arrow function so `new.target` is available to
+                        // detect constructor invocations. If the runtime calls a
+                        // function as a constructor (e.g. `new ErrnoError(...)`),
+                        // we must forward that correctly using Reflect.construct
+                        // instead of calling the function as a normal call which
+                        // would throw "class constructors must be invoked with 'new'".
+                        fs[k] = function () {
+                            const args = Array.prototype.slice.call(arguments, 0)
+                            try {
+                                // lightweight trace: record minimal call info (non-noisy)
+                                try { window.__ssg_fs_call_log = window.__ssg_fs_call_log || [] } catch (_e) { }
+                                try { window.__ssg_fs_call_log.push({ when: Date.now(), method: k, args: args.slice(0, 3).map(_argPreview) }) } catch (_e) { }
+                            } catch (_e) { }
+
+                            try {
+                                // If called as a constructor (new.target is defined),
+                                // use Reflect.construct to create an instance of the
+                                // original function/class. Otherwise, call normally.
+                                if (typeof new.target !== 'undefined') {
+                                    return Reflect.construct(_orig, args, new.target)
+                                }
+                                return _orig.apply(this, args)
+                            } catch (err) {
+                                // trace threw - no noisy output
+                                throw err
+                            }
+                        }
+                    } catch (_e) { }
+                })
+
+                try { appendTerminalDebug && appendTerminalDebug('[vfs-guard] runtime FS tracer installed') } catch (_e) { }
+            }
+        } catch (_e) { }
+
+        try { appendTerminalDebug('Installed runtime FS guards') } catch (_e) { }
+    } catch (e) {
+        try { appendTerminalDebug('Failed to install runtime FS guards: ' + e) } catch (_e) { }
     }
 }

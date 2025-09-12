@@ -11,6 +11,7 @@ function $(id) { return document.getElementById(id) }
 
 let editor = null
 let files = {} // map path -> content or { content, binary, mime }
+let fileReadOnlyStatus = {} // map path -> boolean (true if read-only)
 let currentFile = '/main.py'
 let suppressOpenFileFocus = false
 let autosaveTimer = null
@@ -80,7 +81,27 @@ function renderFileList() {
         const label = document.createElement('span')
         label.textContent = p
         label.style.fontSize = '0.9em'
+
+        // Add read-only indicator
+        if (fileReadOnlyStatus[p]) {
+            label.style.fontStyle = 'italic'
+            label.style.color = '#666'
+        } else {
+            label.style.fontStyle = 'normal'
+            label.style.color = 'inherit'
+        }
+
         tab.appendChild(label)
+
+        // Add read-only icon if applicable
+        if (fileReadOnlyStatus[p]) {
+            const readOnlyIcon = document.createElement('span')
+            readOnlyIcon.textContent = '🔒'
+            readOnlyIcon.title = 'Read-only file'
+            readOnlyIcon.style.fontSize = '0.8em'
+            readOnlyIcon.style.opacity = '0.7'
+            tab.appendChild(readOnlyIcon)
+        }
 
         // Add close button (except for /main.py)
         if (p !== '/main.py') {
@@ -121,6 +142,13 @@ function openFile(path, force = false) {
     if (suppressOpenFileFocus && !force) return
     currentFile = path
     $('editor-current-file').textContent = path
+
+    // Update read-only toggle
+    const readOnlyToggle = $('readonly-toggle')
+    if (readOnlyToggle) {
+        readOnlyToggle.checked = fileReadOnlyStatus[path] || false
+    }
+
     const content = files[path]
     if (typeof content === 'string') {
         if (editor) editor.setValue(content)
@@ -223,7 +251,7 @@ function buildCurrentConfig() {
     const feedbackRaw = $('feedback-editor') ? $('feedback-editor').value || '' : ''
     const testsRaw = $('tests-editor') ? $('tests-editor').value || '' : ''
     const starter = files['/main.py'] || ''
-    const cfg = { id, title, version, description, instructions, feedback: feedbackRaw, tests: testsRaw, starter, files }
+    const cfg = { id, title, version, description, instructions, feedback: feedbackRaw, tests: testsRaw, starter, files, fileReadOnlyStatus }
     return cfg
 }
 
@@ -234,6 +262,7 @@ async function restoreFromLocalStorage() {
     if (!raw) {
         // initialize defaults
         files = { '/main.py': '# starter code\n' }
+        fileReadOnlyStatus = {}
         renderFileList()
         openFile('/main.py')
         suppressAutosave = false  // Re-enable autosave
@@ -242,6 +271,7 @@ async function restoreFromLocalStorage() {
     try {
         // raw may be normalized or raw shape
         files = raw.files || { '/main.py': raw.starter || '# starter code\n' }
+        fileReadOnlyStatus = raw.fileReadOnlyStatus || {}
         $('meta-title').value = raw.title || ''
         $('meta-id').value = raw.id || ''
         $('meta-version').value = raw.version || ''
@@ -266,7 +296,7 @@ async function restoreFromLocalStorage() {
                 }
             } catch (_e) { $('tests-editor').value = raw.tests || '' }
         }
-    } catch (e) { files = { '/main.py': '# starter code\n' } }
+    } catch (e) { files = { '/main.py': '# starter code\n' }; fileReadOnlyStatus = {} }
     // Prevent any file-creation flows triggered during render from stealing focus
     suppressOpenFileFocus = true
     try {
@@ -420,6 +450,15 @@ function setupHandlers() {
     logDebug('[author-page] setupHandlers: add-file listener attached')
     $('file-upload').addEventListener('change', handleUpload)
 
+    // Read-only toggle handler
+    $('readonly-toggle').addEventListener('change', (ev) => {
+        if (currentFile) {
+            fileReadOnlyStatus[currentFile] = ev.target.checked
+            renderFileList()  // Re-render tabs to show/hide read-only indicator
+            debounceSave()
+        }
+    })
+
     // Back to app navigation with session flag
     $('back-to-app').addEventListener('click', async () => {
         try {
@@ -428,6 +467,11 @@ function setupHandlers() {
             try {
                 const cfg = buildCurrentConfig()
                 await saveAuthorConfigToLocalStorage(cfg)
+                // Intentionally do NOT save this authored config as the app's
+                // current configuration here. Applying an authored config to
+                // the running app should be an explicit user action via the
+                // config modal ("Use in app"), otherwise navigating back
+                // would unexpectedly overwrite the user's current workspace.
             } catch (_e) { /* best-effort - ignore save errors and continue navigation */ }
 
             // Set flag for return detection
@@ -454,6 +498,7 @@ function setupHandlers() {
         try { await clearAuthorConfigInLocalStorage() } catch (_e) { }
         // reset fields
         files = { '/main.py': '# starter code\n' }
+        fileReadOnlyStatus = {}
         renderFileList()
         openFile('/main.py')
         $('meta-title').value = ''
@@ -713,19 +758,7 @@ function updateVerificationCodesDebounced() {
 // Initialize
 window.addEventListener('DOMContentLoaded', async () => {
     // Add debug helper to window for manual inspection
-    window.debugAuthorStorage = async function () {
-        console.log('=== Author Storage Debug ===')
-        try {
-            const config = await window.getSavedAuthorConfig()
-            console.log('getSavedAuthorConfig result:', config)
-
-            if (window.debugUnifiedStorageSettings) {
-                await window.debugUnifiedStorageSettings()
-            }
-        } catch (e) {
-            console.error('Debug failed:', e)
-        }
-    }
+    // debugAuthorStorage removed in cleanup
 
     loadEditor()
     // Restore state before attaching handlers to avoid races where UI events
@@ -748,7 +781,8 @@ async function applyImportedConfig(obj) {
     // Normalize incoming shape: prefer files, fallback to starter
     try {
         files = obj.files || (obj.starter ? { '/main.py': obj.starter } : { '/main.py': '# starter code\n' })
-    } catch (_e) { files = { '/main.py': '# starter code\n' } }
+        fileReadOnlyStatus = obj.fileReadOnlyStatus || {}
+    } catch (_e) { files = { '/main.py': '# starter code\n' }; fileReadOnlyStatus = {} }
     // Metadata
     $('meta-title').value = obj.title || obj.name || ''
     $('meta-id').value = obj.id || ''

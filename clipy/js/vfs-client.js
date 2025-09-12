@@ -4,29 +4,39 @@ import { appendTerminal, appendTerminalDebug } from './terminal.js'
 import { warn as logWarn, error as logError, info as logInfo } from './logger.js'
 import { safeSetItem } from './storage-manager.js'
 
-// Helper: prefer unified storage for mirror updates; fall back to localStorage
-function scheduleMirrorSave(path, content, host = window) {
-    try {
-        // If IndexedDB is available, prefer unified storage asynchronously
-        if (typeof window !== 'undefined' && window.indexedDB) {
-            import('./unified-storage.js').then(mod => {
-                try { if (mod && typeof mod.saveFile === 'function') mod.saveFile(path, content).catch(() => { }) } catch (_e) { }
-            }).catch(() => { /* ignore import failures and don't write localStorage here */ })
-            return { success: true }
-        }
+// Global flag to allow system operations to bypass read-only restrictions
+let systemWriteMode = false
 
-        // Fallback: update localStorage mirror synchronously (used in tests/older browsers)
-        try {
-            const map = JSON.parse((host.localStorage.getItem('ssg_files_v1') || '{}'))
-            map[path] = content
-            const result = safeSetItem('ssg_files_v1', JSON.stringify(map))
-            if (!result.success) logWarn('Failed to update localStorage mirror:', result.error)
-            return result
-        } catch (err) {
-            return { success: false, error: err && err.message }
-        }
-    } catch (e) {
-        return { success: false, error: e && e.message }
+// Helper: normalize a path for display to the user (strip any leading slashes)
+function _displayPathForUser(path) {
+    try {
+        if (path == null) return String(path)
+        return String(path).replace(/^\/+/g, '')
+    } catch (_e) { return String(path) }
+}
+
+// Allow system operations to temporarily bypass read-only restrictions.
+// This is exported so callers (execution flows, snapshots, tests) can
+// enable system-write mode while performing controlled backend writes.
+export function setSystemWriteMode(enabled) {
+    systemWriteMode = !!enabled
+    try { if (typeof window !== 'undefined') window.__ssg_system_write_mode = !!enabled } catch (_e) { }
+}
+
+// Helper to check if a file is read-only (excluding system operations)
+function isFileReadOnlyForUserWrite(path) {
+    try {
+        // Allow system operations to bypass read-only restrictions
+        if (systemWriteMode) return false
+
+        // Get current config from global state
+        const config = (typeof window !== 'undefined' && window.currentConfig) || null
+        if (!config || !config.fileReadOnlyStatus) return false
+
+        const normalizedPath = path.startsWith('/') ? path : `/${path}`
+        return !!(config.fileReadOnlyStatus[normalizedPath] || config.fileReadOnlyStatus[normalizedPath.replace(/^\/+/, '')])
+    } catch (_e) {
+        return false
     }
 }
 
@@ -105,7 +115,6 @@ function setupNotificationSystem() {
                 // global suppress guard: if set, ignore runtime-originated notifications
                 try {
                     if (window.__ssg_suppress_notifier) {
-                        try { appendTerminalDebug && appendTerminalDebug('[notify] globally suppressed: ' + String(path)) } catch (_e) { }
                         return
                     }
                 } catch (_e) { }
@@ -124,18 +133,40 @@ function setupNotificationSystem() {
                 // consume it and skip further UI processing to avoid echo loops.
                 try {
                     if (consumeExpectedWriteIfMatches(n, content)) {
-                        try { appendTerminalDebug && appendTerminalDebug('[notify] ignored expected write: ' + n) } catch (_e) { }
                         return
                     }
                 } catch (_e) { }
 
                 // Log the notification only to debug logs (avoid noisy terminal output)
-                try { appendTerminalDebug('notify: ' + n) } catch (_e) { }
+                // notification: path written -> UI will handle enqueueing/opening
 
                 // update mem and localStorage mirror for tests and fallbacks (always keep mem in sync)
-                try { if (typeof mem !== 'undefined') { mem[n] = content } } catch (_e) { }
                 try {
-                    scheduleMirrorSave(n, content)
+                    if (typeof mem !== 'undefined') {
+                        if (content == null) {
+                            try { delete mem[n] } catch (_e) { }
+                        } else {
+                            mem[n] = content
+                        }
+                    }
+                } catch (_e) { }
+                try {
+                    if (content == null) scheduleMirrorDelete(n)
+                    else scheduleMirrorSave(n, content)
+                } catch (_e) { }
+
+                // If this was a deletion, inform the TabManager to close any open tab
+                try {
+                    if (content == null) {
+                        try {
+                            if (window.TabManager && typeof window.TabManager.closeTabSilent === 'function') {
+                                try { window.TabManager.closeTabSilent(n) } catch (_e) { }
+                            }
+                            if (window.TabManager && typeof window.TabManager.syncWithFileManager === 'function') {
+                                try { window.TabManager.syncWithFileManager() } catch (_e) { }
+                            }
+                        } catch (_e) { }
+                    }
                 } catch (_e) { }
 
                 // Queue the path for the UI to open later via the existing pending-tabs flow,
@@ -172,7 +203,6 @@ export function createNotificationSystem(host = window) {
                 try {
                     try {
                         if (host.__ssg_suppress_notifier) {
-                            try { appendTerminalDebug && appendTerminalDebug('[notify] globally suppressed: ' + String(path)) } catch (_e) { }
                             return
                         }
                     } catch (_e) { }
@@ -188,21 +218,38 @@ export function createNotificationSystem(host = window) {
 
                     try {
                         if (consumeExpectedWriteIfMatchesHost(n, content, host)) {
-                            try { appendTerminalDebug && appendTerminalDebug('[notify] ignored expected write: ' + n) } catch (_e) { }
                             return
                         }
                     } catch (_e) { }
 
-                    try { appendTerminalDebug('notify: ' + n) } catch (_e) { }
+                    // notification: path written - consumed or forwarded to UI
 
-                    try { if (typeof mem !== 'undefined') { mem[n] = content } } catch (_e) { }
                     try {
-                        scheduleMirrorSave(n, content, host)
+                        if (typeof mem !== 'undefined') {
+                            if (content == null) {
+                                try { delete mem[n] } catch (_e) { }
+                            } else {
+                                mem[n] = content
+                            }
+                        }
+                    } catch (_e) { }
+                    try {
+                        if (content == null) scheduleMirrorDelete(n, host)
+                        else scheduleMirrorSave(n, content, host)
                     } catch (_e) { }
 
+                    // If this was a deletion, instruct the TabManager on the host
+                    // to close any associated tab and sync state.
                     try {
-                        if (n !== MAIN_FILE && content != null) {
-                            try { host.__ssg_pending_tabs = (host.__ssg_pending_tabs || []).concat([n]) } catch (_e) { }
+                        if (content == null) {
+                            try {
+                                if (host && host.TabManager && typeof host.TabManager.closeTabSilent === 'function') {
+                                    try { host.TabManager.closeTabSilent(n) } catch (_e) { }
+                                }
+                                if (host && host.TabManager && typeof host.TabManager.syncWithFileManager === 'function') {
+                                    try { host.TabManager.syncWithFileManager() } catch (_e) { }
+                                }
+                            } catch (_e) { }
                         }
                     } catch (_e) { }
 
@@ -358,21 +405,25 @@ export async function initializeVFS(cfg) {
         // Ensure MAIN_FILE exists using the initialized backend (so we avoid
         // creating the legacy localStorage mirror synchronously on page load).
         try {
+            setSystemWriteMode(true)
             const existingMain = await backend.read(MAIN_FILE).catch(() => null)
             if (existingMain == null) {
                 await backend.write(MAIN_FILE, cfg?.starter || '# main program (auto-created)\n')
             }
-        } catch (_e) { /* ignore backend write failures */ }
 
-        // migrate existing localStorage-based files into backend if missing
-        const localFiles = FileManager.list()
-        for (const p of localFiles) {
-            try {
-                const existing = await backend.read(p)
-                if (existing == null) {
-                    await backend.write(p, FileManager.read(p))
-                }
-            } catch (e) { /* ignore per-file errors */ }
+            // migrate existing localStorage-based files into backend if missing
+            const localFiles = FileManager.list()
+            for (const p of localFiles) {
+                try {
+                    const existing = await backend.read(p)
+                    if (existing == null) {
+                        await backend.write(p, FileManager.read(p))
+                    }
+                } catch (e) { /* ignore per-file errors */ }
+            }
+        } catch (_e) { /* ignore backend write failures */ }
+        finally {
+            setSystemWriteMode(false)
         }
 
         // build an in-memory snapshot adapter
@@ -407,6 +458,12 @@ export async function initializeVFS(cfg) {
             write(path, content) {
                 try {
                     const n = _normPath(path)
+
+                    // Check for read-only protection (user writes only)
+                    if (isFileReadOnlyForUserWrite(n)) {
+                        logWarn('Attempt to write to read-only file ignored:', path)
+                        return Promise.resolve()
+                    }
 
                     if (n === MAIN_FILE && (content == null || content === '')) {
                         // protect main file from being cleared accidentally
@@ -448,6 +505,16 @@ export async function initializeVFS(cfg) {
                         return Promise.resolve()
                     }
 
+                    // Block deletion of read-only files for user-initiated deletes
+                    try {
+                        if (isFileReadOnlyForUserWrite(n)) {
+                            logWarn('Attempt to delete read-only file blocked:', n)
+                            const err = new Error('Permission denied: read-only file ' + _displayPathForUser(n))
+                            err.errno = 13
+                            return Promise.reject(err)
+                        }
+                    } catch (_e) { }
+
                     delete mem[n]
 
                     try {
@@ -476,9 +543,9 @@ export async function initializeVFS(cfg) {
             }
         }
 
-        appendTerminalDebug('VFS backend initialized successfully')
+        // VFS backend initialized
     } catch (e) {
-        appendTerminalDebug('VFS init failed, using localStorage FileManager: ' + e)
+        // VFS init failed, using localStorage FileManager
     }
 
     // Update the global FileManager reference
@@ -550,18 +617,38 @@ export function createFileManager(host = window) {
         read(path) { try { const m = _load(); const v = m[_norm(path)]; return v == null ? null : v } catch (e) { return null } },
         write(path, content) {
             try {
+                const n = _norm(path)
+
+                // Check for read-only protection (user writes only)
+                if (isFileReadOnlyForUserWrite(n)) {
+                    logWarn('Attempt to write to read-only file ignored:', path)
+                    return Promise.resolve()
+                }
+
                 const m = _load()
-                m[_norm(path)] = content
+                m[n] = content
                 _save(m)
                 return Promise.resolve()
             } catch (e) { return Promise.reject(e) }
         },
         delete(path) {
             try {
-                if (_norm(path) === MAIN_FILE) {
+                const n = _norm(path)
+                if (n === MAIN_FILE) {
                     try { logWarn('Attempt to delete protected main file ignored:', path) } catch (_e) { }
                     return Promise.resolve()
                 }
+
+                // Block deletion of read-only files for user-initiated deletes
+                try {
+                    if (isFileReadOnlyForUserWrite(n)) {
+                        try { logWarn('Attempt to delete read-only file blocked:', n) } catch (_e) { }
+                        const err = new Error('Permission denied: read-only file ' + _displayPathForUser(n))
+                        err.errno = 13
+                        return Promise.reject(err)
+                    }
+                } catch (_e) { }
+
                 const m = _load()
                 delete m[_norm(path)]
                 _save(m)

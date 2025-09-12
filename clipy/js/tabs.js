@@ -9,10 +9,29 @@ let openTabs = [] // array of paths
 let active = null
 let cm = null
 let textarea = null
+let currentConfig = null // current loaded config for read-only status
 
 function _normalizePath(p) {
-    if (!p) return p
-    return p.startsWith('/') ? p : ('/' + p)
+    return String(p).startsWith('/') ? p : `/${p}`
+}
+
+function isFileReadOnly(path) {
+    try {
+        if (!currentConfig || !currentConfig.fileReadOnlyStatus) return false
+        const normalizedPath = _normalizePath(path)
+        // Support config keys that may be stored with or without a leading '/'
+        const bare = normalizedPath.replace(/^\/+/, '')
+        return (currentConfig.fileReadOnlyStatus[normalizedPath] || currentConfig.fileReadOnlyStatus[bare]) || false
+    } catch (_e) {
+        return false
+    }
+}
+
+// Update current config (called from main app when config changes)
+export function updateConfig(config) {
+    currentConfig = config
+    // Re-render tabs to update read-only indicators
+    render()
 }
 
 function render() {
@@ -22,9 +41,13 @@ function render() {
     tabsHost.innerHTML = ''
     openTabs.forEach(p => {
         const tab = document.createElement('div')
-        tab.className = 'tab' + (p === active ? ' active' : '')
+        // Check if file is marked as read-only
+        const isReadOnly = isFileReadOnly(p)
+        tab.className = 'tab' + (p === active ? ' active' : '') + (isReadOnly ? ' readonly' : '')
+        // render tab
         tab.setAttribute('role', 'tab')
         const label = p.startsWith('/') ? p.slice(1) : p
+
         tab.innerHTML = `<span class="tab-label">${label}</span>`
 
         const close = document.createElement('button')
@@ -32,7 +55,8 @@ function render() {
         close.title = 'Close'
 
         // hide close for protected main file
-        if (p === MAIN_FILE) {
+        if (p === MAIN_FILE || isReadOnly) {
+            // hide close for protected main file and read-only files
             close.style.display = 'none'
         } else {
             close.innerHTML = '×'
@@ -48,15 +72,12 @@ function render() {
     })
 
     // Debug: surface current openTabs and DOM labels into the terminal
-    try {
-        const labels = Array.from(tabsHost.querySelectorAll('.tab-label')).map(e => e.textContent)
-        appendTerminalDebug('TabManager.render -> openTabs: ' + openTabs.join(',') + ' | DOM labels: ' + labels.join(','))
-    } catch (_e) { }
+    // render complete
 }
 
 export async function openTab(path, opts = { select: true }) {
     const n = _normalizePath(path)
-    appendTerminalDebug('TabManager.openTab called -> ' + n)
+    // openTab called
 
     if (!openTabs.includes(n)) {
         openTabs.push(n)
@@ -77,6 +98,11 @@ export async function openTab(path, opts = { select: true }) {
 export async function forceClose(path) {
     const n = _normalizePath(path)
     const FileManager = getFileManager()
+
+    // prevent force-closing (deleting) a read-only file from the app UI
+    try {
+        if (isFileReadOnly(n)) return
+    } catch (_e) { }
 
     // delete from storage without confirmation
     try { await FileManager.delete(n) } catch (_e) { }
@@ -100,25 +126,21 @@ export async function closeTab(path) {
     const n = _normalizePath(path)
     const FileManager = getFileManager()
 
-    appendTerminalDebug('TabManager.closeTab called -> ' + n)
+    // closeTab called
+
+    // Prevent deleting read-only files from the app UI
+    try {
+        if (isFileReadOnly(n)) return
+    } catch (_e) { }
 
     // delete from storage and close tab — use accessible confirm modal
     try {
         const ok = await showConfirmModal('Close and delete', 'Close and delete file "' + n + '"? This will remove it from storage.')
-        appendTerminalDebug('TabManager.closeTab confirmation -> ' + ok)
+        // confirmation result
         if (!ok) return
-    } catch (_e) {
-        appendTerminalDebug('TabManager.closeTab confirmation error -> ' + _e)
-        return
-    }
+    } catch (_e) { return }
 
-    appendTerminalDebug('TabManager.closeTab deleting file -> ' + n)
-    try {
-        await FileManager.delete(n)
-        appendTerminalDebug('TabManager.closeTab file deleted -> ' + n)
-    } catch (_e) {
-        appendTerminalDebug('TabManager.closeTab delete error -> ' + _e)
-    }
+    try { await FileManager.delete(n) } catch (_e) { }
 
     // Also attempt to remove any copy that may exist in the runtime FS (interpreter).
     // Some runtime FS implementations are available at window.__ssg_runtime_fs (Emscripten/MicroPython).
@@ -128,7 +150,6 @@ export async function closeTab(path) {
             try {
                 if (typeof fs.unlink === 'function') fs.unlink(n)
                 else if (typeof fs.unlinkSync === 'function') fs.unlinkSync(n)
-                appendTerminalDebug('TabManager.closeTab runtime fs unlinked -> ' + n)
             } catch (_e) { }
         }
     } catch (_e) { }
@@ -261,6 +282,15 @@ export function selectTab(path) {
     try {
         if (window.setEditorModeForPath && typeof window.setEditorModeForPath === 'function') {
             try { window.setEditorModeForPath(n) } catch (_e) { }
+        }
+    } catch (_e) { }
+
+    // Set read-only mode based on file status
+    try {
+        const isReadOnly = isFileReadOnly(n)
+        if (window.setEditorReadOnlyMode && typeof window.setEditorReadOnlyMode === 'function') {
+            try { if (typeof window !== 'undefined' && window.__SSG_DEBUG) console.info('[debug-tabs] selectTab -> setting editor readOnly for', n, isReadOnly) } catch (_e) { }
+            try { window.setEditorReadOnlyMode(isReadOnly) } catch (_e) { }
         }
     } catch (_e) { }
 
@@ -485,6 +515,7 @@ export function initializeTabManager(codeMirror, textareaElement) {
         refresh,
         closeTabSilent,
         syncWithFileManager,
+        updateConfig,
         flushPendingTabs: () => {
             try {
                 const pending = (window.__ssg_pending_tabs || [])

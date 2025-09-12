@@ -660,18 +660,18 @@ export async function migrateFromLocalStorage() {
 
         // Migrate author config
         const authorConfig = localStorage.getItem('author_config')
-        console.log('[DEBUG] checking localStorage author_config:', authorConfig ? 'found' : 'not found')
+        if (typeof window !== 'undefined' && window.__SSG_DEBUG) console.log('[DEBUG] checking localStorage author_config:', authorConfig ? 'found' : 'not found')
         if (authorConfig) {
             try {
                 const config = JSON.parse(authorConfig)
-                console.log('[DEBUG] migrating author_config:', config.id, config.title)
+                if (typeof window !== 'undefined' && window.__SSG_DEBUG) console.log('[DEBUG] migrating author_config:', config.id, config.title)
                 try { persistToInMemory(STORES.SETTINGS, { key: 'author_config', value: config, timestamp: Date.now() }) } catch (_e) { }
                 await saveSetting('author_config', config)
                 localStorage.removeItem('author_config')
-                console.log('[DEBUG] author_config migrated and removed from localStorage')
+                if (typeof window !== 'undefined' && window.__SSG_DEBUG) console.log('[DEBUG] author_config migrated and removed from localStorage')
                 logDebug('Migrated author_config')
             } catch (e) {
-                console.error('[DEBUG] Failed to migrate author_config:', e)
+                if (typeof window !== 'undefined' && window.__SSG_DEBUG) console.error('[DEBUG] Failed to migrate author_config:', e)
                 logWarn('Failed to migrate author_config', e)
             }
         }
