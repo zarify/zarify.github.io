@@ -25,9 +25,14 @@ MicroPython.&lt;/p&gt;
 &lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-03/&#34;&gt;You can find Part 3 here&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;This is Part 4!&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h2 id=&#34;what-we-had-before&#34;&gt;What we had before&lt;/h2&gt;
-&lt;p&gt;See &lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-03/&#34;&gt;last week&amp;rsquo;s post&lt;/a&gt; for
-some of the details and screenshots.&lt;/p&gt;</description>
+&lt;div class=&#34;callout callout-info&#34;&gt;
+    &lt;i class=&#34;fa-regular fa-lightbulb&#34;&gt;&lt;/i&gt;
+    &lt;div class=&#34;callout-content&#34;&gt;
+        &lt;p&gt;&lt;strong&gt;NEW:&lt;/strong&gt; I&amp;rsquo;ve been keeping a reasonably up-to-date version of the app here on the
+website, but hadn&amp;rsquo;t really publicised that it was there. I still don&amp;rsquo;t have any
+docs written for it, so authoring might be a bit of an adventure for anyone playing
+with it. I&amp;rsquo;m hoping to have some of that coming in a week or two since I&amp;rsquo;m starting
+to focus on it being a usable thing now rather than just an interesting side project.&lt;/p&gt;</description>
     </item>
     <item>
       <title>WASM Python - Cat Herding 03</title>
