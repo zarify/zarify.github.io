@@ -2,7 +2,6 @@
 - Feature: Files can be marked as read-only in authoring
   - Read-only files throw an OSError when user code tries to modify them or delete them
   - **Note:** These are Micropython errors, so maybe not ideal for teaching full fat Python
-- Fix: File tabs are cleared when loading or reloading configs
 
 ## 2025-09-11
 - Change: Removing reliance on localStorage in favour of indexedDB (issues with dual storage mechanisms - hopefully this didn't break things)
