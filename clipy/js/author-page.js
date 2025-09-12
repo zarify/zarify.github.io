@@ -5,18 +5,24 @@ import { initAuthorTests } from './author-tests.js'
 import { showConfirmModal, openModal, closeModal } from './modals.js'
 import { debug as logDebug, warn as logWarn, error as logError } from './logger.js'
 import { renderMarkdown } from './utils.js'
+import { initVerificationTab, renderStudentsList } from './author-verification.js'
 
 function $(id) { return document.getElementById(id) }
 
 let editor = null
 let files = {} // map path -> content or { content, binary, mime }
+let fileReadOnlyStatus = {} // map path -> boolean (true if read-only)
 let currentFile = '/main.py'
 let suppressOpenFileFocus = false
 let autosaveTimer = null
+let suppressAutosave = false  // Flag to prevent autosave during restore/import operations
 const AUTOSAVE_DELAY = 500
 const BINARY_LIMIT = 204800 // 200KB
 
 function debounceSave() {
+    if (suppressAutosave) {
+        return
+    }
     if (autosaveTimer) clearTimeout(autosaveTimer)
     autosaveTimer = setTimeout(() => saveToLocalStorage(), AUTOSAVE_DELAY)
 }
@@ -24,7 +30,18 @@ function debounceSave() {
 function loadEditor() {
     const ta = $('file-editor')
     try {
-        editor = CodeMirror.fromTextArea(ta, { lineNumbers: true, mode: 'python' })
+        editor = CodeMirror.fromTextArea(ta, {
+            lineNumbers: true,
+            mode: 'python',
+            gutters: ['CodeMirror-linenumbers'],
+            fixedGutter: true,
+            lineNumberFormatter: function (line) {
+                return String(line);
+            },
+            indentUnit: 4,
+            smartIndent: true,
+            scrollbarStyle: 'native'
+        })
         // store CM instance for tests to access if needed
         try { window.__author_code_mirror = editor } catch (_e) { }
         editor.on('change', () => {
@@ -64,7 +81,27 @@ function renderFileList() {
         const label = document.createElement('span')
         label.textContent = p
         label.style.fontSize = '0.9em'
+
+        // Add read-only indicator
+        if (fileReadOnlyStatus[p]) {
+            label.style.fontStyle = 'italic'
+            label.style.color = '#666'
+        } else {
+            label.style.fontStyle = 'normal'
+            label.style.color = 'inherit'
+        }
+
         tab.appendChild(label)
+
+        // Add read-only icon if applicable
+        if (fileReadOnlyStatus[p]) {
+            const readOnlyIcon = document.createElement('span')
+            readOnlyIcon.textContent = '🔒'
+            readOnlyIcon.title = 'Read-only file'
+            readOnlyIcon.style.fontSize = '0.8em'
+            readOnlyIcon.style.opacity = '0.7'
+            tab.appendChild(readOnlyIcon)
+        }
 
         // Add close button (except for /main.py)
         if (p !== '/main.py') {
@@ -105,6 +142,13 @@ function openFile(path, force = false) {
     if (suppressOpenFileFocus && !force) return
     currentFile = path
     $('editor-current-file').textContent = path
+
+    // Update read-only toggle
+    const readOnlyToggle = $('readonly-toggle')
+    if (readOnlyToggle) {
+        readOnlyToggle.checked = fileReadOnlyStatus[path] || false
+    }
+
     const content = files[path]
     if (typeof content === 'string') {
         if (editor) editor.setValue(content)
@@ -147,12 +191,12 @@ function deleteFile(path) {
         }
     }
 
-    // Re-render the file list and save
+    // Re-render the file list and save immediately (not debounced)
     renderFileList()
-    debounceSave()
+    saveToLocalStorage()
 }
 
-function saveToLocalStorage() {
+async function saveToLocalStorage() {
     try {
         const cfg = buildCurrentConfig()
         // Ensure runtime entry exists and prefers the .mjs module loader
@@ -186,12 +230,14 @@ function saveToLocalStorage() {
         // try to validate/normalize but don't block autosave on failure
         try {
             const norm = validateAndNormalizeConfig(cfg)
-            saveAuthorConfigToLocalStorage(norm)
-            $('validation').textContent = ''
+            // Await the async save when unified-storage is available so
+            // writes complete before navigation away from the page.
+            try { await saveAuthorConfigToLocalStorage(norm) } catch (_e) { /* best-effort */ }
+            // Validation passed; nothing to show in UI (author view removed)
         } catch (e) {
-            // keep raw config but show validation message
-            try { localStorage.setItem('author_config', JSON.stringify(cfg)) } catch (_e) { }
-            $('validation').textContent = 'Validation: ' + (e && e.message ? e.message : e)
+            // keep raw config but persist; try adapter save (may fail in some environments)
+            try { await saveAuthorConfigToLocalStorage(cfg) } catch (_e) { /* best-effort: do not write to localStorage in production */ }
+            console.warn('Author config validation failed (autosave preserved raw config):', e && e.message ? e.message : e)
         }
     } catch (e) { logError('autosave failed', e) }
 }
@@ -205,22 +251,27 @@ function buildCurrentConfig() {
     const feedbackRaw = $('feedback-editor') ? $('feedback-editor').value || '' : ''
     const testsRaw = $('tests-editor') ? $('tests-editor').value || '' : ''
     const starter = files['/main.py'] || ''
-    const cfg = { id, title, version, description, instructions, feedback: feedbackRaw, tests: testsRaw, starter, files }
+    const cfg = { id, title, version, description, instructions, feedback: feedbackRaw, tests: testsRaw, starter, files, fileReadOnlyStatus }
     return cfg
 }
 
-function restoreFromLocalStorage() {
-    const raw = getAuthorConfigFromLocalStorage()
+async function restoreFromLocalStorage() {
+    suppressAutosave = true  // Prevent autosave during restore
+
+    const raw = await getAuthorConfigFromLocalStorage()
     if (!raw) {
         // initialize defaults
         files = { '/main.py': '# starter code\n' }
+        fileReadOnlyStatus = {}
         renderFileList()
         openFile('/main.py')
+        suppressAutosave = false  // Re-enable autosave
         return
     }
     try {
         // raw may be normalized or raw shape
         files = raw.files || { '/main.py': raw.starter || '# starter code\n' }
+        fileReadOnlyStatus = raw.fileReadOnlyStatus || {}
         $('meta-title').value = raw.title || ''
         $('meta-id').value = raw.id || ''
         $('meta-version').value = raw.version || ''
@@ -245,7 +296,7 @@ function restoreFromLocalStorage() {
                 }
             } catch (_e) { $('tests-editor').value = raw.tests || '' }
         }
-    } catch (e) { files = { '/main.py': '# starter code\n' } }
+    } catch (e) { files = { '/main.py': '# starter code\n' }; fileReadOnlyStatus = {} }
     // Prevent any file-creation flows triggered during render from stealing focus
     suppressOpenFileFocus = true
     try {
@@ -256,6 +307,8 @@ function restoreFromLocalStorage() {
     } finally {
         // Allow normal openFile behavior again
         suppressOpenFileFocus = false
+        // Re-enable autosave after restore is complete
+        suppressAutosave = false
     }
     // render preview
     try { updateInstructionsPreview() } catch (_e) { }
@@ -365,31 +418,62 @@ function setupHandlers() {
                 try { openFile(currentFile) } catch (_e) { }
             }, 40)
         }
+        // If switching to verification tab, update codes with current config
+        if (tab === 'verification') {
+            setTimeout(updateVerificationCodes, 40)
+        }
     }
 
     // Metadata & editors
-    $('meta-title').addEventListener('input', debounceSave)
-    $('meta-id').addEventListener('input', debounceSave)
-    $('meta-version').addEventListener('input', debounceSave)
+    $('meta-title').addEventListener('input', () => { debounceSave(); updateVerificationCodesDebounced(); })
+    $('meta-id').addEventListener('input', () => { debounceSave(); updateVerificationCodesDebounced(); })
+    $('meta-version').addEventListener('input', () => { debounceSave(); updateVerificationCodesDebounced(); })
     if ($('meta-description')) $('meta-description').addEventListener('input', debounceSave)
     if ($('instructions-editor')) {
         $('instructions-editor').addEventListener('input', () => { debounceSave(); try { updateInstructionsPreview() } catch (_e) { } })
     }
     if ($('feedback-editor')) $('feedback-editor').addEventListener('input', debounceSave)
-    if ($('tests-editor')) $('tests-editor').addEventListener('input', debounceSave)
+    if ($('tests-editor')) $('tests-editor').addEventListener('input', () => {
+        debounceSave();
+        updateVerificationCodesDebounced();
+    })
     $('add-file').addEventListener('click', () => {
         const name = prompt('File path (e.g. /lib/util.py)')
+        logDebug('[author-page] add-file clicked, prompt ->', name)
         if (!name) return
         files[name] = ''
+        logDebug('[author-page] files after add:', Object.keys(files))
         renderFileList()
         openFile(name)
         debounceSave()
     })
+    logDebug('[author-page] setupHandlers: add-file listener attached')
     $('file-upload').addEventListener('change', handleUpload)
 
+    // Read-only toggle handler
+    $('readonly-toggle').addEventListener('change', (ev) => {
+        if (currentFile) {
+            fileReadOnlyStatus[currentFile] = ev.target.checked
+            renderFileList()  // Re-render tabs to show/hide read-only indicator
+            debounceSave()
+        }
+    })
+
     // Back to app navigation with session flag
-    $('back-to-app').addEventListener('click', () => {
+    $('back-to-app').addEventListener('click', async () => {
         try {
+            // Try to flush a final save to storage before navigating back so
+            // the main page can observe the latest author_config.
+            try {
+                const cfg = buildCurrentConfig()
+                await saveAuthorConfigToLocalStorage(cfg)
+                // Intentionally do NOT save this authored config as the app's
+                // current configuration here. Applying an authored config to
+                // the running app should be an explicit user action via the
+                // config modal ("Use in app"), otherwise navigating back
+                // would unexpectedly overwrite the user's current workspace.
+            } catch (_e) { /* best-effort - ignore save errors and continue navigation */ }
+
             // Set flag for return detection
             sessionStorage.setItem('returningFromAuthor', 'true')
             // Navigate back to main app
@@ -410,10 +494,11 @@ function setupHandlers() {
             try { ok = window.confirm('This will clear the current authoring configuration and start a new empty one. Continue?') } catch (_e) { ok = false }
         }
         if (!ok) return
-        // clear localStorage
-        try { clearAuthorConfigInLocalStorage() } catch (_e) { }
+        // clear persisted configuration
+        try { await clearAuthorConfigInLocalStorage() } catch (_e) { }
         // reset fields
         files = { '/main.py': '# starter code\n' }
+        fileReadOnlyStatus = {}
         renderFileList()
         openFile('/main.py')
         $('meta-title').value = ''
@@ -475,13 +560,13 @@ function setupHandlers() {
             // confirm overwrite using styled modal (fallback to window.confirm)
             let ok = false
             try {
-                ok = await showConfirmModal('Import configuration', 'This will overwrite the current author configuration in this page and in localStorage. Continue?')
+                ok = await showConfirmModal('Import configuration', 'This will overwrite the current author configuration in this page and in storage. Continue?')
             } catch (e) {
-                try { ok = window.confirm('This will overwrite the current author configuration in this page and in localStorage. Continue?') } catch (_e) { ok = false }
+                try { ok = window.confirm('This will overwrite the current author configuration in this page and in storage. Continue?') } catch (_e) { ok = false }
             }
             if (!ok) return
             // apply the parsed config
-            try { logDebug('[author] applying imported config', parsed); applyImportedConfig(parsed) } catch (e) { alert('Failed to apply config: ' + (e && e.message ? e.message : e)); return }
+            try { logDebug('[author] applying imported config', parsed); await applyImportedConfig(parsed) } catch (e) { alert('Failed to apply config: ' + (e && e.message ? e.message : e)); return }
             // After applying, show a simple modal indicating success and a close-only button.
             try {
                 const modal = document.createElement('div')
@@ -497,7 +582,7 @@ function setupHandlers() {
                 content.appendChild(header)
                 const body = document.createElement('div')
                 body.style.marginTop = '8px'
-                body.textContent = 'Configuration loaded into the author page and saved to localStorage.'
+                body.textContent = 'Configuration loaded into the author page and saved.'
                 content.appendChild(body)
                 const actions = document.createElement('div')
                 actions.className = 'modal-actions'
@@ -643,24 +728,61 @@ document.addEventListener('click', (e) => {
     }
 })
 
+// Verification code update helpers
+let verificationUpdateTimer = null
+
+function updateVerificationCodes() {
+    try {
+        const currentConfig = buildCurrentConfig()
+        // Display config identity (id@version) in the verification panel
+        try {
+            const el = document.getElementById('verification-config-id')
+            if (el) {
+                const id = currentConfig.id || (currentConfig.title ? currentConfig.title.replace(/\s+/g, '-') : 'unknown')
+                const version = currentConfig.version || '1.0'
+                el.textContent = `${id}@${version}`
+            }
+        } catch (_e) { }
+
+        renderStudentsList(currentConfig)
+    } catch (e) {
+        logDebug('Failed to update verification codes:', e)
+    }
+}
+
+function updateVerificationCodesDebounced() {
+    if (verificationUpdateTimer) clearTimeout(verificationUpdateTimer)
+    verificationUpdateTimer = setTimeout(updateVerificationCodes, 500)
+}
+
 // Initialize
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
+    // Add debug helper to window for manual inspection
+    // debugAuthorStorage removed in cleanup
+
     loadEditor()
-    restoreFromLocalStorage()
-    setupHandlers()
+    // Restore state before attaching handlers to avoid races where UI events
+    // fire while the initial files/config are still being populated.
+    await restoreFromLocalStorage()
+    try { setupHandlers() } catch (_e) { }
     try { initAuthorFeedback() } catch (_e) { }
     try { initAuthorTests() } catch (_e) { }
+    try { initVerificationTab(updateVerificationCodes) } catch (_e) { }
     // Show metadata tab by default so inputs are visible for tests
     try { document.querySelector('.tab-btn[data-tab="metadata"]').click() } catch (_e) { }
 })
 
-// Apply an imported config object to the author UI and persist to localStorage
-function applyImportedConfig(obj) {
+// Apply an imported config object to the author UI and persist to storage
+async function applyImportedConfig(obj) {
     if (!obj || typeof obj !== 'object') throw new Error('Invalid config object')
+
+    suppressAutosave = true  // Prevent autosave during import
+
     // Normalize incoming shape: prefer files, fallback to starter
     try {
         files = obj.files || (obj.starter ? { '/main.py': obj.starter } : { '/main.py': '# starter code\n' })
-    } catch (_e) { files = { '/main.py': '# starter code\n' } }
+        fileReadOnlyStatus = obj.fileReadOnlyStatus || {}
+    } catch (_e) { files = { '/main.py': '# starter code\n' }; fileReadOnlyStatus = {} }
     // Metadata
     $('meta-title').value = obj.title || obj.name || ''
     $('meta-id').value = obj.id || ''
@@ -711,11 +833,30 @@ function applyImportedConfig(obj) {
     } catch (_e) { }
     try {
         const norm = validateAndNormalizeConfig(cfg)
-        saveAuthorConfigToLocalStorage(norm)
+        // Ensure the imported configuration is persisted before returning
+        await saveAuthorConfigToLocalStorage(norm)
+
+        // Verification: read back via the storage adapter so this works with
+        // unified IndexedDB-backed storage or the synchronous fallback used in tests.
+        try {
+            const saved = await getAuthorConfigFromLocalStorage()
+            const savedPreview = JSON.stringify(saved || {}).slice(0, 2000)
+            const origPreview = JSON.stringify(norm || {}).slice(0, 2000)
+            logDebug('[author-page] verify saved author_config, match=', savedPreview === origPreview)
+            if (savedPreview !== origPreview) logDebug('[author-page] savedPreview=', savedPreview)
+        } catch (e) {
+            logWarn('[author-page] verify read-back failed', e && e.message)
+        }
     } catch (e) {
         // fallback: save raw
-        saveAuthorConfigToLocalStorage(cfg)
+        await saveAuthorConfigToLocalStorage(cfg)
     }
+
+    // Update verification codes after importing config
+    updateVerificationCodesDebounced()
+
+    // Re-enable autosave after import is complete
+    suppressAutosave = false
 }
 
 // Draft Management Functions using imported storage functions
@@ -866,15 +1007,15 @@ async function loadDraftById(draftId) {
         // Confirm overwrite using the existing modal system
         let ok = false
         try {
-            ok = await showConfirmModal('Load Draft Configuration', 'This will overwrite the current author configuration in this page and in localStorage. Continue?')
+            ok = await showConfirmModal('Load Draft Configuration', 'This will overwrite the current author configuration in this page and in storage. Continue?')
         } catch (e) {
-            ok = window.confirm('This will overwrite the current author configuration in this page and in localStorage. Continue?')
+            ok = window.confirm('This will overwrite the current author configuration in this page and in storage. Continue?')
         }
 
         if (!ok) return
 
-        // Apply the draft config
-        applyImportedConfig(draft.config)
+        // Apply the draft config and persist
+        await applyImportedConfig(draft.config)
 
         // Show success message in the load drafts modal
         const draftName = draft.name || 'Draft'
@@ -958,9 +1099,9 @@ function showLoadDraftSuccessInModal(draftName) {
                 <p style="color:#666;margin-bottom:16px;">
                     "${escapeHtml(draftName)}" has been loaded into the author page.
                 </p>
-                <p style="color:#999;font-size:0.9em;">
-                    The configuration has been applied and saved to localStorage.
-                </p>
+                    <p style="color:#999;font-size:0.9em;">
+                        The configuration has been applied and saved.
+                    </p>
             </div>
         `
         openModal(modal)

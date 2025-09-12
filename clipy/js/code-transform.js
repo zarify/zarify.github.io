@@ -26,10 +26,10 @@ export function highlightMappedTracebackInEditor(filePath, lineNumber) {
 
     // Open/select the file tab if possible (use normalized path)
     if (window.TabManager && typeof window.TabManager.openTab === 'function') {
-        window.TabManager.openTab(normPath)
+        try { window.TabManager.openTab(normPath, { select: false }) } catch (_e) { }
     }
     if (window.TabManager && typeof window.TabManager.selectTab === 'function') {
-        window.TabManager.selectTab(normPath)
+        try { window.TabManager.selectTab(normPath) } catch (_e) { }
     }
     // Highlight the line in CodeMirror when available, but always record
     // the highlight in our maps so it can be re-applied later if the editor

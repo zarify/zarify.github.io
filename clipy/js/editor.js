@@ -28,8 +28,14 @@ export function initializeEditor() {
             // Default to no mode; we'll enable python mode only for .py files
             mode: null,
             lineNumbers: true,
+            gutters: ['CodeMirror-linenumbers'],
+            fixedGutter: true,
+            lineNumberFormatter: function (line) {
+                return String(line);
+            },
             indentUnit: 4,
             smartIndent: false,
+            scrollbarStyle: 'native',
             theme: 'default'
         })
 
@@ -46,6 +52,8 @@ export function initializeEditor() {
             window.cm = cm
             // Expose mode helper for other modules (avoid import cycles)
             window.setEditorModeForPath = setEditorModeForPath
+            // Expose read-only helper for other modules (avoid import cycles)
+            window.setEditorReadOnlyMode = setReadOnlyMode
             logInfo('CodeMirror initialized:', {
                 readOnly: cm.getOption('readOnly'),
                 value: cm.getValue(),
@@ -167,4 +175,18 @@ export function getCurrentContent() {
 export function setCurrentContent(content) {
     if (cm) cm.setValue(content)
     else if (textarea) textarea.value = content
+}
+
+export function setReadOnlyMode(isReadOnly) {
+    if (cm) {
+        cm.setOption('readOnly', isReadOnly)
+        // Add visual styling for read-only state
+        if (isReadOnly) {
+            cm.getWrapperElement().classList.add('cm-readonly')
+        } else {
+            cm.getWrapperElement().classList.remove('cm-readonly')
+        }
+    } else if (textarea) {
+        textarea.readOnly = isReadOnly
+    }
 }

@@ -115,10 +115,13 @@ async function _applyPattern(pattern, text) {
                         `);
                         const matchResult = evaluateMatch(result);
 
-                        // Only proceed if matcher returns truthy value
-                        if (matchResult) {
-                            return _convertASTToMatch(result, pattern.expression)
+                        // Only accept strict boolean true from matcher. If matcher
+                        // returns a non-boolean truthy value, warn and treat as no-match.
+                        if (typeof matchResult === 'boolean') {
+                            if (matchResult) return _convertASTToMatch(result, pattern.expression)
+                            return null
                         } else {
+                            logWarn('AST matcher returned non-boolean value; matcher must return true or false')
                             return null
                         }
                     } catch (error) {
@@ -296,8 +299,8 @@ async function evaluateFeedbackOnRun(ioCapture) {
 }
 
 // Expose for other modules
-const Feedback = { resetFeedback, evaluateFeedbackOnEdit, evaluateFeedbackOnRun, on, off }
+const Feedback = { resetFeedback, evaluateFeedbackOnEdit, evaluateFeedbackOnRun, on, off, validateConfig }
 
 if (typeof module !== 'undefined' && module.exports) module.exports = Feedback
 
-export { resetFeedback, evaluateFeedbackOnEdit, evaluateFeedbackOnRun, on, off }
+export { resetFeedback, evaluateFeedbackOnEdit, evaluateFeedbackOnRun, on, off, validateConfig }

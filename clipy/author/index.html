@@ -6,15 +6,15 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Clipy — Authoring</title>
     <link rel="stylesheet" href="../style.css">
-    <!-- CodeMirror 5 (classic) from CDN for quick editor integration -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
-    <!-- Markdown renderer and syntax highlighting for preview -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/styles/github.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.8.0/build/highlight.min.js"></script>
+    <!-- Vendored third-party libs (local copies) -->
+    <link rel="stylesheet" href="../vendor/codemirror.min.css">
+    <script src="../vendor/codemirror.min.js"></script>
+    <script src="../vendor/codemirror-mode-python.min.js"></script>
+    <!-- Markdown renderer and syntax highlighting for preview (local copies) -->
+    <link rel="stylesheet" href="../vendor/highlight-github.min.css">
+    <script src="../vendor/marked.min.js"></script>
+    <script src="../vendor/purify.min.js"></script>
+    <script src="../vendor/highlight.min.js"></script>
 </head>
 
 <body>
@@ -28,7 +28,10 @@
                 </button>
             </div>
             <div style="display:flex;gap:8px;align-items:center">
-                <button id="back-to-app" class="btn btn-ghost">Back to App</button>
+                <button id="back-to-app" class="btn" title="Back to App">
+                    <span class="icon" aria-hidden="true" style="margin-right:8px;">&larr;</span>
+                    <span>Back to App</span>
+                </button>
                 <button id="new-config" class="btn">New</button>
                 <button id="save-draft" class="btn">Save Draft</button>
                 <button id="load-draft" class="btn">Load Drafts</button>
@@ -48,6 +51,7 @@
                 <button class="tab-btn btn" data-tab="code">Code & Files</button>
                 <button class="tab-btn btn" data-tab="feedback">Feedback</button>
                 <button class="tab-btn btn" data-tab="tests">Tests</button>
+                <button class="tab-btn btn" data-tab="verification">Verification</button>
             </div>
         </div>
 
@@ -89,15 +93,16 @@
             <div style="border:1px solid #eee;padding:8px">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
                     <div id="editor-current-file" style="font-size:0.95em;color:#333">/main.py</div>
+                    <label style="display:flex;align-items:center;gap:6px;font-size:0.9em;color:#666;cursor:pointer">
+                        <input type="checkbox" id="readonly-toggle" style="margin:0" />
+                        <span>Read-only</span>
+                    </label>
                 </div>
                 <textarea id="file-editor" placeholder="# edit file content here"
                     style="height:420px;width:100%"></textarea>
             </div>
 
-            <div class="panel" style="margin-top:8px">
-                <h3>Validation</h3>
-                <div id="validation" style="min-height:40px;color:#b00020"></div>
-            </div>
+            <!-- Validation panel removed: validation is handled via console and autosave fallback -->
         </div>
 
         <div id="tab-feedback" class="author-tab" style="margin-top:12px">
@@ -113,6 +118,33 @@
                 <h2>Tests (JSON)</h2>
                 <textarea id="tests-editor" style="width:100%;height:420px"
                     placeholder='[ { "name": "t1", "stdin": "", "expected": "..." } ]'></textarea>
+            </div>
+        </div>
+
+        <div id="tab-verification" class="author-tab" style="margin-top:12px">
+            <div class="panel">
+                <h2 id="verification-panel-title">Student Verification Codes</h2>
+                <div id="verification-config-id" style="color:#444;font-size:0.85em;margin-left:auto;">
+                    <!-- Filled with config_id@version -->
+                </div>
+                <div style="display:flex;align-items:baseline;gap:12px;">
+                    <div style="flex:1;color:#666;font-size:0.9em;margin-bottom:16px;">
+                        Add students to generate verification codes for the current test suite.
+                        Codes update automatically when tests change.
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">
+                    <input id="new-student-id" type="text" placeholder="Enter student ID..."
+                        style="flex:1;padding:6px 8px;border:1px solid #ddd;border-radius:4px;" />
+                    <button id="add-student-btn" class="btn btn-primary">Add Student</button>
+                    <button id="clear-students-btn" class="btn btn-danger">Clear All</button>
+                </div>
+
+                <div id="student-codes-list"
+                    style="background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;padding:12px;min-height:200px;">
+                    <p style="text-align:center;color:#666;font-style:italic;margin:0;">No students added yet.</p>
+                </div>
             </div>
         </div>
     </main>

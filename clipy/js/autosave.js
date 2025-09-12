@@ -46,7 +46,13 @@ async function scheduleAutosave() {
             }
         }
         // Mark this snapshot as the current one
-        const snaps = getSnapshotsForCurrentConfig()
+        const snaps = await getSnapshotsForCurrentConfig()
+
+        // Ensure snaps is always an array before filtering
+        if (!Array.isArray(snaps)) {
+            return // Skip autosave if we can't get proper snapshot data
+        }
+
         // Remove any previous current snapshot
         const filtered = snaps.filter(s => s.id !== CURRENT_SNAPSHOT_ID)
         filtered.push({

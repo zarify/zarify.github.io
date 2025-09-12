@@ -6,20 +6,27 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Client-side Python Playground (MicroPython)</title>
   <link rel="stylesheet" href="./style.css">
-  <!-- CodeMirror 5 (classic) from CDN for quick editor integration -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+  <!-- Vendored third-party libs (local copies). See src/vendor/README.md for how to download them. -->
+  <link rel="stylesheet" href="./vendor/codemirror.min.css">
+  <script src="./vendor/codemirror.min.js"></script>
+  <script src="./vendor/codemirror-mode-python.min.js"></script>
   <!-- Highlight.js styles for code blocks rendered from Markdown -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/styles/github.min.css">
+  <link rel="stylesheet" href="./vendor/highlight-github.min.css">
 </head>
 
 <body>
   <header>
     <h1>Client-side Python Playground</h1>
     <div class="config-info">
-      <span class="config-title-line">Loading...</span>
-      <button id="reset-config-btn" class="btn btn-ghost" title="Reset to loaded config" style="margin-left:8px">
+      <div class="config-stack">
+        <span class="config-title-line">Loading...</span>
+        <div class="student-id-container">
+          <input id="student-id-input" type="text" placeholder="Student ID (optional)"
+            title="Enter your student ID for test verification"
+            style="font-size:0.85em;padding:4px 8px;border:1px solid #ddd;border-radius:4px;min-width:160px;max-width:360px;width:220px" />
+        </div>
+      </div>
+      <button id="reset-config-btn" class="btn btn-ghost" title="Reset to loaded config" style="margin-left:12px">
         <span class="icon" aria-hidden="true">↺</span>
       </button>
     </div>
@@ -35,7 +42,7 @@
           aria-selected="true">Instructions</button>
         <button id="tab-btn-terminal" class="side-tab-btn" data-target="terminal" role="tab"
           aria-selected="false">Terminal</button>
-        <button id="tab-btn-feedback" class="side-tab-btn" data-target="feedback" role="tab"
+        <button id="tab-btn-feedback" class="side-tab-btn" data-target="fdbk" role="tab"
           aria-selected="false">Feedback</button>
       </div>
       <div class="side-tab-content">
@@ -55,13 +62,13 @@
             <input id="stdin-box" class="term-prompt-input" placeholder="Type input and press Enter" autocomplete="off"
               aria-label="Program stdin input" />
             <button id="stdin-send" class="btn btn-ghost" title="Send stdin">
-              <span class="icon" aria-hidden="true">✉️</span>
+              <span class="icon" aria-hidden="true">&uarr;</span>
               <span>Send</span>
             </button>
           </form>
         </div>
-        <div id="feedback" class="panel-child" style="display:none">
-          <div id="feedback-list">(no feedback)</div>
+        <div id="fdbk" class="panel-child" style="display:none">
+          <div id="fdbk-list">(no feedback)</div>
         </div>
       </div>
     </section>
@@ -83,7 +90,7 @@
       <div class="editor-controls">
         <div class="editor-actions" style="display:flex;align-items:center;">
           <div style="display:flex;gap:8px;align-items:center">
-            <button id="run" class="btn btn-primary" title="Run">
+            <button id="run" class="btn btn-primary" title="Run (Ctrl/Cmd+Enter)" aria-label="Run (Ctrl/Cmd+Enter)">
               <span class="icon" aria-hidden="true">▶️</span>
               <span>Run</span>
             </button>
@@ -228,13 +235,12 @@
       </div>
     </div>
   </div>
-  <!-- Load marked (markdown compiler) and DOMPurify for safe HTML sanitization.
-    These are loaded as non-module globals so the existing app can consume them via `window.marked` and `window.DOMPurify`.
-    Using CDN links keeps the bundle light and avoids adding a build step.
+  <!-- Load marked (markdown compiler), DOMPurify and highlight.js from local vendor copies.
+    These expose globals: window.marked, window.DOMPurify, and window.hljs.
   -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.8.0/build/highlight.min.js"></script>
+  <script src="./vendor/marked.min.js"></script>
+  <script src="./vendor/purify.min.js"></script>
+  <script src="./vendor/highlight.min.js"></script>
   <script data-goatcounter="https://headtilt_me.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 
   <script type="module" src="./app.js"></script>

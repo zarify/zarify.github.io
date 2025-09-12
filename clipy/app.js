@@ -5,6 +5,9 @@
 import { loadConfig, initializeInstructions, getConfig, getConfigIdentity, getConfigKey, validateAndNormalizeConfig, fetchAvailableServerConfigs, loadConfigFromStringOrUrl, loadConfigFromFile, setCurrentConfig, saveCurrentConfig, loadCurrentConfig, clearCurrentConfig, isConfigCompatibleWithSnapshot, debugCurrentConfig } from './js/config.js'
 import { $ } from './js/utils.js'
 
+// Zero-knowledge verification system
+import { getStudentIdentifier, setStudentIdentifier } from './js/zero-knowledge-verification.js'
+
 import { openModal, closeModal } from './js/modals.js'
 
 // Terminal and UI
@@ -155,10 +158,20 @@ async function main() {
         // Suppress automatic terminal auto-switching during startup
         try { if (typeof window !== 'undefined') window.__ssg_suppress_terminal_autoswitch = true } catch (_e) { }
 
+        // 0. Migrate existing localStorage data to unified storage
+        try {
+            const { migrateFromLocalStorage, initUnifiedStorage } = await import('./js/unified-storage.js')
+            await initUnifiedStorage()
+            await migrateFromLocalStorage()
+            logInfo('Storage migration completed')
+        } catch (e) {
+            logWarn('Storage migration failed (continuing anyway):', e)
+        }
+
         // 1. Load configuration
         // Priority order:
         // 1. URL ?config= parameter (overrides everything)
-        // 2. Saved current_config from localStorage
+        // 2. Saved current_config from unified storage
         // 3. Default sample config
         let cfg = null
         try {
@@ -187,15 +200,17 @@ async function main() {
         // If no URL config, try loading saved current config
         if (!cfg) {
             try {
-                logInfo('main: attempting to load current config from localStorage')
-                const savedConfig = loadCurrentConfig()
+                logInfo('main: attempting to load current config from unified storage')
+                const savedConfig = await loadCurrentConfig()
                 if (savedConfig) {
                     cfg = savedConfig
                     // Set this as the current config so helpers reflect the right identity
                     setCurrentConfig(cfg)
-                    logInfo('main: loaded config from current_config localStorage:', cfg.id, cfg.version)
+                    // Make config globally available for read-only checks
+                    try { window.currentConfig = cfg } catch (_e) { }
+                    logInfo('main: loaded config from unified storage:', cfg.id, cfg.version)
                 } else {
-                    logInfo('main: no current config found in localStorage')
+                    logInfo('main: no current config found in unified storage')
                 }
             } catch (e) {
                 logWarn('Failed to load current config:', e)
@@ -209,10 +224,12 @@ async function main() {
             logInfo('main: loaded default config:', cfg.id, cfg.version)
         }
 
-        // Save the loaded config as current (whether from URL, localStorage, or default)
+        // Save the loaded config as current (whether from URL, unified storage, or default)
         try {
             setCurrentConfig(cfg)
-            saveCurrentConfig(cfg)
+            // Make config globally available for read-only checks
+            try { window.currentConfig = cfg } catch (_e) { }
+            await saveCurrentConfig(cfg)
             // Debug what was actually saved
             logDebug('=== Config Loading Debug ===')
             logDebug('Final loaded config:', cfg.id, cfg.version)
@@ -262,6 +279,27 @@ async function main() {
         // Expose TabManager globally for compatibility
         try { window.TabManager = TabManager } catch (e) { }
 
+        // Temporary debugging: surface config/read-only propagation to console
+        try {
+            // Apply config to TabManager (if present)
+            try { if (TabManager && typeof TabManager.updateConfig === 'function') TabManager.updateConfig(cfg) } catch (_e) { }
+
+            // Listen for tab-open events so we can observe what tabs are being opened
+            try {
+                window.addEventListener('ssg:tab-opened', (ev) => {
+                    try { if (typeof window !== 'undefined' && window.__SSG_DEBUG) console.info('[debug] ssg:tab-opened ->', ev && ev.detail) } catch (_e) { }
+                })
+            } catch (_e) { }
+        } catch (_e) { }
+
+        // Ensure TabManager sees the current config (read-only file statuses etc.).
+        // setCurrentConfig will notify TabManager.updateConfig if available.
+        try {
+            if (typeof setCurrentConfig === 'function' && cfg) {
+                setCurrentConfig(cfg)
+            }
+        } catch (_e) { }
+
         // Prefer sandboxed iframe-based tests by default for better isolation.
         try { if (typeof window !== 'undefined' && typeof window.__ssg_use_sandboxed_tests === 'undefined') window.__ssg_use_sandboxed_tests = true } catch (_e) { }
 
@@ -291,6 +329,75 @@ async function main() {
             try {
                 if (TabManager && typeof TabManager.syncWithFileManager === 'function') {
                     await TabManager.syncWithFileManager()
+                }
+            } catch (_e) { }
+
+            // If no snapshot was restored, ensure any files declared in the
+            // loaded configuration are materialized into the FileManager so
+            // tabs are created and the runtime can see them (os.listdir, imports).
+            try {
+                if (!_restored) {
+                    try {
+                        // Use the FileManager instance returned from initializeVFS
+                        if (FileManager && typeof FileManager.write === 'function') {
+                            // Ensure MAIN_FILE is populated with the starter (best-effort)
+                            try { await FileManager.write(MAIN_FILE, cfg?.starter || '') } catch (_e) { }
+
+                            // Write extra files from the config.files map
+                            try {
+                                if (cfg && cfg.files && typeof cfg.files === 'object') {
+                                    // When materializing files from a loaded configuration make
+                                    // sure app/system writes bypass user-level read-only guards
+                                    // so the runtime sees the files regardless of file flags.
+                                    // When materializing files from a loaded configuration make
+                                    // sure app/system writes bypass user-level read-only guards
+                                    // so the runtime sees the files regardless of file flags.
+                                    try { const { setSystemWriteMode } = await import('./js/vfs-client.js'); setSystemWriteMode(true) } catch (_e) { }
+                                    try {
+                                        for (const [p, content] of Object.entries(cfg.files)) {
+                                            try { await FileManager.write(p, String(content || '')) } catch (_e) { }
+                                        }
+
+                                        // Ensure backend (IndexedDB/localStorage backend) also
+                                        // persists these files so later mounts into the runtime
+                                        // will include them. Use the backend directly if available
+                                        // to avoid any user-write guards and to force persistence.
+                                        try {
+                                            const backend = (typeof window !== 'undefined') ? window.__ssg_vfs_backend : null
+                                            if (backend && typeof backend.write === 'function') {
+                                                try { const { setSystemWriteMode } = await import('./js/vfs-client.js'); setSystemWriteMode(true) } catch (_e) { }
+                                                for (const [p, content] of Object.entries(cfg.files)) {
+                                                    try {
+                                                        const path = (p && p.startsWith('/')) ? p : ('/' + String(p).replace(/^\/+/, ''))
+                                                        await backend.write(path, String(content || ''))
+                                                        // mark expected write and notify runtime to keep mem in sync
+                                                        try { if (typeof window.__ssg_notify_file_written === 'function') window.__ssg_notify_file_written(path, String(content || '')) } catch (_e) { }
+                                                    } catch (_e) { }
+                                                }
+                                                try { const { setSystemWriteMode } = await import('./js/vfs-client.js'); setSystemWriteMode(false) } catch (_e) { }
+                                            }
+                                        } catch (_e) { }
+                                    } catch (_e) { }
+                                    try { const { setSystemWriteMode } = await import('./js/vfs-client.js'); setSystemWriteMode(false) } catch (_e) { }
+                                }
+                            } catch (_e) { }
+                        }
+                    } catch (e) {
+                        try { if (typeof appendTerminal === 'function') appendTerminal('Failed to populate files from config: ' + e, 'runtime') } catch (_e) { }
+                    }
+
+                    // Refresh tabs/editor to reflect programmatic filesystem changes
+                    try {
+                        if (window.TabManager && typeof window.TabManager.syncWithFileManager === 'function') {
+                            try { await window.TabManager.syncWithFileManager() } catch (_e) { }
+                        }
+                    } catch (_e) { }
+
+                    try {
+                        if (window.TabManager && typeof window.TabManager.refreshOpenTabContents === 'function') {
+                            try { window.TabManager.refreshOpenTabContents() } catch (_e) { }
+                        }
+                    } catch (_e) { }
                 }
             } catch (_e) { }
         } catch (_e) { /* ignore snapshot restore failures at startup */ }
@@ -357,7 +464,7 @@ async function main() {
                     if (payload.action && payload.action.type === 'open-file' && payload.action.path) {
                         try {
                             const p = payload.action.path
-                            if (window.TabManager && typeof window.TabManager.openTab === 'function') window.TabManager.openTab(p)
+                            if (window.TabManager && typeof window.TabManager.openTab === 'function') window.TabManager.openTab(p, { select: false })
                             if (window.TabManager && typeof window.TabManager.selectTab === 'function') window.TabManager.selectTab(p)
                         } catch (_e) { }
                     }
@@ -414,11 +521,35 @@ async function main() {
                             try {
                                 const sandbox = await import('./js/test-runner-sandbox.js')
                                 const FileManager = (typeof getFileManager === 'function') ? getFileManager() : null
-                                const mainContent = (FileManager ? (FileManager.read(MAIN_FILE) || '') : '')
                                 const runtimeUrl = (cfg && cfg.runtime && cfg.runtime.url) || './vendor/micropython.mjs'
                                 // Convert runtime URL to be relative to tests/ directory since iframe runs there
                                 const testsRelativeRuntimeUrl = runtimeUrl.startsWith('./') ? '../' + runtimeUrl.slice(2) : runtimeUrl
-                                const snapshot = { [MAIN_FILE]: mainContent }
+
+                                // Create snapshot with ALL user workspace files, not just main.py
+                                const snapshot = {}
+                                if (FileManager) {
+                                    try {
+                                        const allFiles = (typeof FileManager.list === 'function') ? FileManager.list() : []
+                                        for (const filePath of allFiles) {
+                                            try {
+                                                const content = FileManager.read(filePath)
+                                                if (content !== null) {
+                                                    snapshot[filePath] = content
+                                                }
+                                            } catch (e) {
+                                                logWarn('[app] failed to read file for snapshot:', filePath, e)
+                                            }
+                                        }
+                                    } catch (e) {
+                                        logWarn('[app] failed to list files for snapshot:', e)
+                                        // Fallback to just main file
+                                        const mainContent = FileManager.read(MAIN_FILE) || ''
+                                        snapshot[MAIN_FILE] = mainContent
+                                    }
+                                } else {
+                                    logWarn('[app] no FileManager available for snapshot')
+                                }
+
                                 logDebug('[app] creating sandboxed runFn with snapshot keys:', Object.keys(snapshot))
                                 runFn = sandbox.createSandboxedRunFn({ runtimeUrl: testsRelativeRuntimeUrl, filesSnapshot: snapshot })
                             } catch (e) {
@@ -524,7 +655,10 @@ async function main() {
         setupSnapshotSystem()
         setupDownloadSystem()
 
-        // Wire reset config button if present: restore loaded config from remote and refresh UI
+        // 10. Initialize student identifier input
+        initializeStudentIdentifier()
+
+        // 11. Wire reset config button if present: restore loaded config from remote and refresh UI
         try {
             const resetBtn = document.getElementById('reset-config-btn')
             if (resetBtn) {
@@ -535,7 +669,7 @@ async function main() {
                         const ok = await showConfirmModal('Reset workspace', 'Reset workspace to the loaded configuration? This will overwrite current files.')
                         if (!ok) return
 
-                        // Reload canonical config
+                        // Reload canonical config (use resetToLoadedConfig if available)
                         let newCfg = null
                         if (mod && typeof mod.resetToLoadedConfig === 'function') {
                             newCfg = await mod.resetToLoadedConfig()
@@ -543,62 +677,56 @@ async function main() {
                             newCfg = (await mod.loadConfig())
                         }
 
-                        // Replace filesystem contents with what's defined in the config.
+
+
+                        // Delegate the heavy lifting to the centralized helper which
+                        // applies the config to the workspace (manages FS, snapshots,
+                        // tab sync, and feedback updates).
                         try {
-                            const vfs = await import('./js/vfs-client.js')
-                            const getFileManager = vfs.getFileManager
-                            const MAIN_FILE = vfs.MAIN_FILE
-                            const FileManager = (typeof getFileManager === 'function') ? getFileManager() : null
-                            if (FileManager) {
-                                // Delete all files except MAIN_FILE
-                                try {
-                                    const existing = (typeof FileManager.list === 'function') ? FileManager.list() : []
-                                    for (const p of existing) {
+                            if (typeof applyConfigToWorkspace === 'function') {
+                                await applyConfigToWorkspace(newCfg)
+                            } else {
+                                // Fallback: attempt basic apply if helper missing
+                                const vfs = await import('./js/vfs-client.js')
+                                const getFileManager = vfs.getFileManager
+                                const MAIN_FILE = vfs.MAIN_FILE
+                                const FileManager = (typeof getFileManager === 'function') ? getFileManager() : null
+                                if (FileManager && typeof FileManager.write === 'function') {
+                                    try {
+                                        const { setSystemWriteMode } = await import('./js/vfs-client.js')
                                         try {
-                                            if (p === MAIN_FILE) continue
-                                            if (typeof FileManager.delete === 'function') await FileManager.delete(p)
+                                            setSystemWriteMode(true)
+                                            try { await FileManager.write(MAIN_FILE, newCfg?.starter || '') } catch (_e) { }
+                                            try {
+                                                if (newCfg && newCfg.files && typeof newCfg.files === 'object') {
+                                                    for (const [p, content] of Object.entries(newCfg.files)) {
+                                                        try { await FileManager.write(p, String(content || '')) } catch (_e) { }
+                                                    }
+                                                }
+                                            } catch (_e) { }
+                                        } finally {
+                                            try { setSystemWriteMode(false) } catch (_e) { }
+                                        }
+                                    } catch (_e) {
+                                        // fallback without system mode
+                                        try { await FileManager.write(MAIN_FILE, newCfg?.starter || '') } catch (_e) { }
+                                        try {
+                                            if (newCfg && newCfg.files && typeof newCfg.files === 'object') {
+                                                for (const [p, content] of Object.entries(newCfg.files)) {
+                                                    try { await FileManager.write(p, String(content || '')) } catch (_e) { }
+                                                }
+                                            }
                                         } catch (_e) { }
                                     }
-                                } catch (_e) { }
-
-                                // Write MAIN_FILE and extra files
-                                try {
-                                    if (typeof FileManager.write === 'function') {
-                                        await FileManager.write(MAIN_FILE, newCfg?.starter || '')
-                                    }
-                                } catch (_e) { }
-
-                                try {
-                                    if (newCfg && newCfg.files && typeof newCfg.files === 'object') {
-                                        for (const [p, content] of Object.entries(newCfg.files)) {
-                                            try { await FileManager.write(p, String(content || '')) } catch (_e) { }
-                                        }
-                                    }
-                                } catch (_e) { }
+                                }
+                                try { if (window.TabManager && typeof window.TabManager.syncWithFileManager === 'function') await window.TabManager.syncWithFileManager() } catch (_e) { }
+                                try { if (window.TabManager && typeof window.TabManager.refreshOpenTabContents === 'function') window.TabManager.refreshOpenTabContents() } catch (_e) { }
+                                try { window.Config = window.Config || {}; window.Config.current = newCfg } catch (_e) { }
+                                try { appendTerminal('Workspace reset to loaded configuration', 'runtime') } catch (_e) { }
                             }
                         } catch (e) {
-                            try { appendTerminal('Failed to reset filesystem: ' + e, 'runtime') } catch (_e) { }
+                            try { appendTerminal('Failed to apply reset configuration: ' + e, 'runtime') } catch (_e) { }
                         }
-
-                        // Refresh tabs/editor to reflect programmatic filesystem changes
-                        try {
-                            if (window.TabManager && typeof window.TabManager.syncWithFileManager === 'function') {
-                                try { await window.TabManager.syncWithFileManager() } catch (_e) { }
-                            }
-                        } catch (_e) { }
-
-                        // Force-refresh the content of the visible editor/tab
-                        try {
-                            if (window.TabManager && typeof window.TabManager.refreshOpenTabContents === 'function') {
-                                try { window.TabManager.refreshOpenTabContents() } catch (_e) { }
-                            }
-                        } catch (_e) { }
-
-                        // Update global config reference used elsewhere
-                        try { window.Config = window.Config || {}; window.Config.current = newCfg } catch (_e) { }
-                        // Refresh feedback UI with new config if available
-                        try { if (typeof window.__ssg_set_feedback_config === 'function') window.__ssg_set_feedback_config(newCfg) } catch (_e) { }
-                        try { appendTerminal('Workspace reset to loaded configuration', 'runtime') } catch (_e) { }
                     } catch (e) {
                         try { appendTerminal('Failed to reset config: ' + e, 'runtime') } catch (_e) { }
                     }
@@ -606,7 +734,7 @@ async function main() {
             }
         } catch (_e) { }
 
-        // 10. Wire up the Run button
+        // 12. Wire up the Run button
         const runBtn = $('run')
         if (runBtn) {
             runBtn.addEventListener('click', async () => {
@@ -644,39 +772,114 @@ async function main() {
             })
         }
 
+        // Keyboard shortcut: Ctrl+Enter (Windows/Linux) or Cmd+Enter (macOS) to run when editor has focus
+        try {
+            document.addEventListener('keydown', (ev) => {
+                try {
+                    if (ev.key !== 'Enter') return
+                    if (!(ev.ctrlKey || ev.metaKey)) return
+                    // Only trigger when editor has focus to avoid accidental runs
+                    const editorHasFocus = (cm && typeof cm.hasFocus === 'function') ? cm.hasFocus() : (document.activeElement === textarea)
+                    if (!editorHasFocus) return
+                    ev.preventDefault()
+                    if (runBtn && typeof runBtn.click === 'function') {
+                        runBtn.click()
+                    }
+                } catch (_e) { }
+            })
+        } catch (_e) { }
+
         // Top-level helper: apply a loaded/normalized config to the workspace (rewrite FS & refresh UI)
         async function applyConfigToWorkspace(newCfg) {
             try {
+                // Close any open tabs for files that will be removed by the
+                // incoming configuration. Do this up-front so we don't rely on
+                // other callers to perform cleanup. Use closeTabSilent so the
+                // UI doesn't prompt the user or attempt to delete files again.
+                try {
+                    if (window.TabManager && typeof window.TabManager.list === 'function') {
+                        try {
+                            const open = window.TabManager.list() || []
+                            for (const p of open) {
+                                try {
+                                    if (!p) continue
+                                    // Defer MAIN_FILE handling to normal sync; skip it here
+                                    const vfs = await import('./js/vfs-client.js')
+                                    const MAIN_FILE = vfs.MAIN_FILE
+                                    if (p === MAIN_FILE) continue
+                                    try { window.TabManager.closeTabSilent(p) } catch (_e) { }
+                                } catch (_e) { }
+                            }
+                        } catch (_e) { }
+                    }
+                    try { window.__ssg_pending_tabs = [] } catch (_e) { }
+                } catch (_e) { }
+
                 const vfs = await import('./js/vfs-client.js')
                 const getFileManager = vfs.getFileManager
                 const MAIN_FILE = vfs.MAIN_FILE
                 const FileManager = (typeof getFileManager === 'function') ? getFileManager() : null
                 if (FileManager) {
-                    // Delete all files except MAIN_FILE
+                    // When applying a configuration programmatically we must
+                    // bypass user-level read-only protections so system writes
+                    // and deletes succeed. Use setSystemWriteMode to allow this.
                     try {
-                        const existing = (typeof FileManager.list === 'function') ? FileManager.list() : []
-                        for (const p of existing) {
+                        const { setSystemWriteMode } = await import('./js/vfs-client.js')
+                        try {
+                            setSystemWriteMode(true)
+
+                            // Delete all files except MAIN_FILE
                             try {
-                                if (p === MAIN_FILE) continue
-                                if (typeof FileManager.delete === 'function') await FileManager.delete(p)
+                                const existing = (typeof FileManager.list === 'function') ? FileManager.list() : []
+                                for (const p of existing) {
+                                    try {
+                                        if (p === MAIN_FILE) continue
+                                        if (typeof FileManager.delete === 'function') await FileManager.delete(p)
+                                    } catch (_e) { }
+                                }
                             } catch (_e) { }
-                        }
-                    } catch (_e) { }
 
-                    // Write MAIN_FILE and extra files
-                    try {
-                        if (typeof FileManager.write === 'function') {
-                            await FileManager.write(MAIN_FILE, newCfg?.starter || '')
-                        }
-                    } catch (_e) { }
+                            // Write MAIN_FILE and extra files
+                            try {
+                                if (typeof FileManager.write === 'function') {
+                                    await FileManager.write(MAIN_FILE, newCfg?.starter || '')
+                                }
+                            } catch (_e) { }
 
-                    try {
-                        if (newCfg && newCfg.files && typeof newCfg.files === 'object') {
-                            for (const [p, content] of Object.entries(newCfg.files)) {
-                                try { await FileManager.write(p, String(content || '')) } catch (_e) { }
+                            try {
+                                if (newCfg && newCfg.files && typeof newCfg.files === 'object') {
+                                    for (const [p, content] of Object.entries(newCfg.files)) {
+                                        try { await FileManager.write(p, String(content || '')) } catch (_e) { }
+                                    }
+                                }
+                            } catch (_e) { }
+                        } finally {
+                            try { setSystemWriteMode(false) } catch (_e) { }
+                        }
+                    } catch (_e) {
+                        // If setSystemWriteMode import fails just attempt writes normally
+                        try {
+                            const existing = (typeof FileManager.list === 'function') ? FileManager.list() : []
+                            for (const p of existing) {
+                                try {
+                                    if (p === MAIN_FILE) continue
+                                    if (typeof FileManager.delete === 'function') await FileManager.delete(p)
+                                } catch (_e) { }
                             }
-                        }
-                    } catch (_e) { }
+                        } catch (_e) { }
+                        try {
+                            if (typeof FileManager.write === 'function') {
+                                await FileManager.write(MAIN_FILE, newCfg?.starter || '')
+                            }
+                        } catch (_e) { }
+                        try {
+                            if (newCfg && newCfg.files && typeof newCfg.files === 'object') {
+                                for (const [p, content] of Object.entries(newCfg.files)) {
+                                    try { await FileManager.write(p, String(content || '')) } catch (_e) { }
+                                }
+                            }
+                        } catch (_e) { }
+                    }
                 }
 
                 // Save this config as the current config for future sessions
@@ -686,7 +889,11 @@ async function main() {
 
                 // Update global config reference BEFORE checking for snapshots
                 // This ensures getSnapshotsForCurrentConfig() uses the new config's identity
-                try { setCurrentConfig(newCfg) } catch (_e) { try { window.Config = window.Config || {}; window.Config.current = newCfg } catch (_e2) { } }
+                try {
+                    setCurrentConfig(newCfg)
+                    // Make config globally available for read-only checks
+                    window.currentConfig = newCfg
+                } catch (_e) { try { window.Config = window.Config || {}; window.Config.current = newCfg } catch (_e2) { } }
 
                 // Try to restore the latest snapshot for this NEW config (if compatible)
                 try {
@@ -699,12 +906,24 @@ async function main() {
                         const currentConfigVersion = newCfg?.version
 
                         if (isConfigCompatibleWithSnapshot(currentConfigVersion, snapshotConfigVersion)) {
-                            // Restore the snapshot files for this config
+                            // Restore the snapshot files for this config. Use system
+                            // write mode so read-only flags don't block restoration.
                             if (latestSnapshot.files && FileManager) {
-                                for (const [path, content] of Object.entries(latestSnapshot.files)) {
+                                try {
+                                    const { setSystemWriteMode } = await import('./js/vfs-client.js')
                                     try {
-                                        await FileManager.write(path, content)
-                                    } catch (_e) { }
+                                        setSystemWriteMode(true)
+                                        for (const [path, content] of Object.entries(latestSnapshot.files)) {
+                                            try { await FileManager.write(path, content) } catch (_e) { }
+                                        }
+                                    } finally {
+                                        try { setSystemWriteMode(false) } catch (_e) { }
+                                    }
+                                } catch (_e) {
+                                    // fallback: try writes without system mode
+                                    for (const [path, content] of Object.entries(latestSnapshot.files)) {
+                                        try { await FileManager.write(path, content) } catch (_e) { }
+                                    }
                                 }
                             }
                             try { appendTerminal('Restored latest snapshot for ' + (newCfg?.title || newCfg?.id || 'config'), 'runtime') } catch (_e) { }
@@ -766,7 +985,10 @@ async function main() {
 
         // Wire config modal UI (open on header click, server list population, URL load, file upload/drop)
         try {
-            const configInfoEl = document.querySelector('.config-info') || document.querySelector('.config-title-line')
+            // Prefer the visible config title element for activation so
+            // interactive controls inside the header (reset button, student ID input)
+            // don't accidentally open the config modal via event bubbling.
+            const configInfoEl = document.querySelector('.config-title-line') || document.querySelector('.config-info')
             const configModal = document.getElementById('config-modal')
             if (configInfoEl && configModal) {
                 // Handle authoring mode setup
@@ -842,13 +1064,25 @@ async function main() {
 
                             let hasConfigs = false
 
-                            // Add authoring config first if available
+                            // Add authoring config first if available (try unified storage then localStorage)
                             try {
                                 const AUTHOR_CONFIG_KEY = 'author_config'
-                                const rawJson = localStorage.getItem(AUTHOR_CONFIG_KEY)
-                                if (rawJson) {
+                                let raw = null
+                                try {
+                                    // Prefer unified-storage async API if available
+                                    const { loadSetting } = await import('./js/unified-storage.js')
+                                    raw = await loadSetting(AUTHOR_CONFIG_KEY)
+                                } catch (_e) {
+                                    // unified storage not available; do nothing (no localStorage read in production)
+                                }
+                                if (raw) {
                                     try {
-                                        const raw = JSON.parse(rawJson || 'null')
+                                        // Use `raw` directly
+                                        // Handle tests parsing
+                                        if (raw && typeof raw.tests === 'string' && raw.tests.trim()) {
+                                            const parsedTests = JSON.parse(raw.tests)
+                                            if (Array.isArray(parsedTests)) raw.tests = parsedTests
+                                        }
 
                                         // Handle tests parsing
                                         try {
@@ -898,9 +1132,9 @@ async function main() {
                                             hasConfigs = true
                                         }
                                     } catch (e) {
-                                        // Malformed local author config or failed validation
-                                        logWarn('Invalid local author config in localStorage', e)
-                                        try { showConfigError('Invalid local author config in localStorage', configModal) } catch (_e) { }
+                                        // Malformed author config or failed validation
+                                        logWarn('Invalid local author config in storage', e)
+                                        try { showConfigError('Invalid local author config in storage', configModal) } catch (_e) { }
                                     }
                                 }
                             } catch (_e) { }
@@ -1092,6 +1326,47 @@ async function main() {
         if (instructionsContent) {
             instructionsContent.textContent = `Failed to initialize application: ${error.message || error}`
         }
+    }
+}
+
+// Initialize the student identifier input field
+function initializeStudentIdentifier() {
+    try {
+        const studentIdInput = document.getElementById('student-id-input')
+        if (!studentIdInput) return
+
+        // Keep layout simple: student-id container is inline and will flow
+        // naturally after the config title. Avoid absolute positioning to
+        // prevent overlap on narrow viewports.
+
+        // Load saved student identifier
+        const savedId = getStudentIdentifier()
+        if (savedId) {
+            studentIdInput.value = savedId
+        }
+
+        // Save on input change with debouncing
+        let timeoutId = null
+        studentIdInput.addEventListener('input', () => {
+            clearTimeout(timeoutId)
+            timeoutId = setTimeout(() => {
+                setStudentIdentifier(studentIdInput.value)
+                logDebug('Student identifier updated:', studentIdInput.value || '(cleared)')
+            }, 500) // 500ms debounce
+        })
+
+        // Save immediately on blur
+        studentIdInput.addEventListener('blur', () => {
+            clearTimeout(timeoutId)
+            setStudentIdentifier(studentIdInput.value)
+        })
+
+        // Initial alignment after DOM/setup
+        try { if (typeof alignStudentId === 'function') alignStudentId() } catch (_e) { }
+
+        logDebug('Student identifier input initialized')
+    } catch (e) {
+        logWarn('Failed to initialize student identifier:', e)
     }
 }
 

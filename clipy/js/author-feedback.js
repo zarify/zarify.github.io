@@ -524,37 +524,52 @@ export function initAuthorFeedback() {
     function openModalEdit(idx) {
         const existing = Object.assign({}, items[idx])
         const editor = buildEditorForm(existing)
-        const err = document.createElement('div')
-        err.style.color = '#b00020'
-        err.style.marginTop = '6px'
-
         // Create a wrapper with proper padding for the content
         const contentWrapper = document.createElement('div')
         contentWrapper.style.padding = '0 12px 12px 12px'
         contentWrapper.appendChild(editor.root)
-        contentWrapper.appendChild(err)
 
-        const actions = document.createElement('div')
-        actions.style.marginTop = '8px'
+        const m = ensureModal()
+        const header = m.querySelector('.modal-header')
+        const actionHolder = header ? header.querySelector('.modal-header-actions') : null
+        // Header message area for validation/failure messages
+        let headerMessage = header ? header.querySelector('.modal-header-message') : null
+        if (!headerMessage && header) {
+            headerMessage = document.createElement('div')
+            headerMessage.className = 'modal-header-message'
+            headerMessage.style.color = '#b00020'
+            headerMessage.style.fontSize = '0.9em'
+            headerMessage.style.marginLeft = '12px'
+            headerMessage.style.flex = '1'
+            headerMessage.style.alignSelf = 'center'
+            header.insertBefore(headerMessage, actionHolder)
+        }
+
         const save = document.createElement('button')
         save.className = 'btn btn-primary'
         save.textContent = 'Save'
         const cancel = document.createElement('button')
         cancel.className = 'btn'
         cancel.textContent = 'Cancel'
-        actions.appendChild(save)
-        actions.appendChild(cancel)
-        contentWrapper.appendChild(actions)
 
-        const m = ensureModal()
+        // inject Save/Cancel into modal header actions so they're always visible
+        actionHolder && (actionHolder.innerHTML = '')
+        actionHolder && actionHolder.appendChild(save)
+        actionHolder && actionHolder.appendChild(cancel)
+
         const body = m.querySelector('#author-feedback-modal-body')
         body.innerHTML = ''
         body.appendChild(contentWrapper)
-        // inject Save/Cancel into modal header actions so they're always visible
-        const actionHolder = m.querySelector('.modal-header-actions')
-        actionHolder.innerHTML = ''
-        actionHolder.appendChild(save)
-        actionHolder.appendChild(cancel)
+
+        // small inline error area inside modal body for compatibility with tests
+        const errEdit = document.createElement('div')
+        errEdit.className = 'modal-inline-err'
+        errEdit.style.color = '#b00020'
+        errEdit.style.fontSize = '0.9em'
+        errEdit.style.marginTop = '8px'
+        contentWrapper.appendChild(errEdit)
+
+        // (inline error added above)
 
         // show modal (use shared helper so Escape closes it and focus is trapped)
         try { openModalHelper(m) } catch (_e) {
@@ -562,14 +577,71 @@ export function initAuthorFeedback() {
             m.style.display = 'flex'
         }
 
+        // Clear header message (and inline error) when editor content changes
+        try {
+            editor.root.addEventListener('input', () => {
+                if (headerMessage) headerMessage.textContent = ''
+                if (errEdit) errEdit.textContent = ''
+            })
+        } catch (_e) { }
+
         function validateAndSave() {
             const val = editor.get()
+
+            // If this is an AST pattern, prevent saving when the AST tester
+            // shows a non-boolean matcher result. This keeps authors from
+            // persisting rules that won't behave as expected at runtime.
+            try {
+                if (val.pattern && val.pattern.type === 'ast') {
+                    const testResultEl = m && m.querySelector ? m.querySelector('.ast-rule-builder .test-result') : null
+                    if (testResultEl && testResultEl.dataset && testResultEl.dataset.nonBoolean) {
+                        const msg = 'Cannot save: AST matcher returned a non-boolean truthy value. Please make the matcher return true or false.'
+                        if (headerMessage) headerMessage.textContent = msg
+                        if (errEdit) errEdit.textContent = msg
+                        try { logWarn('[author-feedback] block save (edit):', msg) } catch (_e) { }
+                        // Inline error node (errEdit) is present inside the
+                        // content wrapper and is sufficient for tests to find.
+                        // No additional fallback node needed.
+                        return
+                    }
+                }
+            } catch (_e) { /* ignore DOM-check failures */ }
+
             if (val.pattern && val.pattern.type === 'regex') {
+                // If the editor.get() did not capture flags (rare in some DOM test
+                // environments), try to read directly from the modal's flags input
+                // as a fallback so edits persist correctly.
                 try {
-                    new RegExp(val.pattern.expression || '', val.pattern.flags || '')
-                    err.textContent = ''
+                    if (!val.pattern.flags || String(val.pattern.flags) === '') {
+                        // Use the local modal instance (m) which contains the editor DOM
+                        // for this edit session. In some test environments the outer
+                        // `modal` variable may not reference the same node, so prefer
+                        // the local one created above.
+                        const modalEl = m
+                        const flagsEl = modalEl && modalEl.querySelector ? modalEl.querySelector('input[placeholder="e.g. i"]') : null
+                        // no-op fallback debug removed
+                        if (flagsEl && typeof flagsEl.value === 'string') val.pattern.flags = flagsEl.value
+                    }
+                } catch (_e) { /* ignore fallback failures */ }
+
+                const flagsVal = String(val.pattern.flags || '')
+                // Accept only standard JS regex flags: g i m s u y (d is optional on newer engines)
+                const allowed = /^[gimsuyd]*$/
+                if (!allowed.test(flagsVal)) {
+                    if (errEdit) errEdit.textContent = 'Invalid regex flags: only the letters g, i, m, s, u, y, d are allowed.'
+                    return
+                }
+                // disallow duplicate flags as RegExp constructor will throw
+                const uniq = new Set(flagsVal.split(''))
+                if (uniq.size !== flagsVal.length) {
+                    if (errEdit) errEdit.textContent = 'Invalid regex flags: duplicate flag characters detected.'
+                    return
+                }
+                try {
+                    new RegExp(val.pattern.expression || '', flagsVal)
+                    if (errEdit) errEdit.textContent = ''
                 } catch (e) {
-                    err.textContent = 'Invalid regular expression: ' + (e && e.message ? e.message : e)
+                    if (errEdit) errEdit.textContent = 'Invalid regular expression: ' + (e && e.message ? e.message : e)
                     return
                 }
             }
@@ -584,37 +656,50 @@ export function initAuthorFeedback() {
 
     function openModalEditNew(newItem) {
         const editor = buildEditorForm(newItem)
-        const err = document.createElement('div')
-        err.style.color = '#b00020'
-        err.style.marginTop = '6px'
-
         // Create a wrapper with proper padding for the content
         const contentWrapper = document.createElement('div')
         contentWrapper.style.padding = '0 12px 12px 12px'
         contentWrapper.appendChild(editor.root)
-        contentWrapper.appendChild(err)
 
-        const actions = document.createElement('div')
-        actions.style.marginTop = '8px'
+        const m = ensureModal()
+        const header = m.querySelector('.modal-header')
+        const actionHolder = header ? header.querySelector('.modal-header-actions') : null
+        // Header message area for validation/failure messages
+        let headerMessage = header ? header.querySelector('.modal-header-message') : null
+        if (!headerMessage && header) {
+            headerMessage = document.createElement('div')
+            headerMessage.className = 'modal-header-message'
+            headerMessage.style.color = '#b00020'
+            headerMessage.style.fontSize = '0.9em'
+            headerMessage.style.marginLeft = '12px'
+            headerMessage.style.flex = '1'
+            headerMessage.style.alignSelf = 'center'
+            header.insertBefore(headerMessage, actionHolder)
+        }
+
         const save = document.createElement('button')
         save.className = 'btn btn-primary'
         save.textContent = 'Save'
         const cancel = document.createElement('button')
         cancel.className = 'btn'
         cancel.textContent = 'Cancel'
-        actions.appendChild(save)
-        actions.appendChild(cancel)
-        contentWrapper.appendChild(actions)
 
-        const m = ensureModal()
+        // inject Save/Cancel into modal header actions so they're always visible
+        actionHolder && (actionHolder.innerHTML = '')
+        actionHolder && actionHolder.appendChild(save)
+        actionHolder && actionHolder.appendChild(cancel)
+
         const body = m.querySelector('#author-feedback-modal-body')
         body.innerHTML = ''
         body.appendChild(contentWrapper)
-        // inject Save/Cancel into modal header actions so they're always visible
-        const actionHolder = m.querySelector('.modal-header-actions')
-        actionHolder.innerHTML = ''
-        actionHolder.appendChild(save)
-        actionHolder.appendChild(cancel)
+
+        // small inline error area inside modal body for compatibility with tests
+        const errNew = document.createElement('div')
+        errNew.className = 'modal-inline-err'
+        errNew.style.color = '#b00020'
+        errNew.style.fontSize = '0.9em'
+        errNew.style.marginTop = '8px'
+        contentWrapper.appendChild(errNew)
 
         // show modal (use shared helper so Escape closes it and focus is trapped)
         try { openModalHelper(m) } catch (_e) {
@@ -622,26 +707,74 @@ export function initAuthorFeedback() {
             m.style.display = 'flex'
         }
 
+        // Clear header message (and inline error) when editor content changes
+        try {
+            editor.root.addEventListener('input', () => {
+                if (headerMessage) headerMessage.textContent = ''
+                if (errNew) errNew.textContent = ''
+            })
+        } catch (_e) { }
+
         function validateAndSave() {
             const val = editor.get()
+
+            // Block save for AST patterns that were tested and found to
+            // return non-boolean values.
+            try {
+                if (val.pattern && val.pattern.type === 'ast') {
+                    const testResultEl = m && m.querySelector ? m.querySelector('.ast-rule-builder .test-result') : null
+                    if (testResultEl && testResultEl.dataset && testResultEl.dataset.nonBoolean) {
+                        const msg = 'Cannot save: AST matcher returned a non-boolean truthy value. Please make the matcher return true or false.'
+                        if (headerMessage) headerMessage.textContent = msg
+                        if (errNew) errNew.textContent = msg
+                        try { logWarn('[author-feedback] block save (new):', msg) } catch (_e) { }
+                        // Inline error node (errNew) is present inside the
+                        // content wrapper and is sufficient for tests to find.
+                        // No additional fallback node needed.
+                        return
+                    }
+                }
+            } catch (_e) { /* ignore DOM-check failures */ }
+            // Regex validation: ensure flags are valid and expression compiles
             if (val.pattern && val.pattern.type === 'regex') {
                 try {
-                    new RegExp(val.pattern.expression || '', val.pattern.flags || '')
-                    err.textContent = ''
+                    if (!val.pattern.flags || String(val.pattern.flags) === '') {
+                        const modalEl = m
+                        const flagsEl = modalEl && modalEl.querySelector ? modalEl.querySelector('input[placeholder="e.g. i"]') : null
+                        if (flagsEl && typeof flagsEl.value === 'string') val.pattern.flags = flagsEl.value
+                    }
+                } catch (_e) { /* ignore fallback failures */ }
+
+                const flagsVal = String(val.pattern.flags || '')
+                const allowed = /^[gimsuyd]*$/
+                if (!allowed.test(flagsVal)) {
+                    if (headerMessage) headerMessage.textContent = 'Invalid regex flags: only the letters g, i, m, s, u, y, d are allowed.'
+                    return
+                }
+                const uniq = new Set(flagsVal.split(''))
+                if (uniq.size !== flagsVal.length) {
+                    if (headerMessage) headerMessage.textContent = 'Invalid regex flags: duplicate flag characters detected.'
+                    return
+                }
+                try {
+                    new RegExp(val.pattern.expression || '', flagsVal)
+                    if (headerMessage) headerMessage.textContent = ''
                 } catch (e) {
-                    err.textContent = 'Invalid regular expression: ' + (e && e.message ? e.message : e)
+                    if (headerMessage) headerMessage.textContent = 'Invalid regular expression: ' + (e && e.message ? e.message : e)
                     return
                 }
             }
+
+            // Persist the new item
             if (!val.id) val.id = genId()
-            // Only add to items array when save is clicked
             items.push(val)
             persist()
             try { closeModalHelper(m) } catch (_e) { closeModal() }
         }
+
         save.addEventListener('click', validateAndSave)
-        // Cancel just closes modal without adding item
         cancel.addEventListener('click', () => { try { closeModalHelper(m) } catch (_e) { closeModal() } })
+
     }
 
     function closeModal() {
@@ -690,4 +823,5 @@ export function initAuthorFeedback() {
     render()
 }
 
+export { parseFeedbackFromTextarea, writeFeedbackToTextarea, getValidTargetsForWhen }
 export default { initAuthorFeedback }

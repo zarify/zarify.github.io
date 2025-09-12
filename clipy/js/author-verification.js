@@ -1,0 +1,250 @@
+// Teacher verification interface for managing students and verification codes
+import { generateVerificationCode } from './zero-knowledge-verification.js'
+import { debug as logDebug } from './logger.js'
+import { normalizeTestsForHash, canonicalizeForHash } from './normalize-tests.js'
+
+// Storage key for student list (independent of configs)
+const STUDENTS_LIST_KEY = 'teacher_students_list'
+
+/**
+ * Get the list of students from localStorage
+ * @returns {string[]} Array of student IDs
+ */
+export function getStudentsList() {
+    try {
+        const stored = localStorage.getItem(STUDENTS_LIST_KEY)
+        return stored ? JSON.parse(stored) : []
+    } catch (e) {
+        logDebug('Failed to get students list:', e)
+        return []
+    }
+}
+
+/**
+ * Save the list of students to localStorage
+ * @param {string[]} students - Array of student IDs
+ */
+export function saveStudentsList(students) {
+    try {
+        // Persist students in a stable, alphabetical order (case-insensitive)
+        const sorted = (students || []).slice().sort((a, b) => String(a).localeCompare(String(b), undefined, { sensitivity: 'base' }))
+        localStorage.setItem(STUDENTS_LIST_KEY, JSON.stringify(sorted))
+    } catch (e) {
+        logDebug('Failed to save students list:', e)
+    }
+}
+
+/**
+ * Add a student to the list
+ * @param {string} studentId - Student ID to add
+ * @returns {boolean} True if added, false if already exists or invalid
+ */
+export function addStudent(studentId) {
+    if (!studentId || !studentId.trim()) return false
+
+    const students = getStudentsList()
+    const trimmedId = studentId.trim()
+
+    if (students.includes(trimmedId)) return false
+    students.push(trimmedId)
+    // Save will sort alphabetically
+    saveStudentsList(students)
+    return true
+}
+
+/**
+ * Remove a student from the list
+ * @param {string} studentId - Student ID to remove
+ * @returns {boolean} True if removed, false if not found
+ */
+export function removeStudent(studentId) {
+    const students = getStudentsList()
+    const index = students.indexOf(studentId)
+
+    if (index === -1) return false
+
+    students.splice(index, 1)
+    // Save will sort (no-op here but keeps persisted order deterministic)
+    saveStudentsList(students)
+    return true
+}
+
+/**
+ * Clear all students from the list
+ */
+export function clearAllStudents() {
+    saveStudentsList([])
+}
+
+/**
+ * Normalize config the same way the main app does for verification code generation
+ * @param {Object} cfg - Raw config from authoring interface
+ * @returns {Object} Normalized config
+ */
+// Use shared normalization utilities (normalizeTestsForHash, canonicalizeForHash)
+
+/**
+ * Generate verification codes for all students given a test config
+ * @param {Object} testConfig - The current test configuration
+ * @returns {Promise<Array>} Array of {studentId, code} objects
+ */
+export async function generateCodesForAllStudents(testConfig) {
+    const students = getStudentsList()
+    const codes = []
+
+    // Normalize tests deterministically and embed back into a shallow config
+    const normalizedTests = normalizeTestsForHash(testConfig)
+    const canonicalTestsJson = canonicalizeForHash(normalizedTests)
+    const normalizedConfig = Object.assign({}, testConfig, { tests: normalizedTests })
+
+    for (const studentId of students) {
+        try {
+            // Simulate all tests passing for code generation
+            const allTestsPassed = true
+            const code = await generateVerificationCode(normalizedConfig, studentId, allTestsPassed)
+            codes.push({ studentId, code })
+        } catch (e) {
+            logDebug('Failed to generate code for student:', studentId, e)
+            codes.push({ studentId, code: 'Error generating code' })
+        }
+    }
+
+    return codes
+}
+
+/**
+ * Initialize the verification tab UI
+ * @param {Function} onStudentsChanged - Callback when students list changes
+ */
+export function initVerificationTab(onStudentsChanged = null) {
+    const addBtn = document.getElementById('add-student-btn')
+    const clearBtn = document.getElementById('clear-students-btn')
+    const input = document.getElementById('new-student-id')
+
+    if (!addBtn || !clearBtn || !input) {
+        logDebug('Verification tab elements not found')
+        return
+    }
+
+    // Add student button handler
+    addBtn.addEventListener('click', () => {
+        const studentId = input.value
+        if (addStudent(studentId)) {
+            input.value = ''
+            renderStudentsList()
+            if (onStudentsChanged) onStudentsChanged()
+        } else {
+            // Show feedback for duplicate/invalid
+            const feedback = studentId.trim() ? 'Student already exists!' : 'Please enter a valid student ID'
+            showTemporaryFeedback(feedback)
+        }
+    })
+
+    // Enter key support for input
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            addBtn.click()
+        }
+    })
+
+    // Clear all button handler
+    clearBtn.addEventListener('click', async () => {
+        // Simple confirmation
+        if (confirm('Are you sure you want to clear all students?')) {
+            clearAllStudents()
+            renderStudentsList()
+            if (onStudentsChanged) onStudentsChanged()
+        }
+    })
+
+    // Initial render
+    renderStudentsList()
+}
+
+/**
+ * Render the students list with verification codes
+ * @param {Object} testConfig - Optional test config for generating codes
+ */
+export async function renderStudentsList(testConfig = null) {
+    const container = document.getElementById('student-codes-list')
+    if (!container) return
+
+    const students = getStudentsList()
+
+    if (students.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:#666;font-style:italic;margin:0;">No students added yet.</p>'
+        return
+    }
+
+    // Show loading state
+    container.innerHTML = '<p style="text-align:center;color:#666;margin:0;">Generating codes...</p>'
+
+    // Generate codes if we have a test config
+    let codes = []
+    if (testConfig) {
+        codes = await generateCodesForAllStudents(testConfig)
+    } else {
+        // Just show student IDs without codes
+        codes = students.map(studentId => ({ studentId, code: 'Load test config to see codes' }))
+    }
+
+    // Render the list
+    let html = '<div style="display:grid;gap:8px;">'
+
+    codes.forEach(({ studentId, code }) => {
+        html += `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:white;border:1px solid #ddd;border-radius:4px;">
+                <div>
+                    <strong style="color:#333;">${escapeHtml(studentId)}</strong>
+                    <div style="color:#666;font-family:monospace;font-size:0.9em;margin-top:4px;">
+                        ${escapeHtml(code)}
+                    </div>
+                </div>
+                <button class="remove-student-btn btn btn-small" data-student="${escapeHtml(studentId)}" 
+                        style="color:#dc3545;border-color:#dc3545;">Remove</button>
+            </div>
+        `
+    })
+
+    html += '</div>'
+    container.innerHTML = html
+
+    // Add remove handlers
+    container.querySelectorAll('.remove-student-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const studentId = btn.dataset.student
+            if (removeStudent(studentId)) {
+                renderStudentsList(testConfig)
+            }
+        })
+    })
+}
+
+/**
+ * Show temporary feedback message
+ * @param {string} message - Message to show
+ */
+function showTemporaryFeedback(message) {
+    const input = document.getElementById('new-student-id')
+    if (!input) return
+
+    const originalPlaceholder = input.placeholder
+    input.placeholder = message
+    input.style.borderColor = '#dc3545'
+
+    setTimeout(() => {
+        input.placeholder = originalPlaceholder
+        input.style.borderColor = '#ddd'
+    }, 2000)
+}
+
+/**
+ * Escape HTML to prevent XSS
+ * @param {string} text - Text to escape
+ * @returns {string} Escaped text
+ */
+function escapeHtml(text) {
+    const div = document.createElement('div')
+    div.textContent = text
+    return div.innerHTML
+}

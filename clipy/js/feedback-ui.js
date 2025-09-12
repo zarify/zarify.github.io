@@ -1,14 +1,19 @@
 import { $ } from './utils.js'
 import { debug as logDebug } from './logger.js'
+import { getStudentIdentifier, generateVerificationCode, shouldShowVerificationCode } from './zero-knowledge-verification.js'
 
 let _matches = []
 let _config = { feedback: [] }
 let _testResults = []
 let _streamBuffers = {}
+// Track previously-seen matched feedback IDs so we can detect newly added matches
+let _prevMatchedIds = new Set()
 
 function renderList() {
     try {
-        const host = $('feedback-list')
+        // Prefer new id to avoid content-blocker problems; fall back to legacy
+        // id for older pages/tests.
+        const host = $('fdbk-list') || $('feedback-list')
         if (!host) return
         // Clear host first, then add run-tests control at top
         host.innerHTML = ''
@@ -163,9 +168,10 @@ function renderList() {
                     // Reuse existing detail rendering logic (actual/expected, stderr)
                     const hasExpected = authorEntry && (authorEntry.expected_stdout != null)
                     const isRegexExpected = hasExpected && (typeof authorEntry.expected_stdout === 'object' && authorEntry.expected_stdout.type === 'regex')
+                    const isExactExpected = hasExpected && (typeof authorEntry.expected_stdout === 'object' && authorEntry.expected_stdout.type === 'exact')
                     const hasStderr = r.stderr && r.stderr.trim().length > 0
                     const hideActualExpected = authorEntry && authorEntry.hide_actual_expected
-                    if (!r.passed && hasExpected && !isRegexExpected && !hasStderr && !hideActualExpected) {
+                    if (!r.passed && hasExpected && !isRegexExpected && !isExactExpected && !hasStderr && !hideActualExpected) {
                         const detailsWrap = document.createElement('div')
                         detailsWrap.className = 'test-compare'
                         detailsWrap.style.marginTop = '8px'
@@ -211,6 +217,7 @@ function renderList() {
                             const exp = authorEntry.expected_stdout
                             if (typeof exp === 'string') codeE.textContent = exp
                             else if (typeof exp === 'object' && exp.type === 'regex') codeE.textContent = `/${exp.expression}/${exp.flags || ''}`
+                            else if (typeof exp === 'object' && exp.type === 'exact') codeE.textContent = `[exact: ${exp.expression}]`
                             else codeE.textContent = JSON.stringify(exp)
                         } catch (_e) { codeE.textContent = String(authorEntry.expected_stdout) }
                         preE.appendChild(codeE)
@@ -436,24 +443,10 @@ function renderList() {
             const sev = (entry.severity || 'success').toLowerCase()
             wrapper.classList.add('severity-' + sev)
 
-            // title row with icon
+            // title row (icon moved to the message block below)
             const titleRow = document.createElement('div')
             titleRow.className = 'feedback-title-row'
 
-            const icon = document.createElement('span')
-            icon.className = 'feedback-icon'
-            if (sev === 'hint') {
-                icon.textContent = '💡'
-            } else if (sev === 'warning') {
-                icon.textContent = '⚠️'
-            } else if (sev === 'info') {
-                icon.textContent = 'ℹ️'
-            } else if (sev === 'success') {
-                icon.textContent = '😊'
-            } else {
-                icon.textContent = '•'
-            }
-            titleRow.appendChild(icon)
 
             const titleEl = document.createElement('div')
             titleEl.className = 'feedback-title'
@@ -466,7 +459,22 @@ function renderList() {
             if (matched && matched.message) {
                 const msg = document.createElement('div')
                 msg.className = 'feedback-msg feedback-msg-matched matched-' + sev
+                // set the message text first, then insert the severity icon before it
                 msg.textContent = matched.message
+                const iconMsg = document.createElement('span')
+                iconMsg.className = 'feedback-icon'
+                if (sev === 'hint') {
+                    iconMsg.textContent = '💡'
+                } else if (sev === 'warning') {
+                    iconMsg.textContent = '⚠️'
+                } else if (sev === 'info') {
+                    iconMsg.textContent = 'ℹ️'
+                } else if (sev === 'success') {
+                    iconMsg.textContent = '😊'
+                } else {
+                    iconMsg.textContent = '•'
+                }
+                try { msg.insertBefore(iconMsg, msg.firstChild) } catch (_e) { }
                 wrapper.appendChild(msg)
             } else if (entry.visibleByDefault) {
                 // Show an empty placeholder or hint for visible-by-default entries
@@ -533,6 +541,44 @@ export function setFeedbackConfig(cfg) {
         }
     } catch (_e) { }
 
+    // Normalize legacy feedback shape: some saved configs use the legacy
+    // object form { ast: [], regex: [] } rather than the newer array form.
+    // Convert that legacy shape into the normalized array so the UI can
+    // iterate entries safely.
+    try {
+        if (normalizedCfg && normalizedCfg.feedback && !Array.isArray(normalizedCfg.feedback) && typeof normalizedCfg.feedback === 'object') {
+            const legacy = normalizedCfg.feedback || {}
+            const arr = []
+            const r = Array.isArray(legacy.regex) ? legacy.regex : []
+            for (let i = 0; i < r.length; i++) {
+                const item = r[i]
+                arr.push({
+                    id: item.id || ('legacy-regex-' + i),
+                    title: item.title || ('legacy ' + i),
+                    when: item.when || ['edit'],
+                    pattern: { type: 'regex', target: (item.target === 'output' ? 'stdout' : (item.target || 'code')), expression: item.pattern || item.expression || '' },
+                    message: item.message || '',
+                    severity: item.severity || 'info',
+                    visibleByDefault: typeof item.visibleByDefault === 'boolean' ? item.visibleByDefault : true
+                })
+            }
+            const a = Array.isArray(legacy.ast) ? legacy.ast : []
+            for (let i = 0; i < a.length; i++) {
+                const item = a[i]
+                arr.push({
+                    id: item.id || ('legacy-ast-' + i),
+                    title: item.title || ('legacy-ast ' + i),
+                    when: item.when || ['edit'],
+                    pattern: { type: 'ast', target: (item.target || 'code'), expression: item.rule || item.expression || item.pattern || '', matcher: item.matcher || '' },
+                    message: item.message || '',
+                    severity: item.severity || 'info',
+                    visibleByDefault: typeof item.visibleByDefault === 'boolean' ? item.visibleByDefault : true
+                })
+            }
+            normalizedCfg.feedback = arr
+        }
+    } catch (_e) { }
+
     try {
         if (normalizedCfg && Array.isArray(normalizedCfg.tests)) {
             normalizedCfg.tests = normalizedCfg.tests.map(t => {
@@ -550,11 +596,57 @@ export function setFeedbackConfig(cfg) {
 
     _config = normalizedCfg
     renderList()
+    // Mark feedback tab as having new feedback if there are visible entries
+    try {
+        const fbBtn = document.getElementById('tab-btn-feedback')
+        const hasVisible = Array.isArray(_config.feedback) && _config.feedback.length > 0
+        if (fbBtn) {
+            if (hasVisible && fbBtn.getAttribute('aria-selected') !== 'true') fbBtn.classList.add('has-new-feedback')
+            else fbBtn.classList.remove('has-new-feedback')
+        }
+    } catch (_e) { }
 }
 
 export function setFeedbackMatches(matches) {
-    _matches = matches || []
+    // Compute the set of match ids from the incoming matches
+    const newMatches = matches || []
+    const newIds = new Set()
+    try {
+        for (const m of newMatches) {
+            try {
+                if (m && (m.id !== undefined && m.id !== null)) newIds.add(String(m.id))
+            } catch (_e) { }
+        }
+    } catch (_e) { }
+
+    // Detect if any id is newly added compared to previous state
+    let hasNewlyAdded = false
+    try {
+        for (const id of newIds) {
+            if (!_prevMatchedIds.has(id)) { hasNewlyAdded = true; break }
+        }
+    } catch (_e) { }
+
+    _matches = newMatches
     renderList()
+    try {
+        const fbBtn = document.getElementById('tab-btn-feedback')
+        const hasMatch = newIds.size > 0
+        if (fbBtn) {
+            // Only mark as new if there are newly added matched rule ids and
+            // the tab is not currently selected. Do not re-add the indicator
+            // on re-runs that don't introduce new matches.
+            if (hasNewlyAdded && fbBtn.getAttribute('aria-selected') !== 'true') {
+                fbBtn.classList.add('has-new-feedback')
+            } else if (!hasMatch) {
+                // If there are no matches any more, clear the indicator
+                fbBtn.classList.remove('has-new-feedback')
+            }
+        }
+    } catch (_e) { }
+
+    // Update previous ids snapshot for next comparison
+    _prevMatchedIds = newIds
 }
 
 export function setTestResults(results) {
@@ -597,6 +689,14 @@ export function setTestResults(results) {
         } catch (_e) { }
     } catch (e) { }
     renderList()
+    try {
+        const fbBtn = document.getElementById('tab-btn-feedback')
+        const visibleCount = Array.isArray(_testResults) ? _testResults.filter(r => !r.skipped).length : 0
+        if (fbBtn) {
+            if (visibleCount > 0 && fbBtn.getAttribute('aria-selected') !== 'true') fbBtn.classList.add('has-new-feedback')
+            else if (visibleCount === 0) fbBtn.classList.remove('has-new-feedback')
+        }
+    } catch (_e) { }
 }
 
 export function appendTestOutput({ id, type, text }) {
@@ -693,6 +793,41 @@ function createResultsModal() {
     title.style.marginBottom = '12px'
     box.appendChild(title)
 
+    // Verification code display area (initially hidden)
+    const verificationDiv = document.createElement('div')
+    verificationDiv.id = 'verification-code-display'
+    verificationDiv.style.display = 'none'
+    verificationDiv.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)'
+    verificationDiv.style.color = 'white'
+    verificationDiv.style.padding = '12px 16px'
+    verificationDiv.style.borderRadius = '8px'
+    verificationDiv.style.marginBottom = '16px'
+    verificationDiv.style.textAlign = 'center'
+    verificationDiv.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)'
+
+    const verificationTitle = document.createElement('div')
+    verificationTitle.style.fontSize = '0.9em'
+    verificationTitle.style.marginBottom = '4px'
+    verificationTitle.textContent = '🎉 All tests passed! Your verification code:'
+    verificationDiv.appendChild(verificationTitle)
+
+    const verificationCode = document.createElement('div')
+    verificationCode.id = 'verification-code-text'
+    verificationCode.style.fontSize = '1.3em'
+    verificationCode.style.fontWeight = 'bold'
+    verificationCode.style.fontFamily = 'monospace'
+    verificationCode.style.letterSpacing = '2px'
+    verificationDiv.appendChild(verificationCode)
+
+    const verificationSubtext = document.createElement('div')
+    verificationSubtext.style.fontSize = '0.8em'
+    verificationSubtext.style.marginTop = '6px'
+    verificationSubtext.style.opacity = '0.9'
+    verificationSubtext.textContent = 'Share this code with your teacher as proof of completion'
+    verificationDiv.appendChild(verificationSubtext)
+
+    box.appendChild(verificationDiv)
+
     const content = document.createElement('div')
     content.className = 'test-results-content'
     box.appendChild(content)
@@ -751,6 +886,35 @@ function closeTestResultsModal() {
         if (modal._detachAccessibility) modal._detachAccessibility()
         modal.remove()
     } catch (e) { modal.style.display = 'none' }
+}
+
+async function handleVerificationCodeDisplay(results, config) {
+    const verificationDiv = document.getElementById('verification-code-display')
+    const verificationCodeText = document.getElementById('verification-code-text')
+
+    if (!verificationDiv || !verificationCodeText) return
+
+    try {
+        // Check if verification code should be shown
+        const allTestsPassed = shouldShowVerificationCode(results)
+        const studentId = getStudentIdentifier()
+
+        if (allTestsPassed && studentId) {
+            // Generate verification code
+            const verificationCode = await generateVerificationCode(config, studentId, true)
+
+            if (verificationCode) {
+                verificationCodeText.textContent = verificationCode.toUpperCase()
+                verificationDiv.style.display = 'block'
+                logDebug('Displaying verification code:', verificationCode)
+            }
+        } else {
+            verificationDiv.style.display = 'none'
+        }
+    } catch (e) {
+        logDebug('Error handling verification code display:', e)
+        verificationDiv.style.display = 'none'
+    }
 }
 
 function showTestResultsModal(results) {
@@ -818,6 +982,9 @@ function showTestResultsModal(results) {
         // Legacy format - render normally
         renderTestResults(results, cfgMap, groupMap, false)
     }
+
+    // Handle verification code display
+    handleVerificationCodeDisplay(results, _config)
 
     // Focus for a11y
     const box = modal.querySelector('.test-results-box')
@@ -1008,7 +1175,7 @@ function createTestResultRow(r, cfgMap, groupMap, isGrouped) {
         }
 
         const hideActualExpected = meta && meta.hide_actual_expected
-        if (!r.passed && expected != null && !(typeof expected === 'object' && expected.type === 'regex') && !(r.stderr && r.stderr.trim().length > 0) && !hideActualExpected) {
+        if (!r.passed && expected != null && !(typeof expected === 'object' && (expected.type === 'regex' || expected.type === 'exact')) && !(r.stderr && r.stderr.trim().length > 0) && !hideActualExpected) {
             const compareWrap = document.createElement('div')
             compareWrap.className = 'test-compare'
             compareWrap.style.marginTop = '8px'
@@ -1044,6 +1211,7 @@ function createTestResultRow(r, cfgMap, groupMap, isGrouped) {
             try {
                 if (typeof expected === 'string') codeE.textContent = expected
                 else if (typeof expected === 'object' && expected.type === 'regex') codeE.textContent = `/${expected.expression}/${expected.flags || ''}`
+                else if (typeof expected === 'object' && expected.type === 'exact') codeE.textContent = `[exact: ${expected.expression}]`
                 else codeE.textContent = JSON.stringify(expected)
             } catch (_e) { codeE.textContent = String(expected) }
             preE.appendChild(codeE)

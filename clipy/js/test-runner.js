@@ -33,7 +33,12 @@ function matchExpectation(actual, expected) {
             return { matched: false, detail: null }
         }
     }
-    // string compare - include
+    if (typeof expected === 'object' && expected.type === 'exact') {
+        // Exact match - the entire output must match exactly
+        const expectedText = String(expected.expression || '')
+        return { matched: s === expectedText, detail: null }
+    }
+    // string compare - contains (default behavior)
     if (typeof expected === 'string') {
         return { matched: s.indexOf(expected) !== -1 }
     }
@@ -229,8 +234,8 @@ async function runTests(tests, options = {}) {
 }
 
 // Expose for Node require and ES imports
-if (typeof module !== 'undefined' && module.exports) module.exports = { runTests, matchExpectation, runGroupedTests }
-export { runTests, matchExpectation, runGroupedTests }
+if (typeof module !== 'undefined' && module.exports) module.exports = { runTests, matchExpectation, runGroupedTests, computeMismatchReason }
+export { runTests, matchExpectation, runGroupedTests, computeMismatchReason }
 
 /**
  * Run grouped tests with conditional execution support

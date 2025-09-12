@@ -4,7 +4,66 @@ import { appendTerminal, appendTerminalDebug } from './terminal.js'
 import { warn as logWarn, error as logError, info as logInfo } from './logger.js'
 import { safeSetItem } from './storage-manager.js'
 
-// Name of the protected main program file (normalized)
+// Global flag to allow system operations to bypass read-only restrictions
+let systemWriteMode = false
+
+// Helper: normalize a path for display to the user (strip any leading slashes)
+function _displayPathForUser(path) {
+    try {
+        if (path == null) return String(path)
+        return String(path).replace(/^\/+/g, '')
+    } catch (_e) { return String(path) }
+}
+
+// Allow system operations to temporarily bypass read-only restrictions.
+// This is exported so callers (execution flows, snapshots, tests) can
+// enable system-write mode while performing controlled backend writes.
+export function setSystemWriteMode(enabled) {
+    systemWriteMode = !!enabled
+    try { if (typeof window !== 'undefined') window.__ssg_system_write_mode = !!enabled } catch (_e) { }
+}
+
+// Helper to check if a file is read-only (excluding system operations)
+function isFileReadOnlyForUserWrite(path) {
+    try {
+        // Allow system operations to bypass read-only restrictions
+        if (systemWriteMode) return false
+
+        // Get current config from global state
+        const config = (typeof window !== 'undefined' && window.currentConfig) || null
+        if (!config || !config.fileReadOnlyStatus) return false
+
+        const normalizedPath = path.startsWith('/') ? path : `/${path}`
+        return !!(config.fileReadOnlyStatus[normalizedPath] || config.fileReadOnlyStatus[normalizedPath.replace(/^\/+/, '')])
+    } catch (_e) {
+        return false
+    }
+}
+
+function scheduleMirrorDelete(path, host = window) {
+    try {
+        if (typeof window !== 'undefined' && window.indexedDB) {
+            import('./unified-storage.js').then(mod => {
+                try { if (mod && typeof mod.deleteFile === 'function') mod.deleteFile(path).catch(() => { }) } catch (_e) { }
+            }).catch(() => { /* ignore import failures */ })
+            return { success: true }
+        }
+
+        try {
+            const map = JSON.parse((host.localStorage.getItem('ssg_files_v1') || '{}'))
+            delete map[path]
+            const result = safeSetItem('ssg_files_v1', JSON.stringify(map))
+            if (!result.success) logWarn('Failed to update localStorage mirror:', result.error)
+            return result
+        } catch (err) {
+            return { success: false, error: err && err.message }
+        }
+    } catch (e) {
+        return { success: false, error: e && e.message }
+    }
+}
+
+// Main file path used across the app (protected, not deletable)
 export const MAIN_FILE = '/main.py'
 
 // VFS runtime references (populated during async VFS init)
@@ -56,7 +115,6 @@ function setupNotificationSystem() {
                 // global suppress guard: if set, ignore runtime-originated notifications
                 try {
                     if (window.__ssg_suppress_notifier) {
-                        try { appendTerminalDebug && appendTerminalDebug('[notify] globally suppressed: ' + String(path)) } catch (_e) { }
                         return
                     }
                 } catch (_e) { }
@@ -75,31 +133,47 @@ function setupNotificationSystem() {
                 // consume it and skip further UI processing to avoid echo loops.
                 try {
                     if (consumeExpectedWriteIfMatches(n, content)) {
-                        try { appendTerminalDebug && appendTerminalDebug('[notify] ignored expected write: ' + n) } catch (_e) { }
                         return
                     }
                 } catch (_e) { }
 
                 // Log the notification only to debug logs (avoid noisy terminal output)
-                try { appendTerminalDebug('notify: ' + n) } catch (_e) { }
+                // notification: path written -> UI will handle enqueueing/opening
 
                 // update mem and localStorage mirror for tests and fallbacks (always keep mem in sync)
-                try { if (typeof mem !== 'undefined') { mem[n] = content } } catch (_e) { }
                 try {
-                    const map = JSON.parse(localStorage.getItem('ssg_files_v1') || '{}')
-                    map[n] = content
-                    const result = safeSetItem('ssg_files_v1', JSON.stringify(map))
-                    if (!result.success) {
-                        logWarn('Failed to update localStorage mirror:', result.error)
+                    if (typeof mem !== 'undefined') {
+                        if (content == null) {
+                            try { delete mem[n] } catch (_e) { }
+                        } else {
+                            mem[n] = content
+                        }
+                    }
+                } catch (_e) { }
+                try {
+                    if (content == null) scheduleMirrorDelete(n)
+                    else scheduleMirrorSave(n, content)
+                } catch (_e) { }
+
+                // If this was a deletion, inform the TabManager to close any open tab
+                try {
+                    if (content == null) {
+                        try {
+                            if (window.TabManager && typeof window.TabManager.closeTabSilent === 'function') {
+                                try { window.TabManager.closeTabSilent(n) } catch (_e) { }
+                            }
+                            if (window.TabManager && typeof window.TabManager.syncWithFileManager === 'function') {
+                                try { window.TabManager.syncWithFileManager() } catch (_e) { }
+                            }
+                        } catch (_e) { }
                     }
                 } catch (_e) { }
 
-                // Queue the path for the UI to open later via the existing pending-tabs flow.
-                // Avoid calling TabManager.openTab/refresh directly from here to prevent
-                // write->notify->UI-write recursion and timing races. The UI reload/sync
-                // logic will process `__ssg_pending_tabs` and open tabs at a safe point.
+                // Queue the path for the UI to open later via the existing pending-tabs flow,
+                // but only for actual file writes (content != null). For deletions (content == null),
+                // don't queue the file to be reopened.
                 try {
-                    if (n !== MAIN_FILE) {
+                    if (n !== MAIN_FILE && content != null) {
                         try { window.__ssg_pending_tabs = (window.__ssg_pending_tabs || []).concat([n]) } catch (_e) { }
                     }
                 } catch (_e) { }
@@ -110,6 +184,84 @@ function setupNotificationSystem() {
             } catch (_e) { }
         }
     })()
+}
+
+// Test-friendly factory: set up notification system on a provided host object
+// Returns the notifier function that was installed on the host.
+export function createNotificationSystem(host = window) {
+    try {
+        // Initialize expected writes tracking
+        if (!host.__ssg_expected_writes) {
+            host.__ssg_expected_writes = new Map()
+        }
+
+        // expose a global notifier the UI side will implement
+        host.__ssg_notify_file_written = host.__ssg_notify_file_written || (function () {
+            const lastNotified = new Map()
+            const DEBOUNCE_MS = 120
+            return function (path, content) {
+                try {
+                    try {
+                        if (host.__ssg_suppress_notifier) {
+                            return
+                        }
+                    } catch (_e) { }
+                    if (typeof path !== 'string') return
+                    const n = '/' + path.replace(/^\/+/, '')
+
+                    try {
+                        const prev = lastNotified.get(n) || 0
+                        const now = Date.now()
+                        if (now - prev < DEBOUNCE_MS) return
+                        lastNotified.set(n, now)
+                    } catch (_e) { }
+
+                    try {
+                        if (consumeExpectedWriteIfMatchesHost(n, content, host)) {
+                            return
+                        }
+                    } catch (_e) { }
+
+                    // notification: path written - consumed or forwarded to UI
+
+                    try {
+                        if (typeof mem !== 'undefined') {
+                            if (content == null) {
+                                try { delete mem[n] } catch (_e) { }
+                            } else {
+                                mem[n] = content
+                            }
+                        }
+                    } catch (_e) { }
+                    try {
+                        if (content == null) scheduleMirrorDelete(n, host)
+                        else scheduleMirrorSave(n, content, host)
+                    } catch (_e) { }
+
+                    // If this was a deletion, instruct the TabManager on the host
+                    // to close any associated tab and sync state.
+                    try {
+                        if (content == null) {
+                            try {
+                                if (host && host.TabManager && typeof host.TabManager.closeTabSilent === 'function') {
+                                    try { host.TabManager.closeTabSilent(n) } catch (_e) { }
+                                }
+                                if (host && host.TabManager && typeof host.TabManager.syncWithFileManager === 'function') {
+                                    try { host.TabManager.syncWithFileManager() } catch (_e) { }
+                                }
+                            } catch (_e) { }
+                        }
+                    } catch (_e) { }
+
+                    try { host.__ssg_pending_tabs = Array.from(new Set(host.__ssg_pending_tabs || [])) } catch (_e) { }
+                    try { setTimeout(() => { try { flushPendingTabs() } catch (_e) { } }, 10) } catch (_e) { }
+                } catch (_e) { }
+            }
+        })()
+        return host.__ssg_notify_file_written
+    } catch (e) {
+        return null
+    }
 }
 
 /**
@@ -141,6 +293,20 @@ function consumeExpectedWriteIfMatches(path, content) {
     return false
 }
 
+function consumeExpectedWriteIfMatchesHost(path, content, host) {
+    try {
+        const map = host.__ssg_expected_writes
+        if (map && typeof map.get === 'function') {
+            const rec = map.get(path)
+            if (rec && String(rec.content || '') === String(content || '')) {
+                map.delete(path)
+                return true
+            }
+        }
+    } catch (_e) { }
+    return false
+}
+
 // Track expected writes we performed into the runtime FS
 try { window.__ssg_expected_writes = window.__ssg_expected_writes || new Map() } catch (_e) { }
 
@@ -149,53 +315,36 @@ function _normPath(p) {
     return p.startsWith('/') ? p : ('/' + p)
 }
 
-export function markExpectedWrite(p, content) {
+// Safe decoder for Uint8Array / ArrayBuffer values returned by some FS implementations
+function safeDecode(buf) {
+    if (buf == null) return buf
+    try {
+        if (typeof buf === 'string') return buf
+        if (buf instanceof ArrayBuffer) buf = new Uint8Array(buf)
+        if (ArrayBuffer.isView(buf)) {
+            if (typeof TextDecoder !== 'undefined') return new TextDecoder('utf-8').decode(buf)
+            try {
+                // Node fallback
+                // eslint-disable-next-line no-restricted-globals
+                const util = typeof require === 'function' ? require('util') : null
+                if (util && util.TextDecoder) return new util.TextDecoder('utf-8').decode(buf)
+            } catch (_e) { }
+            try { return Buffer.from(buf).toString('utf8') } catch (_e) { return String(buf) }
+        }
+        return String(buf)
+    } catch (e) { return String(buf) }
+}
+
+export function markExpectedWrite(p, content, host = window) {
     try {
         const n = _normPath(p)
-        window.__ssg_expected_writes.set(n, { content: String(content || ''), ts: Date.now() })
+        host.__ssg_expected_writes = host.__ssg_expected_writes || new Map()
+        host.__ssg_expected_writes.set(n, { content: String(content || ''), ts: Date.now() })
     } catch (_e) { }
 }
 
-// Simple FileManager shim (localStorage-backed initially)
-let FileManager = {
-    key: 'ssg_files_v1',
-    _load() {
-        try {
-            return JSON.parse(localStorage.getItem(this.key) || '{}')
-        } catch (e) {
-            return {}
-        }
-    },
-    _save(m) {
-        const result = safeSetItem(this.key, JSON.stringify(m))
-        if (!result.success) {
-            throw new Error(result.error || 'Storage quota exceeded')
-        }
-    },
-    _norm(p) { if (!p) return p; return p.startsWith('/') ? p : ('/' + p) },
-
-    list() { return Object.keys(this._load()).sort() },
-    read(path) {
-        const m = this._load()
-        return m[this._norm(path)] || null
-    },
-    write(path, content) {
-        const m = this._load()
-        m[this._norm(path)] = content
-        this._save(m)
-        return Promise.resolve()
-    },
-    delete(path) {
-        if (this._norm(path) === MAIN_FILE) {
-            logWarn('Attempt to delete protected main file ignored:', path)
-            return Promise.resolve()
-        }
-        const m = this._load()
-        delete m[this._norm(path)]
-        this._save(m)
-        return Promise.resolve()
-    }
-}
+// Simple FileManager shim (localStorage-backed initially) created via factory
+let FileManager = createFileManager(window)
 
 // Convenience helper: wait for a file to appear in mem/runtime/backend
 window.waitForFile = async function (path, timeoutMs = 2000) {
@@ -244,10 +393,8 @@ export async function initializeVFS(cfg) {
     // Expose the local FileManager immediately so tests and early scripts can access it
     try { window.FileManager = FileManager } catch (e) { }
 
-    // Ensure MAIN_FILE exists with starter content
-    if (!FileManager.read(MAIN_FILE)) {
-        FileManager.write(MAIN_FILE, cfg?.starter || '# main program (auto-created)\n')
-    }
+    // Expose MAIN_FILE existence will be ensured after backend init to avoid
+    // writing the legacy localStorage mirror synchronously during page load.
 
     // Try to initialize real VFS backend (IndexedDB preferred) and migrate existing local files
     try {
@@ -255,15 +402,28 @@ export async function initializeVFS(cfg) {
         const backend = await vfsMod.init()
         backendRef = backend
 
-        // migrate existing localStorage-based files into backend if missing
-        const localFiles = FileManager.list()
-        for (const p of localFiles) {
-            try {
-                const existing = await backend.read(p)
-                if (existing == null) {
-                    await backend.write(p, FileManager.read(p))
-                }
-            } catch (e) { /* ignore per-file errors */ }
+        // Ensure MAIN_FILE exists using the initialized backend (so we avoid
+        // creating the legacy localStorage mirror synchronously on page load).
+        try {
+            setSystemWriteMode(true)
+            const existingMain = await backend.read(MAIN_FILE).catch(() => null)
+            if (existingMain == null) {
+                await backend.write(MAIN_FILE, cfg?.starter || '# main program (auto-created)\n')
+            }
+
+            // migrate existing localStorage-based files into backend if missing
+            const localFiles = FileManager.list()
+            for (const p of localFiles) {
+                try {
+                    const existing = await backend.read(p)
+                    if (existing == null) {
+                        await backend.write(p, FileManager.read(p))
+                    }
+                } catch (e) { /* ignore per-file errors */ }
+            }
+        } catch (_e) { /* ignore backend write failures */ }
+        finally {
+            setSystemWriteMode(false)
         }
 
         // build an in-memory snapshot adapter
@@ -289,73 +449,103 @@ export async function initializeVFS(cfg) {
         FileManager = {
             list() { return Object.keys(mem).sort() },
             read(path) {
-                const n = path && path.startsWith('/') ? path : ('/' + path)
-                return mem[n] || null
+                try {
+                    const n = _normPath(path)
+                    const v = mem[n]
+                    return v == null ? null : v
+                } catch (_e) { return null }
             },
             write(path, content) {
-                const n = path && path.startsWith('/') ? path : ('/' + path)
-                const prev = mem[n]
-
-                // If content didn't change, return early
-                try { if (prev === content) return Promise.resolve() } catch (_e) { }
-
-                // update in-memory copy first
-                mem[n] = content
-
-                // update localStorage mirror for tests and fallbacks
                 try {
-                    const map = JSON.parse(localStorage.getItem('ssg_files_v1') || '{}')
-                    map[n] = content
-                    const result = safeSetItem('ssg_files_v1', JSON.stringify(map))
-                    if (!result.success) {
-                        logWarn('Failed to update localStorage mirror:', result.error)
-                    }
-                } catch (_e) { }
+                    const n = _normPath(path)
 
-                return backend.write(n, content).catch(e => {
-                    logError('VFS write failed', e)
-                    throw e
-                })
+                    // Check for read-only protection (user writes only)
+                    if (isFileReadOnlyForUserWrite(n)) {
+                        logWarn('Attempt to write to read-only file ignored:', path)
+                        return Promise.resolve()
+                    }
+
+                    if (n === MAIN_FILE && (content == null || content === '')) {
+                        // protect main file from being cleared accidentally
+                        logWarn('Attempt to clear protected main file ignored:', path)
+                        return Promise.resolve()
+                    }
+
+                    const prev = mem[n]
+                    // If content didn't change, return early
+                    try { if (prev === content) return Promise.resolve() } catch (_e) { }
+
+                    // update in-memory copy first
+                    mem[n] = content
+
+                    // update localStorage mirror for tests and fallbacks
+                    try {
+                        scheduleMirrorSave(n, content)
+                    } catch (_e) { }
+
+                    // mark expected write so the notifier can ignore the echo
+                    try { markExpectedWrite(n, content) } catch (_e) { }
+
+                    return backend.write(n, content).then(res => {
+                        try { // notify host about write
+                            try { if (typeof window.__ssg_notify_file_written === 'function') window.__ssg_notify_file_written(n, content) } catch (_e) { }
+                        } catch (_e) { }
+                        return res
+                    }).catch(e => {
+                        logError('VFS write failed', e)
+                        throw e
+                    })
+                } catch (e) { return Promise.reject(e) }
             },
             delete(path) {
-                const n = path && path.startsWith('/') ? path : ('/' + path)
-                if (n === MAIN_FILE) {
-                    logWarn('Attempt to delete protected main file ignored:', path)
-                    return Promise.resolve()
-                }
-
-                delete mem[n]
-
                 try {
-                    const map = JSON.parse(localStorage.getItem('ssg_files_v1') || '{}')
-                    delete map[n]
-                    const result = safeSetItem('ssg_files_v1', JSON.stringify(map))
-                    if (!result.success) {
-                        logWarn('Failed to update localStorage mirror:', result.error)
+                    const n = _normPath(path)
+                    if (n === MAIN_FILE) {
+                        logWarn('Attempt to delete protected main file ignored:', path)
+                        return Promise.resolve()
                     }
-                } catch (_e) { }
 
-                // also attempt to remove from interpreter FS
-                try {
-                    const fs = window.__ssg_runtime_fs
-                    if (fs) {
-                        try {
-                            if (typeof fs.unlink === 'function') fs.unlink(n)
-                            else if (typeof fs.unlinkSync === 'function') fs.unlinkSync(n)
-                        } catch (_e) { }
-                    }
-                } catch (_e) { }
+                    // Block deletion of read-only files for user-initiated deletes
+                    try {
+                        if (isFileReadOnlyForUserWrite(n)) {
+                            logWarn('Attempt to delete read-only file blocked:', n)
+                            const err = new Error('Permission denied: read-only file ' + _displayPathForUser(n))
+                            err.errno = 13
+                            return Promise.reject(err)
+                        }
+                    } catch (_e) { }
 
-                return backend.delete(n).catch(e => {
-                    logError('VFS delete failed', e)
-                    throw e
-                })
+                    delete mem[n]
+
+                    try {
+                        scheduleMirrorDelete(n)
+                    } catch (_e) { }
+
+                    // also attempt to remove from interpreter FS
+                    try {
+                        const fs = window.__ssg_runtime_fs
+                        if (fs) {
+                            try {
+                                if (typeof fs.unlink === 'function') fs.unlink(n)
+                                else if (typeof fs.unlinkSync === 'function') fs.unlinkSync(n)
+                            } catch (_e) { }
+                        }
+                    } catch (_e) { }
+
+                    return backend.delete(n).then(res => {
+                        try { if (typeof window.__ssg_notify_file_written === 'function') window.__ssg_notify_file_written(n, null) } catch (_e) { }
+                        return res
+                    }).catch(e => {
+                        logError('VFS delete failed', e)
+                        throw e
+                    })
+                } catch (e) { return Promise.reject(e) }
             }
         }
 
-        appendTerminalDebug('VFS backend initialized successfully')
+        // VFS backend initialized
     } catch (e) {
-        appendTerminalDebug('VFS init failed, using localStorage FileManager: ' + e)
+        // VFS init failed, using localStorage FileManager
     }
 
     // Update the global FileManager reference
@@ -384,3 +574,102 @@ export function getMem() {
 }
 
 export { settleVfsReady }
+
+// Create a FileManager bound to a host object (defaults to window). Useful for tests.
+export function createFileManager(host = window) {
+    const KEY = 'ssg_files_v1'
+
+    function _load() {
+        try {
+            // Prefer an in-memory unified-storage mirror if present (used in some tests)
+            try {
+                const memVal = (host.__ssg_unified_inmemory && host.__ssg_unified_inmemory[KEY]) || null
+                if (memVal) return memVal
+            } catch (_e) { }
+            return JSON.parse(host.localStorage.getItem(KEY) || '{}')
+        } catch (e) { return {} }
+    }
+
+    function _save(m) {
+        // In modern browsers with IndexedDB available, avoid writing the
+        // legacy localStorage mirror from this synchronous factory. The
+        // unified storage system or the async backend will persist files.
+        // Only perform localStorage writes when IndexedDB is not present
+        // (tests or very old browsers).
+        try {
+            if (typeof window !== 'undefined' && window.indexedDB) {
+                // Keep an in-memory copy for any immediate synchronous reads
+                // within the same JS context (some tests may inspect this).
+                try { host.__ssg_unified_inmemory = host.__ssg_unified_inmemory || {}; host.__ssg_unified_inmemory[KEY] = m } catch (_e) { }
+                return
+            }
+        } catch (_e) { }
+
+        const result = safeSetItem(KEY, JSON.stringify(m))
+        if (!result.success) throw new Error(result.error || 'Storage quota exceeded')
+    }
+
+    function _norm(p) { if (!p) return p; return p.startsWith('/') ? p : ('/' + p) }
+
+    return {
+        key: KEY,
+        list() { try { return Object.keys(_load()).sort() } catch (e) { return [] } },
+        read(path) { try { const m = _load(); const v = m[_norm(path)]; return v == null ? null : v } catch (e) { return null } },
+        write(path, content) {
+            try {
+                const n = _norm(path)
+
+                // Check for read-only protection (user writes only)
+                if (isFileReadOnlyForUserWrite(n)) {
+                    logWarn('Attempt to write to read-only file ignored:', path)
+                    return Promise.resolve()
+                }
+
+                const m = _load()
+                m[n] = content
+                _save(m)
+                return Promise.resolve()
+            } catch (e) { return Promise.reject(e) }
+        },
+        delete(path) {
+            try {
+                const n = _norm(path)
+                if (n === MAIN_FILE) {
+                    try { logWarn('Attempt to delete protected main file ignored:', path) } catch (_e) { }
+                    return Promise.resolve()
+                }
+
+                // Block deletion of read-only files for user-initiated deletes
+                try {
+                    if (isFileReadOnlyForUserWrite(n)) {
+                        try { logWarn('Attempt to delete read-only file blocked:', n) } catch (_e) { }
+                        const err = new Error('Permission denied: read-only file ' + _displayPathForUser(n))
+                        err.errno = 13
+                        return Promise.reject(err)
+                    }
+                } catch (_e) { }
+
+                const m = _load()
+                delete m[_norm(path)]
+                _save(m)
+                return Promise.resolve()
+            } catch (e) { return Promise.reject(e) }
+        }
+    }
+}
+
+// Lightweight factory returning helpers scoped for testing or multiple instances.
+export function createVfsClient(options = {}) {
+    const host = options.host || window
+    return {
+        createNotificationSystem: (h = host) => createNotificationSystem(h),
+        createFileManager: (h = host) => createFileManager(h),
+        markExpectedWrite: (p, c, h = host) => markExpectedWrite(p, c, h),
+        // expose some of the existing module API for convenience
+        initializeVFS: (cfg) => initializeVFS(cfg),
+        getFileManager: () => getFileManager(),
+        getBackendRef: () => getBackendRef(),
+        getMem: () => getMem(),
+        settleVfsReady: () => settleVfsReady()
+    }
+}
