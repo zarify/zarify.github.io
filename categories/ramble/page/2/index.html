@@ -87,6 +87,22 @@
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">Publii to Microblog
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>When deciding to play around with Publii (after taking a dislike to Jekyll, and not finding anything else that tickled my fancy), the first problem seemed to be that despite supporting tags for posts, there was no way to create an RSS or JSON feed based on a tag. Publii creates a feed, but it contains all posts regardless of the category.
+Two alternatives presented themselves, neither particularly nice:
+‘hide’ all posts except Microblog tagged posts from the feed. This is both kludgy, and not pleasant looking, since only Microblog posts would then appear on the front page of the site. Write a script to create a new feed from the main one with everything except Microblog tagged posts filtered out. Not very hard, but requires running the feed filter after each post.
+This wouldn’t be a big deal if Publii followed most other static site generators in running with command-line scripts, since I could just add another script to the chain of posting, but since it all runs through a GUI program with a shiny “sync changes” button, it means then manually (or on a schedule to check for changes with a cron job maybe) pulling the JSON feed, filtering posts, and then pushing the new file to the site again. (not a real option) figure out how to modify Publii to do what I wanted. Anyhow, I guess option 2 seems like the way to go since it’s gross but simple to do. If it turns out I care (or post!) enough, I’ll automate it later.
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2018-08-18 16:32:29.078 +0000 UTC'>Sat, Aug 18, 2018</span>&nbsp;·&nbsp;Rob</footer>
+  <a class="entry-link" aria-label="post link to Publii to Microblog" href="https://headtilt.me/publii-to-microblog/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">Playing with Affinity Designer Brushes
     </h2>
   </header>
@@ -209,19 +225,6 @@ a (beloved if aging) 2012 13&#34; Macbook Air iPhone 6S&#43; iPad Air 2 Work Sur
   </div>
   <footer class="entry-footer"><span title='2016-04-13 07:34:56 +0000 UTC'>Wed, Apr 13, 2016</span>&nbsp;·&nbsp;Rob</footer>
   <a class="entry-link" aria-label="post link to Deferred Attention" href="https://headtilt.me/deferred-attention/"></a>
-</article>
-
-<article class="post-entry tag-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">Smile Acrobatics
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>This morning I woke up to an email from Smile Software titled “TextExpander 5 Lives!” and I was a little sad inside. Now I still think that their original plan of moving to a subscription pricing scheme was the wrong decision, but I really wanted to see that they had a plan for it. As tech pundits left and right have said, Smile has been around for ages, they should have a good idea about how the business works.
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2016-04-13 00:13:12 +0000 UTC'>Wed, Apr 13, 2016</span>&nbsp;·&nbsp;Rob</footer>
-  <a class="entry-link" aria-label="post link to Smile Acrobatics" href="https://headtilt.me/smile-acrobatics/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">

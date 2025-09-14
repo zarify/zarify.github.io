@@ -11,7 +11,13 @@
 This is part of a(n aspirationally) series of posts documenting some of the process of
 (building|cat herding an AI agent to build)
 an easily hosted Python teaching tool built with just front-end JS and a WASM port of
-MicroPython. You can find Part 1 here
+MicroPython.
+
+You can find Part 1 here
+This is Part 2!
+You can find Part 3 here
+You can find Part 4 here
+
 What we had before
 The outcome of the previous week&rsquo;s achievements was pretty satisfying since I&rsquo;d tried
 and failed to solve the problems of having a responsive WASM Python runtime for user
@@ -123,7 +129,13 @@ know what to do to make it happen was so valuable.">
 <p>This is part of a(n aspirationally) series of posts documenting some of the process of
 (building|cat herding an AI agent to build)
 an easily hosted Python teaching tool built with just front-end JS and a WASM port of
-MicroPython. <a href="https://headtilt.me/cat-herding-wasm-python-01/">You can find Part 1 here</a></p>
+MicroPython.</p>
+<ul>
+<li><a href="https://headtilt.me/cat-herding-wasm-python-01/">You can find Part 1 here</a></li>
+<li>This is Part 2!</li>
+<li><a href="https://headtilt.me/cat-herding-wasm-python-03/">You can find Part 3 here</a></li>
+<li><a href="https://headtilt.me/cat-herding-wasm-python-04/">You can find Part 4 here</a></li>
+</ul>
 <h2 id="what-we-had-before">What we had before<a hidden class="anchor" aria-hidden="true" href="#what-we-had-before">#</a></h2>
 <p>The outcome of the previous week&rsquo;s achievements was pretty satisfying since I&rsquo;d tried
 and failed to solve the problems of having a responsive WASM Python runtime for user
@@ -276,9 +288,13 @@ as the user code to run the tests, but I ran into way too many issues with state
 <code>stdin</code>, <code>stdout</code>, and <code>stderr</code> so that it was only visible to tests, and just plain implementation
 issues, so a couple of reverts later, I went with firing up another runtime in an iframe
 and just doing the testing there, passing info back to the main page.</p>
-<div class="callout callout-info">
-    <i class="fa-regular fa-lightbulb"></i>
-    <div class="callout-content">
+
+            <link rel="stylesheet" href="/css/vendors/admonitions.4fd9a0b8ec8899f2ca952048d255a569f433f77dfb3f52f5bc87e7d65cdce449.css" integrity="sha256-T9mguOyImfLKlSBI0lWlafQz9337P1L1vIfn1lzc5Ek=" crossorigin="anonymous">
+    <div class="admonition idea">
+      <div class="admonition-header"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M272 384c9.6-31.9 29.5-59.1 49.2-86.2c0 0 0 0 0 0c5.2-7.1 10.4-14.2 15.4-21.4c19.8-28.5 31.4-63 31.4-100.3C368 78.8 289.2 0 192 0S16 78.8 16 176c0 37.3 11.6 71.9 31.4 100.3c5 7.2 10.2 14.3 15.4 21.4c0 0 0 0 0 0c19.8 27.1 39.7 54.4 49.2 86.2l160 0zM192 512c44.2 0 80-35.8 80-80l0-16-160 0 0 16c0 44.2 35.8 80 80 80zM112 176c0 8.8-7.2 16-16 16s-16-7.2-16-16c0-61.9 50.1-112 112-112c8.8 0 16 7.2 16 16s-7.2 16-16 16c-44.2 0-80 35.8-80 80z"/></svg>
+        <span>When is an <code>input</code> not an <code>input</code>?</span>
+      </div>
+      <div class="admonition-content">
         <p>So I know I <em>said</em> something about rewiring things like <code>stderr</code> and <code>stdout</code> but actually
 that turned out to be such a mess that actually what I did was just treat it all as <code>stdout</code>
 and do some pattern matching for tracebacks. I&rsquo;m not proud.</p>
@@ -287,38 +303,8 @@ to make it easier. After all, one of my main realisations from the previous lof 
 that it doesn&rsquo;t matter what the original Python was <em>meant</em> to do, it only matters whether
 it looks like it&rsquo;s doing it to the user, and if their code is implemented in a real runtime
 it does the same thing.</p>
-
-    </div>
-</div>
-
-<style>
-    .callout {
-        border: 1px solid #ccc;
-        padding: 10px;
-        margin: 10px 0;
-        border-radius: 5px;
-        display: flex;
-        align-items: center;
-        font-family: 'Arial', sans-serif;
-        font-size: 0.9em;
-    }
-
-    .callout-info {
-        background-color: #e7f3fe;
-        border-color: #b3d4fc;
-    }
-
-    .callout i {
-        margin-right: 10px;
-        padding: 0.25em 0.5em;
-        font-size: 1.5em;
-    }
-
-    .callout-content {
-        flex-grow: 1;
-    }
-</style>
-<p>So far I&rsquo;ve implemented testing for <code>stdout</code>, <code>stdin</code>, and <code>stderr</code>. This is all focused on
+      </div>
+    </div><p>So far I&rsquo;ve implemented testing for <code>stdout</code>, <code>stdin</code>, and <code>stderr</code>. This is all focused on
 program behaviour, not implementation. Down the road I want to implement richer testing of
 the program internals.</p>
 <p>One of the interesting things about doing the tests for <code>stdin</code> was again a difference in
@@ -371,43 +357,16 @@ are implemented.</p>
 <li>There&rsquo;s been a real difference in speed of development vs perceived speed of development this week, since a lot of it has been UI code, but a lot of it has also been fixing regressions (so many regressions).</li>
 <li>Testing (lots of plain JS and Playwright) has been interesting. One thing I&rsquo;ve really not been enjoying is the feeling that instead of just running the tests myself, I should be <em>asking the agent to run the tests</em> because then it pays attention to the test output. This is super frustrating, and I&rsquo;ve found that as I go on I&rsquo;ve been trying to be more involved in the code myself because the alternave is so incredibly wasteful in terms of time and resources.</li>
 </ul>
-<div class="callout callout-warning">
-    <i class="fa-solid fa-asterisk"></i>
-    <div class="callout-content">
+
+    <div class="admonition danger">
+      <div class="admonition-header"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480L40 480c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8 .2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24l0 112c0 13.3 10.7 24 24 24s24-10.7 24-24l0-112c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"/></svg>
+        <span>🫠</span>
+      </div>
+      <div class="admonition-content">
         <p>As I was taking screenshots for this post I realised that something was broken in <code>stdin</code> tests again.</p>
 <p>So. Many. Regressions. 🤣🐎</p>
-
+      </div>
     </div>
-</div>
-
-<style>
-    .callout {
-        border: 1px solid #ccc;
-        padding: 10px;
-        margin: 10px 0;
-        border-radius: 5px;
-        display: flex;
-        align-items: center;
-        font-family: 'Arial', sans-serif;
-        font-size: 0.9em;
-    }
-
-    .callout-warning {
-        background-color: #fff3cd;
-        border-color: #ffeeba;
-    }
-
-    .callout i {
-        margin-right: 10px;
-        padding: 0.25em 0.5em;
-        font-size: 1.5em;
-    }
-
-    .callout-content {
-        flex-grow: 1;
-    }
-</style>
-
 
   </div>
 
