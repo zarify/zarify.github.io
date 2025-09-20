@@ -1,0 +1,21 @@
+/* Project-level overrides to ensure CodeMirror wraps long lines and doesn't cause page horizontal overflow */
+.CodeMirror {
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    /* prevent editor container from causing page-level horizontal scroll */
+}
+
+/* When CodeMirror has lineWrapping enabled it adds the class CodeMirror-wrap.
+   Ensure the internal pre/line elements can wrap and break long words. */
+.CodeMirror-wrap pre,
+.CodeMirror pre.CodeMirror-line {
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    overflow-wrap: anywhere !important;
+}
+
+/* Prevent global page CSS from forcing large min-width on CodeMirror children */
+.CodeMirror * {
+    min-width: 0 !important;
+}

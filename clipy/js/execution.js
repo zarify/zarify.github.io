@@ -495,7 +495,34 @@ export async function runPythonCode(code, cfg) {
                     try {
                         const outEl = document.getElementById('terminal-output')
                         const stdoutFull = outEl ? (outEl.textContent || '') : ''
-                        const stderrFull = (typeof window.__ssg_last_mapped === 'string' && window.__ssg_last_mapped) ? window.__ssg_last_mapped : ''
+                        // Prefer the mapped traceback when available, but fall back to
+                        // any buffered/raw stderr so feedback rules that look for
+                        // strings like "Traceback" can still match even if mapping
+                        // did not produce a mapped result.
+                        let stderrFull = ''
+                        try {
+                            const mapped = (typeof window.__ssg_last_mapped === 'string' && window.__ssg_last_mapped) ? window.__ssg_last_mapped : ''
+                            const rawBuf = Array.isArray(window.__ssg_last_raw_stderr_buffer) && window.__ssg_last_raw_stderr_buffer.length ? window.__ssg_last_raw_stderr_buffer : (Array.isArray(window.__ssg_stderr_buffer) ? window.__ssg_stderr_buffer : [])
+                            const buffered = (Array.isArray(rawBuf) && rawBuf.length) ? rawBuf.join('\n') : ''
+                            if (mapped && buffered) {
+                                // Combine mapped and raw buffered stderr so rules that
+                                // look for original runtime markers (e.g. "Traceback")
+                                // still match even when mapping produced a cleaned
+                                // traceback string.
+                                stderrFull = mapped + '\n' + buffered
+                            } else if (mapped) {
+                                stderrFull = mapped
+                            } else if (buffered) {
+                                stderrFull = buffered
+                            } else if (outEl) {
+                                // As a last resort, extract terminal lines that look
+                                // like stderr/traceback fragments from the DOM.
+                                try {
+                                    const parts = Array.from(outEl.children || []).map(n => n.textContent || '')
+                                    stderrFull = parts.filter(t => /Traceback|<stdin>|<string>/i.test(t)).join('\n')
+                                } catch (_e) { stderrFull = '' }
+                            }
+                        } catch (_e) { stderrFull = '' }
                         // Capture stdin inputs from the execution session
                         const stdinFull = (typeof window.__ssg_stdin_history === 'string') ? window.__ssg_stdin_history : ''
                         // gather filenames from FileManager or localStorage mirror

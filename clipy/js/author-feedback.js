@@ -6,11 +6,13 @@
 import { openModal as openModalHelper, closeModal as closeModalHelper } from './modals.js'
 import { warn as logWarn, error as logError } from './logger.js'
 import { createASTRuleBuilder, createDefaultASTFeedback } from './ast-rule-builder.js'
+import { analyzeCode } from './ast-analyzer.js'
+import { registerAnalyzer } from './analyzer-registry.js'
 
 const VALID_PATTERN_TYPES = ['string', 'regex', 'ast']
 const VALID_TARGETS = ['code', 'filename', 'stdout', 'stderr', 'stdin']
 const VALID_WHEN = ['edit', 'run']
-const VALID_SEVERITIES = ['success', 'info', 'warning', 'error']
+const VALID_SEVERITIES = ['success', 'hint', 'info', 'warning', 'error']
 
 // Target restrictions based on when the feedback runs
 const EDIT_TARGETS = ['code', 'filename']
@@ -144,7 +146,7 @@ function createCard(item, idx, onEdit, onMoveUp, onMoveDown, onDelete) {
     return div
 }
 
-function buildEditorForm(existing) {
+function buildEditorForm(existing, allItems = []) {
     const root = document.createElement('div')
     root.style.border = '1px solid #eee'
     root.style.padding = '8px'
@@ -200,6 +202,142 @@ function buildEditorForm(existing) {
     const idIn = document.createElement('input')
     idIn.style.width = '100%'
     idIn.value = existing.id || ''
+
+    // Dependencies UI: allow selecting other feedback item IDs that this
+    // entry depends on. `allItems` should be the array of existing items so
+    // we can present titles for selection.
+    const depsWrap = document.createElement('div')
+    depsWrap.style.display = 'flex'
+    depsWrap.style.flexDirection = 'column'
+    depsWrap.style.gap = '6px'
+
+    const depsList = document.createElement('div')
+    depsList.style.display = 'flex'
+    depsList.style.flexWrap = 'wrap'
+    depsList.style.gap = '6px'
+
+    // Helper to render a single dependency chip
+    function renderDeps(depIds) {
+        depsList.innerHTML = ''
+        // Expect an array of dependency objects: { id, requiresMatched }
+        const arr = Array.isArray(depIds) ? depIds.slice() : []
+        arr.forEach(depObj => {
+            const depItem = document.createElement('div')
+            depItem.className = 'dep-chip'
+            depItem.style.display = 'inline-flex'
+            depItem.style.alignItems = 'center'
+            depItem.style.padding = '4px 8px'
+            depItem.style.background = '#f0f0f0'
+            depItem.style.borderRadius = '12px'
+            depItem.style.fontSize = '0.9em'
+
+            // get id and display title
+            const did = (depObj && typeof depObj === 'object') ? String(depObj.id) : String(depObj)
+            const found = (allItems || []).find(it => String(it.id) === did)
+            const label = document.createElement('span')
+            label.style.maxWidth = '200px'
+            label.style.overflow = 'hidden'
+            label.style.textOverflow = 'ellipsis'
+            label.style.whiteSpace = 'nowrap'
+            label.textContent = (found && (found.title || found.id)) ? (found.title || found.id) : did
+            depItem.appendChild(label)
+
+            // Toggle: require this dependency to be matched (default) or un-matched
+            const toggle = document.createElement('button')
+            toggle.className = 'btn btn-icon'
+            toggle.style.marginLeft = '8px'
+            toggle.style.fontSize = '0.85em'
+            toggle.title = 'Toggle requirement: matched/unmatched'
+            // Determine current mode from depObj
+            const requiresMatched = depObj && typeof depObj === 'object' && depObj.hasOwnProperty('requiresMatched') ? !!depObj.requiresMatched : true
+            toggle.textContent = requiresMatched ? 'must match' : 'must not match'
+            toggle.addEventListener('click', () => {
+                const cur = getDeps()
+                const idx = cur.findIndex(d => d && typeof d === 'object' && String(d.id) === did)
+                if (idx === -1) return
+                cur[idx].requiresMatched = !cur[idx].requiresMatched
+                setDeps(cur)
+            })
+            depItem.appendChild(toggle)
+
+            const del = document.createElement('button')
+            del.className = 'btn btn-icon'
+            del.style.marginLeft = '4px'
+            del.textContent = '×'
+            del.title = 'Remove dependency'
+            del.addEventListener('click', () => {
+                const cur = getDeps()
+                const idx = cur.findIndex(d => d && typeof d === 'object' && String(d.id) === did)
+                if (idx !== -1) {
+                    cur.splice(idx, 1)
+                    setDeps(cur)
+                }
+            })
+            depItem.appendChild(del)
+            depsList.appendChild(depItem)
+        })
+    }
+
+    // Selector + add button
+    const depsControl = document.createElement('div')
+    depsControl.style.display = 'flex'
+    depsControl.style.gap = '8px'
+    depsControl.style.alignItems = 'center'
+
+    const depsSelect = document.createElement('select')
+    depsSelect.style.minWidth = '220px'
+    // populate with other items (exclude self)
+    function refreshDepsOptions() {
+        depsSelect.innerHTML = ''
+        const placeholder = document.createElement('option')
+        placeholder.value = ''
+        placeholder.textContent = '-- select feedback to depend on --'
+        depsSelect.appendChild(placeholder);
+        ; (allItems || []).forEach(it => {
+            const iid = it && it.id ? String(it.id) : ''
+            if (!iid) return
+            if (existing && existing.id && String(existing.id) === iid) return
+            const o = document.createElement('option')
+            o.value = iid
+            o.textContent = (it.title || iid)
+            depsSelect.appendChild(o)
+        })
+    }
+    refreshDepsOptions()
+
+    const depsAddBtn = document.createElement('button')
+    depsAddBtn.className = 'btn'
+    depsAddBtn.textContent = 'Add'
+    depsAddBtn.addEventListener('click', () => {
+        const v = depsSelect.value
+        if (!v) return
+        const cur = getDeps()
+        // avoid duplicate by id
+        if (!cur.find(d => d && typeof d === 'object' && String(d.id) === String(v))) {
+            cur.push({ id: String(v), requiresMatched: true })
+            setDeps(cur)
+        }
+    })
+
+    depsControl.appendChild(depsSelect)
+    depsControl.appendChild(depsAddBtn)
+    depsWrap.appendChild(depsList)
+    depsWrap.appendChild(depsControl)
+
+    // Internal state accessors for dependencies array
+    function getDeps() {
+        try {
+            const raw = existing.dependencies || []
+            return Array.isArray(raw) ? raw.slice() : []
+        } catch (_e) { return [] }
+    }
+    function setDeps(arr) {
+        existing.dependencies = Array.isArray(arr) ? arr.slice() : []
+        renderDeps(existing.dependencies)
+    }
+
+    // initialize deps
+    setDeps(existing.dependencies || [])
 
     const whenWrap = document.createElement('div')
     const whenCheckboxes = []
@@ -340,6 +478,7 @@ function buildEditorForm(existing) {
 
     root.appendChild(labeled('Title', title, 'Short title shown in the feedback list.'))
     root.appendChild(labeled('ID [optional]', idIn, 'Optional stable id. Generated automatically if left empty.'))
+    root.appendChild(labeled('Depends on', depsWrap, 'Optional: other feedback items (by ID) that must match before this one can trigger.'))
     // place the 'When' checkboxes and the visible toggle inline on one row
     const whenRow = document.createElement('div')
     whenRow.style.display = 'inline-flex'
@@ -363,7 +502,7 @@ function buildEditorForm(existing) {
     root.appendChild(exprRow)
     root.appendChild(flagsRow)
     root.appendChild(labeled('Message', message, 'Message shown to the author when the feedback triggers. Use plain text or simple markdown.'))
-    root.appendChild(labeled('Style', severity, 'The visual style for the feedback: info, warning, or error.'))
+    root.appendChild(labeled('Style', severity, 'The visual style for the feedback: success, hint, info, warning, or error.'))
 
     // Initialize field visibility based on current pattern type
     updatePatternFields()
@@ -394,8 +533,9 @@ function buildEditorForm(existing) {
                 title: title.value || '',
                 when: when.length ? when : ['run'], // Default to 'run' if none selected
                 pattern: pattern,
+                dependencies: existing.dependencies ? (Array.isArray(existing.dependencies) ? existing.dependencies.slice() : []) : undefined,
                 message: message.value || '',
-                severity: severity.value || 'success',
+                severity: severity.value || 'info',
                 visibleByDefault: !!visible.checked
             }
         }
@@ -523,7 +663,7 @@ export function initAuthorFeedback() {
 
     function openModalEdit(idx) {
         const existing = Object.assign({}, items[idx])
-        const editor = buildEditorForm(existing)
+        const editor = buildEditorForm(existing, items)
         // Create a wrapper with proper padding for the content
         const contentWrapper = document.createElement('div')
         contentWrapper.style.padding = '0 12px 12px 12px'
@@ -655,7 +795,7 @@ export function initAuthorFeedback() {
     }
 
     function openModalEditNew(newItem) {
-        const editor = buildEditorForm(newItem)
+        const editor = buildEditorForm(newItem, items)
         // Create a wrapper with proper padding for the content
         const contentWrapper = document.createElement('div')
         contentWrapper.style.padding = '0 12px 12px 12px'
@@ -794,6 +934,78 @@ export function initAuthorFeedback() {
         const a = items.slice();[a[idx + 1], a[idx]] = [a[idx], a[idx + 1]]; items = a; persist()
     }
     function deleteItem(idx) {
+        const target = items[idx]
+        if (!target) return
+        // Check whether any other item depends on this id
+        const id = target.id || ''
+        const dependents = (items || []).filter((it, i) => {
+            if (i === idx) return false
+            if (!Array.isArray(it.dependencies)) return false
+            // dependencies are stored as objects {id, requiresMatched}
+            return it.dependencies.some(d => d && typeof d === 'object' && String(d.id) === String(id))
+        })
+        if (dependents.length) {
+            // Open dependency modal to show dependents and provide actions
+            const depModal = document.getElementById('dependency-modal')
+            const listEl = document.getElementById('dependency-modal-list')
+            const msgEl = document.getElementById('dependency-modal-message')
+            if (listEl && depModal) {
+                listEl.innerHTML = ''
+                dependents.forEach(d => {
+                    const row = document.createElement('div')
+                    row.style.padding = '6px 0'
+                    const title = document.createElement('div')
+                    title.textContent = d.title || d.id || '(untitled)'
+                    row.appendChild(title)
+                    const meta = document.createElement('div')
+                    meta.style.fontSize = '0.85em'
+                    meta.style.color = '#666'
+                    meta.textContent = (d.when || []).join(', ') + ' • ' + (d.pattern ? (d.pattern.type + ':' + (d.pattern.target || '')) : '')
+                    row.appendChild(meta)
+                    listEl.appendChild(row)
+                })
+                try { msgEl.textContent = 'This feedback is a dependency for the following entries. Delete is blocked.' } catch (_e) { }
+                try { openModalHelper(depModal) } catch (_e) { depModal.setAttribute('aria-hidden', 'false'); depModal.style.display = 'flex' }
+
+                const showBtn = document.getElementById('dependency-show')
+                const cancelBtn = document.getElementById('dependency-cancel')
+                const closeBtn = document.getElementById('dependency-close')
+
+                function cleanup() {
+                    try { closeModalHelper(depModal) } catch (_e) { depModal.setAttribute('aria-hidden', 'true'); depModal.style.display = 'none' }
+                    try { showBtn.removeEventListener('click', onShow) } catch (_e) { }
+                    try { cancelBtn.removeEventListener('click', onCancel) } catch (_e) { }
+                    try { closeBtn.removeEventListener('click', onCancel) } catch (_e) { }
+                }
+
+                function onShow() {
+                    cleanup()
+                    // Focus first dependent card in the author list if available
+                    try {
+                        render() // ensure list is up-to-date
+                        const listRoot = document.getElementById('author-feedback-list')
+                        if (listRoot) {
+                            const match = Array.from(listRoot.querySelectorAll('.feedback-entry')).find(el => {
+                                const idAttr = el.getAttribute('data-id')
+                                return idAttr && dependents.find(d => String(d.id) === String(idAttr))
+                            })
+                            if (match && typeof match.scrollIntoView === 'function') match.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                        }
+                    } catch (_e) { }
+                }
+
+                function onCancel() { cleanup() }
+
+                try { showBtn.addEventListener('click', onShow) } catch (_e) { }
+                try { cancelBtn.addEventListener('click', onCancel) } catch (_e) { }
+                try { closeBtn.addEventListener('click', onCancel) } catch (_e) { }
+            } else {
+                const names = dependents.map(d => d.title || d.id || '(untitled)').join(', ')
+                const msg = 'Cannot delete: this feedback is a dependency of: ' + names
+                try { alert(msg) } catch (_e) { }
+            }
+            return
+        }
         if (!confirm('Delete feedback item "' + (items[idx] && items[idx].title) + '"?')) return
         items.splice(idx, 1); persist()
     }
@@ -821,6 +1033,20 @@ export function initAuthorFeedback() {
     // initial render and populate read-only view
     try { jsonView.textContent = JSON.stringify(items, null, 2) } catch (_e) { jsonView.textContent = '' }
     render()
+}
+
+// Expose analyzeCode on window as a compatibility shim so the
+// AST rule builder's dynamic import/fallback can reliably access
+// the analyzer in runtime environments where module paths differ.
+try {
+    if (typeof window !== 'undefined' && typeof analyzeCode === 'function') {
+        // Register with analyzer-registry for a cleaner API
+        try { registerAnalyzer(analyzeCode) } catch (_e) { /* ignore */ }
+        // Keep direct window exposure for legacy consumers
+        window.analyzeCode = analyzeCode
+    }
+} catch (_e) {
+    // ignore - best-effort exposure only
 }
 
 export { parseFeedbackFromTextarea, writeFeedbackToTextarea, getValidTargetsForWhen }

@@ -12,7 +12,9 @@
     <script src="../vendor/codemirror-mode-python.min.js"></script>
     <!-- Markdown renderer and syntax highlighting for preview (local copies) -->
     <link rel="stylesheet" href="../vendor/highlight-github.min.css">
+    <link rel="stylesheet" href="../vendor/marked-admonition-extension.css">
     <script src="../vendor/marked.min.js"></script>
+    <script src="../vendor/marked-admonition-extension.js"></script>
     <script src="../vendor/purify.min.js"></script>
     <script src="../vendor/highlight.min.js"></script>
 </head>
@@ -58,12 +60,18 @@
         <div id="tab-metadata" class="author-tab" style="margin-top:12px">
             <div class="panel">
                 <h2>Metadata</h2>
-                <label>Title<br /><input id="meta-title" style="width:100%" /></label>
-                <label>ID<br /><input id="meta-id" style="width:100%" /></label>
-                <label>Version<br /><input id="meta-version" style="width:100%" /></label>
+                <label>Title<br /><input id="meta-title" style="width:100%"
+                        placeholder="User-facing problem name" /></label>
+                <label>ID<br /><input id="meta-id" style="width:100%" placeholder="kebab-case-id" /></label>
+                <div id="meta-id-error" style="color:#d32f2f;font-size:0.9em;margin-top:6px;display:none;">ID must be
+                    1–64 characters using only letters, numbers, dot, hyphen or underscore (A-Z a-z 0-9 . - _). No
+                    spaces or special path characters.</div>
+                <label>Version<br /><input id="meta-version" style="width:100%" placeholder="1.0" /></label>
+                <div id="meta-version-error" style="color:#d32f2f;font-size:0.9em;margin-top:6px;display:none;">Version
+                    must be numeric: major, major.minor, or major.minor.patch (e.g. 1, 1.0, 1.0.2)</div>
                 <div style="margin-top:8px">
-                    <label>Description<br /><textarea id="meta-description" style="width:100%"
-                            rows="4"></textarea></label>
+                    <label>Description<br /><textarea id="meta-description" style="width:100%" rows="4"
+                            placeholder="Author-only description..."></textarea></label>
                 </div>
             </div>
         </div>

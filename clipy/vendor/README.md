@@ -5,6 +5,8 @@ Files expected/used by the project:
 - codemirror.min.js
 - codemirror-mode-python.min.js
 - marked.min.js
+ - marked-admonition-extension.js (vendored local extension for admonition blocks)
+ - marked-admonition-extension.css (styles for the admonition extension)
 - purify.min.js
 - highlight.min.js
 - highlight-github.min.css

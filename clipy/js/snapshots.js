@@ -1,5 +1,5 @@
 // Exported for use in autosave.js
-export { getSnapshotsForCurrentConfig, saveSnapshotsForCurrentConfig, debugSnapshotStorage, renderSnapshots, restoreSnapshot, clearStorage }
+export { getSnapshotsForCurrentConfig, saveSnapshotsForCurrentConfig, debugSnapshotStorage, renderSnapshots, restoreSnapshot, clearStorage, getSuccessSnapshotForCurrentConfig, saveSuccessSnapshotForCurrentConfig, clearSuccessSnapshotForCurrentConfig, getSuccessSnapshotForConfig }
 
 // Restore from the special 'current' snapshot if it exists
 export async function restoreCurrentSnapshotIfExists() {
@@ -95,6 +95,80 @@ export function setupSnapshotSystem() {
 
     // Check storage health on startup
     setTimeout(() => checkStorageHealth(), 1000)
+}
+
+// Success snapshot wrappers for current config
+async function getSuccessSnapshotForCurrentConfig() {
+    const configIdentity = getConfigIdentity()
+    try {
+        const { loadSuccessSnapshot } = await import('./unified-storage.js')
+        return await loadSuccessSnapshot(configIdentity)
+    } catch (e) {
+        logError('Failed to load success snapshot from unified storage:', e)
+        // Fallback: try in-memory cache used by this module (no-op)
+        try {
+            const arr = inMemorySnapshots[configIdentity] || []
+            // Look for special success id stored as object with id key
+            for (const s of arr) {
+                if (s && s.id === '__success__') return s
+            }
+        } catch (_e) { }
+        return null
+    }
+}
+
+async function saveSuccessSnapshotForCurrentConfig(snapshot) {
+    const configIdentity = getConfigIdentity()
+    try {
+        const { saveSuccessSnapshot } = await import('./unified-storage.js')
+        await saveSuccessSnapshot(configIdentity, snapshot)
+    } catch (e) {
+        logError('Failed to save success snapshot to unified storage:', e)
+        // Fallback: stash in in-memory snapshots under a special id
+        try {
+            inMemorySnapshots[configIdentity] = inMemorySnapshots[configIdentity] || []
+            // Remove any existing success placeholder
+            inMemorySnapshots[configIdentity] = inMemorySnapshots[configIdentity].filter(s => !(s && s.id === '__success__'))
+            inMemorySnapshots[configIdentity].push(Object.assign({ id: '__success__', ts: Date.now() }, snapshot || {}))
+        } catch (_e) { }
+    }
+    try { if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('ssg:success-saved', { detail: { config: configIdentity } })) } catch (_e) { }
+}
+
+async function clearSuccessSnapshotForCurrentConfig() {
+    const configIdentity = getConfigIdentity()
+    try {
+        const { clearSuccessSnapshot } = await import('./unified-storage.js')
+        await clearSuccessSnapshot(configIdentity)
+    } catch (e) {
+        logError('Failed to clear success snapshot from unified storage:', e)
+        try {
+            if (inMemorySnapshots[configIdentity]) {
+                inMemorySnapshots[configIdentity] = inMemorySnapshots[configIdentity].filter(s => !(s && s.id === '__success__'))
+            }
+        } catch (_e) { }
+    }
+    try { if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('ssg:success-cleared', { detail: { config: configIdentity } })) } catch (_e) { }
+}
+
+// Check success snapshot for any arbitrary config identity (string like "id@version").
+// Returns the snapshot object or null. Uses unified-storage when available and
+// falls back to this module's in-memory cache.
+async function getSuccessSnapshotForConfig(configIdentity) {
+    if (!configIdentity) return null
+    try {
+        const { loadSuccessSnapshot } = await import('./unified-storage.js')
+        return await loadSuccessSnapshot(configIdentity)
+    } catch (e) {
+        logError('Failed to load success snapshot from unified storage (config):', configIdentity, e)
+        try {
+            const arr = inMemorySnapshots[configIdentity] || []
+            for (const s of arr) {
+                if (s && s.id === '__success__') return s
+            }
+        } catch (_e) { }
+        return null
+    }
 }
 
 function getSnapshotStorageKey() {
@@ -238,17 +312,79 @@ async function saveSnapshot() {
 
 async function renderSnapshots() {
     const snapshotList = $('snapshot-list')
-    if (!snapshotList) return
 
+    // Always fetch current snapshots; even if the modal isn't open we still
+    // want to update header/footer summaries so the UI reflects cleared state.
     const snaps = await getSnapshotsForCurrentConfig()
+    // Also check for a special 'success' snapshot for this config/version
+    let successSnap = null
+    try { successSnap = await getSuccessSnapshotForCurrentConfig() } catch (_e) { successSnap = null }
+    if (!snapshotList && (!snaps || snaps.length === 0)) {
+        // If there's no modal list in DOM and no snapshots, still update
+        // header/footer below. Return early after header/footer update.
+        // The rest of the rendering logic expects snapshotList to exist.
+    }
     const configIdentity = getConfigIdentity()
 
     if (!snaps.length) {
-        snapshotList.innerHTML = `<div class="no-snapshots">No snapshots for ${configIdentity}</div>`
-        return
+        if (snapshotList) snapshotList.innerHTML = `<div class="no-snapshots">No snapshots for ${configIdentity}</div>`
+        // Continue so header/footer summaries are updated below
+    } else {
+        if (snapshotList) snapshotList.innerHTML = ''
     }
 
-    snapshotList.innerHTML = ''
+    // Clear list
+    if (snapshotList) snapshotList.innerHTML = ''
+
+    // If a success snapshot exists, render it at the top with a distinctive style
+    if (successSnap && snapshotList) {
+        try {
+            const div = document.createElement('div')
+            div.className = 'snapshot-item snapshot-success-item'
+            div.style.display = 'flex'
+            div.style.alignItems = 'center'
+            div.style.justifyContent = 'space-between'
+            div.style.padding = '6px 4px'
+
+            const mid = document.createElement('div')
+            mid.style.flex = '1'
+            mid.style.padding = '0 8px'
+            mid.style.display = 'flex'
+            mid.style.alignItems = 'center'
+            mid.style.justifyContent = 'flex-start'
+            mid.style.gap = '8px'
+            const star = document.createElement('span')
+            star.textContent = '★'
+            star.style.color = '#2e7d32'
+            star.style.fontSize = '1.2em'
+            star.style.marginRight = '6px'
+            mid.appendChild(star)
+            const txt = document.createElement('div')
+            txt.textContent = `Solved on ${new Date(successSnap.ts || Date.now()).toLocaleString()}`
+            mid.appendChild(txt)
+
+            const actions = document.createElement('div')
+            actions.style.display = 'inline-flex'
+            actions.style.gap = '8px'
+            const clearBtn = document.createElement('button')
+            clearBtn.className = 'btn btn-small btn-danger'
+            clearBtn.textContent = 'Clear success'
+            clearBtn.addEventListener('click', async () => {
+                const ok = await showConfirmModal('Clear success marker', 'Clear the solved status for this configuration?')
+                if (!ok) return
+                try {
+                    await clearSuccessSnapshotForCurrentConfig()
+                    await renderSnapshots()
+                    appendTerminal('Cleared success marker', 'runtime')
+                } catch (e) { appendTerminal('Failed to clear success marker: ' + e, 'runtime') }
+            })
+            actions.appendChild(clearBtn)
+
+            div.appendChild(mid)
+            div.appendChild(actions)
+            snapshotList.appendChild(div)
+        } catch (_e) { }
+    }
     // Helper to compute approximate byte size of snapshot
     function computeSnapshotSize(snap) {
         try {
@@ -306,13 +442,14 @@ async function renderSnapshots() {
             const ok = await showConfirmModal('Delete snapshot', 'Delete this snapshot? This action cannot be undone.')
             if (!ok) return
             try {
-                const arr = getSnapshotsForCurrentConfig()
+                // Ensure we wait for the snapshots array (getSnapshotsForCurrentConfig is async)
+                const arr = await getSnapshotsForCurrentConfig()
                 // Remove by matching timestamp (stable id may not exist)
                 const idxToRemove = arr.findIndex(x => x.ts === s.ts)
                 if (idxToRemove !== -1) {
                     arr.splice(idxToRemove, 1)
-                    saveSnapshotsForCurrentConfig(arr)
-                    renderSnapshots()
+                    await saveSnapshotsForCurrentConfig(arr)
+                    await renderSnapshots()
                     appendTerminal('Snapshot deleted', 'runtime')
                 }
             } catch (e) {
@@ -343,62 +480,6 @@ async function renderSnapshots() {
         } catch (e) {
             // Fallback for when calculations fail
             footer.textContent = `0 snapshot(s), 0 file(s), 0B total`
-        }
-    }
-
-    // Also update header summary if present
-    const hdr = document.getElementById('snapshot-storage-summary-header')
-    if (hdr) {
-        try {
-            // Compute totals across all snapshots in unified storage
-            let allGrand = 0
-            let allSnapCount = 0
-            let allFileCount = 0
-
-            try {
-                // Try unified storage first
-                const { getAllSnapshots } = await import('./unified-storage.js')
-                const allSnapshotData = await getAllSnapshots()
-
-                for (const data of allSnapshotData) {
-                    if (data.snapshots && Array.isArray(data.snapshots)) {
-                        allSnapCount += data.snapshots.length
-                        for (const s of data.snapshots) {
-                            try {
-                                const files = s.files || {}
-                                allFileCount += Object.keys(files).length
-                                for (const k of Object.keys(files)) {
-                                    try { allGrand += new TextEncoder().encode(String(files[k] || '')).length } catch (_e) { }
-                                }
-                            } catch (_e) { }
-                        }
-                    }
-                }
-            } catch (unifiedError) {
-                // Unified storage not available; scan the in-memory fallback
-                for (const key of Object.keys(inMemorySnapshots)) {
-                    try {
-                        const arr = inMemorySnapshots[key] || []
-                        if (!Array.isArray(arr) || !arr.length) continue
-                        allSnapCount += arr.length
-                        for (const s of arr) {
-                            try {
-                                const files = s.files || {}
-                                allFileCount += Object.keys(files).length
-                                for (const k of Object.keys(files)) {
-                                    try { allGrand += new TextEncoder().encode(String(files[k] || '')).length } catch (_e) { }
-                                }
-                            } catch (_e) { }
-                        }
-                    } catch (_e) { }
-                }
-            }
-
-            const totalText = allGrand < 1024 ? `${allGrand}B` : (allGrand < 1024 * 1024 ? `${Math.round(allGrand / 1024)}KB` : `${(allGrand / (1024 * 1024)).toFixed(2)}MB`)
-            hdr.textContent = `${allSnapCount} snaps • ${allFileCount} files • ${totalText}`
-        } catch (e) {
-            // Fallback for when calculations fail
-            hdr.textContent = `0 snaps • 0 files • 0B`
         }
     }
 }
@@ -676,6 +757,7 @@ async function clearStorage() {
     // Compute summary across all snapshots to show the user
     // how many snapshots and how many distinct configurations will be affected.
     let totalSnapshots = 0
+    let totalFiles = 0
     const configs = new Set()
     const keysToDelete = []
 
@@ -688,6 +770,12 @@ async function clearStorage() {
             configs.add(data.id)
             if (data.snapshots && Array.isArray(data.snapshots)) {
                 totalSnapshots += data.snapshots.length
+                for (const s of data.snapshots) {
+                    try {
+                        const files = s.files || {}
+                        totalFiles += Object.keys(files).length
+                    } catch (_e) { }
+                }
             }
         }
 
@@ -705,20 +793,15 @@ async function clearStorage() {
                     const arr = JSON.parse(localStorage.getItem(key) || '[]')
                     if (Array.isArray(arr) && arr.length) {
                         totalSnapshots += arr.length
+                        for (const s of arr) {
+                            try { totalFiles += Object.keys(s.files || {}).length } catch (_e) { }
+                        }
                         configs.add(key.replace(/^snapshots_/, ''))
                     }
                 } catch (_e) { }
             }
         } catch (_e) { }
     }
-
-    // Populate confirm modal meta area with a friendly summary
-    try {
-        const meta = document.getElementById('confirm-modal-meta')
-        if (meta) {
-            meta.textContent = `This will delete ${totalSnapshots} snapshot(s) across ${configs.size} configuration(s).`
-        }
-    } catch (_e) { }
 
     const ok = await showConfirmModal(
         'Clear all snapshots',
@@ -732,34 +815,103 @@ async function clearStorage() {
     // Store counts before clearing for accurate reporting
     const clearedSnapshots = totalSnapshots
     const clearedConfigs = configs.size
+    const clearedFiles = totalFiles
 
     try {
         let actuallyDeleted = 0
 
         // Try unified storage first
         try {
-            const { clearAllSnapshots } = await import('./unified-storage.js')
+            const { clearAllSnapshots, clearAllFiles, getAllSnapshots: _getAllSnapshots } = await import('./unified-storage.js')
+            // Measure pre-clear counts to compute how many were removed
+            let preSnapshots = []
+            try { preSnapshots = await _getAllSnapshots() || [] } catch (_e) { preSnapshots = [] }
+            const preCount = preSnapshots.reduce((acc, d) => acc + (Array.isArray(d.snapshots) ? d.snapshots.length : 0), 0)
+
+            // Clear snapshots first
             await clearAllSnapshots()
-            actuallyDeleted = totalSnapshots
+
+            // Also clear any stored VFS files (legacy ssg_vfs_db FILES store)
+            try { await clearAllFiles(); logDebug('Cleared all files from unified storage') } catch (_e) { }
+
+            // Re-check snapshots after clear to compute actual deletions
+            let postSnapshots = []
+            try { postSnapshots = await _getAllSnapshots() || [] } catch (_e) { postSnapshots = [] }
+            const postCount = postSnapshots.reduce((acc, d) => acc + (Array.isArray(d.snapshots) ? d.snapshots.length : 0), 0)
+
+            actuallyDeleted = Math.max(0, preCount - postCount)
+            // Also clear any in-memory fallback cached here so subsequent
+            // renders don't pick up stale snapshots from process memory.
+            try {
+                for (const k of Object.keys(inMemorySnapshots)) {
+                    try { delete inMemorySnapshots[k] } catch (_e) { }
+                }
+            } catch (_e) { }
+            // Also clear unified-storage's in-memory fallback if available
+            try {
+                const { clearInMemorySnapshots, clearInMemoryFiles } = await import('./unified-storage.js')
+                try { clearInMemorySnapshots() } catch (_e) { }
+                try { clearInMemoryFiles() } catch (_e) { }
+            } catch (_e) { }
+            // If nothing measured but we expect something cleared, fall back to totalSnapshots
+            try {
+                const { clearSuccessSnapshot } = await import('./unified-storage.js')
+                await clearSuccessSnapshot(getConfigIdentity())
+            } catch (_e) { }
+            if (actuallyDeleted === 0 && preCount === 0 && totalSnapshots > 0) actuallyDeleted = totalSnapshots
             logDebug('Cleared all snapshots from unified storage')
         } catch (unifiedError) {
             logDebug('Unified storage clear failed, using in-memory fallback:', unifiedError)
 
-            // Fallback to in-memory removal
+            // Fallback to in-memory removal of snapshots
             for (const key of Object.keys(inMemorySnapshots)) {
                 try {
                     actuallyDeleted += (Array.isArray(inMemorySnapshots[key]) ? inMemorySnapshots[key].length : 0)
                     delete inMemorySnapshots[key]
                 } catch (_e) { }
             }
+
+            // Also attempt to clear any in-memory FILES fallback
+            try {
+                // If unified-storage's inMemory fallback was used, it will be internal to that module.
+                // We cannot access it directly here; rely on legacy localStorage fallback below.
+            } catch (_e) { }
         }
 
-        // Report what was actually cleared (only one message)
-        if (actuallyDeleted > 0) {
-            appendTerminal(`Cleared ${clearedSnapshots} snapshot(s) across ${clearedConfigs} configuration(s)`, 'runtime')
-        } else {
-            appendTerminal('No snapshots to clear', 'runtime')
-        }
+        // Legacy localStorage fallback: remove `ssg_files_v1` if it exists and count its files
+        try {
+            if (typeof localStorage !== 'undefined') {
+                const legacy = localStorage.getItem('ssg_files_v1')
+                if (legacy) {
+                    try {
+                        const parsed = JSON.parse(legacy)
+                        if (parsed && typeof parsed === 'object') {
+                            const fileCount = Object.keys(parsed).length
+                            if (fileCount > 0) {
+                                actuallyDeleted += fileCount
+                                try { localStorage.removeItem('ssg_files_v1') } catch (_e) { }
+                            }
+                        }
+                    } catch (_e) { }
+                }
+                // Remove any legacy snapshots_* keys from localStorage too
+                try {
+                    const toRemove = []
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i)
+                        if (key && key.startsWith('snapshots_')) toRemove.push(key)
+                    }
+                    for (const k of toRemove) {
+                        try { localStorage.removeItem(k) } catch (_e) { }
+                    }
+                } catch (_e) { }
+            }
+        } catch (_e) { }
+
+        // Report that snapshot data was cleared. Use a simple, generic
+        // message instead of attempting to report exact counts which can
+        // be unreliable across storage layers and browsers.
+        appendTerminal('All snapshot data cleared', 'runtime')
 
         try { activateSideTab('terminal') } catch (_e) { }
 
@@ -770,12 +922,6 @@ async function clearStorage() {
         try {
             // Force a fresh render to update all displays
             await renderSnapshots()
-
-            // Also clear any cached storage summaries
-            const summaryHeader = document.getElementById('snapshot-storage-summary-header')
-            if (summaryHeader) {
-                summaryHeader.textContent = '0 snaps • 0 files • 0B'
-            }
 
             const summaryCurrent = document.getElementById('snapshot-storage-summary')
             if (summaryCurrent) {

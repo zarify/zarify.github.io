@@ -1,10 +1,42 @@
+## 2025-09-19
+- Enhancement: Added `function_calls` AST rule, covering things like builtin function calls
+- Feature: Added dependencies for feedback rules
+  - Other feedback rule must match
+  - Other feedback rule must not match
+- Feature: Success indicators for problem configs
+  - Snapshot history shows when problem was last solved
+  - Indicator in page header to show solve state
+  - Drop-down menu in config lists show solve state
+- Fix: The reset config button should now... reset the config
+
+## 2025-09-18
+- Enhancement: Messages are now optional for feedback items, improved styling
+- Fix: `stderr` feedback rules work now
+
+## 2025-09-17
+- Feature: Loading of a config list file so a problem sequence can be navigated through by the user.
+  - Loaded configs show their name in the title area of the page
+  - Loaded config lists show the config list name in the title area of the page
+  - Loading a config list file presents individual problems in a drop-down in the top-right of the page
+- Fix: Snapshot storage and clearing had a busted linkage between browser storage and the in-memory storage. Hopefully fixed it.
+- Fix: The Run tests button is now visibly disabled when there are no tests
+
+## 2025-09-15
+- Added validation to authoring for config ID and config version
+- Added [admonitions extension](https://github.com/xiefucai/marked-admonition-extension) for Markdown rendering
+
+## 2025-09-13
+- Fix: Loading a config now correctly stores the current config
+- Fix: Reset of the config correctly loads the current config
+
 ## 2025-09-12
 - Feature: Files can be marked as read-only in authoring
   - Read-only files throw an OSError when user code tries to modify them or delete them
   - **Note:** These are Micropython errors, so maybe not ideal for teaching full fat Python
+- Fix: File tabs are cleared when loading or reloading configs
 
 ## 2025-09-11
-- Change: Removing reliance on localStorage in favour of indexedDB (issues with dual storage mechanisms - hopefully this didn't break things)
+- Change: Removing reliance on localStorage in favour of indexedDB (issues with dual storage mechanisms - hopefully this didn't break things - Future me: hahaha it broke things!)
 - Fix: Tab focus on loading to ensure `main.py` is selected.
 - Fix: Files not get created from a default config correctly
 - Fix: Tabs not getting deleted correctly when closed

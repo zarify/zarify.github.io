@@ -8,15 +8,18 @@
   <link rel="stylesheet" href="./style.css">
   <!-- Vendored third-party libs (local copies). See src/vendor/README.md for how to download them. -->
   <link rel="stylesheet" href="./vendor/codemirror.min.css">
+  <link rel="stylesheet" href="./codemirror-overrides.css">
+  <link rel="stylesheet" href="./vendor/marked-admonition-extension.css">
   <script src="./vendor/codemirror.min.js"></script>
   <script src="./vendor/codemirror-mode-python.min.js"></script>
   <!-- Highlight.js styles for code blocks rendered from Markdown -->
   <link rel="stylesheet" href="./vendor/highlight-github.min.css">
+  <script src="./vendor/marked-admonition-extension.js"></script>
 </head>
 
 <body>
   <header>
-    <h1>Client-side Python Playground</h1>
+    <h1 id="app-title">Client-side Python Playground</h1>
     <div class="config-info">
       <div class="config-stack">
         <span class="config-title-line">Loading...</span>
@@ -131,12 +134,6 @@
       <div class="modal-header" style="display:flex;align-items:center;gap:12px">
         <div style="display:flex;align-items:center;gap:8px">
           <h3 id="snapshot-modal-title">Snapshots</h3>
-          (<div id="snapshot-storage-summary-header" style="font-size:0.95rem;color:#444">0 snaps • 0 files • 0B</div>)
-          <span class="info-icon" role="img" aria-label="Info about storage counts" tabindex="0"
-            style="margin-left:2px">
-            i
-            <div class="info-tooltip">(storage across all configurations)</div>
-          </span>
         </div>
         <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
           <!-- Keep id clear-storage for existing tests; style as a normal button and place to the right -->
@@ -174,6 +171,26 @@
         <div class="modal-actions">
           <button id="confirm-yes" class="btn btn-danger">Confirm</button>
           <button id="confirm-no" class="btn">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dependency deletion block modal: lists dependent feedback items and offers actions -->
+  <div id="dependency-modal" class="modal" role="dialog" aria-hidden="true" aria-labelledby="dependency-modal-title">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="dependency-modal-title">Cannot delete feedback</h3>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+          <button id="dependency-close" class="btn modal-close-btn">Close</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div id="dependency-modal-message">This feedback item is required by other feedback entries.</div>
+        <div id="dependency-modal-list" style="margin-top:8px"></div>
+        <div style="margin-top:12px" class="modal-actions">
+          <button id="dependency-show" class="btn">Show dependents</button>
+          <button id="dependency-cancel" class="btn">Cancel</button>
         </div>
       </div>
     </div>
@@ -242,6 +259,7 @@
   <script src="./vendor/purify.min.js"></script>
   <script src="./vendor/highlight.min.js"></script>
   <script data-goatcounter="https://headtilt_me.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
   <script type="module" src="./app.js"></script>
 </body>
 

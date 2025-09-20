@@ -442,39 +442,47 @@ function renderList() {
             // severity (success | hint | info | warning) - default to success
             const sev = (entry.severity || 'success').toLowerCase()
             wrapper.classList.add('severity-' + sev)
+            // mark wrapper as matched when a match exists so CSS can apply accents
+            if (matched) wrapper.classList.add('matched')
 
-            // title row (icon moved to the message block below)
+            // title row: title on the left, optional compact indicator on the right
             const titleRow = document.createElement('div')
             titleRow.className = 'feedback-title-row'
-
 
             const titleEl = document.createElement('div')
             titleEl.className = 'feedback-title'
             titleEl.textContent = title
             titleRow.appendChild(titleEl)
 
+            // If matched, always show a compact right-aligned indicator in the title row
+            let indicatorEl = null
+            if (matched) {
+                indicatorEl = document.createElement('div')
+                indicatorEl.className = 'feedback-match-indicator matched-' + sev
+                // Plain unicode glyphs (non-emoji) — use requested symbols
+                if (sev === 'hint') indicatorEl.textContent = '\u270E' // pencil
+                else if (sev === 'info') indicatorEl.textContent = 'i'
+                else if (sev === 'warning') indicatorEl.textContent = '!'
+                else if (sev === 'error') indicatorEl.textContent = '×'
+                else /* success and fallback */ indicatorEl.textContent = '✓'
+                // Accessibility: label and title describe the matched severity
+                try { indicatorEl.setAttribute('role', 'img') } catch (_e) { }
+                try { indicatorEl.setAttribute('title', 'Matched: ' + sev) } catch (_e) { }
+                try { indicatorEl.setAttribute('aria-label', 'Matched: ' + sev) } catch (_e) { }
+                // ensure it's positioned to the right within the title row
+                titleRow.appendChild(indicatorEl)
+            }
+
             wrapper.appendChild(titleRow)
 
-            // If matched, show the message under the title
+            // If matched and a message exists, keep the existing behavior of showing the message under the title
             if (matched && matched.message) {
+                // Show the matched message beneath the title but keep the indicator
+                // in the title row (no inline icon). Make the message visually
+                // a subtle child of the title rather than a boxed panel.
                 const msg = document.createElement('div')
                 msg.className = 'feedback-msg feedback-msg-matched matched-' + sev
-                // set the message text first, then insert the severity icon before it
                 msg.textContent = matched.message
-                const iconMsg = document.createElement('span')
-                iconMsg.className = 'feedback-icon'
-                if (sev === 'hint') {
-                    iconMsg.textContent = '💡'
-                } else if (sev === 'warning') {
-                    iconMsg.textContent = '⚠️'
-                } else if (sev === 'info') {
-                    iconMsg.textContent = 'ℹ️'
-                } else if (sev === 'success') {
-                    iconMsg.textContent = '😊'
-                } else {
-                    iconMsg.textContent = '•'
-                }
-                try { msg.insertBefore(iconMsg, msg.firstChild) } catch (_e) { }
                 wrapper.appendChild(msg)
             } else if (entry.visibleByDefault) {
                 // Show an empty placeholder or hint for visible-by-default entries
@@ -628,6 +636,58 @@ export function setFeedbackMatches(matches) {
     } catch (_e) { }
 
     _matches = newMatches
+
+    // Enforce dependencies: support both legacy string ids and the new
+    // object shape { id, requiresMatched } where requiresMatched === false
+    // indicates the dependency requires the other rule NOT to be matched.
+    try {
+        const presentIds = new Set()
+        for (const m of _matches) {
+            try { if (m && m.id != null) presentIds.add(String(m.id)) } catch (_e) { }
+        }
+
+        // Build a map of config entries by id for dependency lookup
+        const cfgMap = new Map()
+        try {
+            if (_config && Array.isArray(_config.feedback)) {
+                for (const e of _config.feedback) {
+                    if (e && e.id != null) cfgMap.set(String(e.id), e)
+                }
+            }
+        } catch (_e) { }
+
+        // Filter matches to only those that satisfy dependency predicates
+        const filtered = []
+        for (const m of _matches) {
+            if (!m || m.id == null) continue
+            const id = String(m.id)
+            const cfg = cfgMap.get(id)
+            if (!cfg || !cfg.dependencies) {
+                filtered.push(m)
+                continue
+            }
+
+            const depsRaw = Array.isArray(cfg.dependencies) ? cfg.dependencies : []
+            let ok = true
+            for (const dep of depsRaw) {
+                // Expect dependencies to be objects: { id, requiresMatched }
+                if (!dep || typeof dep !== 'object') continue
+                const depId = dep.id || null
+                const requiresMatched = (dep.requiresMatched === undefined) ? true : !!dep.requiresMatched
+                if (!depId) continue
+                if (requiresMatched) {
+                    if (!presentIds.has(String(depId))) { ok = false; break }
+                } else {
+                    if (presentIds.has(String(depId))) { ok = false; break }
+                }
+            }
+            if (ok) filtered.push(m)
+        }
+
+        // replace _matches with filtered effective matches for UI rendering
+        _matches = filtered
+    } catch (_e) { }
+
     renderList()
     try {
         const fbBtn = document.getElementById('tab-btn-feedback')

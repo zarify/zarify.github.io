@@ -52,6 +52,7 @@ export class ASTAnalyzer {
         const [type, target] = expression.split(':');
         switch (type) {
             case 'variable_usage': return this.analyzeVariables(ast, target);
+            case 'function_calls': return this.analyzeFunctionCalls(ast, target);
             case 'function_exists': return this.checkFunctionExists(ast, target);
             case 'control_flow': return this.analyzeControlFlow(ast, target);
             case 'function_count': return this.countFunctions(ast);
@@ -484,6 +485,104 @@ export class ASTAnalyzer {
         }
 
         return count > 0 ? { count, functions } : null;
+    }
+
+    /**
+     * Analyze function calls in the AST.
+     * If target is provided (e.g. 'print' or a function name), return details for that function.
+     * If no target, return an array of all called functions with counts and line numbers.
+     */
+    analyzeFunctionCalls(ast, target) {
+        const callsByName = new Map();
+        const definitionsByName = new Map();
+
+        // collect function definitions to know if a function is user-defined
+        const collectDefs = (node) => {
+            if (!node) return;
+            if (node.nodeType === 'FunctionDef') {
+                const name = node.name;
+                const params = (node.args && node.args.args) ? node.args.args.length : 0;
+                const lineno = node.lineno;
+                definitionsByName.set(name, { name, lineno, parameters: params });
+            }
+            for (const k of Object.keys(node || {})) {
+                const c = node[k];
+                if (!c) continue;
+                if (Array.isArray(c)) c.forEach(collectDefs);
+                else if (typeof c === 'object') collectDefs(c);
+            }
+        };
+
+        if (ast && Array.isArray(ast.body)) ast.body.forEach(collectDefs);
+
+        // traverse to find Call nodes
+        const traverse = (node) => {
+            if (!node) return;
+            if (node.nodeType === 'Call') {
+                let calledName = null;
+                if (node.func) {
+                    if (node.func.nodeType === 'Name') calledName = node.func.id;
+                    else if (node.func.nodeType === 'Attribute') calledName = this.extractQualifiedName(node.func);
+                }
+                const lineno = node.lineno || null;
+                const key = calledName || '<unknown>';
+                if (!callsByName.has(key)) callsByName.set(key, { name: key, count: 0, lines: new Set(), callSites: [] });
+                const entry = callsByName.get(key);
+                entry.count++;
+                if (lineno) entry.lines.add(lineno);
+                entry.callSites.push({ lineno, args: (node.args || []).length });
+            }
+
+            for (const k of Object.keys(node || {})) {
+                const c = node[k];
+                if (!c) continue;
+                if (Array.isArray(c)) c.forEach(traverse);
+                else if (typeof c === 'object') traverse(c);
+            }
+        };
+
+        if (ast && Array.isArray(ast.body)) ast.body.forEach(traverse);
+
+        // normalize to arrays and add definition info
+        const resultList = [];
+        for (const [name, v] of callsByName.entries()) {
+            const lines = Array.from(v.lines).sort((a, b) => a - b);
+            const def = definitionsByName.get(name) || null;
+            const isBuiltin = !!name && !def;
+            resultList.push({
+                name: name === '<unknown>' ? null : name,
+                count: v.count,
+                lines,
+                callSites: v.callSites,
+                defined: def,
+                isBuiltin
+            });
+        }
+
+        // If specific target requested, find and return detailed object
+        if (target && target !== '*') {
+            const found = resultList.find(r => r.name === target) || null;
+            if (!found) {
+                // If not found among calls but defined as function, return definition info with zero calls
+                const def = definitionsByName.get(target);
+                if (def) return { name: target, defined: def, count: 0, lines: [], callSites: [] };
+                return null;
+            }
+            // enhance: include whether any calls occur within try blocks
+            // simple heuristic: reuse analyzeExceptionHandling to check tryBlocks and whether call names appear inside
+            const tryInfo = this.analyzeExceptionHandling(ast, '*');
+            const withinTry = (tryInfo && tryInfo.tryBlocks) ? tryInfo.tryBlocks.some(tb => tb.calls && tb.calls.some(c => c.name === target)) : false;
+            return Object.assign({}, found, { withinTry });
+        }
+
+        // sort resultList by name
+        resultList.sort((a, b) => {
+            if ((a.name || '') < (b.name || '')) return -1;
+            if ((a.name || '') > (b.name || '')) return 1;
+            return b.count - a.count;
+        });
+
+        return resultList.length > 0 ? { functions: resultList, count: resultList.length } : null;
     }
 
     /**

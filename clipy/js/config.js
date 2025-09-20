@@ -1,5 +1,6 @@
 // Configuration loading and management
 import { $, renderMarkdown } from './utils.js'
+import { clearTerminal } from './terminal.js'
 import { debug as logDebug, info as logInfo, warn as logWarn, error as logError } from './logger.js'
 import { isTestEnvironment } from './unified-storage.js'
 
@@ -23,9 +24,13 @@ export function createConfigManager(opts = {}) {
         try {
             const res = await fetchFn(configIndexUrl)
             if (!res.ok) throw new Error('Not found')
-            const list = await res.json()
-            if (!Array.isArray(list)) return []
-            return list
+            const body = await res.json()
+            // New format: expect an object { listName?: string, files: [...] }
+            if (body && typeof body === 'object' && Array.isArray(body.files)) {
+                try { if (typeof window !== 'undefined') window.__ssg_remote_config_list = window.__ssg_remote_config_list || { url: configIndexUrl, items: body.files, listName: body.listName || null } } catch (_e) { }
+                return body.files
+            }
+            return []
         } catch (e) {
             try {
                 const res = await fetchFn('./config/sample.json')
@@ -40,7 +45,15 @@ export function createConfigManager(opts = {}) {
         const trimmed = String(input).trim()
         let urlToLoad = trimmed
         try {
+            // If the input looks like an absolute or network URL, use it as-is.
             if (!/^https?:\/\//i.test(trimmed)) {
+                // For non-URL inputs, only accept plain filenames (no path
+                // separators or directory traversal). This prevents unintended
+                // access outside the `config/` directory and makes the
+                // parameter user-friendly (e.g. `?config=printing-press.json`).
+                if (/[\\/]/.test(trimmed) || trimmed.includes('..') || trimmed.startsWith('.')) {
+                    throw new Error('Invalid config name; provide a filename (no path) or a full URL')
+                }
                 urlToLoad = './config/' + encodeURIComponent(trimmed)
             }
             const res = await fetchFn(urlToLoad)
@@ -54,6 +67,8 @@ export function createConfigManager(opts = {}) {
             const normalized = validateAndNormalizeConfigInternal(raw)
             config = normalized
             try { if (typeof window !== 'undefined') window.Config = window.Config || {}; window.Config.current = config } catch (_e) { }
+            try { await saveCurrentConfig(config) } catch (_e) { }
+            try { if (typeof clearTerminal === 'function') clearTerminal() } catch (_e) { }
             return normalized
         } catch (e) {
             if (e instanceof TypeError && /failed to fetch/i.test(String(e.message))) {
@@ -70,6 +85,8 @@ export function createConfigManager(opts = {}) {
         const normalized = validateAndNormalizeConfigInternal(raw)
         config = normalized
         try { if (typeof window !== 'undefined') window.Config = window.Config || {}; window.Config.current = config } catch (_e) { }
+        try { await saveCurrentConfig(config) } catch (_e) { }
+        try { if (typeof clearTerminal === 'function') clearTerminal() } catch (_e) { }
         return normalized
     }
 
@@ -88,7 +105,8 @@ export function createConfigManager(opts = {}) {
 
             config = validateAndNormalizeConfigInternal(rawConfig)
             logInfo('loadConfig: validated config:', config.id, config.version)
-
+            try { await saveCurrentConfig(config) } catch (_e) { }
+            try { if (typeof clearTerminal === 'function') clearTerminal() } catch (_e) { }
             return config
         } catch (e) {
             logError('Failed to load configuration from', configUrl, ':', e)
@@ -100,11 +118,22 @@ export function createConfigManager(opts = {}) {
 
     async function resetToLoadedConfig() {
         config = null
-        const cfg = await loadConfig()
+        // Prefer the saved "current_config" from unified storage so Reset
+        // returns to whatever config the user most recently loaded. Fall back
+        // to fetching the app default via loadConfig() if none exists.
+        let cfg = null
+        try {
+            cfg = await loadCurrentConfig()
+        } catch (_e) { cfg = null }
+        if (!cfg) {
+            cfg = await loadConfig()
+        }
         try {
             initializeInstructions(cfg)
         } catch (_e) { }
         try { if (typeof window !== 'undefined') window.Config = window.Config || {}; window.Config.current = cfg } catch (_e) { }
+        try { await saveCurrentConfig(cfg) } catch (_e) { }
+        try { if (typeof clearTerminal === 'function') clearTerminal() } catch (_e) { }
         return cfg
     }
 
@@ -332,18 +361,17 @@ export function initializeInstructions(cfg) {
     const configTitleLine = document.querySelector('.config-title-line')
     const configTitle = $('#config-title')
     const configVersion = $('#config-version')
+    const appTitle = document.getElementById('app-title')
 
     // Set the main display line for tests
     if (configTitleLine) {
         const identity = getConfigIdentity()
         const title = cfg?.title || 'Python Playground'
-        configTitleLine.textContent = `${title} (${identity})`
-        // Make the header config display discoverable and interactive
-        try {
-            configTitleLine.setAttribute('role', 'button')
-            configTitleLine.setAttribute('tabindex', '0')
-            configTitleLine.setAttribute('title', 'Click to open configuration')
-        } catch (_e) { }
+        // If a remote config list was loaded, prefer showing its listName
+        const listName = (typeof window !== 'undefined' && window.__ssg_remote_config_list && window.__ssg_remote_config_list.listName) ? window.__ssg_remote_config_list.listName : null
+        const mainTitle = listName || title
+        configTitleLine.textContent = `${mainTitle} (${identity})`
+        // Note: header interactivity (dropdown/author button) is handled by app.js
     }
 
     // Also set individual components for backwards compatibility
@@ -360,6 +388,16 @@ export function initializeInstructions(cfg) {
         if (cfg?.title) {
             document.title = cfg.title
         }
+        // If we have a remote list name, reflect it in the document title and the page H1 as well
+        try {
+            if (typeof window !== 'undefined' && window.__ssg_remote_config_list && window.__ssg_remote_config_list.listName) {
+                const ln = window.__ssg_remote_config_list.listName
+                if (ln) document.title = ln
+                try { if (appTitle) appTitle.textContent = ln } catch (_e) { }
+            } else {
+                try { if (appTitle) appTitle.textContent = cfg?.title || document.title || 'Client-side Python Playground' } catch (_e) { }
+            }
+        } catch (_e) { }
     } catch (_e) { }
 }
 

@@ -65,6 +65,28 @@ export function renderMarkdown(md) {
     // Prefer marked + DOMPurify when available on window (loaded via CDN in index.html).
     try {
         if (typeof window !== 'undefined' && window.marked && window.DOMPurify) {
+            // If a vendored admonition extension is present, register it with marked.
+            try {
+                if (window.markedAdmonitionExtension && typeof window.marked.use === 'function') {
+                    try {
+                        // Avoid registering the extension multiple times (some pages
+                        // auto-register on script load; we register here as a fallback).
+                        if (!window.__marked_admonition_registered) {
+                            const _ext = window.markedAdmonitionExtension()
+                            if (_ext && Array.isArray(_ext.extensions)) {
+                                // register the individual extension entries
+                                window.marked.use(..._ext.extensions)
+                            } else {
+                                window.marked.use(_ext)
+                            }
+                            window.__marked_admonition_registered = true
+                        }
+                    } catch (_e) {
+                        // ignore registration errors
+                    }
+                }
+            } catch (_e) { /* ignore */ }
+
             // If highlight.js is present, configure marked to use it for code blocks.
             try {
                 if (window.hljs && window.marked && typeof window.marked.setOptions === 'function') {

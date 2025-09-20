@@ -405,6 +405,11 @@ export function initializeTabManager(codeMirror, textareaElement) {
     let tabSaveTimer = null
     function scheduleTabSave() {
         if (!active) return
+        try {
+            // If autosave suppression is enabled (for programmatic workspace
+            // operations like reset/apply-config) skip scheduling a save.
+            if (typeof window !== 'undefined' && window.__ssg_suppress_autosave) return
+        } catch (_e) { }
         if (tabSaveTimer) clearTimeout(tabSaveTimer)
         tabSaveTimer = setTimeout(() => {
             const content = cm ? cm.getValue() : (textarea ? textarea.value : '')

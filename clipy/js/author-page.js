@@ -27,6 +27,50 @@ function debounceSave() {
     autosaveTimer = setTimeout(() => saveToLocalStorage(), AUTOSAVE_DELAY)
 }
 
+// Semantic numeric version validation: accepts 1, 1.2, or 1.2.3 where each
+// segment is a non-negative integer (no leading plus/minus). Returns boolean.
+function isValidMetaVersion(v) {
+    if (typeof v !== 'string') return false
+    const s = v.trim()
+    if (!s) return false
+    // Accepts major, major.minor, major.minor.patch
+    const re = /^\d+(?:\.\d+){0,2}$/
+    return re.test(s)
+}
+
+function showMetaVersionError(show, message) {
+    const el = $('meta-version-error')
+    if (!el) return
+    if (show) {
+        el.style.display = 'block'
+        el.textContent = message || 'Version must be numeric: major, major.minor, or major.minor.patch (e.g. 1, 1.0, 1.0.2)'
+    } else {
+        el.style.display = 'none'
+    }
+}
+
+// ID validation: no whitespace allowed. Returns boolean.
+function isValidMetaId(id) {
+    if (typeof id !== 'string') return false
+    const s = id.trim()
+    if (!s) return false
+    // Allow A-Z a-z 0-9 . - _ and restrict length to 1..64 characters
+    // This avoids problematic filename characters like / \ @ spaces and more
+    const re = /^[A-Za-z0-9._-]{1,64}$/
+    return re.test(s)
+}
+
+function showMetaIdError(show, message) {
+    const el = $('meta-id-error')
+    if (!el) return
+    if (show) {
+        el.style.display = 'block'
+        el.textContent = message || 'ID must be 1–64 characters using only letters, numbers, dot, hyphen or underscore (A-Z a-z 0-9 . - _). No spaces or special path characters.'
+    } else {
+        el.style.display = 'none'
+    }
+}
+
 function loadEditor() {
     const ta = $('file-editor')
     try {
@@ -40,7 +84,9 @@ function loadEditor() {
             },
             indentUnit: 4,
             smartIndent: true,
-            scrollbarStyle: 'native'
+            scrollbarStyle: 'native',
+            // Wrap long lines so the editor doesn't expand horizontally
+            lineWrapping: true
         })
         // store CM instance for tests to access if needed
         try { window.__author_code_mirror = editor } catch (_e) { }
@@ -275,6 +321,10 @@ async function restoreFromLocalStorage() {
         $('meta-title').value = raw.title || ''
         $('meta-id').value = raw.id || ''
         $('meta-version').value = raw.version || ''
+        // Validate version UI after restore
+        try { const ok = isValidMetaVersion(String($('meta-version').value || '')); showMetaVersionError(!ok) } catch (_e) { }
+        // Validate ID UI after restore
+        try { const okId = isValidMetaId(String($('meta-id').value || '')); showMetaIdError(!okId) } catch (_e) { }
         if ($('meta-description')) $('meta-description').value = raw.description || ''
         if ($('instructions-editor')) $('instructions-editor').value = raw.instructions || ''
         if ($('feedback-editor')) {
@@ -426,8 +476,21 @@ function setupHandlers() {
 
     // Metadata & editors
     $('meta-title').addEventListener('input', () => { debounceSave(); updateVerificationCodesDebounced(); })
-    $('meta-id').addEventListener('input', () => { debounceSave(); updateVerificationCodesDebounced(); })
-    $('meta-version').addEventListener('input', () => { debounceSave(); updateVerificationCodesDebounced(); })
+    $('meta-id').addEventListener('input', () => {
+        const v = $('meta-id').value || ''
+        const ok = isValidMetaId(v)
+        if (!ok) showMetaIdError(true)
+        else showMetaIdError(false)
+        debounceSave(); updateVerificationCodesDebounced();
+    })
+    // Validate meta-version on the fly and show helpful UI
+    $('meta-version').addEventListener('input', () => {
+        const v = $('meta-version').value || ''
+        const ok = isValidMetaVersion(v)
+        if (!ok) showMetaVersionError(true)
+        else showMetaVersionError(false)
+        debounceSave(); updateVerificationCodesDebounced();
+    })
     if ($('meta-description')) $('meta-description').addEventListener('input', debounceSave)
     if ($('instructions-editor')) {
         $('instructions-editor').addEventListener('input', () => { debounceSave(); try { updateInstructionsPreview() } catch (_e) { } })
@@ -477,11 +540,11 @@ function setupHandlers() {
             // Set flag for return detection
             sessionStorage.setItem('returningFromAuthor', 'true')
             // Navigate back to main app
-            window.location.href = '../index.html'
+            window.location.href = '../index.html?author'
         } catch (e) {
             logError('Failed to navigate back to app:', e)
             // Fallback navigation
-            window.location.href = '../index.html'
+            window.location.href = '../index.html?author'
         }
     })
 
@@ -504,6 +567,8 @@ function setupHandlers() {
         $('meta-title').value = ''
         $('meta-id').value = ''
         $('meta-version').value = ''
+        // Hide validation UI when resetting fields
+        try { showMetaIdError(false); showMetaVersionError(false) } catch (_e) { }
         if ($('meta-description')) $('meta-description').value = ''
         if ($('instructions-editor')) $('instructions-editor').value = ''
         if ($('feedback-editor')) { $('feedback-editor').value = ''; $('feedback-editor').dispatchEvent(new Event('input', { bubbles: true })) }
@@ -514,6 +579,16 @@ function setupHandlers() {
     $('export-btn').addEventListener('click', () => {
         try {
             const cfg = buildCurrentConfig()
+            // Validate version before exporting
+            if (!isValidMetaVersion(String(cfg.version || ''))) {
+                alert('Cannot export: invalid version. Version must be numeric (e.g. 1, 1.0, 1.2.3).')
+                return
+            }
+            // Validate ID before exporting
+            if (!isValidMetaId(String(cfg.id || ''))) {
+                alert('Cannot export: invalid ID. Use 1–64 characters: letters, numbers, dot, hyphen or underscore.')
+                return
+            }
             // ensure feedback/tests parsed into structured arrays when possible
             try {
                 if (typeof cfg.feedback === 'string' && cfg.feedback.trim()) {
@@ -535,8 +610,12 @@ function setupHandlers() {
             const a = document.createElement('a')
             a.href = url
             // include id and version in filename: "config_id@version.json"
-            const idPart = String(cfg.id || 'config').replace(/[\/\\@\s]+/g, '_')
-            const verPart = String(cfg.version || 'v0').replace(/[\/\\@\s]+/g, '_')
+            // Create safe filename parts: replace any characters not in the
+            // allowed set with underscores and trim to reasonable length.
+            const safeId = String(cfg.id || 'config')
+            const idPart = safeId.replace(/[^A-Za-z0-9._-]+/g, '_').slice(0, 64)
+            const safeVer = String(cfg.version || 'v0')
+            const verPart = safeVer.replace(/[^A-Za-z0-9._-]+/g, '_').slice(0, 64)
             a.download = `${idPart}@${verPart}.json`
             document.body.appendChild(a)
             a.click()
@@ -602,6 +681,17 @@ function setupHandlers() {
     // Draft functionality using imported storage functions
     $('save-draft').addEventListener('click', async () => {
         try {
+            // Validate version before saving a draft
+            const cfg = buildCurrentConfig()
+            if (!isValidMetaVersion(String(cfg.version || ''))) {
+                alert('Cannot save draft: invalid version. Version must be numeric (e.g. 1, 1.0, 1.2.3).')
+                return
+            }
+            // Validate ID before saving a draft
+            if (!isValidMetaId(String(cfg.id || ''))) {
+                alert('Cannot save draft: invalid ID. Use 1–64 characters: letters, numbers, dot, hyphen or underscore.')
+                return
+            }
             await saveCurrentDraft()
         } catch (e) {
             alert('Failed to save draft: ' + (e && e.message ? e.message : e))
@@ -787,6 +877,10 @@ async function applyImportedConfig(obj) {
     $('meta-title').value = obj.title || obj.name || ''
     $('meta-id').value = obj.id || ''
     $('meta-version').value = obj.version || ''
+    // Validate version UI after import
+    try { const ok = isValidMetaVersion(String($('meta-version').value || '')); showMetaVersionError(!ok) } catch (_e) { }
+    // Validate ID UI after import
+    try { const okId = isValidMetaId(String($('meta-id').value || '')); showMetaIdError(!okId) } catch (_e) { }
     if ($('meta-description')) $('meta-description').value = obj.description || ''
     if ($('instructions-editor')) $('instructions-editor').value = obj.instructions || obj.description || ''
 

@@ -35,6 +35,8 @@ export function initializeEditor() {
             },
             indentUnit: 4,
             smartIndent: false,
+            // Wrap long lines instead of allowing horizontal scrolling/expansion
+            lineWrapping: true,
             scrollbarStyle: 'native',
             theme: 'default'
         })
@@ -114,6 +116,12 @@ export function initializeEditor() {
         let _fbTimer = null
         function scheduleFeedbackEvaluation(delay = 300) {
             try {
+                // If the editor change was caused by a programmatic tab switch
+                // (selectTab -> setValue) we set a suppression flag so we can
+                // avoid treating that programmatic update as a user edit.
+                // When suppressed, skip scheduling feedback evaluation which
+                // would otherwise clear run-time matches immediately after a run.
+                try { if (typeof window !== 'undefined' && window.__ssg_suppress_clear_highlights) return } catch (_e) { }
                 if (_fbTimer) clearTimeout(_fbTimer)
                 _fbTimer = setTimeout(() => {
                     try {

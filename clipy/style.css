@@ -100,12 +100,68 @@ header {
         text-decoration: underline dashed rgba(11, 92, 255, 0.18);
     }
 
+    /* Header Author button placed left of the title when authoring enabled */
+    #header-author-btn {
+        font-size: 0.9em;
+        padding: 4px 8px;
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        color: var(--text);
+        cursor: pointer;
+        display: none;
+        /* hidden by default; JS will show when authoring is enabled */
+    }
+
+    /* Compact select for configuration switching in the header */
+    .config-select-header {
+        font-size: 0.95em;
+        padding: 6px 8px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: #fff;
+        color: var(--text);
+        max-width: 100%;
+    }
+
+    /* Success indicators */
+    .success-indicator {
+        color: #2e7d32;
+        font-weight: 700;
+        margin-left: 6px;
+    }
+
+    .snapshot-success-item {
+        background: linear-gradient(90deg, rgba(46, 125, 50, 0.04), rgba(46, 125, 50, 0.02));
+        border-left: 4px solid #2e7d32;
+    }
+
     .author-tab .CodeMirror {
         width: 100%;
         background: var(--editor-bg);
         color: var(--text);
         border: 1px solid var(--border);
         border-radius: 6px;
+    }
+
+    /* Ensure CodeMirror wrapping doesn't push the page horizontally */
+    .CodeMirror,
+    .cm-editor .CodeMirror {
+        max-width: 100%;
+        box-sizing: border-box;
+        /* Allow the editor to scroll vertically but not expand horizontally */
+        overflow-x: hidden;
+    }
+
+    /* When CodeMirror is configured with lineWrapping, ensure pre elements wrap */
+    .CodeMirror-wrap pre,
+    .CodeMirror pre.CodeMirror-line {
+        white-space: pre-wrap !important;
+        white-space: -moz-pre-wrap !important;
+        white-space: -pre-wrap !important;
+        white-space: -o-pre-wrap !important;
+        word-wrap: break-word !important;
+        overflow-wrap: anywhere !important;
     }
 
 
@@ -373,6 +429,27 @@ textarea#code {
     color: #111;
     cursor: pointer;
     font-size: 0.93rem
+}
+
+/* Disabled button styling: make it clearly non-interactive and visually muted.
+   Apply generally and add a slightly stronger rule for the run-tests control so
+   it's obvious when there are no tests. */
+.btn[disabled],
+.btn.disabled {
+    opacity: 0.6;
+    cursor: default;
+    pointer-events: none;
+    color: var(--text-disabled);
+    background: #f7f8fb;
+    border-color: #eef0f6;
+}
+
+/* Special visual tweak for the Run tests button when disabled: slightly
+   adjust spacing and reduce icon prominence so it reads as inactive. */
+#run-tests-btn[disabled] {
+    opacity: 0.55;
+    background: #fbfdff;
+    border-color: #f1f3f7;
 }
 
 .btn .icon {
@@ -720,11 +797,19 @@ pre#terminal-output {
 }
 
 .feedback-msg-matched {
-    color: #0b5cff;
-    background: rgba(11, 92, 255, 0.04);
-    border-left: 3px solid rgba(11, 92, 255, 0.12);
-    padding: 6px 8px;
-    border-radius: 4px;
+    /* Make matched messages visually appear as a subtle child of the title
+       rather than a boxed callout. Use a slightly smaller, muted color and
+       a small indent so the message reads as part of the title block. */
+    color: rgba(11, 92, 255, 0.92);
+    background: transparent;
+    border-left: none;
+    padding: 0 0 0 6px;
+    /* small indent from the title */
+    margin-top: 2px;
+    font-size: 0.9rem;
+    /* slightly smaller than the title */
+    font-weight: 400;
+    line-height: 1.3;
 }
 
 .feedback-msg-hidden {
@@ -745,6 +830,8 @@ pre#terminal-output {
     display: flex;
     align-items: center;
     gap: 8px;
+    /* Ensure title takes remaining space so indicator can align right */
+    justify-content: space-between;
 }
 
 /* Tiny info icon with hover tooltip used in authoring modal labels */
@@ -804,6 +891,97 @@ pre#terminal-output {
     font-size: 16px;
 }
 
+/* Compact right-aligned indicator shown when a feedback match exists but
+   no expanded message is provided. Sized to not disturb layout. */
+.feedback-match-indicator {
+    flex: 0 0 auto;
+    min-width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    font-size: 13px;
+    line-height: 1;
+    margin-left: 8px;
+    color: var(--text);
+    background: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Severity-specific indicator colors */
+.matched-hint .feedback-match-indicator,
+.matched-hint.feedback-entry .feedback-match-indicator,
+.severity-hint .feedback-match-indicator {
+    background: #b08900;
+    /* amber-ish */
+}
+
+.matched-hint .feedback-match-indicator,
+.matched-hint.feedback-entry .feedback-match-indicator,
+.severity-hint .feedback-match-indicator {
+    border-color: rgba(170, 140, 60, 0.25);
+    background: rgba(250, 245, 230, 0.7);
+    /* cream */
+}
+
+.matched-info .feedback-match-indicator,
+.matched-info.feedback-entry .feedback-match-indicator,
+.severity-info .feedback-match-indicator {
+    border-color: rgba(200, 160, 0, 0.2);
+    background: rgba(255, 249, 224, 0.85);
+    /* very pale blue */
+}
+
+.matched-warning .feedback-match-indicator,
+.matched-warning.feedback-entry .feedback-match-indicator,
+.severity-warning .feedback-match-indicator {
+    border-color: rgba(200, 60, 60, 0.18);
+    background: rgba(255, 240, 240, 0.9);
+    /* pale yellow */
+}
+
+.matched-success .feedback-match-indicator,
+.matched-success.feedback-entry .feedback-match-indicator,
+.severity-success .feedback-match-indicator {
+    border-color: rgba(40, 160, 80, 0.18);
+    background: rgba(237, 250, 236, 0.9);
+    /* very pale green */
+}
+
+.matched-error .feedback-match-indicator,
+.matched-error.feedback-entry .feedback-match-indicator,
+.severity-error .feedback-match-indicator {
+    border-color: rgba(200, 60, 60, 0.18);
+    background: rgba(255, 240, 240, 0.9);
+    /* pale red */
+}
+
+/* Add subtle accent to the entire title row/container when matched; use gentle borders */
+.feedback-entry.matched {
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.02);
+}
+
+.feedback-entry.matched.severity-success {
+    border-left-color: rgba(40, 160, 80, 0.12);
+}
+
+.feedback-entry.matched.severity-hint {
+    border-left-color: rgba(170, 140, 60, 0.12);
+}
+
+.feedback-entry.matched.severity-info {
+    border-left-color: rgba(11, 92, 255, 0.12);
+}
+
+.feedback-entry.matched.severity-warning {
+    border-left-color: rgba(200, 160, 0, 0.12);
+}
+
+.feedback-entry.matched.severity-error {
+    border-left-color: rgba(200, 60, 60, 0.12);
+}
+
 /* Severity color hints */
 .severity-hint .feedback-icon {
     color: #9a6b00
@@ -817,7 +995,7 @@ pre#terminal-output {
     color: #b06b00
 }
 
-.severity-success .feedback-iconf {
+.severity-success .feedback-icon {
     color: #33aa22;
 }
 
@@ -826,11 +1004,15 @@ pre#terminal-output {
 }
 
 .matched-info {
-    color: #0b5cff
+    color: #9a6b00
 }
 
 .matched-warning {
-    color: #b06b00
+    color: #b01200;
+}
+
+.matched-error {
+    color: #b01200;
 }
 
 .matched-success {

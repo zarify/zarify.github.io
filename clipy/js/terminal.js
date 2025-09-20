@@ -34,7 +34,6 @@ export function createTerminal(host = (typeof window !== 'undefined' ? window : 
     function appendTerminal(text, kind = 'stdout') {
         try {
             const out = $('terminal-output')
-            if (!out) return
 
             const raw = (text === null || text === undefined) ? '' : String(text)
 
@@ -79,6 +78,10 @@ export function createTerminal(host = (typeof window !== 'undefined' ? window : 
                     } catch (_e) { }
                 }
             } catch (_e) { }
+
+            // If there's no terminal DOM element, we've already handled buffering above
+            // so just return early to avoid attempting DOM operations.
+            if (!out) return
 
             const div = (doc && doc.createElement) ? doc.createElement('div') : null
             if (!div) return
@@ -158,6 +161,11 @@ export function createTerminal(host = (typeof window !== 'undefined' ? window : 
                 }
             } catch (_e) { }
 
+            // Preserve a copy of the raw buffered stderr for callers that
+            // want to inspect the original runtime output (used by
+            // feedback evaluation). Store on host so tests/other modules
+            // can access it even after the live buffer is cleared.
+            try { host.__ssg_last_raw_stderr_buffer = Array.isArray(buf) ? buf.slice() : [] } catch (_e) { }
             host.__ssg_stderr_buffering = false
             host.__ssg_stderr_buffer = []
             try { host.__ssg_terminal_event_log = host.__ssg_terminal_event_log || []; host.__ssg_terminal_event_log.push({ when: Date.now(), action: 'replaceBufferedStderr', buf_len: buf.length, sample: buf.slice(0, 4), mappedPreview: (typeof mappedText === 'string') ? mappedText.slice(0, 200) : null }) } catch (_e) { }

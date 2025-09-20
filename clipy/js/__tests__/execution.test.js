@@ -15,18 +15,11 @@ test('executeWithTimeout resolves and times out appropriately', async () => {
     await expect(executeWithTimeout(p2, 50, 20)).rejects.toThrow(/Execution timeout|Safety timeout|cancelled by user|Execution was cancelled/)
 })
 
-test('runPythonCode syncs MAIN_FILE into localStorage when no backend present', async () => {
-    const { makeFakeRuntimeAdapter, makeExecutionState } = await import('./test-utils/execution-fixtures.js')
-    clearLocalStorageMirror()
-    setupCodeArea('print(42)')
-    await setRuntimeAdapter(makeFakeRuntimeAdapter({ asyncify: true, runResolveValue: 'ok' }))
-
-    const executionModule = await import('../execution.js')
-    await executionModule.runPythonCode('print(1)', {})
-
-    const map = JSON.parse(localStorage.getItem('ssg_files_v1') || '{}')
-    expect(map['/main.py']).toBeDefined()
-})
+// The legacy localStorage mirror behavior was removed in favor of
+// unified storage/indexedDB. This test used to assert that MAIN_FILE
+// was mirrored into localStorage when no backend was present. That
+// behavior is no longer part of the runtime and the test has been
+// removed.
 
 test('safety timeout attempts VM interrupt and aborts if interrupt fails', async () => {
     const adapter = { run: async () => new Promise(() => { }), _module: {} }

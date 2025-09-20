@@ -166,8 +166,8 @@ export function createRunFn({ getFileManager, MAIN_FILE, runPythonCode, getConfi
             try { window.__ssg_suppress_notifier = false } catch (_e) { }
             try { if (typeof window.clearMicroPythonState === 'function') window.clearMicroPythonState() } catch (_e) { }
 
-            if (runError) return { stdout: stdoutFull, stderr: String(runError || stderrFull), durationMs: 0 }
-            return { stdout: stdoutFull, stderr: stderrFull, durationMs: 0 }
+            if (runError) return { stdout: stdoutFull, stderr: String(runError || stderrFull), durationMs: 0, filename: (FileManager && typeof FileManager.list === 'function') ? (FileManager.list() || []) : [] }
+            return { stdout: stdoutFull, stderr: stderrFull, durationMs: 0, filename: (FileManager && typeof FileManager.list === 'function') ? (FileManager.list() || []) : [] }
         } catch (e) {
             try { window.__ssg_suppress_notifier = false } catch (_e) { }
             return { stdout: '', stderr: String(e || ''), durationMs: 0 }

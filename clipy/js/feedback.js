@@ -282,10 +282,62 @@ async function evaluateFeedbackOnRun(ioCapture) {
                     matches.push({ message: _formatMessage(entry.message, []), id: entry.id, target, filename: found })
                 }
             } else {
+                // If the pattern is scoped to a specific file (fileTarget),
+                // ensure that the run produced/covered that filename before
+                // attempting to match stdout/stderr content. `ioCapture.filename`
+                // may be an array (multiple files) or a newline-joined string.
+                if (p.fileTarget && p.fileTarget.trim()) {
+                    const wanted = String(p.fileTarget || '').replace(/^\/*/, '/')
+                    let filenamesVal = (ioCapture && ioCapture.filename) || ''
+                    // If the runner did not provide any filename information
+                    // (empty string or empty array), treat this as unknown and
+                    // allow matching to proceed. This handles runners that do
+                    // not report covered filenames but still emit stderr/stdout.
+                    const filenamesProvided = (Array.isArray(filenamesVal) && filenamesVal.length > 0) || (typeof filenamesVal === 'string' && String(filenamesVal).trim().length > 0)
+                    let found = false
+                    try {
+                        if (!filenamesProvided) {
+                            // No filenames reported -> allow match attempt
+                            found = true
+                        } else if (Array.isArray(filenamesVal)) {
+                            for (const fn of filenamesVal) {
+                                if (!fn) continue
+                                const norm = String(fn).startsWith('/') ? String(fn) : ('/' + String(fn).replace(/^\/+/, ''))
+                                if (norm === wanted || norm === String(p.fileTarget)) { found = true; break }
+                            }
+                        } else {
+                            const parts = String(filenamesVal || '').split(/\r?\n/).map(x => x.trim()).filter(x => x)
+                            for (const fn of parts) {
+                                const norm = String(fn).startsWith('/') ? String(fn) : ('/' + String(fn).replace(/^\/+/, ''))
+                                if (norm === wanted || norm === String(p.fileTarget)) { found = true; break }
+                            }
+                        }
+                    } catch (_e) { found = false }
+                    if (!found) {
+                        try {
+                            const dbgEnabled = (typeof window !== 'undefined' && window.__ssg_feedback_debug)
+                            if (dbgEnabled) {
+                                const info = { id: entry.id, reason: 'skipped_fileTarget_mismatch', wanted: p.fileTarget, filenames: ioCapture && ioCapture.filename }
+                                try { emit('debug', info) } catch (_e) { }
+                                try { console.debug && console.debug('[Feedback debug] skipped fileTarget mismatch:', info) } catch (_e) { }
+                            }
+                        } catch (_e) { }
+                        continue
+                    }
+                }
+
                 const text = String((ioCapture && ioCapture[target]) || '')
                 const m = await _applyPattern(p, text)
+                // Optional debug emission: help troubleshoot why a rule didn't match
+                try {
+                    const dbgEnabled = (typeof window !== 'undefined' && window.__ssg_feedback_debug)
+                    if (!m && dbgEnabled) {
+                        emit('debug', { id: entry.id, reason: 'pattern_no_match', target, textSample: (text || '').slice(0, 200), fileTarget: p.fileTarget || null, filenames: ioCapture && ioCapture.filename })
+                    }
+                } catch (_e) { }
                 if (m) {
                     matches.push({ message: _formatMessage(entry.message, m), id: entry.id, target })
+                    try { if (typeof window !== 'undefined' && window.__ssg_feedback_debug) emit('debug', { id: entry.id, reason: 'matched', target, groups: m }) } catch (_e) { }
                 }
             }
         }

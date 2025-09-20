@@ -84,6 +84,7 @@ export function createASTRuleBuilder(existing = {}, ruleType = 'feedback') {
     // AST analysis type selection
     const astTypeSelect = document.createElement('select')
     const astTypes = [
+        { value: 'function_calls', label: 'Function calls', help: 'Analyze function call sites and counts (includes builtins like print)' },
         { value: 'function_exists', label: 'Function exists', help: 'Check if a specific function is defined' },
         { value: 'function_count', label: 'Function count', help: 'Count total number of functions' },
         { value: 'variable_usage', label: 'Variable usage', help: 'Check if a variable is used or assigned. Also captures type annotations when present.' },
@@ -171,6 +172,8 @@ export function createASTRuleBuilder(existing = {}, ruleType = 'feedback') {
         • <code>result && result.annotation === 'int'</code> (variable_usage: annotated variable)<br>
         • <code>result && result.annotations && result.annotations.some(a => a.name === 'x' && a.annotation === 'float')</code> (variable_usage: annotations list)<br>
         • <code>result && result.comprehensions && result.comprehensions.some(c => c.type === 'ListComp' && c.generators === 1)</code> (comprehensions)
+        <br>• <code>result && result.functions && result.functions.some(f => f.name === 'print' && f.count &gt; 0)</code> (function_calls: all functions)
+        <br>• <code>result && result.name === 'calculate' && result.count &gt;= 1</code> (function_calls: target-specific)
     `
 
     matcherExamples.appendChild(examplesSummary)
@@ -442,8 +445,49 @@ class Calculator:
         testButton.disabled = true
 
         try {
-            // Import the analyzeCode function dynamically
-            const { analyzeCode } = await import('./ast-analyzer.js')
+            // Import the analyzeCode function dynamically. Try multiple
+            // paths so the builder works when the app is served from
+            // different roots or when bundling changes relative paths.
+            const debugErrors = []
+            let analyzeCode = null
+            try {
+                const mod = await import('./ast-analyzer.js')
+                if (mod && mod.analyzeCode) analyzeCode = mod.analyzeCode
+            } catch (e) { debugErrors.push({ path: './ast-analyzer.js', error: String(e) }) }
+
+            if (!analyzeCode) {
+                try {
+                    const mod2 = await import('/src/js/ast-analyzer.js')
+                    if (mod2 && mod2.analyzeCode) analyzeCode = mod2.analyzeCode
+                } catch (e) { debugErrors.push({ path: '/src/js/ast-analyzer.js', error: String(e) }) }
+            }
+
+            if (!analyzeCode) {
+                try {
+                    const mod3 = await import('../js/ast-analyzer.js')
+                    if (mod3 && mod3.analyzeCode) analyzeCode = mod3.analyzeCode
+                } catch (e) { debugErrors.push({ path: '../js/ast-analyzer.js', error: String(e) }) }
+            }
+
+            if (!analyzeCode) {
+                try {
+                    const { getRegisteredAnalyzer } = await import('./analyzer-registry.js')
+                    const reg = getRegisteredAnalyzer && getRegisteredAnalyzer()
+                    if (typeof reg === 'function') analyzeCode = reg
+                } catch (_e) {
+                    // ignore registry import failures and fallback to window
+                }
+            }
+
+            if (!analyzeCode && typeof window !== 'undefined' && typeof window.analyzeCode === 'function') {
+                analyzeCode = window.analyzeCode
+            }
+
+            if (!analyzeCode) {
+                const errMsg = 'analyzeCode not available; tried: ' + debugErrors.map(d => d.path + ' -> ' + d.error).join(' ; ')
+                throw new Error(errMsg)
+            }
+
             const result = await analyzeCode(code, expression)
 
             if (result) {
@@ -550,6 +594,8 @@ class Calculator:
                 matchBrackets: true,
                 autoCloseBrackets: true,
                 scrollbarStyle: 'native',
+                // Wrap long lines to avoid expanding the editor horizontally
+                lineWrapping: true,
                 extraKeys: {
                     Tab: function (cm) {
                         if (cm.somethingSelected()) cm.indentSelection('add')
