@@ -262,7 +262,11 @@ async function main() {
                 if (items && items.length > 0) {
                     try {
                         const indexUrl = new URL('./config/index.json', window.location.href).href
-                        window.__ssg_remote_config_list = { url: indexUrl, items: items, listName: null }
+                        // Preserve any existing listName that may have been set by
+                        // `fetchAvailableServerConfigs()` (it fetches the index.json
+                        // and may attach a listName). Avoid clobbering it with null.
+                        const existingName = (typeof window !== 'undefined' && window.__ssg_remote_config_list && window.__ssg_remote_config_list.listName) ? window.__ssg_remote_config_list.listName : null
+                        window.__ssg_remote_config_list = { url: indexUrl, items: items, listName: existingName }
                         let first = items[0]
                         try { first = resolveListItemPath(first, indexUrl) } catch (_e) { }
                         try {
@@ -390,6 +394,43 @@ async function main() {
                 }
             }
         } catch (_e) { }
+
+        // Ensure workspace is clean BEFORE attempting to restore a snapshot
+        // or materialize config files. This prevents leftover files from a
+        // previously-loaded config (for example when switching via the URL)
+        // from persisting into the new workspace when no snapshot exists.
+        try {
+            if (FileManager) {
+                try {
+                    const { setSystemWriteMode } = await import('./js/vfs-client.js')
+                    try {
+                        setSystemWriteMode(true)
+                        const existing = (typeof FileManager.list === 'function') ? FileManager.list() : []
+                        for (const p of existing) {
+                            try {
+                                if (!p) continue
+                                if (p === MAIN_FILE) continue
+                                if (typeof FileManager.delete === 'function') await FileManager.delete(p)
+                            } catch (_e) { /* non-fatal - continue */ }
+                        }
+                    } finally {
+                        try { setSystemWriteMode(false) } catch (_e) { }
+                    }
+                } catch (_e) {
+                    // Fallback: try deleting without system write mode
+                    try {
+                        const existing = (typeof FileManager.list === 'function') ? FileManager.list() : []
+                        for (const p of existing) {
+                            try {
+                                if (!p) continue
+                                if (p === MAIN_FILE) continue
+                                if (typeof FileManager.delete === 'function') await FileManager.delete(p)
+                            } catch (_e2) { /* non-fatal */ }
+                        }
+                    } catch (_e2) { /* ignore */ }
+                }
+            }
+        } catch (_e) { /* keep startup resilient */ }
 
         // Restore from the special 'current' snapshot if it exists
         try {
@@ -1038,6 +1079,41 @@ async function main() {
                             const currentConfigVersion = newCfg?.version
 
                             if (isConfigCompatibleWithSnapshot(currentConfigVersion, snapshotConfigVersion)) {
+                                // Before restoring snapshot contents, ensure any
+                                // remaining files are removed so the snapshot becomes
+                                // the single source of truth. Do not delete MAIN_FILE
+                                // here because snapshot may include it; we'll overwrite it.
+                                if (FileManager) {
+                                    try {
+                                        const { setSystemWriteMode } = await import('./js/vfs-client.js')
+                                        try {
+                                            setSystemWriteMode(true)
+                                            const existing = (typeof FileManager.list === 'function') ? FileManager.list() : []
+                                            for (const p of existing) {
+                                                try {
+                                                    if (!p) continue
+                                                    if (p === MAIN_FILE) continue
+                                                    if (typeof FileManager.delete === 'function') await FileManager.delete(p)
+                                                } catch (_e) { /* non-fatal */ }
+                                            }
+                                        } finally {
+                                            try { setSystemWriteMode(false) } catch (_e) { }
+                                        }
+                                    } catch (_e) {
+                                        // Fallback deletion without system mode
+                                        try {
+                                            const existing = (typeof FileManager.list === 'function') ? FileManager.list() : []
+                                            for (const p of existing) {
+                                                try {
+                                                    if (!p) continue
+                                                    if (p === MAIN_FILE) continue
+                                                    if (typeof FileManager.delete === 'function') await FileManager.delete(p)
+                                                } catch (_e2) { /* non-fatal */ }
+                                            }
+                                        } catch (_e2) { /* ignore */ }
+                                    }
+                                }
+
                                 // Restore the snapshot files for this config. Use system
                                 // write mode so read-only flags don't block restoration.
                                 if (latestSnapshot.files && FileManager) {

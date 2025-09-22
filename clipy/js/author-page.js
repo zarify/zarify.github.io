@@ -6,6 +6,7 @@ import { showConfirmModal, openModal, closeModal } from './modals.js'
 import { debug as logDebug, warn as logWarn, error as logError } from './logger.js'
 import { renderMarkdown } from './utils.js'
 import { initVerificationTab, renderStudentsList } from './author-verification.js'
+import { loadConfigFromFile, loadConfigFromStringOrUrl } from './config.js'
 
 function $(id) { return document.getElementById(id) }
 
@@ -731,6 +732,322 @@ function setupHandlers() {
             closeChangelogModal()
         })
     }
+
+    // Verification Load button and modal handlers
+    const verificationLoadBtn = $('verification-load-btn')
+    const verificationModal = $('verification-load-modal')
+    const verificationClose = $('verification-load-close')
+    const verificationDropArea = $('verification-drop-area')
+    const verificationFileInput = $('verification-file-input')
+    const verificationUrlInput = $('verification-url-input')
+    const verificationLoadUrlBtn = $('verification-load-url')
+    const verificationSelect = $('verification-config-select')
+    const verificationFeedback = $('verification-load-feedback')
+
+    if (verificationLoadBtn && verificationModal) {
+        verificationLoadBtn.addEventListener('click', () => {
+            try { openModal(verificationModal) } catch (_e) { verificationModal.style.display = 'flex'; verificationModal.setAttribute('aria-hidden', 'false') }
+        })
+    }
+    if (verificationClose && verificationModal) {
+        verificationClose.addEventListener('click', () => {
+            try { closeModal(verificationModal) } catch (_e) { verificationModal.style.display = 'none'; verificationModal.setAttribute('aria-hidden', 'true') }
+        })
+    }
+
+    // Drop area click opens file picker
+    if (verificationDropArea && verificationFileInput) {
+        verificationDropArea.addEventListener('click', () => verificationFileInput.click())
+        verificationDropArea.addEventListener('dragover', (e) => { e.preventDefault(); verificationDropArea.style.borderColor = '#999' })
+        verificationDropArea.addEventListener('dragleave', (e) => { e.preventDefault(); verificationDropArea.style.borderColor = '#ddd' })
+        verificationDropArea.addEventListener('drop', async (e) => {
+            e.preventDefault()
+            verificationDropArea.style.borderColor = '#ddd'
+            const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]
+            if (f) await handleVerificationFile(f)
+        })
+        verificationFileInput.addEventListener('change', async (e) => {
+            const f = e.target.files && e.target.files[0]
+            e.target.value = ''
+            if (f) await handleVerificationFile(f)
+        })
+    }
+
+    if (verificationLoadUrlBtn && verificationUrlInput) {
+        verificationLoadUrlBtn.addEventListener('click', async () => {
+            const url = (verificationUrlInput.value || '').trim()
+            if (!url) {
+                if (verificationFeedback) verificationFeedback.textContent = 'Please enter a URL.'
+                return
+            }
+            try {
+                if (verificationFeedback) verificationFeedback.textContent = 'Loading from URL...'
+                const loaded = await loadConfigFromStringOrUrl(url)
+                // normalize into external configs container
+                setExternalVerificationConfigsFromLoaded(loaded, url)
+                if (verificationFeedback) verificationFeedback.textContent = 'Loaded successfully.'
+                try { closeModal(verificationModal) } catch (_e) { verificationModal.style.display = 'none' }
+            } catch (e) {
+                logError('Failed to load verification config from URL:', e)
+                if (verificationFeedback) verificationFeedback.textContent = 'Failed to load URL: ' + (e && e.message ? e.message : e)
+            }
+        })
+    }
+
+    if (verificationSelect) {
+        verificationSelect.addEventListener('change', () => {
+            const v = verificationSelect.value
+            if (!v) return
+            // store selection and update verification codes
+            try {
+                if (v === '_authored') {
+                    window.__author_verification_selected_external = null
+                } else if (v === '_single') {
+                    window.__author_verification_selected_external = '_single'
+                } else {
+                    // index
+                    const idx = Number(v)
+                    if (!Number.isNaN(idx)) window.__author_verification_selected_external = idx
+                    else window.__author_verification_selected_external = null
+                }
+            } catch (_e) { window.__author_verification_selected_external = null }
+            updateVerificationCodesDebounced()
+        })
+    }
+}
+
+// Handle reading a local file dropped/selected for verification loading
+async function handleVerificationFile(file) {
+    const feedbackEl = document.getElementById('verification-load-feedback')
+    try {
+        if (!file) throw new Error('No file selected')
+        // Prefer using config manager's loader so validation/normalization runs
+        let loaded = null
+        try {
+            loaded = await loadConfigFromFile(file)
+        } catch (e) {
+            // If loadConfigFromFile failed, fallback to raw parse to support config lists
+            try {
+                const txt = await file.text()
+                loaded = JSON.parse(txt)
+            } catch (e2) {
+                throw e
+            }
+        }
+
+        setExternalVerificationConfigsFromLoaded(loaded, file.name)
+        if (feedbackEl) feedbackEl.textContent = 'File loaded successfully.'
+        // close modal
+        const modal = document.getElementById('verification-load-modal')
+        try { closeModal(modal) } catch (_e) { if (modal) modal.style.display = 'none' }
+    } catch (e) {
+        logError('Failed to load verification file:', e)
+        if (feedbackEl) feedbackEl.textContent = 'Failed to load file: ' + (e && e.message ? e.message : e)
+    }
+}
+
+function setExternalVerificationConfigsFromLoaded(parsed, sourceName) {
+    // parsed can be an array (list of configs), or object with .files/listName, or single config object
+    const container = { source: sourceName }
+    if (Array.isArray(parsed)) {
+        container.items = parsed
+    } else if (parsed && typeof parsed === 'object' && Array.isArray(parsed.files)) {
+        // New configList shape: { listName?, files: [...] }
+        container.items = parsed.files
+        if (parsed.listName) container.listName = parsed.listName
+    } else if (parsed && typeof parsed === 'object') {
+        container._single = parsed
+    } else {
+        throw new Error('Unsupported config format')
+    }
+
+    // store globally for the author page to access
+    window.__author_verification_external_configs = container
+    // default selection: single -> _single, list -> index 0
+    if (container._single) window.__author_verification_selected_external = '_single'
+    else window.__author_verification_selected_external = 0
+
+    // Update UI select/dropdown
+    updateVerificationSelectUI()
+    // Try to fetch metadata for external list items (will update labels asynchronously)
+    try { fetchMetadataForExternalItems(container).catch(() => { }) } catch (_e) { }
+    // Update codes
+    updateVerificationCodesDebounced()
+}
+
+// Resolve a list item path relative to a list source (file name or URL)
+function resolveListItemPathLocal(item, listSource) {
+    try {
+        if (!item) return item
+        const s = String(item)
+        if (/^(https?:)?\/\//i.test(s)) return s
+        if (!listSource) return s
+        const base = listSource.endsWith('/') ? listSource : listSource.replace(/[^/]*$/, '')
+        const listIsRemote = /^(https?:)?\/\//i.test(listSource)
+        if (s.startsWith('./') || s.startsWith('/')) {
+            try { return new URL(s, base).href } catch (_e) { return s }
+        }
+        if (listIsRemote) {
+            try { return new URL(s, base).href } catch (_e) { return s }
+        }
+        return s
+    } catch (_e) {
+        return item
+    }
+}
+
+// Try to fetch metadata (title/version) for external items and update labels
+async function fetchMetadataForExternalItems(container) {
+    if (!container) return
+    const indicator = document.getElementById('verification-fetching-indicator')
+    try {
+        if (indicator) indicator.style.display = 'inline-block'
+    } catch (_e) { }
+    const src = container.source || null
+    if (!Array.isArray(container.items)) {
+        try { if (indicator) indicator.style.display = 'none' } catch (_e) { }
+        return
+    }
+
+    container._labels = container._labels || []
+
+    for (let i = 0; i < container.items.length; i++) {
+        const it = container.items[i]
+        // If we already have a label from the object, skip fetching
+        if (container._labels[i]) continue
+        if (it && typeof it === 'object') {
+            const label = it.title ? (it.title + (it.version ? (' (v' + it.version + ')') : '')) : (it.id ? (it.id + '@' + (it.version || '1.0')) : null)
+            container._labels[i] = label || `Item ${i + 1}`
+            updateVerificationSelectOptionLabel(i, container._labels[i])
+            continue
+        }
+        // it is likely a string (filename or URL)
+        let resolved = it
+        try { resolved = resolveListItemPathLocal(it, src) } catch (_e) { resolved = it }
+        try {
+            // Use centralized loader to normalize if possible (it will fetch and parse)
+            const parsed = await loadConfigFromStringOrUrl(resolved)
+            const label = parsed && parsed.title ? (parsed.title + (parsed.version ? (' (v' + parsed.version + ')') : '')) : (parsed && parsed.id ? (parsed.id + '@' + (parsed.version || '1.0')) : String(it))
+            container._labels[i] = label
+            updateVerificationSelectOptionLabel(i, label)
+        } catch (e) {
+            // fallback: use the raw item string or 'Item N'
+            container._labels[i] = String(it) || `Item ${i + 1}`
+            updateVerificationSelectOptionLabel(i, container._labels[i])
+        }
+    }
+    try { if (indicator) indicator.style.display = 'none' } catch (_e) { }
+}
+
+// Update the label text of an existing option in the verification select for index i
+function updateVerificationSelectOptionLabel(index, label) {
+    try {
+        const select = document.getElementById('verification-config-select')
+        if (!select) return
+        // Option order: opt[0] = authored option, then items in sequence
+        const optIndex = 1 + index
+        if (select.options && select.options[optIndex]) {
+            select.options[optIndex].textContent = `${index + 1}: ${label}`
+        }
+    } catch (_e) { }
+}
+
+function updateVerificationSelectUI() {
+    const select = document.getElementById('verification-config-select')
+    const idEl = document.getElementById('verification-config-id')
+    if (!select) return
+    const container = window.__author_verification_external_configs || null
+    // If no external, hide select and show authored label
+    if (!container) {
+        select.style.display = 'none'
+        if (idEl) idEl.style.display = 'block'
+        return
+    }
+
+    // Build options: authored (default) + external entries
+    select.innerHTML = ''
+    const optAuth = document.createElement('option')
+    optAuth.value = '_authored'
+    optAuth.textContent = 'Use authored config'
+    select.appendChild(optAuth)
+
+    if (container._single) {
+        const opt = document.createElement('option')
+        opt.value = '_single'
+        const label = (container._single.id ? container._single.id + '@' + (container._single.version || '1.0') : (container._single.title || 'External config'))
+        opt.textContent = `External: ${label}`
+        select.appendChild(opt)
+        select.value = window.__author_verification_selected_external || '_single'
+        select.style.display = 'inline-block'
+        if (idEl) idEl.style.display = 'none'
+        return
+    }
+
+    if (Array.isArray(container.items)) {
+        // Try to use any provided listName metadata for the select label
+        const listName = container.listName || null
+        container.items.forEach((cfg, idx) => {
+            const opt = document.createElement('option')
+            opt.value = String(idx)
+            // Prefer title, then id@version, then fallback to Item N
+            const label = cfg && cfg.title
+                ? cfg.title
+                : (cfg && cfg.id ? (cfg.id + '@' + (cfg.version || '1.0')) : `Item ${idx + 1}`)
+            opt.textContent = listName ? `${idx + 1}: ${label}` : `${idx + 1}: ${label}`
+            select.appendChild(opt)
+        })
+        select.style.display = 'inline-block'
+        select.value = (window.__author_verification_selected_external === null || window.__author_verification_selected_external === undefined) ? '_authored' : String(window.__author_verification_selected_external)
+        if (idEl) idEl.style.display = 'none'
+        return
+    }
+}
+
+/**
+ * Resolve the selected external config into a normalized config object.
+ * externalConfigs can be a container with ._single or .items[]. Items may be raw
+ * config objects already; if items are strings (filenames) we attempt to load
+ * them via `loadConfigFromStringOrUrl`.
+ */
+async function resolveSelectedExternalConfig(externalConfigs, selectedKey) {
+    if (!externalConfigs) return null
+    // Single config
+    if (selectedKey === '_single' && externalConfigs._single) return externalConfigs._single
+
+    // Index into items
+    const items = Array.isArray(externalConfigs.items) ? externalConfigs.items : null
+    if (!items) return null
+    let idx = null
+    if (typeof selectedKey === 'number') idx = selectedKey
+    else if (typeof selectedKey === 'string' && selectedKey !== '_authored') {
+        const parsed = Number(selectedKey)
+        if (!Number.isNaN(parsed)) idx = parsed
+    }
+    if (idx === null) idx = 0
+    const candidate = items[idx]
+    if (!candidate) return null
+
+    // If candidate is an object that looks like a config, use as-is.
+    if (candidate && typeof candidate === 'object' && (candidate.id || candidate.tests || candidate.files || candidate.title)) {
+        return candidate
+    }
+
+    // If candidate is a string (filename or URL), attempt to load via config loader.
+    if (typeof candidate === 'string') {
+        try {
+            // Resolve candidate relative to the list source so relative paths
+            // in a config list use the same domain/directory as the list file.
+            const resolved = resolveListItemPathLocal(candidate, externalConfigs.source)
+            // Prefer using loadConfigFromStringOrUrl which accepts filenames or URLs
+            const loaded = await loadConfigFromStringOrUrl(resolved)
+            return loaded
+        } catch (e) {
+            logDebug('Failed to fetch candidate by string:', candidate, e)
+            return null
+        }
+    }
+
+    return null
 }
 
 // Changelog modal functions
@@ -816,14 +1133,30 @@ document.addEventListener('click', (e) => {
     if (saveDraftSuccessModal && e.target === saveDraftSuccessModal) {
         closeSaveDraftSuccessModal()
     }
+
+    const verificationModal = $('verification-load-modal')
+    if (verificationModal && e.target === verificationModal) {
+        try { closeModal(verificationModal) } catch (_e) { verificationModal.style.display = 'none' }
+    }
 })
 
 // Verification code update helpers
 let verificationUpdateTimer = null
 
-function updateVerificationCodes() {
+async function updateVerificationCodes() {
     try {
-        const currentConfig = buildCurrentConfig()
+        // If an external verification config is loaded and selected, prefer it
+        // Use explicit null for authored; allow 0 as a valid index
+        const selectedExternal = (typeof window.__author_verification_selected_external === 'undefined' || window.__author_verification_selected_external === null) ? null : window.__author_verification_selected_external
+        const externalConfigs = window.__author_verification_external_configs || null
+        let currentConfig = buildCurrentConfig()
+        if (externalConfigs && selectedExternal !== null) {
+            try {
+                // Resolve the external config to an object (may involve fetching if string filenames are present)
+                const resolved = await resolveSelectedExternalConfig(externalConfigs, selectedExternal)
+                if (resolved) currentConfig = resolved
+            } catch (_e) { /* ignore and fallback to authored config */ }
+        }
         // Display config identity (id@version) in the verification panel
         try {
             const el = document.getElementById('verification-config-id')
@@ -834,7 +1167,8 @@ function updateVerificationCodes() {
             }
         } catch (_e) { }
 
-        renderStudentsList(currentConfig)
+        // renderStudentsList may be async; await so errors can be caught
+        try { await renderStudentsList(currentConfig) } catch (_e) { }
     } catch (e) {
         logDebug('Failed to update verification codes:', e)
     }

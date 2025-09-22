@@ -385,15 +385,23 @@ export function initializeInstructions(cfg) {
 
     // Also update the page title if available
     try {
+        // Default behavior: set document.title to the config's title when present
         if (cfg?.title) {
             document.title = cfg.title
         }
-        // If we have a remote list name, reflect it in the document title and the page H1 as well
+
+        // If we have a remote config list with a listName provided, show the
+        // list name AND the individual config title so users can see both
+        // the collection and the problem they're working on. For example:
+        // "Authoring Demos — printing-press". If either side is missing,
+        // fall back to whichever is available.
         try {
             if (typeof window !== 'undefined' && window.__ssg_remote_config_list && window.__ssg_remote_config_list.listName) {
-                const ln = window.__ssg_remote_config_list.listName
-                if (ln) document.title = ln
-                try { if (appTitle) appTitle.textContent = ln } catch (_e) { }
+                const ln = String(window.__ssg_remote_config_list.listName || '')
+                const cfgTitle = String(cfg?.title || '')
+                const combined = ln && cfgTitle ? (ln + ' — ' + cfgTitle) : (ln || cfgTitle || document.title || 'Client-side Python Playground')
+                try { if (appTitle) appTitle.textContent = combined } catch (_e) { }
+                try { document.title = combined } catch (_e) { }
             } else {
                 try { if (appTitle) appTitle.textContent = cfg?.title || document.title || 'Client-side Python Playground' } catch (_e) { }
             }

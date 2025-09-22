@@ -70,7 +70,6 @@ function renderList() {
         if (!Array.isArray(_config.feedback) || !_config.feedback.length) {
             const p = document.createElement('div')
             p.className = 'feedback-msg feedback-msg-hidden'
-            p.textContent = '(no feedback)'
             host.appendChild(p)
             // continue rendering empty sections so run-tests control remains visible
         }
@@ -79,7 +78,7 @@ function renderList() {
         const editSection = document.createElement('div')
         editSection.className = 'feedback-section feedback-edit-section'
         const editHeader = document.createElement('h3')
-        editHeader.textContent = 'Editor feedback'
+        editHeader.textContent = 'Code feedback'
         editSection.appendChild(editHeader)
 
         const runSection = document.createElement('div')
@@ -518,7 +517,7 @@ function renderList() {
         if (!editSection.querySelector('.feedback-entry')) {
             const p = document.createElement('div')
             p.className = 'feedback-msg feedback-msg-hidden'
-            p.textContent = '(no editor feedback)'
+            p.textContent = '(no code feedback)'
             editSection.appendChild(p)
         }
 

@@ -1,23 +1,10 @@
 This directory holds local copies of third-party JS/CSS used by the app so it can run without CDN access.
 
-Files expected/used by the project:
-- codemirror.min.css
-- codemirror.min.js
-- codemirror-mode-python.min.js
-- marked.min.js
- - marked-admonition-extension.js (vendored local extension for admonition blocks)
- - marked-admonition-extension.css (styles for the admonition extension)
-- purify.min.js
-- highlight.min.js
-- highlight-github.min.css
-
-How to populate:
-1. Use the provided helper script from the project root:
-   node scripts/fetch_vendors.js
-
-2. The script will download the known files into `src/vendor` and will skip existing files.
-   To force overwrite, pass `--force`.
-
-Notes:
-- Validate the downloaded files before deploying to production.
-- Consider checking these files into git or using a package manager + build step if you want stricter control.
+License information for each of the libraries here can be found below and/or in the files as appropriate:
+- [CodeMirror](https://github.com/codemirror/codemirror5/blob/master/LICENSE) (MIT)
+- [Marked](https://marked.js.org/license) (MIT)
+- [Marked Admonitions](https://github.com/xiefucai/marked-admonition-extension/blob/main/LICENSE) (Apache 2.0)
+- [DOMPurify](https://github.com/cure53/DOMPurify/blob/main/LICENSE) (Apache 2.0)
+- [highlight.js](https://github.com/highlightjs/highlight.js/blob/main/LICENSE) (BSD 3-Clause license)
+- [MicroPython](https://docs.micropython.org/en/latest/license.html) (MIT)
+- [py-ast](https://github.com/kriss-u/py-ast/blob/master/LICENSE) (MIT)

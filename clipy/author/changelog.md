@@ -1,3 +1,7 @@
+## 2025-09-22
+- Fix: Page header now correctly shows config list name with config name
+- Feature: Verification tab in authoring can now load lists of configs
+
 ## 2025-09-19
 - Enhancement: Added `function_calls` AST rule, covering things like builtin function calls
 - Feature: Added dependencies for feedback rules

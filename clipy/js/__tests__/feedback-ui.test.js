@@ -24,7 +24,7 @@ describe('feedback-ui basic behavior', () => {
         // Expect the edit section to have a placeholder
         const editPlaceholder = host.querySelector('.feedback-section.feedback-edit-section .feedback-msg-hidden')
         expect(editPlaceholder).not.toBeNull()
-        expect(editPlaceholder.textContent).toContain('(no editor feedback)')
+        expect(editPlaceholder.textContent).toContain('(no code feedback)')
     })
 
     test('run-tests enabled when tests present', async () => {

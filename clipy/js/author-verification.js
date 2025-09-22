@@ -97,6 +97,25 @@ export async function generateCodesForAllStudents(testConfig) {
     const canonicalTestsJson = canonicalizeForHash(normalizedTests)
     const normalizedConfig = Object.assign({}, testConfig, { tests: normalizedTests })
 
+    // If there are no tests, return entries with a message instead of codes
+    let hasTests = false
+    if (normalizedConfig.tests) {
+        if (Array.isArray(normalizedConfig.tests)) {
+            hasTests = normalizedConfig.tests.length > 0
+        } else if (normalizedConfig.tests && typeof normalizedConfig.tests === 'object') {
+            // grouped format: consider groups and ungrouped arrays; empty arrays mean no tests
+            const groups = Array.isArray(normalizedConfig.tests.groups) ? normalizedConfig.tests.groups : []
+            const ungrouped = Array.isArray(normalizedConfig.tests.ungrouped) ? normalizedConfig.tests.ungrouped : []
+            if ((groups && groups.length > 0) || (ungrouped && ungrouped.length > 0)) hasTests = true
+        }
+    }
+    if (!hasTests) {
+        for (const studentId of students) {
+            codes.push({ studentId, code: 'No tests available in this config' })
+        }
+        return codes
+    }
+
     for (const studentId of students) {
         try {
             // Simulate all tests passing for code generation
@@ -192,18 +211,34 @@ export async function renderStudentsList(testConfig = null) {
     let html = '<div style="display:grid;gap:8px;">'
 
     codes.forEach(({ studentId, code }) => {
-        html += `
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:white;border:1px solid #ddd;border-radius:4px;">
-                <div>
-                    <strong style="color:#333;">${escapeHtml(studentId)}</strong>
-                    <div style="color:#666;font-family:monospace;font-size:0.9em;margin-top:4px;">
-                        ${escapeHtml(code)}
+        // If code indicates no tests, show a friendly notice instead of a code block
+        if (code === 'No tests available in this config') {
+            html += `
+                <div style="padding:8px 12px;background:#fff3cd;border:1px solid #ffeeba;border-radius:4px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                            <strong style="color:#333;">${escapeHtml(studentId)}</strong>
+                            <div style="color:#856404;font-family:monospace;font-size:0.9em;margin-top:4px;">This configuration contains no tests. Add tests to generate verification codes.</div>
+                        </div>
+                        <button class="remove-student-btn btn btn-small" data-student="${escapeHtml(studentId)}" 
+                                style="color:#dc3545;border-color:#dc3545;">Remove</button>
                     </div>
                 </div>
-                <button class="remove-student-btn btn btn-small" data-student="${escapeHtml(studentId)}" 
-                        style="color:#dc3545;border-color:#dc3545;">Remove</button>
-            </div>
-        `
+            `
+        } else {
+            html += `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:white;border:1px solid #ddd;border-radius:4px;">
+                    <div>
+                        <strong style="color:#333;">${escapeHtml(studentId)}</strong>
+                        <div style="color:#666;font-family:monospace;font-size:0.9em;margin-top:4px;">
+                            ${escapeHtml(code)}
+                        </div>
+                    </div>
+                    <button class="remove-student-btn btn btn-small" data-student="${escapeHtml(studentId)}" 
+                            style="color:#dc3545;border-color:#dc3545;">Remove</button>
+                </div>
+            `
+        }
     })
 
     html += '</div>'
