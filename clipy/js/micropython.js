@@ -33,6 +33,26 @@ let executionState = {
     safetyTimeoutId: null
 }
 
+// Debug gating for reset/instrumentation. Use window.__ssg_debug_reset or
+// window.__ssg_debug_logs to enable verbose reset logs and terminal debug.
+function _resetEnabled() {
+    try {
+        if (typeof window === 'undefined') return false
+        return !!(window.__ssg_debug_reset === true || window.__ssg_debug_logs === true)
+    } catch (_e) { return false }
+}
+
+function _resetDebug(level, ...args) {
+    if (!_resetEnabled()) return
+    try {
+        const msg = args.map(a => { try { return String(a) } catch (_e) { return '' } }).join(' ')
+        if (level === 'log' && console && typeof console.log === 'function') console.log(...args)
+        else if (level === 'warn' && console && typeof console.warn === 'function') console.warn(...args)
+        else if (level === 'error' && console && typeof console.error === 'function') console.error(...args)
+        try { if (typeof appendTerminalDebug === 'function') appendTerminalDebug(msg) } catch (_e) { }
+    } catch (_e) { }
+}
+
 export function setExecutionRunning(running) {
     executionState.isRunning = running
     const runBtn = $('run')
@@ -287,47 +307,8 @@ export function setupMicroPythonAPI() {
             return status
         }
 
-        // State clearing function to reset Python globals between runs
-        window.clearMicroPythonState = function () {
-            if (!runtimeAdapter || !runtimeAdapter._module) {
-                logWarn('❌ No runtime adapter or module available for state clearing')
-                return false
-            }
-
-            try {
-                // Access MicroPython instance globals
-                const mpInstance = runtimeAdapter._module
-                if (!mpInstance.globals || !mpInstance.globals.__dict__) {
-                    logWarn('❌ Unable to access MicroPython globals.__dict__')
-                    return false
-                }
-
-                const globalsDict = mpInstance.globals.__dict__
-                const builtins = ['__builtins__', '__name__', '__doc__', '__package__', '__loader__', '__spec__']
-
-                // Get all keys and filter out built-ins
-                const userKeys = Object.keys(globalsDict).filter(key =>
-                    !builtins.includes(key) && !key.startsWith('_')
-                )
-
-                // Delete user-defined variables
-                let cleared = 0
-                for (const key of userKeys) {
-                    try {
-                        delete globalsDict[key]
-                        cleared++
-                    } catch (err) {
-                        logDebug(`❌ Failed to clear variable '${key}':`, err)
-                    }
-                }
-
-                logInfo(`✅ Cleared ${cleared} user variables from Python globals`)
-                return true
-            } catch (err) {
-                logError('❌ Failed to clear MicroPython state:', err)
-                return false
-            }
-        }
+        // Soft/reset functions moved to module top-level exports to avoid
+        // exporting from inside a block scope. See top-level softResetMicroPythonRuntime/restartMicroPythonRuntime.
     } catch (_e) { }
 }
 
@@ -415,6 +396,236 @@ export function setupStopButton() {
             }
         })
     }
+}
+
+// Top-level: Soft reset: try to put the VM into a clean, deterministic state
+// without a full WASM re-initialization. If the soft reset fails,
+// restartMicroPythonRuntime(cfg) can be used to recreate the VM.
+export async function softResetMicroPythonRuntime() {
+    if (!runtimeAdapter || !runtimeAdapter._module) {
+        _resetDebug('log', '[softReset] no runtime adapter')
+        _resetDebug('log', 'softReset: no runtime adapter')
+        return false
+    }
+
+    try {
+        _resetDebug('log', '[softReset] start')
+        const Module = runtimeAdapter._module
+
+        // 1) Try VM-level interrupt/clear APIs first (asyncify-enabled runtimes)
+        try {
+            if (typeof runtimeAdapter.clearInterrupt === 'function') {
+                try { runtimeAdapter.clearInterrupt() } catch (_e) { }
+            }
+        } catch (_e) { }
+
+        // 2) Try to reset Asyncify internals if exposed
+        try {
+            if (Module && Module.Asyncify) {
+                try {
+                    if (Module.Asyncify.currData !== undefined) Module.Asyncify.currData = 0
+                    if (Module.Asyncify.state !== undefined) Module.Asyncify.state = 0
+                } catch (_e) { }
+            }
+        } catch (_e) { }
+
+        // 3) If the compiled module exposes a helper to reset REPL/state, call it
+        try {
+            if (typeof Module.ccall === 'function') {
+                try { Module.ccall('mp_js_repl_init', 'null', [], []) } catch (_e) { }
+            }
+        } catch (_e) { }
+
+        // 4) Run a conservative Python clearing snippet to remove user modules
+        //    and globals (keeps built-ins). This is intentionally conservative
+        //    to avoid blowing away runtime-provided modules.
+        const pyClear = `
+import sys
+import gc
+
+_builtin = set(['sys','gc','builtins','__main__','micropython','host','host_notify'])
+_to_del = []
+for name in list(sys.modules.keys()):
+    if name not in _builtin and not name.startswith('_'):
+        _to_del.append(name)
+for name in _to_del:
+    try:
+        del sys.modules[name]
+    except Exception:
+        pass
+
+# Clear user globals on __main__ while preserving known builtins
+g = globals()
+_preserve = set(['__builtins__','__name__','__doc__','__package__','__loader__','__spec__','sys','gc'])
+_gdel = []
+for k in list(g.keys()):
+    if k not in _preserve and not k.startswith('_'):
+        _gdel.append(k)
+for k in _gdel:
+    try:
+        del g[k]
+    except Exception:
+        pass
+
+try:
+    gc.collect()
+except Exception:
+    pass
+`
+
+        try {
+            if (typeof runtimeAdapter.run === 'function') {
+                // prefer async variant when available
+                if (typeof runtimeAdapter.runPythonAsync === 'function') {
+                    await runtimeAdapter.runPythonAsync(pyClear)
+                } else {
+                    await runtimeAdapter.run(pyClear)
+                }
+            }
+        } catch (err) {
+            _resetDebug('warn', '[softReset] python clear failed:', err)
+            _resetDebug('log', 'softReset: python clear failed: ' + err)
+            // continue to other attempts; don't immediately fail
+        }
+
+        // 5) Re-enable yielding if available so interrupts remain possible
+        try {
+            if (typeof runtimeAdapter.setYielding === 'function') {
+                try { runtimeAdapter.setYielding(true); window.__ssg_yielding_enabled = true } catch (_e) { window.__ssg_yielding_enabled = false }
+            }
+        } catch (_e) { }
+
+        // 6) Re-register host modules if needed
+        try {
+            if (typeof Module.registerJsModule === 'function' && typeof createHostModule === 'function') {
+                try { Module.registerJsModule('host', createHostModule()) } catch (_e) { }
+                try { Module.registerJsModule('host_notify', { notify_file_written: (p, c) => { try { window.__ssg_notify_file_written && window.__ssg_notify_file_written(p, c) } catch (_e) { } } }) } catch (_e) { }
+            }
+        } catch (_e) { }
+
+        _resetDebug('log', '[softReset] completed: success')
+        _resetDebug('log', '✅ softResetMicroPythonRuntime completed')
+        return true
+    } catch (err) {
+        _resetDebug('error', '[softReset] failed:', err)
+        _resetDebug('log', 'softResetMicroPythonRuntime failed: ' + err)
+        return false
+    }
+}
+
+// Full restart: recreate the runtime instance from scratch and restore FS
+export async function restartMicroPythonRuntime(cfg) {
+    const oldAdapter = runtimeAdapter
+    const snapshot = {}
+
+    _resetDebug('log', '[restart] start')
+
+    // snapshot runtime FS (best-effort)
+    try {
+        const fs = (oldAdapter && oldAdapter._module && oldAdapter._module.FS) ? oldAdapter._module.FS : window.__ssg_runtime_fs
+        if (fs && typeof fs.readdir === 'function') {
+            // simple recursive walk
+            const walk = (dir) => {
+                try {
+                    const entries = fs.readdir(dir)
+                    for (const e of entries) {
+                        if (e === '.' || e === '..') continue
+                        const path = dir === '/' ? '/' + e : dir + '/' + e
+                        try {
+                            const data = fs.readFile(path)
+                            snapshot[path] = data
+                        } catch (_e) {
+                            try { walk(path) } catch (_e2) { }
+                        }
+                    }
+                } catch (_e) { }
+            }
+            try { walk('/') } catch (_e) { }
+        }
+    } catch (_e) { _resetDebug('log', 'restart: snapshot failed: ' + _e) }
+
+    // try graceful termination hooks
+    try {
+        if (oldAdapter && oldAdapter._module) {
+            const mod = oldAdapter._module
+            if (typeof mod.terminate === 'function') {
+                try { mod.terminate() } catch (_e) { }
+            }
+            try { delete window.__ssg_runtime_fs } catch (_e) { }
+        }
+    } catch (_e) { }
+
+    try { setRuntimeAdapter(null) } catch (_e) { }
+
+    // load a fresh runtime
+    let newAdapter = null
+    try {
+        newAdapter = await loadMicroPythonRuntime(cfg || window.currentConfig || {})
+    } catch (e) {
+        _resetDebug('error', '[restart] loadMicroPythonRuntime failed:', e)
+        appendTerminal && appendTerminal('Failed to restart runtime: ' + e, 'runtime')
+        _resetDebug('log', 'restart failed: ' + e)
+        return false
+    }
+
+    // restore files into new FS (suppress notifications)
+    try {
+        window.__ssg_suppress_notifier = true
+        const fs = newAdapter && newAdapter._module && newAdapter._module.FS ? newAdapter._module.FS : window.__ssg_runtime_fs
+        if (fs) {
+            for (const [path, data] of Object.entries(snapshot)) {
+                try {
+                    // create parent directories (best-effort)
+                    const parts = path.split('/').slice(1, -1)
+                    let cur = '/'
+                    for (const p of parts) {
+                        if (!p) continue
+                        const next = cur === '/' ? '/' + p : cur + '/' + p
+                        try { fs.mkdir(next) } catch (_e) { }
+                        cur = next
+                    }
+                    if (typeof fs.writeFile === 'function') {
+                        try { fs.writeFile(path, data) } catch (_e) { try { fs.writeFile(path, typeof data === 'string' ? data : new Uint8Array(data)) } catch (_e2) { } }
+                    } else if (typeof fs.createDataFile === 'function') {
+                        try { fs.createDataFile('/', path.replace(/^\/+/, ''), data, true, true) } catch (_e) { }
+                    }
+                } catch (_e) { _resetDebug('log', 'restart: restore failed ' + path + ' ' + _e) }
+            }
+        }
+    } catch (_e) { appendTerminalDebug && appendTerminalDebug('restart restore failed: ' + _e) }
+    finally { try { window.__ssg_suppress_notifier = false } catch (_e) { } }
+
+    setRuntimeAdapter(newAdapter)
+    _resetDebug('log', '[restart] completed: success')
+    _resetDebug('log', '✅ MicroPython runtime restarted')
+    return true
+}
+
+// State clearing function used by the UI: prefer soft reset, fallback to full restart
+export async function clearMicroPythonState(opts) {
+    // opts: { fallbackToRestart: true/false, cfg }
+    try {
+        _resetDebug('log', '[clearState] invoking softResetMicroPythonRuntime')
+        const ok = await softResetMicroPythonRuntime()
+        if (ok) {
+            _resetDebug('log', '[clearState] softReset succeeded; no restart needed')
+            return true
+        }
+        _resetDebug('warn', '[clearState] softReset returned false')
+        if (opts && opts.fallbackToRestart === false) return false
+        // fallback to full restart if soft reset didn't achieve a clean state
+        _resetDebug('log', '[clearState] falling back to restartMicroPythonRuntime')
+        return await restartMicroPythonRuntime((opts && opts.cfg) ? opts.cfg : (typeof window !== 'undefined' ? window.currentConfig : undefined))
+    } catch (e) {
+        _resetDebug('error', '[clearState] wrapper failed:', e)
+        _resetDebug('log', 'clearMicroPythonState wrapper failed: ' + e)
+        return false
+    }
+}
+
+// Attach to window for legacy callers in the browser environment
+if (typeof window !== 'undefined') {
+    try { window.clearMicroPythonState = clearMicroPythonState } catch (_e) { }
 }
 
 // Add keyboard shortcut for VM interrupt (Ctrl+C)

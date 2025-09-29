@@ -4,6 +4,25 @@ import { getRuntimeAdapter, setExecutionRunning, getExecutionState, interruptMic
 import { getFileManager, MAIN_FILE, markExpectedWrite, setSystemWriteMode } from './vfs-client.js'
 import { transformAndWrap, mapTracebackAndShow, highlightMappedTracebackInEditor, clearAllErrorHighlights, clearAllFeedbackHighlights } from './code-transform.js'
 
+// Helper to safely stringify thrown values. Some runtimes (wasm/emscripten)
+// can throw non-Error values (eg. `throw Infinity;`). This ensures logs show
+// a readable message and any available stack information.
+function stringifyError(err) {
+    try {
+        if (err instanceof Error) {
+            return err.message + (err.stack ? '\n' + err.stack : '')
+        }
+        // For plain objects, attempt JSON; otherwise fallback to String()
+        if (err && typeof err === 'object') {
+            try { return JSON.stringify(err) } catch (_e) { /* fallthrough */ }
+        }
+        // Non-object throws (numbers, strings, etc.)
+        return String(err) + (typeof err === 'number' ? ' (non-Error thrown)' : '')
+    } catch (_e) {
+        return Object.prototype.toString.call(err)
+    }
+}
+
 export async function executeWithTimeout(executionPromise, timeoutMs, safetyTimeoutMs = 5000) {
     const executionState = getExecutionState()
 
@@ -292,7 +311,7 @@ export async function runPythonCode(code, cfg) {
                     if (runtimeOutput) appendTerminal(runtimeOutput, 'stdout')
                     // Feedback evaluation moved to end of execution to include all data
                 } catch (asyncifyErr) {
-                    const errMsg = String(asyncifyErr)
+                    const errMsg = stringifyError(asyncifyErr)
 
                     // Handle KeyboardInterrupt (from VM interrupt) specially  
                     if (errMsg.includes('KeyboardInterrupt')) {
@@ -452,7 +471,7 @@ export async function runPythonCode(code, cfg) {
                     if (runtimeOutput) appendTerminal(runtimeOutput, 'stdout')
                     // Feedback evaluation moved to end of execution to include all data
                 } catch (e) {
-                    const msg = String(e || '')
+                    const msg = stringifyError(e || '')
 
                     // If no async runner is available, handle with fallback logic
                     if (/no async runner available/i.test(msg)) {
@@ -547,7 +566,7 @@ export async function runPythonCode(code, cfg) {
             appendTerminal('Runtime error: no runtime adapter available', 'runtime')
         }
     } catch (e) {
-        appendTerminal('Transform/run error: ' + e, 'runtime')
+        appendTerminal('Transform/run error: ' + stringifyError(e), 'runtime')
         try { setTerminalInputEnabled(false) } catch (_e) { }
     } finally {
         // Always reset execution state

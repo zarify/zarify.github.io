@@ -1,3 +1,11 @@
+## 2025-09-29
+- Fix: Runtime reset between runs is now more robust
+- Enhancement: File tab manager improved
+  - Added ability to rename files
+  - Additional files are hidden in an overflow button
+  - `main.py` is always shown
+  - Last active file is always shown
+
 ## 2025-09-22
 - Fix: Page header now correctly shows config list name with config name
 - Feature: Verification tab in authoring can now load lists of configs

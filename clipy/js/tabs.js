@@ -4,12 +4,14 @@ import { getFileManager, MAIN_FILE } from './vfs-client.js'
 import { clearAllErrorHighlights, clearAllFeedbackHighlights } from './code-transform.js'
 import { showInputModal, showConfirmModal } from './modals.js'
 import { appendTerminalDebug } from './terminal.js'
+import { TabOverflowManager } from './tab-overflow-manager.js'
 
 let openTabs = [] // array of paths
 let active = null
 let cm = null
 let textarea = null
 let currentConfig = null // current loaded config for read-only status
+let overflowManager = null // TabOverflowManager instance
 
 function _normalizePath(p) {
     return String(p).startsWith('/') ? p : `/${p}`
@@ -37,6 +39,18 @@ export function updateConfig(config) {
 function render() {
     const tabsHost = $('tabs-left')
     if (!tabsHost) return
+
+    // If an overflow manager exists, delegate rendering to it (it will
+    // render the always-visible tabs and an overflow dropdown). Otherwise
+    // fall back to the simple rendering implementation.
+    if (overflowManager && typeof overflowManager.render === 'function') {
+        try {
+            // Ensure the overflow manager knows about read-only checks
+            overflowManager.isFileReadOnly = isFileReadOnly
+            overflowManager.render(openTabs, active)
+            return
+        } catch (_e) { /* fall back to default rendering on error */ }
+    }
 
     tabsHost.innerHTML = ''
     openTabs.forEach(p => {
@@ -70,9 +84,6 @@ function render() {
         tab.addEventListener('click', () => selectTab(p))
         tabsHost.appendChild(tab)
     })
-
-    // Debug: surface current openTabs and DOM labels into the terminal
-    // render complete
 }
 
 export async function openTab(path, opts = { select: true }) {
@@ -184,10 +195,16 @@ export function closeTabSilent(path) {
     openTabs = openTabs.filter(x => x !== n)
 
     if (active === n) {
-        active = openTabs.length ? openTabs[openTabs.length - 1] : null
+        // If we're in the middle of a rename operation, don't auto-select another tab.
+        // The rename logic will handle selecting the new path.
+        if (window.__ssg_renaming_file && window.__ssg_renaming_file.oldPath === n) {
+            active = null; // Will be set by rename logic
+        } else {
+            active = openTabs.length ? openTabs[openTabs.length - 1] : null;
+        }
     }
 
-    if (active) {
+    if (active && (!window.__ssg_renaming_file || window.__ssg_renaming_file.oldPath !== n)) {
         selectTab(active)
     } else {
         if (cm) cm.setValue('')
@@ -398,6 +415,18 @@ export function initializeTabManager(codeMirror, textareaElement) {
     cm = codeMirror
     textarea = textareaElement
 
+    // Initialize TabOverflowManager with proper container and callbacks
+    try {
+        overflowManager = new TabOverflowManager('tabs-left', {
+            onTabSelect: (p) => { try { selectTab(p) } catch (_e) { } },
+            onTabClose: (p) => { try { closeTab(p) } catch (_e) { } },
+            onTabRename: renameFile,
+            isFileReadOnly: isFileReadOnly
+        })
+        // Prepare any modal handlers or DOM wiring
+        try { overflowManager.init() } catch (_e) { }
+    } catch (_e) { }
+
     const newBtn = $('tab-new')
     if (newBtn) newBtn.addEventListener('click', createNew)
 
@@ -510,6 +539,63 @@ export function initializeTabManager(codeMirror, textareaElement) {
         }
     } catch (_e) { }
 
+    // File rename functionality (top-level inside module)
+    async function renameFile(oldPath, newPath) {
+        try {
+            const FileManager = getFileManager()
+            if (!FileManager) return false
+
+            // Read content from old file
+            const content = await FileManager.read(oldPath)
+            if (content === null) return false
+
+            // Set the rename flag BEFORE any FileManager operations to prevent
+            // the notification system from interfering with tab selection
+            window.__ssg_renaming_file = { oldPath, newPath, timestamp: Date.now() }
+
+            // Write to new path (this triggers notification system)
+            await FileManager.write(newPath, content)
+
+            // Delete old file
+            await FileManager.delete(oldPath)
+
+            // Update tabs
+            const tabIndex = openTabs.indexOf(oldPath)
+            if (tabIndex !== -1) {
+                openTabs[tabIndex] = newPath
+            }
+
+            // Update active tab reference
+            // During rename, closeTabSilent may have set active to null, so check both conditions
+            if (active === oldPath || (window.__ssg_renaming_file && window.__ssg_renaming_file.oldPath === oldPath)) {
+                active = newPath
+
+                // Update TabOverflowManager's lastEditedFile synchronously
+                if (overflowManager && overflowManager.lastEditedFile === oldPath) {
+                    overflowManager.lastEditedFile = newPath
+                }
+
+                selectTab(newPath)
+            }
+
+            render()
+
+            // Clear the rename flag after render is complete
+            setTimeout(() => {
+                if (window.__ssg_renaming_file &&
+                    window.__ssg_renaming_file.oldPath === oldPath &&
+                    window.__ssg_renaming_file.newPath === newPath) {
+                    delete window.__ssg_renaming_file
+                }
+            }, 150)
+
+            return true
+        } catch (e) {
+            console.error('File rename failed:', e)
+            return false
+        }
+    }
+
     return {
         openTab,
         closeTab,
@@ -521,6 +607,7 @@ export function initializeTabManager(codeMirror, textareaElement) {
         closeTabSilent,
         syncWithFileManager,
         updateConfig,
+        renameFile,
         flushPendingTabs: () => {
             try {
                 const pending = (window.__ssg_pending_tabs || [])

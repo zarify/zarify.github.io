@@ -2,11 +2,12 @@ import { validateAndNormalizeConfig } from './config.js'
 import { saveAuthorConfigToLocalStorage, getAuthorConfigFromLocalStorage, clearAuthorConfigInLocalStorage, saveDraft, listDrafts, loadDraft, deleteDraft, findDraftByConfigIdAndVersion } from './author-storage.js'
 import { initAuthorFeedback } from './author-feedback.js'
 import { initAuthorTests } from './author-tests.js'
-import { showConfirmModal, openModal, closeModal } from './modals.js'
+import { showConfirmModal, openModal, closeModal, showInputModal } from './modals.js'
 import { debug as logDebug, warn as logWarn, error as logError } from './logger.js'
 import { renderMarkdown } from './utils.js'
 import { initVerificationTab, renderStudentsList } from './author-verification.js'
 import { loadConfigFromFile, loadConfigFromStringOrUrl } from './config.js'
+import { TabOverflowManager } from './tab-overflow-manager.js'
 
 function $(id) { return document.getElementById(id) }
 
@@ -15,6 +16,7 @@ let files = {} // map path -> content or { content, binary, mime }
 let fileReadOnlyStatus = {} // map path -> boolean (true if read-only)
 let currentFile = '/main.py'
 let suppressOpenFileFocus = false
+let authorOverflowManager = null // TabOverflowManager instance for author page
 let autosaveTimer = null
 let suppressAutosave = false  // Flag to prevent autosave during restore/import operations
 const AUTOSAVE_DELAY = 500
@@ -108,7 +110,16 @@ function loadEditor() {
 }
 
 function renderFileList() {
-    // Render as tabs
+    // If an author-specific overflow manager exists, delegate rendering to it
+    try {
+        if (authorOverflowManager && typeof authorOverflowManager.render === 'function') {
+            // Ensure read-only checks are up-to-date
+            try { authorOverflowManager.isFileReadOnly = (path) => !!fileReadOnlyStatus[path] } catch (_e) { }
+            try { authorOverflowManager.render(Object.keys(files), currentFile); return } catch (_e) { /* fall back */ }
+        }
+    } catch (_e) { }
+
+    // Fallback: Render as simple tabs (legacy author UI)
     const tabs = $('file-tabs')
     tabs.innerHTML = ''
     for (const p of Object.keys(files)) {
@@ -190,6 +201,9 @@ function openFile(path, force = false) {
     currentFile = path
     $('editor-current-file').textContent = path
 
+    // Re-render the file list so any tab manager can mark the active tab.
+    try { renderFileList() } catch (_e) { }
+
     // Update read-only toggle
     const readOnlyToggle = $('readonly-toggle')
     if (readOnlyToggle) {
@@ -241,6 +255,37 @@ function deleteFile(path) {
     // Re-render the file list and save immediately (not debounced)
     renderFileList()
     saveToLocalStorage()
+}
+
+async function renameAuthorFile(oldPath, newPath) {
+    try {
+        // Check if new path already exists
+        if (files[newPath]) {
+            throw new Error('File already exists: ' + newPath)
+        }
+
+        // Move content and read-only status
+        files[newPath] = files[oldPath]
+        fileReadOnlyStatus[newPath] = fileReadOnlyStatus[oldPath] || false
+
+        // Remove old file
+        delete files[oldPath]
+        delete fileReadOnlyStatus[oldPath]
+
+        // Update current file reference if needed
+        if (currentFile === oldPath) {
+            currentFile = newPath
+            openFile(newPath)
+        }
+
+        renderFileList()
+        saveToLocalStorage()
+        return true
+    } catch (e) {
+        console.error('File rename failed:', e)
+        alert('Rename failed: ' + e.message)
+        return false
+    }
 }
 
 async function saveToLocalStorage() {
@@ -501,17 +546,27 @@ function setupHandlers() {
         debounceSave();
         updateVerificationCodesDebounced();
     })
-    $('add-file').addEventListener('click', () => {
-        const name = prompt('File path (e.g. /lib/util.py)')
-        logDebug('[author-page] add-file clicked, prompt ->', name)
-        if (!name) return
-        files[name] = ''
-        logDebug('[author-page] files after add:', Object.keys(files))
-        renderFileList()
-        openFile(name)
-        debounceSave()
+    $('add-file').addEventListener('click', async () => {
+        try {
+            const name = await showInputModal('New file', 'File path (e.g. /lib/util.py)', '')
+            logDebug('[author-page] add-file clicked, modal ->', name)
+            if (!name) return
+            files[name] = ''
+            logDebug('[author-page] files after add:', Object.keys(files))
+            renderFileList()
+            openFile(name)
+            debounceSave()
+        } catch (e) {
+            logWarn('add-file modal failed', e)
+        }
     })
     logDebug('[author-page] setupHandlers: add-file listener attached')
+
+    // Initialize TabOverflowManager for author page using standard constructor
+    // TabOverflowManager is initialized earlier during DOMContentLoaded so
+    // we don't need to initialize it here. If it failed to initialize earlier,
+    // renderFileList() will fall back to the legacy renderer.
+
     $('file-upload').addEventListener('change', handleUpload)
 
     // Read-only toggle handler
@@ -1183,8 +1238,23 @@ function updateVerificationCodesDebounced() {
 window.addEventListener('DOMContentLoaded', async () => {
     // Add debug helper to window for manual inspection
     // debugAuthorStorage removed in cleanup
-
     loadEditor()
+
+    // Initialize TabOverflowManager for author page early so that any
+    // render calls during restoreFromLocalStorage() delegate to the
+    // overflow manager instead of falling back to the legacy renderer.
+    try {
+        authorOverflowManager = new TabOverflowManager('file-tabs', {
+            onTabSelect: (path) => { try { openFile(path) } catch (_e) { } },
+            onTabClose: (path) => { try { deleteFile(path) } catch (_e) { } },
+            onTabRename: async (oldPath, newPath) => { return await renameAuthorFile(oldPath, newPath) },
+            isFileReadOnly: (path) => !!fileReadOnlyStatus[path]
+        })
+        try { authorOverflowManager.init() } catch (_e) { }
+    } catch (e) {
+        console.warn('Failed to initialize TabOverflowManager for author page:', e)
+    }
+
     // Restore state before attaching handlers to avoid races where UI events
     // fire while the initial files/config are still being populated.
     await restoreFromLocalStorage()

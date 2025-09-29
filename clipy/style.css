@@ -387,6 +387,160 @@ textarea#code {
     margin-left: 4px;
 }
 
+/* Tab overflow management styles */
+.overflow-btn {
+    background: #f8f9fa;
+    border: 1px dashed #ccc;
+    color: #666;
+    font-size: 0.9em;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.overflow-btn:hover {
+    background: #e9ecef;
+    border-color: #999;
+}
+
+.overflow-icon {
+    font-size: 0.9em;
+}
+
+.tab-action-btn {
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0 4px;
+    margin-left: 4px;
+    opacity: 0.7;
+    font-size: 0.9em;
+}
+
+.tab-action-btn:hover {
+    opacity: 1;
+}
+
+.rename-btn {
+    font-size: 0.8em;
+}
+
+.file-icon {
+    margin-right: 6px;
+    font-size: 0.9em;
+}
+
+/* File dropdown modal styles */
+.file-dropdown-content {
+    width: 480px;
+    max-height: 60vh;
+}
+
+.file-dropdown-list {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+
+.file-dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.file-dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.file-dropdown-item:hover {
+    background: #f5f5f5;
+}
+
+.file-dropdown-item.active {
+    background: #e3f2fd;
+    border-left: 3px solid var(--accent, #007acc);
+}
+
+.file-item-main {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+}
+
+.file-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.file-name {
+    font-weight: 500;
+    margin-bottom: 2px;
+    word-break: break-word;
+}
+
+.file-path {
+    font-size: 0.85em;
+    color: #666;
+    font-family: monospace;
+    opacity: 0.8;
+}
+
+.file-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.file-dropdown-item:hover .file-actions {
+    opacity: 1;
+}
+
+.file-action-btn {
+    background: transparent;
+    border: none;
+    padding: 4px 6px;
+    cursor: pointer;
+    color: #999;
+    border-radius: 3px;
+}
+
+.file-action-btn:hover {
+    color: #d32f2f;
+    background: rgba(211, 47, 47, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .file-dropdown-content {
+        width: 90vw;
+        max-width: none;
+    }
+
+    .file-path {
+        display: none;
+    }
+
+    .overflow-btn .overflow-text {
+        display: none;
+    }
+
+    .overflow-btn::after {
+        content: " files";
+        font-size: 0.8em;
+    }
+}
+
 .editor-controls {
     margin-top: 8px
 }
@@ -1465,4 +1619,42 @@ pre#terminal-output {
 
 .cm-readonly .CodeMirror-code {
     opacity: 0.8;
+}
+
+/* Constrain input field inside input-modal so it doesn't overflow the modal content */
+#input-modal-field {
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    border: 1px solid #e6e6e9;
+    border-radius: 4px;
+    font-size: 0.95rem;
+}
+
+/* Reduce focus outline expansion so the input doesn't visually overflow
+   the modal when highlighted. Use an inset box-shadow rather than an
+   outline which can add to the element's visual width. */
+#input-modal-field:focus {
+    outline: none;
+    box-shadow: inset 0 0 0 2px rgba(11, 92, 255, 0.08), 0 0 0 2px rgba(11, 92, 255, 0.06);
+}
+
+/* Ensure input modal content/padding matches main app and input uses full width */
+.input-modal-content .modal-body {
+    padding: 12px 16px;
+}
+
+.input-modal-content #input-modal-field,
+#input-modal-field.input-modal-field {
+    width: 100%;
+    display: block;
+}
+
+.input-modal-content .modal-actions {
+    padding: 10px 16px;
+}
+
+/* Keep modal content centered and consistent when input is present */
+.input-modal-content {
+    max-width: 520px;
 }

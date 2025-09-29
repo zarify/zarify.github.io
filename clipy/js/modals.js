@@ -102,23 +102,87 @@ export function closeModal(modal) {
 export function showInputModal(title, message, defaultValue) {
     return new Promise((resolve) => {
         try {
-            const modal = $('input-modal')
-            const titleEl = $('input-modal-title')
-            const desc = $('input-modal-desc')
-            const field = $('input-modal-field')
-            const ok = $('input-modal-ok')
-            const cancel = $('input-modal-cancel')
+            // Ensure the input modal exists. Some pages (like the authoring
+            // page) may not include the static markup, so create it on-demand
+            // to provide a consistent accessible input flow and avoid falling
+            // back to window.prompt().
+            let modal = $('input-modal')
+            let titleEl = $('input-modal-title')
+            let desc = $('input-modal-desc')
+            let field = $('input-modal-field')
+            let ok = $('input-modal-ok')
+            let cancel = $('input-modal-cancel')
 
-            if (!modal || !titleEl || !desc || !field || !ok || !cancel) {
-                const val = window.prompt(message || title || '')
-                resolve(val)
-                return
+            if (!modal) {
+                // Only create the modal on-demand for pages that resemble the
+                // application (author page, main app) to avoid surprising test
+                // environments or very minimal pages. Developers can force
+                // creation by setting `window.__forceCreateInputModal = true`.
+                const canCreate = !!(document.getElementById('file-tabs') || document.querySelector('.tabs') || window.__forceCreateInputModal)
+                if (!canCreate) {
+                    // Fallback for minimal environments (tests, tiny pages)
+                    const val = window.prompt(message || title || '')
+                    resolve(val)
+                    return
+                }
+
+                modal = document.createElement('div')
+                modal.id = 'input-modal'
+                modal.className = 'modal'
+                modal.setAttribute('role', 'dialog')
+                modal.setAttribute('aria-hidden', 'true')
+                modal.innerHTML = `
+                    <div class="modal-content input-modal-content">
+                        <div class="modal-header">
+                            <h3 id="input-modal-title">Input</h3>
+                            <button id="input-modal-close" class="btn modal-close-btn">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <p id="input-modal-desc" style="margin-top:0;margin-bottom:8px;color:#444"></p>
+                            <input id="input-modal-field" type="text" />
+                        </div>
+                        <div class="modal-actions">
+                            <button id="input-modal-cancel" class="btn">Cancel</button>
+                            <button id="input-modal-ok" class="btn btn-primary">OK</button>
+                        </div>
+                    </div>
+                `
+                document.body.appendChild(modal)
+
+                // Wire up the close button to behave like cancel
+                const closeBtn = $('input-modal-close')
+                if (closeBtn) closeBtn.addEventListener('click', () => {
+                    try { closeModal(modal) } catch (_e) { }
+                })
+
+                // Re-query elements now that modal exists
+                titleEl = $('input-modal-title')
+                desc = $('input-modal-desc')
+                field = $('input-modal-field')
+                ok = $('input-modal-ok')
+                cancel = $('input-modal-cancel')
             }
 
             titleEl.textContent = title || 'Input'
             desc.textContent = message || ''
             field.value = defaultValue || ''
+            // Ensure a sensible maxlength to avoid accidental overflows
+            if (!field.hasAttribute('maxlength')) field.setAttribute('maxlength', '255')
             openModal(modal)
+
+            // Ensure the input receives keyboard focus and its contents
+            // are selected so the user can immediately type/replace the value.
+            // Use a short timeout to allow openModal focus handling to complete.
+            try {
+                setTimeout(() => {
+                    try {
+                        if (field && typeof field.focus === 'function') {
+                            field.focus()
+                            if (typeof field.select === 'function') field.select()
+                        }
+                    } catch (_e) { }
+                }, 20)
+            } catch (_e) { }
 
             const onOk = () => { cleanup(); resolve(field.value) }
             const onCancel = () => { cleanup(); resolve(null) }

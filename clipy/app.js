@@ -951,6 +951,15 @@ async function main() {
         async function applyConfigToWorkspace(newCfg, opts = {}) {
             const skipSnapshotRestore = !!(opts && opts.skipSnapshotRestore)
             try {
+                // Clear any existing highlights (error highlights from previous runs
+                // and feedback-based highlights) so the newly-loaded configuration
+                // starts with a clean editor state.
+                try {
+                    if (typeof clearAllErrorHighlights === 'function') clearAllErrorHighlights()
+                } catch (_e) { }
+                try {
+                    if (typeof clearAllFeedbackHighlights === 'function') clearAllFeedbackHighlights()
+                } catch (_e) { }
                 // Close any open tabs for files that will be removed by the
                 // incoming configuration. Do this up-front so we don't rely on
                 // other callers to perform cleanup. Use closeTabSilent so the
@@ -1148,6 +1157,15 @@ async function main() {
                 try { if (window.TabManager && typeof window.TabManager.syncWithFileManager === 'function') await window.TabManager.syncWithFileManager() } catch (_e) { }
                 try { if (window.TabManager && typeof window.TabManager.refreshOpenTabContents === 'function') window.TabManager.refreshOpenTabContents() } catch (_e) { }
                 try { if (window.TabManager && typeof window.TabManager.selectTab === 'function') window.TabManager.selectTab(MAIN_FILE) } catch (_e) { }
+
+                // After tabs and editor refresh, clear highlights again to ensure
+                // no stale line decorations remain from the previous config.
+                try {
+                    if (typeof clearAllErrorHighlights === 'function') clearAllErrorHighlights()
+                } catch (_e) { }
+                try {
+                    if (typeof clearAllFeedbackHighlights === 'function') clearAllFeedbackHighlights()
+                } catch (_e) { }
 
                 // Update UI components (setCurrentConfig was already called above)
                 try { initializeInstructions(newCfg) } catch (_e) { }

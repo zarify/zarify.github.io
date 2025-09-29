@@ -252,6 +252,25 @@
       </div>
     </div>
   </div>
+
+  <!-- File dropdown modal (created by TabOverflowManager, placeholder for tests) -->
+  <div id="file-dropdown-modal" class="modal" role="dialog" aria-hidden="true" aria-labelledby="file-dropdown-title"
+    style="display: none;">
+    <div class="modal-content file-dropdown-content">
+      <div class="modal-header">
+        <h3 id="file-dropdown-title">Files</h3>
+        <button id="file-dropdown-close" class="btn modal-close-btn">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="file-dropdown-search" style="margin-bottom: 12px;">
+          <input id="file-search-input" type="text" placeholder="Search files..."
+            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+        <div id="file-dropdown-list" class="file-dropdown-list"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Load marked (markdown compiler), DOMPurify and highlight.js from local vendor copies.
     These expose globals: window.marked, window.DOMPurify, and window.hljs.
   -->
