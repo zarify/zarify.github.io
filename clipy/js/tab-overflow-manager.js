@@ -5,13 +5,30 @@ import { MAIN_FILE } from './vfs-client.js'
 import { showInputModal } from './modals.js'
 
 export class TabOverflowManager {
-    constructor(containerId, options = {}) {
+    // Supports either (containerId, options) or (containerId, tabManager, options)
+    constructor(containerId, tabManagerOrOptions = {}, maybeOptions = {}) {
         this.containerId = containerId
-        this.onTabSelect = options.onTabSelect || (() => { })
-        this.onTabClose = options.onTabClose || (() => { })
-        this.onTabRename = options.onTabRename || (() => { })
-        this.isFileReadOnly = options.isFileReadOnly || (() => false)
-        this.alwaysVisible = options.alwaysVisible || [MAIN_FILE]
+
+        // Detect if second argument is a tabManager (has list/getActive)
+        if (tabManagerOrOptions && typeof tabManagerOrOptions.list === 'function' && typeof tabManagerOrOptions.getActive === 'function') {
+            this.tabManager = tabManagerOrOptions
+            const options = maybeOptions || {}
+            this.onTabSelect = options.onTabSelect || (() => { })
+            this.onTabClose = options.onTabClose || (() => { })
+            this.onTabRename = options.onTabRename || (() => { })
+            this.isFileReadOnly = options.isFileReadOnly || (() => false)
+            this.showInputModal = options.showInputModal || null
+            this.alwaysVisible = options.alwaysVisible || [MAIN_FILE]
+        } else {
+            const options = tabManagerOrOptions || {}
+            this.tabManager = null
+            this.onTabSelect = options.onTabSelect || (() => { })
+            this.onTabClose = options.onTabClose || (() => { })
+            this.onTabRename = options.onTabRename || (() => { })
+            this.isFileReadOnly = options.isFileReadOnly || (() => false)
+            this.showInputModal = options.showInputModal || null
+            this.alwaysVisible = options.alwaysVisible || [MAIN_FILE]
+        }
 
         this.dropdownOpen = false
         this.lastEditedFile = null
@@ -85,8 +102,9 @@ export class TabOverflowManager {
         const container = $(this.containerId)
         if (!container) return
 
-        const files = openTabs || []
-        const active = activeTab || null
+        // If no explicit openTabs provided, try to read from attached tabManager
+        const files = Array.isArray(openTabs) ? openTabs : (this.tabManager ? (this.tabManager.list ? this.tabManager.list() : []) : [])
+        const active = activeTab || (this.tabManager && this.tabManager.getActive ? this.tabManager.getActive() : null)
 
         // Track the last edited file (excluding main.py)
         if (active && active !== MAIN_FILE) {
@@ -127,6 +145,23 @@ export class TabOverflowManager {
         if (overflowFiles.length > 0) {
             this.renderOverflowButton(container, overflowFiles, active)
         }
+    }
+
+    // Return the visible files that would be rendered for the current state.
+    getVisibleFiles(openTabs, activeTab) {
+        const files = Array.isArray(openTabs) ? openTabs : (this.tabManager ? (this.tabManager.list ? this.tabManager.list() : []) : [])
+        const active = activeTab || (this.tabManager && this.tabManager.getActive ? this.tabManager.getActive() : null)
+
+        const alwaysVisible = [MAIN_FILE]
+        if (active && active !== MAIN_FILE && !alwaysVisible.includes(active)) alwaysVisible.push(active)
+        if (this.lastEditedFile && this.lastEditedFile !== MAIN_FILE && this.lastEditedFile !== active && !alwaysVisible.includes(this.lastEditedFile) && files.includes(this.lastEditedFile)) {
+            alwaysVisible.push(this.lastEditedFile)
+        }
+
+        // Visible files are alwaysVisible that exist in files, plus an overflow indicator if others exist
+        const visible = []
+        alwaysVisible.forEach(f => { if (files.includes(f)) visible.push(f) })
+        return visible
     }
 
     renderTab(container, filePath, isActive) {
@@ -219,9 +254,12 @@ export class TabOverflowManager {
         if (searchInput) {
             setTimeout(() => searchInput.focus(), 100)
         }
-    } closeDropdown() {
+    }
+
+    closeDropdown() {
         this.dropdownOpen = false
         const modal = $('file-dropdown-modal')
+        if (!modal) return
         modal.setAttribute('aria-hidden', 'true')
         modal.style.display = 'none'
     }
@@ -291,7 +329,8 @@ export class TabOverflowManager {
         const directory = filePath.substring(0, filePath.lastIndexOf('/'))
 
         // Title is sufficient in this context; avoid redundant descriptive text
-        const newName = await showInputModal('Rename File', '', currentName)
+        const inputFn = this.showInputModal || showInputModal
+        const newName = await inputFn('Rename File', '', currentName)
 
         if (newName && newName !== currentName) {
             const newPath = directory + '/' + newName
@@ -301,7 +340,9 @@ export class TabOverflowManager {
             // The onTabRename callback (renameFile) will handle updating lastEditedFile
             // We don't need to do it here anymore since it's done in renameFile
         }
-    } getDisplayName(filePath) {
+    }
+
+    getDisplayName(filePath) {
         return filePath.startsWith('/') ? filePath.slice(1) : filePath
     }
 

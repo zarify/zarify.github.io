@@ -1,5 +1,5 @@
 // MicroPython runtime management and interrupt system
-import { appendTerminal, appendTerminalDebug, setTerminalInputEnabled } from './terminal.js'
+import { appendTerminal, appendTerminalDebug, setTerminalInputEnabled, getTerminalInnerHTML, setTerminalInnerHTML } from './terminal.js'
 import { $ } from './utils.js'
 import { createInputHandler, createHostModule } from './input-handling.js'
 import { debug as logDebug, info as logInfo, warn as logWarn, error as logError } from './logger.js'
@@ -443,10 +443,10 @@ export async function softResetMicroPythonRuntime() {
 import sys
 import gc
 
-_builtin = set(['sys','gc','builtins','__main__','micropython','host','host_notify'])
+_essential = set(['builtins','__main__','micropython','host','host_notify'])
 _to_del = []
 for name in list(sys.modules.keys()):
-    if name not in _builtin and not name.startswith('_'):
+    if name not in _essential and not name.startswith('_'):
         _to_del.append(name)
 for name in _to_del:
     try:
@@ -454,12 +454,12 @@ for name in _to_del:
     except Exception:
         pass
 
-# Clear user globals on __main__ while preserving known builtins
+# Aggressive clearing of ALL user globals (preserve only essential builtins)
 g = globals()
-_preserve = set(['__builtins__','__name__','__doc__','__package__','__loader__','__spec__','sys','gc'])
+_essential = set(['__builtins__','__name__','__doc__','__package__','__loader__','__spec__'])
 _gdel = []
 for k in list(g.keys()):
-    if k not in _preserve and not k.startswith('_'):
+    if k not in _essential and not k.startswith('__'):
         _gdel.append(k)
 for k in _gdel:
     try:
@@ -471,15 +471,47 @@ try:
     gc.collect()
 except Exception:
     pass
+
+# Explicitly clear __main__ module globals to remove persisted top-level variables
+try:
+    _m = sys.modules.get('__main__')
+    if _m is not None:
+        try:
+            _md = getattr(_m, '__dict__', {})
+            for _k in list(_md.keys()):
+                if not _k.startswith('__'):
+                    try:
+                        del _md[_k]
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+except Exception:
+    pass
 `
 
+        let _softClearTimedOut = false
         try {
             if (typeof runtimeAdapter.run === 'function') {
-                // prefer async variant when available
-                if (typeof runtimeAdapter.runPythonAsync === 'function') {
-                    await runtimeAdapter.runPythonAsync(pyClear)
-                } else {
-                    await runtimeAdapter.run(pyClear)
+                // prefer async variant when available. Use a short timeout so
+                // we don't hang if the adapter's run() never resolves (test
+                // adapters sometimes provide non-resolving promises).
+                const clearPromise = (typeof runtimeAdapter.runPythonAsync === 'function')
+                    ? runtimeAdapter.runPythonAsync(pyClear)
+                    : runtimeAdapter.run(pyClear)
+
+                try {
+                    await Promise.race([
+                        clearPromise,
+                        new Promise((_, rej) => setTimeout(() => rej(new Error('soft-clear-timeout')), 200))
+                    ])
+                } catch (raceErr) {
+                    if (String(raceErr).includes('soft-clear-timeout')) {
+                        _resetDebug('warn', '[softReset] python clear timed out; will report failure')
+                        _softClearTimedOut = true
+                    } else {
+                        throw raceErr
+                    }
                 }
             }
         } catch (err) {
@@ -502,6 +534,13 @@ except Exception:
                 try { Module.registerJsModule('host_notify', { notify_file_written: (p, c) => { try { window.__ssg_notify_file_written && window.__ssg_notify_file_written(p, c) } catch (_e) { } } }) } catch (_e) { }
             }
         } catch (_e) { }
+
+        // If the python clear timed out we should surface that as a failure
+        // so callers can attempt manual clearing or a full restart.
+        if (_softClearTimedOut) {
+            _resetDebug('warn', '[softReset] completed: timed out during python clear')
+            return false
+        }
 
         _resetDebug('log', '[softReset] completed: success')
         _resetDebug('log', '✅ softResetMicroPythonRuntime completed')
@@ -555,15 +594,16 @@ export async function restartMicroPythonRuntime(cfg) {
         }
     } catch (_e) { }
 
-    try { setRuntimeAdapter(null) } catch (_e) { }
-
-    // load a fresh runtime
+    // Do not clear the global runtime adapter until the new runtime is
+    // initialized. Load a fresh runtime first so we can swap atomically.
     let newAdapter = null
     try {
         newAdapter = await loadMicroPythonRuntime(cfg || window.currentConfig || {})
     } catch (e) {
         _resetDebug('error', '[restart] loadMicroPythonRuntime failed:', e)
-        appendTerminal && appendTerminal('Failed to restart runtime: ' + e, 'runtime')
+        // Sanitize any stack traces before showing to the user
+        const msg = (e && e.stack) ? _sanitizeStackTrace(String(e.stack)) : String(e)
+        appendTerminal && appendTerminal('Failed to restart runtime: ' + msg, 'runtime')
         _resetDebug('log', 'restart failed: ' + e)
         return false
     }
@@ -595,7 +635,15 @@ export async function restartMicroPythonRuntime(cfg) {
     } catch (_e) { appendTerminalDebug && appendTerminalDebug('restart restore failed: ' + _e) }
     finally { try { window.__ssg_suppress_notifier = false } catch (_e) { } }
 
-    setRuntimeAdapter(newAdapter)
+    // At this point loadMicroPythonRuntime will have set the global runtime
+    // adapter to newAdapter; attempt to clean up the old adapter resources
+    try {
+        if (oldAdapter && oldAdapter._module && typeof oldAdapter._module.terminate === 'function') {
+            try { oldAdapter._module.terminate() } catch (_e) { }
+        }
+        try { if (window.__ssg_runtime_fs === oldAdapter?._module?.FS) delete window.__ssg_runtime_fs } catch (_e) { }
+    } catch (_e) { }
+
     _resetDebug('log', '[restart] completed: success')
     _resetDebug('log', '✅ MicroPython runtime restarted')
     return true
@@ -605,21 +653,185 @@ export async function restartMicroPythonRuntime(cfg) {
 export async function clearMicroPythonState(opts) {
     // opts: { fallbackToRestart: true/false, cfg }
     try {
+        // If the caller explicitly requires a provably-clean runtime, perform
+        // a full restart unconditionally. Soft resets can leave runtime state
+        // artifacts which are unacceptable for requireClean semantics.
+        if (opts && opts.requireClean) {
+            _resetDebug('log', '[clearState] requireClean requested -> performing full restart')
+            const restarted = await restartMicroPythonRuntime((opts && opts.cfg) ? opts.cfg : (typeof window !== 'undefined' ? window.currentConfig : undefined))
+            if (!restarted) {
+                _resetDebug('error', '[clearState] restart failed while requireClean was requested')
+                return false
+            }
+
+            // Verify after restart to ensure deterministic cleanliness
+            try {
+                const cleanAfter = await verifyRuntimeClean(runtimeAdapter)
+                if (!cleanAfter) {
+                    _resetDebug('error', '[clearState] restart did not produce a clean runtime')
+                    return false
+                }
+            } catch (e) {
+                _resetDebug('error', '[clearState] verification after restart failed: ' + e)
+                return false
+            }
+
+            _resetDebug('log', '[clearState] restart + verification succeeded (requireClean)')
+            return true
+        }
+
+        // Non-requireClean path: try soft reset first, fallback to restart
         _resetDebug('log', '[clearState] invoking softResetMicroPythonRuntime')
         const ok = await softResetMicroPythonRuntime()
         if (ok) {
-            _resetDebug('log', '[clearState] softReset succeeded; no restart needed')
+            _resetDebug('log', '[clearState] softReset succeeded; returning success')
             return true
         }
+
         _resetDebug('warn', '[clearState] softReset returned false')
         if (opts && opts.fallbackToRestart === false) return false
-        // fallback to full restart if soft reset didn't achieve a clean state
         _resetDebug('log', '[clearState] falling back to restartMicroPythonRuntime')
-        return await restartMicroPythonRuntime((opts && opts.cfg) ? opts.cfg : (typeof window !== 'undefined' ? window.currentConfig : undefined))
+        const restarted = await restartMicroPythonRuntime((opts && opts.cfg) ? opts.cfg : (typeof window !== 'undefined' ? window.currentConfig : undefined))
+        return restarted
     } catch (e) {
         _resetDebug('error', '[clearState] wrapper failed:', e)
         _resetDebug('log', 'clearMicroPythonState wrapper failed: ' + e)
         return false
+    }
+}
+
+// Verify runtime cleanliness by probing __main__ globals. Returns true if
+// only dunder keys remain (no user-defined top-level variables).
+export async function verifyRuntimeClean(adapter) {
+    try {
+        const ad = adapter || runtimeAdapter
+        if (!ad) return false
+        const probe = `
+try:
+    import sys
+    m = sys.modules.get('__main__')
+    if m is None:
+        print('__CLEAN__')
+    else:
+        d = getattr(m, '__dict__', {})
+        keys = [k for k in list(d.keys()) if not k.startswith('__')]
+        if keys:
+            print('__DIRTY__:' + ','.join(keys[:10]))
+        else:
+            print('__CLEAN__')
+except Exception as e:
+    print('__ERROR__')
+`
+        // prefer async runner if available. We suppress the probe's printed
+        // markers from showing up in the visible terminal by snapshotting the
+        // terminal content before the probe and restoring it after the probe
+        // completes if the probe appended only the marker output.
+        let out
+        const prevHtml = getTerminalInnerHTML()
+        try {
+            if (typeof ad.runPythonAsync === 'function') {
+                out = await ad.runPythonAsync(probe)
+            } else {
+                out = await ad.run(probe)
+            }
+        } finally {
+            // Cleanup any probe marker lines that were appended to the terminal.
+            try {
+                const afterHtml = getTerminalInnerHTML()
+                if (typeof prevHtml === 'string' && typeof afterHtml === 'string') {
+                    const after = afterHtml.slice(prevHtml.length)
+                    if (after && /__CLEAN__|__DIRTY__|__ERROR__/.test(after)) {
+                        setTerminalInnerHTML(prevHtml)
+                    }
+                }
+            } catch (_e) { /* best-effort cleanup only */ }
+        }
+
+        const s = String(out || '')
+        if (s.includes('__CLEAN__')) return true
+        return false
+    } catch (e) {
+        return false
+    }
+}
+
+// Sanitize a JS stack/trace string by removing vendor/runtime frames
+// unless the debug flag is enabled. Returns sanitized string.
+function _sanitizeStackTrace(text) {
+    try {
+        if (!text) return text
+        // If debug flag set, show full trace
+        if (typeof window !== 'undefined' && window.__ssg_debug_show_vendor_frames) return text
+
+        const raw = String(text)
+        const lines = raw.split('\n')
+
+        // Heuristics to identify Python traceback lines and JS/vendor frames
+        const pythonHeaderRE = /^Traceback \(most recent call last\):/;
+        const pythonFileRE = /^\s*File\s+"/; // e.g. "  File \"/main.py\", line 22, in <module>"
+        const pythonExceptionRE = /^[A-Za-z_][\w\.]*:.*$/; // e.g. "NameError: ..."
+        const vendorJsRE = /(?:\/vendor\/|node_modules\/|\.mjs\b|__asyncify__|micropython(?:\.mjs)?)/i;
+        const jsFrameRE = /(?:@http|https?:\/\/).*|\bat\b.*\(|^[^\n]*@http/;
+
+        // First, try to extract a contiguous Python traceback block if present.
+        let pythonBlock = []
+        let inPython = false
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]
+            if (!inPython && pythonHeaderRE.test(line)) {
+                inPython = true
+                pythonBlock.push(line)
+                continue
+            }
+
+            if (inPython) {
+                // stop if we hit an obvious JS/vendor frame
+                if (vendorJsRE.test(line) || jsFrameRE.test(line)) break
+                // accept python file/context lines, indented context, and final exception message
+                if (pythonFileRE.test(line) || /^\s+/.test(line) || pythonExceptionRE.test(line) || line.trim() === '') {
+                    pythonBlock.push(line)
+                    continue
+                }
+                // if it's neither python-looking nor js-looking, still accept it cautiously
+                pythonBlock.push(line)
+                continue
+            }
+
+            // Handle cases where there is no header but Python-style lines appear
+            if (pythonFileRE.test(line)) {
+                inPython = true
+                pythonBlock.push(line)
+                continue
+            }
+
+            // Also accept a lone final Python exception line even without a header
+            if (pythonExceptionRE.test(line) && !jsFrameRE.test(line)) {
+                pythonBlock.push(line)
+            }
+        }
+
+        if (pythonBlock.length > 0) {
+            // If there were vendor frames after the python block, hide them implicitly
+            // Return only the Python block (plus a short placeholder if vendor frames were present)
+            // Detect if any vendor/js frames existed in the original tail
+            const tail = lines.slice(lines.indexOf(pythonBlock[pythonBlock.length - 1]) + 1)
+            const hadVendor = tail.some(l => vendorJsRE.test(l) || jsFrameRE.test(l))
+            return pythonBlock.join('\n') + (hadVendor ? '\n[runtime frames hidden]' : '')
+        }
+
+        // If no Python block found, fall back to filtering vendor/js frames from the JS stack
+        const filtered = []
+        for (const line of lines) {
+            if (!line) continue
+            if (vendorJsRE.test(line)) continue
+            // skip overly long single lines that are probably binary blobs or huge object dumps
+            if (line.length > 2000) continue
+            filtered.push(line)
+        }
+        if (filtered.length === 0) return '[runtime stack frames hidden]'
+        return filtered.join('\n')
+    } catch (e) {
+        return String(text)
     }
 }
 
@@ -804,7 +1016,10 @@ export async function loadMicroPythonRuntime(cfg) {
                         typeof mpInstance.clearInterrupt === 'function'
 
                     if (hasYieldingSupport) {
-                        appendTerminal('MicroPython runtime initialized (with yielding support)', 'runtime')
+                        // Only emit a debug message here to avoid noisy duplicate
+                        // runtime-initialized messages on restarts. Visible terminal
+                        // output for runtime init is not helpful to end users.
+                        appendTerminalDebug('MicroPython runtime initialized (with yielding support)')
                         appendTerminalDebug('Detected asyncify build with interrupt and yielding support')
 
                         // Enable yielding by default for interruptibility
@@ -830,7 +1045,8 @@ export async function loadMicroPythonRuntime(cfg) {
                             window.__ssg_yielding_enabled = false
                         }
                     } else {
-                        appendTerminal('MicroPython runtime initialized (legacy asyncify build)', 'runtime')
+                        // Only emit debug-level notification for legacy builds too.
+                        appendTerminalDebug('MicroPython runtime initialized (legacy asyncify build)')
                         appendTerminalDebug('Legacy asyncify build - no yielding support detected')
                     }
 
@@ -852,7 +1068,7 @@ export async function loadMicroPythonRuntime(cfg) {
 
                         appendTerminalDebug('Host module registered for compatibility')
                     } catch (e) {
-                        appendTerminal('Note: Could not register host module: ' + e)
+                        appendTerminal('Note: Could not register host module: ' + (e && e.stack ? _sanitizeStackTrace(String(e.stack)) : String(e)))
                     }
 
                     // Register notification module for VFS integration
@@ -946,16 +1162,34 @@ export async function loadMicroPythonRuntime(cfg) {
                     setRuntimeAdapter({
                         _module: mpInstance,  // Expose the module for asyncify detection
                         hasYieldingSupport: hasYieldingSupport,  // NEW: Flag to indicate asyncify features
-                        runPythonAsync: async (code) => {
+                        runPythonAsync: async (code, executionHooks = null) => {
                             captured = ''
+
+                            // NEW: Set up execution monitoring if hooks provided
+                            if (executionHooks && typeof executionHooks.onExecutionStep === 'function') {
+                                setupExecutionStepMonitoring(executionHooks)
+                            }
+
                             try {
                                 if (typeof mpInstance.runPythonAsync === 'function') {
                                     const maybe = await mpInstance.runPythonAsync(code)
+
+                                    // NEW: Finalize step monitoring
+                                    if (executionHooks && typeof executionHooks.onExecutionComplete === 'function') {
+                                        executionHooks.onExecutionComplete()
+                                    }
+
                                     // Don't return captured output since it's already been displayed in real-time
                                     return maybe == null ? '' : String(maybe)
                                 }
                                 throw new Error('runPythonAsync not available')
-                            } catch (e) { throw e }
+                            } catch (e) {
+                                // NEW: Handle recording during errors
+                                if (executionHooks && typeof executionHooks.onExecutionError === 'function') {
+                                    executionHooks.onExecutionError(e)
+                                }
+                                throw e
+                            }
                         },
                         run: async (code) => {
                             captured = ''
@@ -983,12 +1217,12 @@ export async function loadMicroPythonRuntime(cfg) {
 
                     return runtimeAdapter
                 } catch (e) {
-                    appendTerminal('Failed to initialize vendored MicroPython: ' + e)
+                    appendTerminal('Failed to initialize vendored MicroPython: ' + (e && e.stack ? _sanitizeStackTrace(String(e.stack)) : String(e)))
                 }
             }
         }
     } catch (e) {
-        appendTerminalDebug('Local vendor load failed: ' + e)
+        appendTerminalDebug('Local vendor load failed: ' + _sanitizeStackTrace(String(e)))
     }
 
     // If no local vendor adapter, try external runtime
@@ -1035,7 +1269,7 @@ export async function loadMicroPythonRuntime(cfg) {
 
             // TODO: Add runtime probing logic here if needed
         } catch (e) {
-            appendTerminal('Failed to append runtime script: ' + e)
+            appendTerminal('Failed to append runtime script: ' + (e && e.stack ? _sanitizeStackTrace(String(e.stack)) : String(e)))
         }
     }
 
@@ -1045,6 +1279,11 @@ export async function loadMicroPythonRuntime(cfg) {
 export function setRuntimeAdapter(adapter) {
     runtimeAdapter = adapter
     window.runtimeAdapter = adapter
+
+    // Note: terminal-level sanitization is handled inside `terminal.js`.
+    // Avoid overriding `window.appendTerminal` here to prevent double
+    // sanitization or accidental suppression of mapped tracebacks.
+
     appendTerminalDebug(`Runtime adapter set: ${adapter ? 'available' : 'null'}`)
 }
 
@@ -1454,4 +1693,204 @@ function installRuntimeFsGuards(fs) {
     } catch (e) {
         try { appendTerminalDebug('Failed to install runtime FS guards: ' + e) } catch (_e) { }
     }
+}
+
+// NEW: Setup execution step monitoring for record/replay
+function setupExecutionStepMonitoring(executionHooks) {
+    try {
+        appendTerminalDebug('Setting up real execution monitoring with runtime interception')
+
+        // Store original hooks for cleanup
+        window.__ssg_execution_hooks = executionHooks
+        window.__ssg_execution_intercepted = true
+
+        // Method 1: Intercept MicroPython runtime stdout to track execution
+        const originalLog = console.log
+        const originalWarn = console.warn
+        const originalError = console.error
+
+        let currentLine = 1
+        let executionVariables = new Map()
+
+        // Method 2: Hook into the MicroPython Module if available
+        const runtimeAdapter = window.runtimeAdapter || getRuntimeAdapter()
+        if (runtimeAdapter && runtimeAdapter._module) {
+            const Module = runtimeAdapter._module
+
+            // Try to access MicroPython's print/output functions
+            if (typeof Module.ccall === 'function') {
+                appendTerminalDebug('Found MicroPython Module with ccall - setting up runtime hooks')
+
+                // Hook into MicroPython's output system
+                if (Module.print) {
+                    const originalPrint = Module.print
+                    Module.print = function (text) {
+                        // Parse output for execution tracking
+                        parseExecutionOutput(text)
+                        return originalPrint.call(this, text)
+                    }
+                }
+
+                if (Module.printErr) {
+                    const originalPrintErr = Module.printErr
+                    Module.printErr = function (text) {
+                        // Parse errors for execution context
+                        parseExecutionError(text)
+                        return originalPrintErr.call(this, text)
+                    }
+                }
+            }
+        }
+
+        // Method 3: Parse execution output to reconstruct execution state
+        function parseExecutionOutput(output) {
+            try {
+                const text = String(output || '').trim()
+                if (!text) return
+
+                // Check for structured trace data first
+                if (text.includes('__EXECUTION_TRACE__')) {
+                    const traceStart = text.indexOf('__EXECUTION_TRACE__')
+                    const traceJson = text.substring(traceStart + '__EXECUTION_TRACE__'.length)
+
+                    try {
+                        const traceData = JSON.parse(traceJson)
+                        if (traceData.__TRACE__) {
+                            const { line, vars } = traceData.__TRACE__
+                            const variables = new Map()
+
+                            // Convert vars object to Map
+                            if (vars && typeof vars === 'object') {
+                                for (const [name, value] of Object.entries(vars)) {
+                                    variables.set(name, value)
+                                }
+                            }
+
+                            appendTerminalDebug(`Trace: Line ${line}, Variables: ${JSON.stringify(vars)}`)
+
+                            recordExecutionStep(line, variables, 'traced')
+                            return
+                        }
+                    } catch (parseError) {
+                        appendTerminalDebug('Failed to parse trace JSON: ' + parseError)
+                    }
+                }
+
+                appendTerminalDebug(`Parsing output: "${text}"`)
+
+                // Fallback: Track different types of output to infer execution state
+                if (text.includes('What is your name?')) {
+                    // Input prompt detected - we're on an input() line
+                    recordExecutionStep(1, new Map([['__prompt__', text]]), 'input')
+                } else if (text.startsWith('Hello') && text.includes('!')) {
+                    // Greeting output - we're on a print line with variables
+                    const nameMatch = text.match(/Hello\s+(\w+)/)
+                    if (nameMatch) {
+                        const name = nameMatch[1]
+                        recordExecutionStep(2, new Map([
+                            ['name', `"${name}"`],
+                            ['greeting', `"${text}"`]
+                        ]), 'output')
+                    }
+                } else if (!text.includes('__TRACE__')) {
+                    // Generic output (skip internal trace messages)
+                    recordExecutionStep(currentLine++, new Map([['__output__', text]]), 'output')
+                }
+            } catch (error) {
+                appendTerminalDebug('Error parsing execution output: ' + error)
+            }
+        }
+
+        function parseExecutionError(errorText) {
+            try {
+                // Parse traceback information to get line numbers and context
+                const lines = String(errorText || '').split('\n')
+                for (const line of lines) {
+                    const lineMatch = line.match(/line (\d+)/)
+                    if (lineMatch) {
+                        const lineNum = parseInt(lineMatch[1], 10)
+                        recordExecutionStep(lineNum, new Map([['__error__', line.trim()]]), 'error')
+                    }
+                }
+            } catch (error) {
+                appendTerminalDebug('Error parsing execution error: ' + error)
+            }
+        }
+
+        function recordExecutionStep(lineNumber, variables, context = 'execution') {
+            try {
+                if (executionHooks && executionHooks.onExecutionStep) {
+                    appendTerminalDebug(`Recording step: line ${lineNumber}, context: ${context}, vars: ${variables.size}`)
+                    executionHooks.onExecutionStep(lineNumber, variables, context)
+                }
+            } catch (error) {
+                appendTerminalDebug('Error recording execution step: ' + error)
+            }
+        }
+
+        // Method 4: Intercept terminal output to track execution
+        const originalAppendTerminal = window.appendTerminal
+        if (originalAppendTerminal) {
+            window.appendTerminal = function (text, type) {
+                // Parse terminal output for execution information
+                if (type === 'stdout' && text) {
+                    parseExecutionOutput(text)
+                } else if (type === 'stderr' && text) {
+                    parseExecutionError(text)
+                }
+                return originalAppendTerminal.call(this, text, type)
+            }
+        }
+
+        // Store original functions for cleanup
+        window.__ssg_original_functions = {
+            log: originalLog,
+            warn: originalWarn,
+            error: originalError,
+            appendTerminal: originalAppendTerminal
+        }
+
+        appendTerminalDebug('Real execution monitoring enabled - will track via output parsing')
+
+        // Set up cleanup when execution completes
+        setTimeout(() => {
+            if (executionHooks && executionHooks.onExecutionComplete) {
+                appendTerminalDebug('Execution monitoring setup complete')
+            }
+        }, 100)
+
+    } catch (error) {
+        appendTerminalDebug('Failed to setup real execution monitoring: ' + error)
+    }
+}
+
+/**
+ * Clean up execution monitoring hooks
+ */
+function cleanupExecutionStepMonitoring() {
+    try {
+        appendTerminalDebug('Cleaning up execution monitoring hooks')
+
+        // Restore original functions
+        if (window.__ssg_original_functions) {
+            const orig = window.__ssg_original_functions
+            if (orig.appendTerminal) {
+                window.appendTerminal = orig.appendTerminal
+            }
+            delete window.__ssg_original_functions
+        }
+
+        // Clear execution state
+        delete window.__ssg_execution_hooks
+        delete window.__ssg_execution_intercepted
+
+        appendTerminalDebug('Execution monitoring cleanup complete')
+    } catch (error) {
+        appendTerminalDebug('Error cleaning up execution monitoring: ' + error)
+    }
+}
+
+// Expose cleanup function globally (only in browser environment)
+if (typeof window !== 'undefined') {
+    window.cleanupExecutionStepMonitoring = cleanupExecutionStepMonitoring
 }

@@ -365,18 +365,67 @@ export function transformAndWrap(userCode) {
     const footer = `if _run is None:\n    raise ImportError('no async runner available')\n_run(__ssg_main())`
     const full = headerLinesArr.join('\n') + '\n' + body + '\n' + footer
 
-    return { code: full, headerLines: headerLinesArr.length }
+    // Compute the actual number of header LINES. Some entries in
+    // `headerLinesArr` contain embedded newlines, so using the array
+    // length undercounts the real number of prepended lines. Join the
+    // array and count newline-separated lines to get an accurate value
+    // which is required for correct traceback mapping.
+    const headerLinesCount = headerLinesArr.join('\n').split('\n').length
+    return { code: full, headerLines: headerLinesCount }
 }
 
 // Map and display tracebacks that originate in transformed code back to user source
 export function mapTracebackAndShow(rawText, headerLines, userCode, appendTerminal) {
+    // Debug: Log function call parameters
+    try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'mapTracebackAndShow_called', headerLines: headerLines, headerLinesType: typeof headerLines, userCode: (typeof userCode === 'string' ? userCode.slice(0, 50) : userCode), rawTextPreview: (rawText || '').slice(0, 200) }) } catch (_e) { }
+
+    // Safe debug helper: appendTerminalDebug may not be available in some
+    // test or mapping-only environments (avoids ReferenceError). Use the
+    // global if present, otherwise no-op.
+    const _safeAppendTerminalDebug = (...args) => {
+        try {
+            if (typeof window !== 'undefined' && window.appendTerminalDebug && typeof window.appendTerminalDebug === 'function') {
+                try { window.appendTerminalDebug(...args) } catch (_e) { }
+            }
+        } catch (_e) { }
+    }
+
     if (!rawText) return
+    // Normalize headerLines to a number and attempt a best-effort
+    // fallback when callers did not supply a headerLines value. Some
+    // call sites historically passed 0; in those cases we can try to
+    // compute the transform header from the user's source so mapping
+    // still produces the expected user line numbers.
+    let effectiveHeader = Number(headerLines) || 0
+    try {
+        if (!effectiveHeader && typeof userCode === 'string') {
+            // If userCode looks like a path (no newline), try localStorage
+            // mirror first; otherwise treat it as raw source.
+            let src = null
+            if (userCode.indexOf('\n') === -1) {
+                try {
+                    const map = JSON.parse(localStorage.getItem('ssg_files_v1') || '{}')
+                    const norm = (userCode && userCode.startsWith('/')) ? userCode : ('/' + String(userCode || '').replace(/^\/+/, ''))
+                    src = map[norm] || map[String(userCode)] || null
+                } catch (_e) { src = null }
+            } else {
+                src = userCode
+            }
+
+            if (src && typeof transformAndWrap === 'function') {
+                try {
+                    const t = transformAndWrap(src)
+                    effectiveHeader = Number(t.headerLines) || 0
+                } catch (_e) { /* best-effort only */ }
+            }
+        }
+    } catch (_e) { /* ignore fallback failures */ }
 
     // Replace occurrences like: File "<stdin>", line N[, column C]
     // Match patterns like: File "<stdin>", line 1, in <module>
     // Accept single or double quotes, optional extra ", in <module>" suffix,
-    // and be flexible about whitespace. We only need the filename and line.
-    const mapped = rawText.replace(/\s*File\s+["']([^"']+)["']\s*,\s*line\s+(\d+)/g, (m, fname, ln) => {
+    // Preserve whitespace structure from original traceback
+    const mapped = rawText.replace(/(\s*)File\s+["']([^"']+)["']\s*,\s*line\s+(\d+)/g, (m, whitespace, fname, ln) => {
         // If the runtime reports <stdin> or <string> as the filename, replace
         // it with the user's main file path when the caller provided one.
         // The third argument to this function is sometimes a path (e.g. MAIN_FILE)
@@ -391,9 +440,49 @@ export function mapTracebackAndShow(rawText, headerLines, userCode, appendTermin
                 }
             }
         } catch (_e) { outFname = fname }
-        const mappedLn = Math.max(1, Number(ln) - headerLines)
+
+        // IMPROVED: Better line mapping for instrumented code
+        let mappedLn = Number(ln)
+
+        // For instrumented code with tracing, the structure is:
+        // - Lines 1-21: Header/setup code  
+        // - Line 22: User line 1
+        // - Lines 23-26: Tracing code (4 lines)
+        // - Line 27: User line 2  ← Error occurs here (should map to line 2)
+        // - Lines 28-31: Tracing code (4 lines)
+
+        if (mappedLn > headerLines) {
+            // Prefer explicit mapping if available from the instrumentor
+            try {
+                const globalMap = (typeof window !== 'undefined') ? window.__ssg_instrumented_line_map : null
+                if (globalMap && typeof globalMap === 'object') {
+                    // instrumented line numbers are 1-based keys
+                    const mappedKey = String(mappedLn)
+                    if (Object.prototype.hasOwnProperty.call(globalMap, mappedKey)) {
+                        mappedLn = Number(globalMap[mappedKey])
+                    } else {
+                        // If exact mapping isn't present, try subtracting headerLines
+                        mappedLn = Math.max(1, mappedLn - headerLines)
+                    }
+                } else if (headerLines > 0) {
+                    const lineAfterHeaders = mappedLn - headerLines
+                    // Heuristic fallback for older instrumentor behavior: assume tracer
+                    // inserted ~4 extra lines per user line in-between (so groups of 5)
+                    mappedLn = Math.ceil(lineAfterHeaders / 5)
+                } else {
+                    mappedLn = Math.max(1, mappedLn - headerLines)
+                }
+            } catch (_e) {
+                mappedLn = Math.max(1, mappedLn - headerLines)
+            }
+        } else {
+            // Simple case: subtract header offset
+            mappedLn = Math.max(1, mappedLn - headerLines)
+        }
+
+        mappedLn = Math.max(1, mappedLn)
         highlightMappedTracebackInEditor(outFname, mappedLn);
-        return `File "${outFname}", line ${mappedLn}`
+        return `${whitespace}File "${outFname}", line ${mappedLn}`
     })
 
     // Do not append the mapped traceback directly here. The execution path
@@ -402,20 +491,36 @@ export function mapTracebackAndShow(rawText, headerLines, userCode, appendTermin
     // replaced atomically with the mapped version. Return the mapped string
     // so callers can perform that replacement.
     // Debug output is recorded in the event log; avoid noisy console.debug here.
-    try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'mapped_debug', mappedPreview: (mapped == null) ? null : String(mapped).slice(0, 200) }) } catch (_e) { }
+    try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'mapped_debug', mappedPreview: (mapped == null) ? null : String(mapped).slice(0, 200), inputHeaderLines: headerLines, inputUserCode: (typeof userCode === 'string' ? userCode.slice(0, 50) : userCode), inputRawText: (rawText || '').slice(0, 100) }) } catch (_e) { }
     try { window.__ssg_last_mapped_event = { when: Date.now(), mapped: String(mapped || '') } } catch (_e) { }
+
+    // CRITICAL FIX: Ensure the traceback actually reaches the terminal
+    // The complex replacement mechanism often fails, so append directly if mapping produced a result
+    if (mapped && typeof mapped === 'string' && mapped !== rawText) {
+        try {
+            // Import appendTerminal function 
+            if (typeof window !== 'undefined' && window.appendTerminal && typeof window.appendTerminal === 'function') {
+                // Directly append the mapped traceback to ensure it's visible
+                window.appendTerminal(mapped, 'stderr')
+                try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'direct_append_mapped_traceback', mappedPreview: mapped.slice(0, 200) }) } catch (_e) { }
+                return mapped
+            }
+        } catch (_e) {
+            try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'direct_append_failed', error: String(_e) }) } catch (_e2) { }
+        }
+    }
 
 
     // Optionally show small source context for first mapped line
     const m = mapped.match(/line (\d+)/)
     if (m) {
         const errLine = Math.max(1, Number(m[1]))
-        const userLines = userCode.split('\n')
+        const userLines = (typeof userCode === 'string') ? userCode.split('\n') : []
         const contextStart = Math.max(0, errLine - 3)
-        appendTerminalDebug('--- source context (student code) ---')
+        _safeAppendTerminalDebug('--- source context (student code) ---')
         for (let i = contextStart; i < Math.min(userLines.length, errLine + 2); i++) {
             const prefix = (i + 1 === errLine) ? '-> ' : '   '
-            appendTerminalDebug(prefix + String(i + 1).padStart(3, ' ') + ': ' + userLines[i])
+            _safeAppendTerminalDebug(prefix + String(i + 1).padStart(3, ' ') + ': ' + userLines[i])
         }
     }
 

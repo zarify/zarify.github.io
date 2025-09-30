@@ -14,6 +14,90 @@
     --text: #111;
     --text-disabled: #666;
     --text-error: #b00020;
+    --replay-bg: #fff3cd;
+    --replay-border: #ffc107;
+}
+
+/* NEW: Replay controls styling */
+.replay-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: var(--replay-bg);
+
+    border-radius: 0.25rem;
+    border: 1px solid var(--replay-border);
+}
+
+.replay-scrubber {
+    flex: 1;
+    min-width: 100px;
+    margin: 0 0.5rem;
+}
+
+.execution-current {
+
+    background-color: var(--replay-bg) !important;
+    /* Use an inset box-shadow instead of border-left so adding the
+       decoration doesn't change element width or cause horizontal
+       layout shifts. Visual appearance matches a left accent. */
+    box-shadow: inset 4px 0 0 var(--replay-border) !important;
+    /* Ensure the element doesn't accidentally overflow due to older box-sizing
+       rules elsewhere. */
+    box-sizing: border-box;
+}
+
+
+.variable-display {
+    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+    font-size: 0.85em;
+
+    background-color: #e9ecef;
+    padding: 0.25rem 0.5rem;
+    margin: 0.25rem 0;
+    border-radius: 0.125rem;
+    color: #495057;
+    /* Use inset box-shadow instead of border-left so the element doesn't
+
+       change layout width when added as a line widget. Also constrain
+       width and allow wrapping so long variable strings don't force
+       wider editor widths. */
+    box-shadow: inset 3px 0 0 #6c757d;
+    box-sizing: border-box;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* CodeMirror line widgets (added via addLineWidget) should not expand
+   the editor width. Constrain them to the editor width and allow internal
+   content to wrap or scroll locally. */
+.CodeMirror .CodeMirror-linewidget {
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+    /* allow horizontal scroll inside widget if necessary */
+    overflow-y: visible;
+}
+
+.CodeMirror .CodeMirror-linewidget .variable-display,
+.CodeMirror .CodeMirror-linewidget>div {
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.replay-mode .CodeMirror {
+    opacity: 0.8;
+}
+
+.replay-mode .CodeMirror-scroll {
+    pointer-events: none;
 }
 
 body {
@@ -719,8 +803,9 @@ textarea#code {
 /* Feedback click-to-highlight style (friendlier and more obvious) */
 .cm-feedback-line {
     background: linear-gradient(90deg, rgba(198, 255, 208, 0.18), rgba(198, 255, 208, 0.08)) !important;
-    border-left: 4px solid rgba(34, 197, 94, 0.9) !important;
-    box-shadow: 0 2px 6px rgba(34, 197, 94, 0.06) inset;
+    /* Use inset box-shadow to create a left accent without affecting layout width */
+    box-shadow: inset 4px 0 0 rgba(34, 197, 94, 0.9), 0 2px 6px rgba(34, 197, 94, 0.06) inset;
+    box-sizing: border-box;
 }
 
 /* Side tab UI */

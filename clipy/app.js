@@ -41,6 +41,10 @@ import { showStorageInfo } from './js/storage-manager.js'
 import { resetFeedback, evaluateFeedbackOnEdit, evaluateFeedbackOnRun, on as feedbackOn, off as feedbackOff } from './js/feedback.js'
 import { initializeFeedbackUI, setFeedbackMatches, setFeedbackConfig } from './js/feedback-ui.js'
 
+// Record/Replay debugging system
+import { initializeExecutionRecorder } from './js/execution-recorder.js'
+import { initializeReplaySystem } from './js/replay-ui.js'
+
 // Startup debug helper - enable by setting `window.__ssg_debug_startup = true`
 try {
     if (typeof window !== 'undefined') {
@@ -796,6 +800,15 @@ async function main() {
         setupStopButton()
         setupKeyboardInterrupt()
 
+        // 7.5. Initialize record/replay debugging system
+        try {
+            initializeExecutionRecorder()
+            initializeReplaySystem()
+            logInfo('Record/replay system initialized')
+        } catch (e) {
+            logWarn('Failed to initialize record/replay system:', e)
+        }
+
         // 8. Setup input handling
         setupInputHandling()
 
@@ -919,12 +932,14 @@ async function main() {
 
                 // Get the main file content and run it
                 const code = FileManager.read(MAIN_FILE) || ''
+                // Get current config for execution
+                const currentConfig = (window.Config && window.Config.current) ? window.Config.current : {}
                 // DEBUG: print tests shapes so we can see ast rule presence
                 try {
                     const summary = (tests || []).map(t => ({ id: t && t.id, type: t && t.type, keys: Object.keys(t || {}) }))
                     logDebug('[app] running tests summary:', JSON.stringify(summary, null, 2))
                 } catch (_e) { }
-                await runPythonCode(code, cfg)
+                await runPythonCode(code, currentConfig)
             })
         }
 
@@ -1071,6 +1086,12 @@ async function main() {
                     // Make config globally available for read-only checks
                     window.currentConfig = newCfg
                 } catch (_e) { try { window.Config = window.Config || {}; window.Config.current = newCfg } catch (_e2) { } }
+
+                // Reconfigure execution recorder with new config
+                try {
+                    const { configureExecutionRecorder } = await import('./js/execution-recorder.js')
+                    configureExecutionRecorder(newCfg)
+                } catch (_e) { }
 
                 // Try to restore the latest snapshot for this NEW config (if compatible).
                 // For explicit Reset operations we skip restoring snapshots so the

@@ -1,0 +1,11 @@
+{
+    "id": "replay-test",
+    "title": "Record/Replay Test",
+    "version": "1.0",
+    "description": "Test configuration for record/replay debugging feature",
+    "instructions": "Test the record/replay feature by running some Python code and then using the replay controls.",
+    "starter": "x = 42\ny = \"hello\"\nz = x + len(y)\nprint(f\"Result: {z}\")\n",
+    "features": {
+        "recordReplay": true
+    }
+}

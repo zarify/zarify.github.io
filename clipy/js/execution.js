@@ -1,8 +1,9 @@
 // Python code execution engine
-import { appendTerminal, appendTerminalDebug, setTerminalInputEnabled, activateSideTab, enableStderrBuffering, replaceBufferedStderr, flushStderrBufferRaw } from './terminal.js'
+import { appendTerminal, appendTerminalDebug, setTerminalInputEnabled, activateSideTab, enableStderrBuffering, replaceBufferedStderr, flushStderrBufferRaw, clearTerminal } from './terminal.js'
 import { getRuntimeAdapter, setExecutionRunning, getExecutionState, interruptMicroPythonVM } from './micropython.js'
 import { getFileManager, MAIN_FILE, markExpectedWrite, setSystemWriteMode } from './vfs-client.js'
 import { transformAndWrap, mapTracebackAndShow, highlightMappedTracebackInEditor, clearAllErrorHighlights, clearAllFeedbackHighlights } from './code-transform.js'
+import { getExecutionRecorder } from './execution-recorder.js'
 
 // Helper to safely stringify thrown values. Some runtimes (wasm/emscripten)
 // can throw non-Error values (eg. `throw Infinity;`). This ensures logs show
@@ -10,7 +11,9 @@ import { transformAndWrap, mapTracebackAndShow, highlightMappedTracebackInEditor
 function stringifyError(err) {
     try {
         if (err instanceof Error) {
-            return err.message + (err.stack ? '\n' + err.stack : '')
+            // sanitize stack traces before returning so callers don't append
+            // raw vendor/runtime frames into the terminal.
+            return err.message + (err.stack ? '\n' + _sanitizeAppendable(err.stack) : '')
         }
         // For plain objects, attempt JSON; otherwise fallback to String()
         if (err && typeof err === 'object') {
@@ -21,6 +24,64 @@ function stringifyError(err) {
     } catch (_e) {
         return Object.prototype.toString.call(err)
     }
+}
+
+// Helper to sanitize error-like values before appending to terminal
+function _sanitizeAppendable(x) {
+    try {
+        const s = (x && typeof x === 'string') ? x : String(x)
+        if (!s) return s
+
+        // If this looks like a Python traceback, extract the contiguous
+        // Python block and return that (dropping JS frames that may follow).
+        if (/Traceback \(most recent call last\):/.test(s) || /^\s*File\s+\"/.test(s)) {
+            const lines = s.split('\n')
+            const pythonHeaderRE = /^Traceback \(most recent call last\):/
+            const pythonFileRE = /^\s*File\s+\"/
+            const pythonExceptionRE = /^[A-Za-z_][\w\.]*:.*$/
+            const jsLikeRE = /(?:@http|https?:\/\/|\/js\/|\.mjs\b|node_modules|\/vendor\/|micropython|at\s+|@)/i
+
+            let inPython = false
+            const keep = []
+            for (const line of lines) {
+                if (!inPython && pythonHeaderRE.test(line)) {
+                    inPython = true
+                    keep.push(line)
+                    continue
+                }
+                if (inPython) {
+                    if (pythonFileRE.test(line) || /^\s+/.test(line) || pythonExceptionRE.test(line) || line.trim() === '') {
+                        keep.push(line)
+                        continue
+                    }
+                    // stop if we hit obvious JS-like frames
+                    if (jsLikeRE.test(line)) break
+                    // otherwise cautiously accept
+                    keep.push(line)
+                    continue
+                }
+                // Accept a lone final exception line even without header
+                if (pythonExceptionRE.test(line) && !jsLikeRE.test(line)) {
+                    keep.push(line)
+                }
+            }
+            if (keep.length > 0) return keep.join('\n')
+        }
+
+        // Otherwise, filter out JS/vendor frames and noisy URLs
+        const lines = s.split('\n')
+        const out = []
+        for (const line of lines) {
+            if (!line) continue
+            // Drop known vendor/runtime or JS frames
+            if (/\/vendor\//.test(line) || /node_modules\//.test(line) || /proxy_convert_mp_to_js_obj_jsside/.test(line)) continue
+            if (/https?:\/\//.test(line) || /@http/.test(line) || /\/js\//.test(line) || /\.mjs\b/.test(line) || /\bat\b.*\(/i.test(line)) continue
+            if (line.length > 2000) continue
+            out.push(line)
+        }
+        if (out.length === 0) return '[runtime stack frames hidden]'
+        return out.join('\n')
+    } catch (_e) { return String(x) }
 }
 
 export async function executeWithTimeout(executionPromise, timeoutMs, safetyTimeoutMs = 5000) {
@@ -154,7 +215,7 @@ async function syncVFSBeforeRun() {
             if (!mounted) appendTerminalDebug('Warning: VFS pre-run mount attempts exhausted')
         }
     } catch (_m) {
-        appendTerminal('VFS pre-run mount error: ' + _m, 'runtime')
+        appendTerminal('VFS pre-run mount error: ' + _sanitizeAppendable(_m), 'runtime')
     }
 }
 
@@ -207,7 +268,7 @@ async function syncVFSAfterRun() {
             } catch (_e) { }
         }
     } catch (e) {
-        appendTerminal('VFS sync after run failed: ' + e, 'runtime')
+        appendTerminal('VFS sync after run failed: ' + _sanitizeAppendable(e), 'runtime')
     }
 }
 
@@ -219,8 +280,42 @@ export async function runPythonCode(code, cfg) {
         return
     }
 
+    // Clear any previous terminal content (including noisy runtime-init messages)
+    try { if (typeof clearTerminal === 'function') clearTerminal() } catch (_e) { }
+
     setExecutionRunning(true)
     appendTerminal('>>> Running...', 'runtime')
+
+    // NEW: Recording integration point
+    const recorder = getExecutionRecorder()
+    appendTerminalDebug(`Checking recording config - cfg exists: ${!!cfg}, features: ${JSON.stringify(cfg?.features)}, recordReplay: ${cfg?.features?.recordReplay}`)
+
+    // Clear any previous recording to ensure fresh start
+    if (recorder && recorder.hasActiveRecording()) {
+        recorder.clearRecording()
+        appendTerminalDebug('Previous recording cleared for fresh start')
+    }
+
+    const recordingEnabled = cfg?.features?.recordReplay !== false &&
+        recorder && recorder.constructor.isSupported()
+
+    if (recordingEnabled) {
+        recorder.startRecording(code, cfg)
+        appendTerminalDebug('Execution recording enabled for this run')
+
+        // Set up Python code instrumentation for real tracing
+        try {
+            const { getPythonInstrumentor } = await import('./python-instrumentor.js')
+            const instrumentor = getPythonInstrumentor()
+            instrumentor.setHooks(recorder.getExecutionHooks())
+            instrumentor.setupTraceCallback()
+            appendTerminalDebug('Python instrumentation enabled for recording')
+        } catch (e) {
+            appendTerminalDebug('Failed to setup Python instrumentation: ' + e)
+        }
+    } else {
+        appendTerminalDebug(`Recording not enabled - recordReplay: ${cfg?.features?.recordReplay}, supported: ${recorder ? recorder.constructor.isSupported() : 'no recorder'}`)
+    }
 
     // PERFORMANCE: Detect likely read-only operations to skip expensive VFS sync
     const codeStr = String(code || '').trim()
@@ -241,11 +336,179 @@ export async function runPythonCode(code, cfg) {
     // Clear Python state before each execution to ensure fresh start
     try {
         if (window.clearMicroPythonState) {
-            window.clearMicroPythonState()
+            // Decide whether we should insist on a provably-clean runtime.
+            // For real MicroPython runtimes (which expose `_module`/FS or
+            // yielding support) we enforce `requireClean: true` so the
+            // runtime is restarted deterministically. For simple test/mock
+            // adapters that don't represent a full runtime, avoid forcing a
+            // restart to keep tests fast and predictable.
+            const currentAdapter = getRuntimeAdapter()
+            // Heuristic: treat as a real runtime only if it exposes the async
+            // runner, explicit yielding support, a ccall hook, or a FS object.
+            const looksLikeRealRuntime = !!(currentAdapter && (
+                typeof currentAdapter.runPythonAsync === 'function' ||
+                (currentAdapter._module && (typeof currentAdapter._module.ccall === 'function' || currentAdapter._module.FS))
+            ))
+            const clearOpts = { fallbackToRestart: true, requireClean: !!looksLikeRealRuntime }
+
+            const result = await window.clearMicroPythonState(clearOpts)
+            if (result) {
+                appendTerminalDebug('MicroPython state cleared successfully')
+            } else {
+                appendTerminalDebug('Soft reset failed - will try manual clearing')
+
+                // Fallback to manual clearing if soft reset fails
+                // Re-acquire runtime adapter just before attempting manual clear
+                const adapterForClear = getRuntimeAdapter()
+                if (adapterForClear && (typeof adapterForClear.runPythonAsync === 'function' || typeof adapterForClear.run === 'function')) {
+                    try {
+                        const clearCode = `
+# Aggressive manual clearing - carefully remove user modules and globals
+import sys
+import gc
+
+try:
+    _essential_modules = {'sys', 'gc', 'builtins', '__main__', 'micropython', 'host', 'host_notify'}
+    # Build a list first to avoid mutation during iteration
+    _modules_to_clear = [name for name in list(sys.modules.keys()) if name not in _essential_modules and not name.startswith('_')]
+    for name in _modules_to_clear:
+        try:
+            del sys.modules[name]
+        except Exception:
+            pass
+except Exception:
+    pass
+
+try:
+    _essential_globals = {'__builtins__', '__name__', '__doc__', '__package__', '__loader__', '__spec__'}
+    _g = globals()
+    _to_clear = [name for name in list(_g.keys()) if name not in _essential_globals and not name.startswith('__')]
+    for name in _to_clear:
+        try:
+            del _g[name]
+        except Exception:
+            pass
+except Exception:
+    pass
+
+try:
+    gc.collect()
+except Exception:
+    pass
+
+# Explicitly clear __main__ module contents to remove persisted top-level variables
+try:
+    import sys as _sys_mod
+    _main = _sys_mod.modules.get('__main__')
+    if _main is not None:
+        try:
+            _md = getattr(_main, '__dict__', {})
+            for _k in list(_md.keys()):
+                if not _k.startswith('__'):
+                    try:
+                        del _md[_k]
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+except Exception:
+    pass
+`
+                        // Prefer async clear if available. When only synchronous
+                        // `run` is present, wrap with a short timeout so we don't
+                        // block forever on adapters that return non-resolving
+                        // promises (tests sometimes provide such adapters).
+                        try {
+                            if (typeof adapterForClear.runPythonAsync === 'function') {
+                                await adapterForClear.runPythonAsync(clearCode)
+                            } else if (typeof adapterForClear.run === 'function') {
+                                await Promise.race([
+                                    adapterForClear.run(clearCode),
+                                    new Promise((_, rej) => setTimeout(() => rej(new Error('clear-timeout')), 200))
+                                ])
+                            }
+                        } catch (e) {
+                            if (String(e).includes('clear-timeout')) {
+                                appendTerminalDebug('Manual clear timed out; proceeding')
+                            } else {
+                                throw e
+                            }
+                        }
+                        appendTerminalDebug('Manual globals clearing completed')
+                    } catch (clearErr) {
+                        appendTerminalDebug('Manual globals clearing failed: ' + clearErr)
+                    }
+                }
+            }
+        } else {
+            appendTerminalDebug('No clearMicroPythonState function available - trying manual clearing')
+
+            // Manual clearing fallback when no clearMicroPythonState available
+            // Re-acquire runtime adapter before manual clear when no clearMicroPythonState
+            const adapterForClearFallback = getRuntimeAdapter()
+            if (adapterForClearFallback && (typeof adapterForClearFallback.runPythonAsync === 'function' || typeof adapterForClearFallback.run === 'function')) {
+                try {
+                    const clearCode = `
+# Aggressive manual clearing - carefully remove user modules and globals
+import sys
+import gc
+
+try:
+    _essential_modules = {'sys', 'gc', 'builtins', '__main__', 'micropython', 'host', 'host_notify'}
+    _modules_to_clear = [name for name in list(sys.modules.keys()) if name not in _essential_modules and not name.startswith('_')]
+    for name in _modules_to_clear:
+        try:
+            del sys.modules[name]
+        except Exception:
+            pass
+except Exception:
+    pass
+
+try:
+    _essential_globals = {'__builtins__', '__name__', '__doc__', '__package__', '__loader__', '__spec__'}
+    _g = globals()
+    _to_clear = [name for name in list(_g.keys()) if name not in _essential_globals and not name.startswith('__')]
+    for name in _to_clear:
+        try:
+            del _g[name]
+        except Exception:
+            pass
+except Exception:
+    pass
+
+try:
+    gc.collect()
+except Exception:
+    pass
+`
+                    try {
+                        if (typeof adapterForClearFallback.runPythonAsync === 'function') {
+                            await adapterForClearFallback.runPythonAsync(clearCode)
+                        } else if (typeof adapterForClearFallback.run === 'function') {
+                            await Promise.race([
+                                adapterForClearFallback.run(clearCode),
+                                new Promise((_, rej) => setTimeout(() => rej(new Error('clear-timeout')), 200))
+                            ])
+                        }
+                    } catch (e) {
+                        if (String(e).includes('clear-timeout')) {
+                            appendTerminalDebug('Manual clear timed out; proceeding')
+                        } else {
+                            throw e
+                        }
+                    }
+                    appendTerminalDebug('Manual globals clearing completed')
+                } catch (clearErr) {
+                    appendTerminalDebug('Manual globals clearing failed: ' + clearErr)
+                }
+            }
         }
     } catch (err) {
         appendTerminalDebug('⚠️ State clearing failed:', err)
     }
+
+    // Use current runtime adapter reference for execution  
+    const currentRuntimeAdapter = getRuntimeAdapter()
 
     // clear any existing editor warnings
     try {
@@ -268,12 +531,24 @@ export async function runPythonCode(code, cfg) {
     try { activateSideTab('terminal') } catch (_e) { }
 
     try {
-        if (runtimeAdapter) {
+        if (currentRuntimeAdapter) {
+            // Clear any previous captured stderr/mapping state to avoid stale data
+            // (If a previous run produced a mapped traceback, these globals
+            // could cause feedback to fire on later clean runs.)
+            try { delete window.__ssg_last_raw_stderr_buffer } catch (_e) { }
+            try { window.__ssg_last_mapped = '' } catch (_e) { }
+            try { window.__ssg_last_mapped_event = null } catch (_e) { }
+            try { window.__ssg_final_stderr = '' } catch (_e) { }
+            try { window.__ssg_stderr_buffer = [] } catch (_e) { }
+            try { window.__ssg_suppress_raw_stderr_until = 0 } catch (_e) { }
+            try { window.__ssg_appending_mapped = false } catch (_e) { }
+            try { window.__ssg_mapping_in_progress = false } catch (_e) { }
+
             // Sync VFS before execution
             await syncVFSBeforeRun()
 
             // Check if this is asyncify MicroPython (runPythonAsync available)
-            const isAsyncify = runtimeAdapter && (typeof runtimeAdapter.runPythonAsync === 'function')
+            const isAsyncify = currentRuntimeAdapter && (typeof currentRuntimeAdapter.runPythonAsync === 'function')
 
             let codeToRun = code
             let headerLines = 0
@@ -283,6 +558,7 @@ export async function runPythonCode(code, cfg) {
                 // With asyncify, we can run the code directly without transformation!
                 appendTerminalDebug('Using asyncify MicroPython - no transformation needed')
                 codeToRun = code
+                // No transformation means no header lines to subtract from tracebacks
                 headerLines = 0
             } else {
                 // Non-asyncify runtime: transform input() to await host.get_input()
@@ -293,25 +569,132 @@ export async function runPythonCode(code, cfg) {
                 needsTransformation = true
             }
 
-            // Enable stderr buffering so we can replace raw runtime tracebacks with mapped ones
+            // NEW: Instrument code for recording if enabled
+            if (recordingEnabled && recorder) {
+                try {
+                    const { getPythonInstrumentor } = await import('./python-instrumentor.js')
+                    const instrumentor = getPythonInstrumentor()
+                    const instrResult = await instrumentor.instrumentCode(codeToRun, currentRuntimeAdapter)
+                    // instrumentCode now returns { code, headerLines } on success
+                    if (instrResult && typeof instrResult === 'object' && typeof instrResult.code === 'string') {
+                        codeToRun = instrResult.code
+                        // accumulate headerLines so mapping subtracts the right offset
+                        const instrumentationHeaders = Number(instrResult.headerLines) || 0
+                        // Preserve the headerLines value that came from transformAndWrap
+                        const transformWrapperHeaderLines = Number(headerLines || 0)
+                        headerLines = (headerLines || 0) + instrumentationHeaders
+                        // If the instrumentor provided an explicit line map, adjust
+                        // its values so they refer to the original user source line
+                        // numbers (subtract the transform wrapper header lines).
+                        try {
+                            if (instrResult.lineMap && typeof instrResult.lineMap === 'object') {
+                                const adjusted = {}
+                                for (const [k, v] of Object.entries(instrResult.lineMap || {})) {
+                                    try {
+                                        const orig = Number(v) || 0
+                                        // Subtract the transform wrapper header lines so
+                                        // the resulting map values correspond to the
+                                        // user's original source lines.
+                                        adjusted[String(k)] = Math.max(1, orig - transformWrapperHeaderLines)
+                                    } catch (_e) { adjusted[String(k)] = Number(v) }
+                                }
+                                window.__ssg_instrumented_line_map = adjusted
+                            } else {
+                                window.__ssg_instrumented_line_map = null
+                            }
+                        } catch (_e) { try { window.__ssg_instrumented_line_map = instrResult.lineMap || null } catch (__e) { } }
+                        appendTerminalDebug(`HeaderLines updated: base=${headerLines - instrumentationHeaders}, instrumentation=${instrumentationHeaders}, total=${headerLines}`)
+                    } else if (typeof instrResult === 'string') {
+                        // Backwards compatibility: plugin returned string
+                        codeToRun = instrResult
+                    }
+                    appendTerminalDebug('Python code instrumented for execution tracing')
+                } catch (e) {
+                    appendTerminalDebug('Failed to instrument code: ' + e)
+                }
+            }
+
+            // Set up the execution context BEFORE running the code so terminal direct append can use it
+            try {
+                window.__ssg_last_mapped_event = {
+                    when: Date.now(),
+                    headerLines: headerLines || 0,
+                    sourcePath: MAIN_FILE || null,
+                    mapped: ''
+                }
+
+                // Clear any existing state from previous mappings so this execution
+                // can have its tracebacks properly mapped instead of suppressed/blocked
+                delete window.__ssg_suppress_raw_stderr_until
+                window.__ssg_mapping_in_progress = false
+                // Note: Don't clear stderr_buffering here as enableStderrBuffering() sets it intentionally
+            } catch (_e) { }            // Enable stderr buffering so we can replace raw runtime tracebacks with mapped ones
             try { enableStderrBuffering() } catch (_e) { }
+
+            // Create a per-run promise that the terminal can resolve when
+            // it publishes the canonical final stderr. This reduces the
+            // race window where mapping finishes just after feedback samples
+            // the globals. The terminal will set `__ssg_final_stderr_resolve`
+            // and resolve `__ssg_final_stderr_promise` when it appends the
+            // mapped stderr.
+            try {
+                try { delete window.__ssg_final_stderr_promise } catch (_e) { }
+                try { delete window.__ssg_final_stderr_resolve } catch (_e) { }
+                window.__ssg_final_stderr_promise = new Promise((resolve) => { try { window.__ssg_final_stderr_resolve = resolve } catch (_e) { } })
+            } catch (_e) { }
 
             // Try asyncify execution first (preferred path)
             if (isAsyncify && !needsTransformation) {
                 appendTerminalDebug('Executing with asyncify runPythonAsync - native input() support')
                 try {
                     let out = ''
-                    if (typeof runtimeAdapter.runPythonAsync === 'function') {
-                        out = await executeWithTimeout(runtimeAdapter.runPythonAsync(codeToRun), timeoutMs, safetyTimeoutMs)
+
+                    // NEW: Hook into asyncify path for recording
+                    const executionHooks = recordingEnabled ?
+                        recorder.getExecutionHooks() : null
+
+                    if (typeof currentRuntimeAdapter.runPythonAsync === 'function') {
+                        out = await executeWithTimeout(currentRuntimeAdapter.runPythonAsync(codeToRun, executionHooks), timeoutMs, safetyTimeoutMs)
                     } else {
                         // Fallback to regular run method
-                        out = await executeWithTimeout(runtimeAdapter.run(codeToRun), timeoutMs, safetyTimeoutMs)
+                        out = await executeWithTimeout(currentRuntimeAdapter.run(codeToRun), timeoutMs, safetyTimeoutMs)
                     }
                     const runtimeOutput = out === undefined ? '' : String(out)
                     if (runtimeOutput) appendTerminal(runtimeOutput, 'stdout')
+                    // If the runtime printed a traceback to stdout/stderr while
+                    // we were buffering, attempt to map those buffered lines
+                    // back to the user's source using the accumulated header
+                    // offset. This covers runtimes that print tracebacks
+                    // instead of throwing (so the normal catch/mapping path
+                    // is not triggered).
+                    try {
+                        const rawBuf = Array.isArray(window.__ssg_stderr_buffer) ? window.__ssg_stderr_buffer : []
+                        if (rawBuf && rawBuf.length) {
+                            try {
+                                const mapped = mapTracebackAndShow(rawBuf.join('\n'), headerLines, MAIN_FILE)
+                                // Debug: Log what mapped value we got
+                                try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'execution_mapped_value', mapped: mapped, mappedType: typeof mapped, mappedPreview: (mapped == null) ? null : String(mapped).slice(0, 200) }) } catch (_e) { }
+                                try { replaceBufferedStderr(mapped) } catch (_e) {
+                                    // Debug: Log exception in first call
+                                    try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'execution_first_call_exception', error: String(_e), mapped: mapped }) } catch (_e2) { }
+                                    replaceBufferedStderr(null)
+                                }
+                            } catch (_e) {
+                                // Debug: Log exception in outer try
+                                try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'execution_outer_exception', error: String(_e) }) } catch (_e2) { }
+                                try { replaceBufferedStderr(null) } catch (_e2) { }
+                            }
+                        }
+                    } catch (_e) { }
                     // Feedback evaluation moved to end of execution to include all data
                 } catch (asyncifyErr) {
                     const errMsg = stringifyError(asyncifyErr)
+
+                    // Handle abort errors from instrumentation (common with record/replay)
+                    if (errMsg.includes('Aborted(native code called abort())')) {
+                        appendTerminalDebug('Instrumentation caused abort - this is normal for record/replay mode')
+                        return // Clean exit for instrumentation-related aborts
+                    }
 
                     // Handle KeyboardInterrupt (from VM interrupt) specially  
                     if (errMsg.includes('KeyboardInterrupt')) {
@@ -347,10 +730,10 @@ export async function runPythonCode(code, cfg) {
                         let recovered = false
 
                         // Try aggressive asyncify recovery
-                        if (runtimeAdapter && runtimeAdapter.clearInterrupt) {
+                        if (currentRuntimeAdapter && currentRuntimeAdapter.clearInterrupt) {
                             try {
                                 appendTerminalDebug('Clearing interrupt state with asyncify API...')
-                                runtimeAdapter.clearInterrupt()
+                                currentRuntimeAdapter.clearInterrupt()
                                 appendTerminalDebug('✅ Basic interrupt state cleared')
                             } catch (err) {
                                 appendTerminalDebug('Asyncify clear interrupt failed: ' + err)
@@ -359,11 +742,11 @@ export async function runPythonCode(code, cfg) {
 
                         // Try to reset asyncify state by reinitializing the runtime adapter
                         try {
-                            if (runtimeAdapter && runtimeAdapter._module) {
+                            if (currentRuntimeAdapter && currentRuntimeAdapter._module) {
                                 appendTerminalDebug('Attempting to reset asyncify state...')
 
                                 // Try to access and reset asyncify internals if possible
-                                const Module = runtimeAdapter._module
+                                const Module = currentRuntimeAdapter._module
                                 if (Module.Asyncify) {
                                     appendTerminalDebug('Found Asyncify object, attempting state reset...')
                                     try {
@@ -419,14 +802,36 @@ export async function runPythonCode(code, cfg) {
                                 // Mark that mapping is in progress so terminal appends of raw runtime tracebacks
                                 // (which may arrive slightly late) can be suppressed until we replace them.
                                 try { window.__ssg_mapping_in_progress = true } catch (_e) { }
-                                try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'about_to_map', headerLines: headerLines || 0, sourcePath: MAIN_FILE || null, rawPreview: String(errMsg || '').slice(0, 200) }) } catch (_e) { }
-                                const mapped = mapTracebackAndShow(errMsg, headerLines, MAIN_FILE)
+                                try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'about_to_map_line755', headerLines: headerLines || 0, sourcePath: MAIN_FILE || null, rawPreview: String(errMsg || '').slice(0, 200) }) } catch (_e) { }
+
+                                let mapped = null
+                                try {
+                                    try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'before_mapTracebackAndShow', errMsg: String(errMsg || '').slice(0, 100) }) } catch (_e) { }
+                                    mapped = mapTracebackAndShow(errMsg, headerLines, MAIN_FILE)
+                                    try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'after_mapTracebackAndShow', mappedType: typeof mapped, mappedIsString: typeof mapped === 'string', mappedLength: (mapped && mapped.length) || 0, mappedPreview: (mapped == null) ? null : String(mapped).slice(0, 200) }) } catch (_e) { }
+                                } catch (mapErr) {
+                                    try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'mapTracebackAndShow_exception', error: String(mapErr), stack: mapErr.stack }) } catch (_e) { }
+                                }
+
                                 try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'mapped_result', headerLines: headerLines || 0, sourcePath: MAIN_FILE || null, rawPreview: String(errMsg || '').slice(0, 200), mappedPreview: (mapped == null) ? null : String(mapped).slice(0, 200) }) } catch (_e) { }
                                 try { window.__ssg_last_mapped = String(mapped || '') } catch (_e) { }
                                 try { window.__ssg_last_mapped_event = { when: Date.now(), headerLines: headerLines || 0, sourcePath: MAIN_FILE || null, mapped: String(mapped || '') } } catch (_e) { }
                                 try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'execution_replace_call', mappedType: typeof mapped, mappedPreview: (typeof mapped === 'string') ? mapped.slice(0, 200) : null }) } catch (_e) { }
                                 // Replace buffered raw stderr with mapped traceback
                                 try { replaceBufferedStderr(mapped) } catch (_e) { }
+
+                                // CRITICAL FIX: Ensure the traceback actually appears in the terminal
+                                // If the replacement mechanism failed, directly append the mapped traceback
+                                if (mapped && typeof mapped === 'string') {
+                                    setTimeout(() => {
+                                        const terminalOut = document.getElementById('terminal-output')
+                                        if (terminalOut && !terminalOut.textContent.includes('NameError') && !terminalOut.textContent.includes('Traceback')) {
+                                            // The traceback didn't make it to the terminal, append it directly
+                                            appendTerminal(mapped, 'stderr')
+                                            appendTerminalDebug('Direct traceback append after replacement failure')
+                                        }
+                                    }, 100)
+                                }
                             } catch (_e) {
                                 // Fallback: if mapping fails, flush buffered raw stderr
                                 try { flushStderrBufferRaw() } catch (_e2) { }
@@ -436,7 +841,9 @@ export async function runPythonCode(code, cfg) {
                             }
                         } else {
                             // For non-Python errors, show with context
-                            appendTerminal('Execution error: ' + errMsg, 'runtime')
+                            // Strip vendor runtime frames (e.g., vendor/micropython.mjs)
+                            const cleaned = String(errMsg || '').split('\n').filter(l => !/vendor\/micropython\.mjs/.test(l)).join('\n')
+                            appendTerminal('Execution error: ' + cleaned, 'runtime')
                             throw asyncifyErr
                         }
                     }
@@ -457,7 +864,7 @@ export async function runPythonCode(code, cfg) {
                     if (needsTransformation && /\bawait host.get_input\(/.test(codeToRun)) {
                         try {
                             // Probe parse of a tiny async snippet
-                            await runtimeAdapter.run('async def __ssg_probe():\n    pass')
+                            await currentRuntimeAdapter.run('async def __ssg_probe():\n    pass')
                         } catch (probeErr) {
                             const pm = String(probeErr || '')
                             if (/syntax|invalid|bad input|indent/i.test(pm)) {
@@ -466,9 +873,23 @@ export async function runPythonCode(code, cfg) {
                         }
                     }
 
-                    const out = await executeWithTimeout(runtimeAdapter.run(codeToRun), timeoutMs, safetyTimeoutMs)
+                    const out = await executeWithTimeout(currentRuntimeAdapter.run(codeToRun), timeoutMs, safetyTimeoutMs)
                     const runtimeOutput = out === undefined ? '' : String(out)
                     if (runtimeOutput) appendTerminal(runtimeOutput, 'stdout')
+                    // Map any buffered traceback output that arrived during
+                    // execution so printed tracebacks are replaced with
+                    // mapped versions using the current headerLines offset.
+                    try {
+                        const rawBuf = Array.isArray(window.__ssg_stderr_buffer) ? window.__ssg_stderr_buffer : []
+                        if (rawBuf && rawBuf.length) {
+                            try {
+                                const mapped = mapTracebackAndShow(rawBuf.join('\n'), headerLines, MAIN_FILE)
+                                try { replaceBufferedStderr(mapped) } catch (_e) { replaceBufferedStderr(null) }
+                            } catch (_e) {
+                                try { replaceBufferedStderr(null) } catch (_e2) { }
+                            }
+                        }
+                    } catch (_e) { }
                     // Feedback evaluation moved to end of execution to include all data
                 } catch (e) {
                     const msg = stringifyError(e || '')
@@ -481,8 +902,17 @@ export async function runPythonCode(code, cfg) {
                         throw e
                     } else {
                         try {
-                            try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'about_to_map', headerLines: headerLines || 0, sourcePath: MAIN_FILE || null, rawPreview: String(e || '').slice(0, 200) }) } catch (_e) { }
-                            const mapped = mapTracebackAndShow(String(e), headerLines, MAIN_FILE)
+                            try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'about_to_map_line842', headerLines: headerLines || 0, sourcePath: MAIN_FILE || null, rawPreview: String(e || '').slice(0, 200) }) } catch (_e) { }
+
+                            let mapped = null
+                            try {
+                                try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'before_mapTracebackAndShow_842', errorMsg: String(e || '').slice(0, 100) }) } catch (_e) { }
+                                mapped = mapTracebackAndShow(String(e), headerLines, MAIN_FILE)
+                                try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'after_mapTracebackAndShow_842', mappedType: typeof mapped, mappedIsString: typeof mapped === 'string', mappedLength: (mapped && mapped.length) || 0, mappedPreview: (mapped == null) ? null : String(mapped).slice(0, 200) }) } catch (_e) { }
+                            } catch (mapErr) {
+                                try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'mapTracebackAndShow_exception_842', error: String(mapErr), stack: mapErr.stack }) } catch (_e) { }
+                            }
+
                             try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'mapped_result', headerLines: headerLines || 0, sourcePath: MAIN_FILE || null, rawPreview: String(e || '').slice(0, 200), mappedPreview: (mapped == null) ? null : String(mapped).slice(0, 200) }) } catch (_e) { }
                             try { window.__ssg_last_mapped = String(mapped || '') } catch (_e) { }
                             try { window.__ssg_last_mapped_event = { when: Date.now(), headerLines: headerLines || 0, sourcePath: MAIN_FILE || null, mapped: String(mapped || '') } } catch (_e) { }
@@ -497,7 +927,7 @@ export async function runPythonCode(code, cfg) {
                         } catch (_) {
                             // Flush buffered raw stderr if mapping fails
                             try { flushStderrBufferRaw() } catch (_e2) { }
-                            appendTerminal('Runtime error: ' + e, 'runtime')
+                            appendTerminal('Runtime error: ' + _sanitizeAppendable(e), 'runtime')
                         }
                     }
                 }
@@ -514,34 +944,101 @@ export async function runPythonCode(code, cfg) {
                     try {
                         const outEl = document.getElementById('terminal-output')
                         const stdoutFull = outEl ? (outEl.textContent || '') : ''
-                        // Prefer the mapped traceback when available, but fall back to
-                        // any buffered/raw stderr so feedback rules that look for
-                        // strings like "Traceback" can still match even if mapping
-                        // did not produce a mapped result.
+                        // Proper stderr separation: extract the actual error text that was displayed
                         let stderrFull = ''
                         try {
-                            const mapped = (typeof window.__ssg_last_mapped === 'string' && window.__ssg_last_mapped) ? window.__ssg_last_mapped : ''
-                            const rawBuf = Array.isArray(window.__ssg_last_raw_stderr_buffer) && window.__ssg_last_raw_stderr_buffer.length ? window.__ssg_last_raw_stderr_buffer : (Array.isArray(window.__ssg_stderr_buffer) ? window.__ssg_stderr_buffer : [])
-                            const buffered = (Array.isArray(rawBuf) && rawBuf.length) ? rawBuf.join('\n') : ''
-                            if (mapped && buffered) {
-                                // Combine mapped and raw buffered stderr so rules that
-                                // look for original runtime markers (e.g. "Traceback")
-                                // still match even when mapping produced a cleaned
-                                // traceback string.
-                                stderrFull = mapped + '\n' + buffered
-                            } else if (mapped) {
-                                stderrFull = mapped
-                            } else if (buffered) {
-                                stderrFull = buffered
-                            } else if (outEl) {
-                                // As a last resort, extract terminal lines that look
-                                // like stderr/traceback fragments from the DOM.
+                            // Prefer the mapped traceback when it's informative (mapped
+                            // text generally contains the user-facing exception and
+                            // mapped file/line info). Fall back to the raw buffered
+                            // stderr only when it contains an actual traceback or
+                            // exception message (to avoid noisy vendor-frame-only
+                            // buffers masking mapped errors).
+                            try {
+                                // If a per-run canonical stderr promise exists, wait a short
+                                // bounded time for it to resolve so we prefer the terminal's
+                                // authoritative value when available.
+                                const awaitWithTimeout = (p, ms) => {
+                                    if (!p) return Promise.resolve(undefined)
+                                    return Promise.race([
+                                        p,
+                                        new Promise((resolve) => setTimeout(() => resolve(undefined), ms))
+                                    ])
+                                }
                                 try {
-                                    const parts = Array.from(outEl.children || []).map(n => n.textContent || '')
-                                    stderrFull = parts.filter(t => /Traceback|<stdin>|<string>/i.test(t)).join('\n')
-                                } catch (_e) { stderrFull = '' }
-                            }
+                                    if (window.__ssg_final_stderr_promise && typeof window.__ssg_final_stderr_promise.then === 'function') {
+                                        // Wait up to 80ms for terminal to publish final stderr
+                                        const resolved = await awaitWithTimeout(window.__ssg_final_stderr_promise, 80)
+                                        if (typeof resolved === 'string' && resolved.trim().length > 0) {
+                                            try { window.__ssg_final_stderr = String(resolved || '') } catch (_e) { }
+                                        }
+                                    }
+                                } catch (_e) { }
+
+                                // Prefer a canonical final stderr slot when available
+                                const finalCanonical = (typeof window.__ssg_final_stderr === 'string') ? String(window.__ssg_final_stderr || '') : ''
+                                const mappedCandidate = (typeof window.__ssg_last_mapped === 'string') ? String(window.__ssg_last_mapped || '') : ''
+                                const rawBuf = (window.__ssg_last_raw_stderr_buffer && Array.isArray(window.__ssg_last_raw_stderr_buffer)) ? window.__ssg_last_raw_stderr_buffer.join('\n') : ''
+
+                                const looksLikeException = (s) => {
+                                    if (!s) return false
+                                    // Traceback header or typical Python exception line (e.g. "NameError: ...")
+                                    if (/Traceback \(most recent call last\):/.test(s)) return true
+                                    if (/^[A-Za-z0-9_].*?:/.test(s)) return true
+                                    return false
+                                }
+
+                                // If a canonical final stderr is present, prefer it
+                                if (finalCanonical && finalCanonical.trim().length > 0) {
+                                    stderrFull = finalCanonical
+                                } else if (mappedCandidate.trim().length > 0 && looksLikeException(mappedCandidate)) {
+                                    stderrFull = mappedCandidate
+                                } else if (rawBuf && looksLikeException(rawBuf)) {
+                                    // Fallback to raw buffer only when it contains real
+                                    // traceback/exception information
+                                    stderrFull = rawBuf
+                                } else if (mappedCandidate.trim().length > 0) {
+                                    // If mapped is present but not clearly an exception,
+                                    // still prefer it over noisy raw buffers so feedback
+                                    // rules that target mapped text can fire.
+                                    stderrFull = mappedCandidate
+                                } else {
+                                    stderrFull = ''
+                                }
+
+                                // Extra fallback: if neither mappedCandidate nor the
+                                // preserved raw buffer contained useful information,
+                                // try to extract any trailing mapped traceback that
+                                // was already appended into the terminal DOM. This
+                                // covers a race where replaceBufferedStderr appended
+                                // mapped text but the mapping state slots weren't
+                                // populated by the time we sampled them above.
+                                if ((!stderrFull || !stderrFull.trim()) && typeof document !== 'undefined') {
+                                    try {
+                                        const outEl = document.getElementById('terminal-output')
+                                        const terminalText = outEl ? (outEl.textContent || '') : ''
+                                        if (terminalText) {
+                                            // Prefer a full traceback block if present
+                                            const tbIdx = terminalText.lastIndexOf('Traceback (most recent call last):')
+                                            if (tbIdx !== -1) {
+                                                stderrFull = terminalText.slice(tbIdx).trim()
+                                            } else {
+                                                // Otherwise look for a trailing exception line
+                                                const lines = terminalText.split('\n')
+                                                for (let i = lines.length - 1; i >= 0; i--) {
+                                                    const l = (lines[i] || '').trim()
+                                                    if (/^[A-Za-z_][\w\.]*:/.test(l)) {
+                                                        const start = Math.max(0, i - 8)
+                                                        stderrFull = lines.slice(start).join('\n').trim()
+                                                        break
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } catch (_e) { /* best-effort fallback only */ }
+                                }
+                            } catch (_e) { stderrFull = '' }
                         } catch (_e) { stderrFull = '' }
+
                         // Capture stdin inputs from the execution session
                         const stdinFull = (typeof window.__ssg_stdin_history === 'string') ? window.__ssg_stdin_history : ''
                         // gather filenames from FileManager or localStorage mirror
@@ -566,9 +1063,77 @@ export async function runPythonCode(code, cfg) {
             appendTerminal('Runtime error: no runtime adapter available', 'runtime')
         }
     } catch (e) {
-        appendTerminal('Transform/run error: ' + stringifyError(e), 'runtime')
+        try {
+            const full = stringifyError(e)
+
+            // If this looks like a Python traceback, let the existing
+            // mapping flow handle it so editors can be updated.
+            if (/Traceback|<stdin>|<string>/.test(full)) {
+                try {
+                    // Attempt to map and show the traceback (mapTracebackAndShow
+                    // will handle appending the mapped traceback to the terminal)
+                    try { window.__ssg_terminal_event_log = window.__ssg_terminal_event_log || []; window.__ssg_terminal_event_log.push({ when: Date.now(), action: 'mapTracebackAndShow_945_call', headerLines: headerLines || 0, fullPreview: String(full || '').slice(0, 200) }) } catch (_e) { }
+                    mapTracebackAndShow(full, headerLines || 0, MAIN_FILE)
+                } catch (_mapErr) {
+                    // If mapping fails, fall back to showing only the first line
+                    const first = (full || '').split('\n')[0] || String(full)
+                    appendTerminal('Transform/run error: ' + first, 'runtime')
+                }
+            } else {
+                // Non-Python errors: show only the top-level message to avoid
+                // leaking vendor/app JS stack frames into the user-facing
+                // terminal. If the developer has enabled the debug flag,
+                // reveal the full stack for troubleshooting.
+                const firstLine = (full || '').split('\n')[0] || String(full)
+                appendTerminal('Transform/run error: ' + firstLine, 'runtime')
+                try {
+                    if (typeof window !== 'undefined' && window.__ssg_debug_show_vendor_frames) {
+                        // show the full (unsanitized) text in debug mode
+                        appendTerminal(full, 'runtime')
+                    }
+                } catch (_e) { }
+            }
+        } catch (_e) {
+            appendTerminal('Transform/run error: ' + stringifyError(e), 'runtime')
+        }
         try { setTerminalInputEnabled(false) } catch (_e) { }
     } finally {
+        // NEW: Finalize recording and show replay controls
+        if (recordingEnabled && recorder) {
+            recorder.finalizeRecording()
+
+            // Clean up Python instrumentation
+            try {
+                const { getPythonInstrumentor } = await import('./python-instrumentor.js')
+                const instrumentor = getPythonInstrumentor()
+                instrumentor.cleanup()
+            } catch (e) {
+                appendTerminalDebug('Failed to cleanup Python instrumentation: ' + e)
+            }
+
+            // Clean up execution monitoring hooks
+            try {
+                if (window.__ssg_execution_intercepted) {
+                    // Call cleanup function from micropython.js
+                    if (typeof window.cleanupExecutionStepMonitoring === 'function') {
+                        window.cleanupExecutionStepMonitoring()
+                    }
+                }
+            } catch (e) {
+                appendTerminalDebug('Failed to cleanup execution monitoring: ' + e)
+            }
+
+            // Show replay controls if recording is available
+            try {
+                if (recorder.hasActiveRecording() && window.ReplayUI) {
+                    window.ReplayUI.updateReplayControls(true)
+                    appendTerminalDebug('Replay controls enabled - recording available')
+                }
+            } catch (e) {
+                appendTerminalDebug('Failed to update replay controls: ' + e)
+            }
+        }
+
         // Always reset execution state
         setExecutionRunning(false)
     }

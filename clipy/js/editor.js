@@ -88,6 +88,13 @@ export function initializeEditor() {
         cm.on('change', () => {
             textarea.value = cm.getValue()
             textarea.dispatchEvent(new Event('input', { bubbles: true }))
+
+            // NEW: Invalidate any existing recording when code changes
+            if (window.ExecutionRecorder?.hasActiveRecording()) {
+                window.ExecutionRecorder.invalidateRecording()
+                updateReplayUI(false) // Hide replay controls
+            }
+
             // Debounced feedback evaluation (real-time edit feedback)
             try { scheduleFeedbackEvaluation() } catch (_e) { }
         })
@@ -196,5 +203,23 @@ export function setReadOnlyMode(isReadOnly) {
         }
     } else if (textarea) {
         textarea.readOnly = isReadOnly
+    }
+}
+
+/**
+ * Update replay UI controls visibility
+ */
+export function updateReplayUI(hasRecording) {
+    const replayControls = document.getElementById('replay-controls')
+    const replayStartBtn = document.getElementById('replay-start')
+
+    if (replayControls && replayStartBtn) {
+        if (hasRecording) {
+            replayControls.style.display = 'flex'
+            replayStartBtn.disabled = false
+        } else {
+            replayControls.style.display = 'none'
+            replayStartBtn.disabled = true
+        }
     }
 }

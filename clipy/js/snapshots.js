@@ -244,6 +244,15 @@ async function saveSnapshotsForCurrentConfig(snapshots) {
     }
 }
 
+// Helper to produce a safe appendable string from errors/objects
+function _sanitizeAppendable(x) {
+    try {
+        const s = (x && typeof x === 'string') ? x : String(x)
+        // Drop vendor frames and very long lines
+        return s.split('\n').filter(l => !/vendor\//.test(l) && l.length < 1000).join('\n')
+    } catch (_e) { return String(x) }
+}
+
 async function saveSnapshot() {
     try {
         const snaps = await getSnapshotsForCurrentConfig()
@@ -306,7 +315,7 @@ async function saveSnapshot() {
             }
         } catch (_e) { }
     } catch (e) {
-        appendTerminal('Snapshot save failed: ' + e, 'runtime')
+        appendTerminal('Snapshot save failed: ' + _sanitizeAppendable(e), 'runtime')
     }
 }
 
@@ -376,7 +385,7 @@ async function renderSnapshots() {
                     await clearSuccessSnapshotForCurrentConfig()
                     await renderSnapshots()
                     appendTerminal('Cleared success marker', 'runtime')
-                } catch (e) { appendTerminal('Failed to clear success marker: ' + e, 'runtime') }
+                } catch (e) { appendTerminal('Failed to clear success marker: ' + _sanitizeAppendable(e), 'runtime') }
             })
             actions.appendChild(clearBtn)
 
@@ -453,7 +462,7 @@ async function renderSnapshots() {
                     appendTerminal('Snapshot deleted', 'runtime')
                 }
             } catch (e) {
-                appendTerminal('Failed to delete snapshot: ' + e, 'runtime')
+                appendTerminal('Failed to delete snapshot: ' + _sanitizeAppendable(e), 'runtime')
             }
         })
 
@@ -684,7 +693,7 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
         }
     } catch (e) {
         logError('restoreSnapshot failed:', e)
-        appendTerminal('Snapshot restore failed: ' + e, 'runtime')
+        appendTerminal('Snapshot restore failed: ' + _sanitizeAppendable(e), 'runtime')
     }
 }
 
@@ -941,6 +950,6 @@ async function clearStorage() {
             logError('Failed to update snapshot display after clear:', e)
         }
     } catch (e) {
-        appendTerminal('Clear snapshots failed: ' + e, 'runtime')
+        appendTerminal('Clear snapshots failed: ' + _sanitizeAppendable(e), 'runtime')
     }
 }

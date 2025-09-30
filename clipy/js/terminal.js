@@ -1,5 +1,6 @@
 import { $ as _$ } from './utils.js'
 import { debug as logDebug } from './logger.js'
+import { mapTracebackAndShow } from './code-transform.js'
 
 // Create a test-friendly terminal module scoped to a host object
 export function createTerminal(host = (typeof window !== 'undefined' ? window : globalThis)) {
@@ -37,6 +38,139 @@ export function createTerminal(host = (typeof window !== 'undefined' ? window : 
 
             const raw = (text === null || text === undefined) ? '' : String(text)
 
+            // Record key host buffering/mapping flags in the terminal event log
+            try { host.__ssg_terminal_event_log = host.__ssg_terminal_event_log || []; host.__ssg_terminal_event_log.push({ when: Date.now(), action: 'append_called', kind, buffering: Boolean(host.__ssg_stderr_buffering), mappingInProgress: Boolean(host.__ssg_mapping_in_progress), suppressUntil: host.__ssg_suppress_raw_stderr_until || null, outExists: !!out }) } catch (_e) { }
+
+
+
+            // If a caller has marked this append as a mapped traceback append,
+            // bypass suppression and buffering so the mapped text is shown
+            // atomically. This is used by replaceBufferedStderr to ensure the
+            // mapped traceback replaces earlier raw marker lines.
+            const isMappedAppend = Boolean(host.__ssg_appending_mapped)
+            if (isMappedAppend) {
+                try {
+                    if (!out) return
+                    // First run canonical sanitizer
+                    let sanitized = _sanitizeForTerminal(raw)
+
+                    // Additional defensive filtering: remove any residual JS/vendor
+                    // stack-frame lines that may have slipped through the sanitizer
+                    // (e.g. URL fragments, @http annotations, .js:line:col patterns).
+                    try {
+                        // Respect debug flag: if the host explicitly requests vendor
+                        // frames be shown, do not strip them here.
+                        let showVendor = false
+                        try { showVendor = Boolean(host && host.__ssg_debug_show_vendor_frames) } catch (_e) { showVendor = false }
+                        if (!showVendor) {
+                            const jsLineRE = /@http|https?:\/\/|\.mjs\b|\.js:\d+|\/js\/|micropython\.js|node_modules\//i
+                            const parts = String(sanitized || '').split('\n').map(l => l || '')
+                            const kept = parts.filter(l => !jsLineRE.test(l))
+                            if (kept.length === 0) {
+                                sanitized = '[runtime frames hidden]'
+                            } else {
+                                sanitized = kept.join('\n')
+                            }
+                        }
+                    } catch (_e) { /* best-effort */ }
+
+                    const div = (doc && doc.createElement) ? doc.createElement('div') : null
+                    if (!div) return
+                    const kindClass = 'term-' + (kind || 'stdout')
+                    div.className = 'terminal-line ' + kindClass
+                    div.textContent = sanitized
+                    out.appendChild(div)
+                    // Publish canonical final stderr slot when we append stderr
+                    try {
+                        if (kind === 'stderr') {
+                            host.__ssg_final_stderr = String(sanitized || '')
+                            // If a per-run promise resolver exists, resolve it with the final value
+                            try {
+                                if (host.__ssg_final_stderr_resolve && typeof host.__ssg_final_stderr_resolve === 'function') {
+                                    try { host.__ssg_final_stderr_resolve(host.__ssg_final_stderr) } catch (_e) { }
+                                    // Clear resolver so it's one-shot
+                                    try { delete host.__ssg_final_stderr_resolve } catch (_e) { }
+                                    try { delete host.__ssg_final_stderr_promise } catch (_e) { }
+                                }
+                            } catch (_e) { }
+                        }
+                    } catch (_e) { }
+                    out.scrollTop = out.scrollHeight
+                    try { host.__ssg_terminal_event_log = host.__ssg_terminal_event_log || []; host.__ssg_terminal_event_log.push({ when: Date.now(), action: 'append_mapped_bypass', kind, text: raw.slice(0, 200) }) } catch (_e) { }
+                } catch (_e) { }
+                return
+            }
+
+            // Local sanitizer: remove vendor/runtime stack frames from any
+            // appended text unless debug flag is set on the host. This runs
+            // after buffering decisions so mapping logic still sees raw
+            // traceback text when needed.
+            function _sanitizeForTerminal(t) {
+                try {
+                    if (!t) return t
+                    try {
+                        if (host && host.__ssg_debug_show_vendor_frames) return t
+                    } catch (_e) { }
+
+                    const text = String(t)
+
+                    // If this looks like a Python traceback, strip everything
+                    // that is not a Python traceback line (so JS frames like
+                    // "runPythonAsync@...micropython.js:..." are removed).
+                    if (/Traceback \(most recent call last\):/.test(text)) {
+                        const lines = text.split('\n')
+                        const keep = []
+                        for (const line of lines) {
+                            // Keep the traceback header and Python File lines
+                            if (/^Traceback \(most recent call last\):/.test(line) || /^\s*File\s+\"/.test(line)) {
+                                keep.push(line)
+                                continue
+                            }
+
+                            // Keep the final exception message line (e.g. "NameError: ...")
+                            if (/^[A-Za-z0-9_].*?:/.test(line) || /\bError\b|\bException\b/.test(line)) {
+                                // Accept reasonably short exception message lines
+                                if (line.trim().length < 1000) keep.push(line)
+                                continue
+                            }
+
+                            // Otherwise drop JS/vendor frames or long noise lines
+                        }
+                        if (keep.length === 0) return '[runtime stack frames hidden]'
+                        return keep.join('\n')
+                    }
+
+                    // Non-traceback text: perform generic filtering
+                    const lines = text.split('\n')
+                    const out = []
+                    // Heuristics for JS-like frames to drop
+                    const jsFrameRE = /@http|https?:\/\/|^\s*at\s+|\/js\/|\.mjs\b|node_modules\//i
+                    for (const line of lines) {
+                        // Preserve Python traceback structural lines just in case
+                        if (/^\s*File\s+\"/.test(line) || /^Traceback \(most recent call last\):/.test(line)) {
+                            out.push(line)
+                            continue
+                        }
+
+                        // Drop known vendor/runtime frames or obvious runtime annotations
+                        if (/vendor\/micropython\.mjs/.test(line) || /\/vendor\//.test(line) || /PythonError@/.test(line) || /proxy_convert_mp_to_js_obj_jsside/.test(line)) {
+                            continue
+                        }
+
+                        // Drop JS-like stack frames, URLs, or script paths
+                        if (jsFrameRE.test(line)) continue
+
+                        // Drop lines that are full URLs pointing into vendor
+                        if (/https?:\/\/.+\/vendor\//.test(line)) continue
+
+                        // Keep short informative lines
+                        if (line && line.length < 400) out.push(line)
+                    }
+                    if (out.length === 0) return '[runtime stack frames hidden]'
+                    return out.join('\n')
+                } catch (_e) { return t }
+            }
+
             try {
                 const buffering = Boolean(host.__ssg_stderr_buffering)
                 if (kind === 'stderr' && buffering) {
@@ -57,25 +191,96 @@ export function createTerminal(host = (typeof window !== 'undefined' ? window : 
                 if (kind === 'stderr' || kind === 'stdout') {
                     try {
                         if (host.__ssg_mapping_in_progress) {
-                            if (raw.includes('<stdin>') || raw.includes('<string>')) {
-                                host.__ssg_stderr_buffer = host.__ssg_stderr_buffer || []
-                                host.__ssg_stderr_buffer.push(raw)
-                                appendTerminalDebug('[suppressed-during-mapping-buffered]', raw)
-                                try { host.__ssg_terminal_event_log = host.__ssg_terminal_event_log || []; host.__ssg_terminal_event_log.push({ when: Date.now(), action: 'suppressed_during_mapping_buffered', kind, text: raw.slice(0, 200) }) } catch (_e) { }
-                                return
-                            }
+                            // While a traceback mapping is in progress, buffer any
+                            // stderr (and suspicious stdout) lines so late-arriving
+                            // vendor JS frames do not get appended to the DOM.
+                            try {
+                                const looksLikeStack = /Traceback|^\s*File\s+\"|PythonError|proxy_convert_mp_to_js_obj_jsside|@http|\/vendor\//i
+                                if (kind === 'stderr' || (kind === 'stdout' && looksLikeStack.test(raw))) {
+                                    host.__ssg_stderr_buffer = host.__ssg_stderr_buffer || []
+                                    host.__ssg_stderr_buffer.push(raw)
+                                    appendTerminalDebug('[suppressed-during-mapping-buffered]', raw)
+                                    try { host.__ssg_terminal_event_log = host.__ssg_terminal_event_log || []; host.__ssg_terminal_event_log.push({ when: Date.now(), action: 'suppressed_during_mapping_buffered', kind, text: raw.slice(0, 200) }) } catch (_e) { }
+                                    return
+                                }
+                            } catch (_e) { }
                         }
                         const until = Number(host.__ssg_suppress_raw_stderr_until || 0)
                         if (until && Date.now() < until) {
-                            if (raw.includes('<stdin>') || raw.includes('<string>')) {
-                                host.__ssg_stderr_buffer = host.__ssg_stderr_buffer || []
-                                host.__ssg_stderr_buffer.push(raw)
-                                appendTerminalDebug('[suppressed-late-buffered]', raw)
-                                try { host.__ssg_terminal_event_log = host.__ssg_terminal_event_log || []; host.__ssg_terminal_event_log.push({ when: Date.now(), action: 'suppressed', kind, text: raw.slice(0, 200) }) } catch (_e) { }
-                                return
-                            }
+                            try {
+                                const looksLikeStack = /Traceback|^\s*File\s+\"|PythonError|proxy_convert_mp_to_js_obj_jsside|@http|\/vendor\//i
+                                if (looksLikeStack.test(raw) || kind === 'stderr') {
+                                    host.__ssg_stderr_buffer = host.__ssg_stderr_buffer || []
+                                    host.__ssg_stderr_buffer.push(raw)
+                                    appendTerminalDebug('[suppressed-late-buffered]', raw)
+                                    try { host.__ssg_terminal_event_log = host.__ssg_terminal_event_log || []; host.__ssg_terminal_event_log.push({ when: Date.now(), action: 'suppressed', kind, text: raw.slice(0, 200) }) } catch (_e) { }
+                                    return
+                                }
+                            } catch (_e) { }
                         }
                     } catch (_e) { }
+                }
+            } catch (_e) { }
+
+            // Detect tracebacks that were appended directly (no buffering).
+            // When we see a likely traceback and buffering/mapping are not
+            // already active, enable buffering, stash the raw text, and 
+            // asynchronously map+replace it so users see the mapped traceback
+            // instead of raw runtime frames. Do this BEFORE DOM operations
+            // so it works even in test environments without DOM elements.
+            try {
+                const looksLikeStack = /Traceback|<stdin>|<string>|^\s*File\s+\"/i
+                const notBuffering = !host.__ssg_stderr_buffering
+                const notMapping = !host.__ssg_mapping_in_progress
+                if ((kind === 'stderr' || kind === 'stdout') && notBuffering && notMapping && looksLikeStack.test(raw)) {
+                    try {
+                        // Enable buffering and capture this raw line
+                        host.__ssg_stderr_buffering = true
+                        host.__ssg_stderr_buffer = host.__ssg_stderr_buffer || []
+                        host.__ssg_stderr_buffer.push(raw)
+                        try { host.__ssg_terminal_event_log = host.__ssg_terminal_event_log || []; host.__ssg_terminal_event_log.push({ when: Date.now(), action: 'direct_append_buffered', kind, text: raw.slice(0, 200) }) } catch (_e) { }
+
+                        // Mark mapping in progress and schedule mapping pass
+                        host.__ssg_mapping_in_progress = true
+                        setTimeout(() => {
+                            try {
+                                const joined = (Array.isArray(host.__ssg_stderr_buffer) ? host.__ssg_stderr_buffer.join('\n') : String(raw || ''))
+
+                                // Get headerLines from the last execution context if available.
+                                // The execution module stores this in __ssg_last_mapped_event.
+                                let headerLines = 0
+                                try {
+                                    if (host.__ssg_last_mapped_event && typeof host.__ssg_last_mapped_event.headerLines === 'number') {
+                                        headerLines = host.__ssg_last_mapped_event.headerLines
+                                    }
+                                } catch (_e) { headerLines = 0 }
+
+                                // Debug: Log what headerLines we're using
+                                try { host.__ssg_terminal_event_log = host.__ssg_terminal_event_log || []; host.__ssg_terminal_event_log.push({ when: Date.now(), action: 'terminal_about_to_map', headerLines, lastMappedEvent: host.__ssg_last_mapped_event, joined: joined.slice(0, 200) }) } catch (_e) { }
+
+                                let mapped = null
+                                try {
+                                    // Prefer a host-provided mapping function (useful for tests)
+                                    const mapper = (host && typeof host.mapTracebackAndShow === 'function') ? host.mapTracebackAndShow : mapTracebackAndShow
+                                    mapped = mapper(joined, headerLines, (host && host.MAIN_FILE) ? host.MAIN_FILE : '/main.py')
+                                    try { host.__ssg_terminal_event_log = host.__ssg_terminal_event_log || []; host.__ssg_terminal_event_log.push({ when: Date.now(), action: 'terminal_direct_mapping', headerLines, joined: joined.slice(0, 200), mapped: (mapped || '').slice(0, 200) }) } catch (_e) { }
+                                } catch (_e) { mapped = null }
+                                try {
+                                    // Allow a host override for replaceBufferedStderr (tests may mock)
+                                    if (host && typeof host.replaceBufferedStderr === 'function') {
+                                        host.replaceBufferedStderr(mapped)
+                                    } else {
+                                        replaceBufferedStderr(mapped)
+                                    }
+                                } catch (_e) { }
+                            } catch (_e) { }
+                            try { host.__ssg_mapping_in_progress = false } catch (_e) { }
+                        }, 0)
+                        // Do not continue with the normal DOM append flow since we've
+                        // scheduled a mapped replacement that will handle DOM updates.
+                        try { host.__ssg_terminal_event_log = host.__ssg_terminal_event_log || []; host.__ssg_terminal_event_log.push({ when: Date.now(), action: 'direct_append_skipped_dom', kind, text: raw.slice(0, 200) }) } catch (_e) { }
+                        return
+                    } catch (_e) { /* best-effort only */ }
                 }
             } catch (_e) { }
 
@@ -83,13 +288,26 @@ export function createTerminal(host = (typeof window !== 'undefined' ? window : 
             // so just return early to avoid attempting DOM operations.
             if (!out) return
 
+            // Sanitize the text to remove vendor/runtime frames by default
+            const sanitized = _sanitizeForTerminal(raw)
+
             const div = (doc && doc.createElement) ? doc.createElement('div') : null
             if (!div) return
             const kindClass = 'term-' + (kind || 'stdout')
             div.className = 'terminal-line ' + kindClass
-            div.textContent = raw
+            // Temporary debug: log when appending stderr mapped text so tests
+            // can show why the mapped traceback may not appear.
+            try {
+                if (kind === 'stderr') {
+                    // eslint-disable-next-line no-console
+                    console.log('[terminal.appendTerminal] appending stderr ->', sanitized && String(sanitized).slice(0, 200))
+                }
+            } catch (_e) { }
+            div.textContent = sanitized
             out.appendChild(div)
+            try { if (kind === 'stderr') host.__ssg_final_stderr = String(sanitized || '') } catch (_e) { }
             out.scrollTop = out.scrollHeight
+
             try { host.__ssg_terminal_event_log = host.__ssg_terminal_event_log || []; host.__ssg_terminal_event_log.push({ when: Date.now(), action: 'append', kind, text: raw.slice(0, 200) }) } catch (_e) { }
         } catch (_e) { }
     }
@@ -172,9 +390,15 @@ export function createTerminal(host = (typeof window !== 'undefined' ? window : 
 
             if ((!mappedText || typeof mappedText !== 'string')) {
                 try {
+                    // Try __ssg_last_mapped first
                     if (typeof host.__ssg_last_mapped === 'string' && host.__ssg_last_mapped) {
                         try { host.__ssg_terminal_event_log = host.__ssg_terminal_event_log || []; host.__ssg_terminal_event_log.push({ when: Date.now(), action: 'replaceBufferedStderr_fallback_to_last_mapped', lastMappedPreview: host.__ssg_last_mapped.slice(0, 200) }) } catch (_e) { }
                         mappedText = host.__ssg_last_mapped
+                    }
+                    // Also try __ssg_last_mapped_event as fallback
+                    else if (!mappedText && host.__ssg_last_mapped_event && typeof host.__ssg_last_mapped_event.mapped === 'string' && host.__ssg_last_mapped_event.mapped) {
+                        try { host.__ssg_terminal_event_log = host.__ssg_terminal_event_log || []; host.__ssg_terminal_event_log.push({ when: Date.now(), action: 'replaceBufferedStderr_fallback_to_last_mapped_event', lastMappedEventPreview: host.__ssg_last_mapped_event.mapped.slice(0, 200) }) } catch (_e) { }
+                        mappedText = host.__ssg_last_mapped_event.mapped
                     }
                 } catch (_e) { }
             }
@@ -184,19 +408,31 @@ export function createTerminal(host = (typeof window !== 'undefined' ? window : 
                     const joined = buf.join('\n')
                     const guessed = joined.replace(/File\s+["'](?:<stdin>|<string>)["']\s*,\s*line\s+(\d+)/g, 'File "\/main.py", line $1')
                     mappedText = guessed
+                    try { host.__ssg_final_stderr = String(guessed || '') } catch (_e) { }
                     try { host.__ssg_terminal_event_log = host.__ssg_terminal_event_log || []; host.__ssg_terminal_event_log.push({ when: Date.now(), action: 'replaceBufferedStderr_fallback_guessed', sample: joined.slice(0, 200), guessedPreview: mappedText.slice(0, 200) }) } catch (_e) { }
                 } catch (_e) { }
             }
 
             if (mappedText && typeof mappedText === 'string') {
                 try {
+                    // Publish the mapped result to host-level slots so callers
+                    // (like runPythonCode -> Feedback) can read the final mapped
+                    // traceback that was appended into the terminal. This keeps
+                    // the source of truth that feedback rules inspect in sync
+                    // with what the user actually sees in the terminal.
+                    try {
+                        host.__ssg_last_mapped = String(mappedText || '')
+                        host.__ssg_last_mapped_event = host.__ssg_last_mapped_event || { when: Date.now(), headerLines: 0, sourcePath: (host && host.MAIN_FILE) ? host.MAIN_FILE : '/main.py', mapped: String(mappedText || '') }
+                        try { host.__ssg_last_mapped_event.when = Date.now() } catch (_e) { }
+                        try { host.__ssg_last_mapped_event.mapped = String(mappedText || '') } catch (_e) { }
+                    } catch (_e) { }
                     const out = $('terminal-output')
                     if (out && out.children && out.children.length) {
                         const nodes = Array.from(out.children)
                         for (const n of nodes) {
                             try {
                                 const txt = (n.textContent || '')
-                                if (txt.includes('<stdin>') || txt.includes('<string>')) {
+                                if (txt.includes('<stdin>') || txt.includes('<string>') || txt.includes('/main.py')) {
                                     out.removeChild(n)
                                 }
                             } catch (_e) { }
@@ -210,7 +446,24 @@ export function createTerminal(host = (typeof window !== 'undefined' ? window : 
                 try {
                     const prevMapping = !!host.__ssg_mapping_in_progress
                     try { host.__ssg_mapping_in_progress = false } catch (_e) { }
-                    appendTerminal(mappedText, 'stderr')
+                    try { host.__ssg_appending_mapped = true } catch (_e) { }
+                    try {
+                        // Set canonical final stderr before appending so readers
+                        // sampling the slot see the authoritative value.
+                        try {
+                            host.__ssg_final_stderr = String(mappedText || '')
+                        } catch (_e) { }
+                        // If a per-run promise resolver exists, resolve it with the final value
+                        try {
+                            if (host.__ssg_final_stderr_resolve && typeof host.__ssg_final_stderr_resolve === 'function') {
+                                try { host.__ssg_final_stderr_resolve(host.__ssg_final_stderr) } catch (_e) { }
+                                try { delete host.__ssg_final_stderr_resolve } catch (_e) { }
+                                try { delete host.__ssg_final_stderr_promise } catch (_e) { }
+                            }
+                        } catch (_e) { }
+                        appendTerminal(mappedText, 'stderr')
+                    } catch (_e) { }
+                    try { host.__ssg_appending_mapped = false } catch (_e) { }
                     try { host.__ssg_mapping_in_progress = prevMapping } catch (_e) { }
                 } catch (_e) { appendTerminal(mappedText, 'stderr') }
                 appendTerminalDebug && appendTerminalDebug('[replaced buffered stderr with mapped traceback]')
@@ -536,3 +789,17 @@ export const setTerminalInputEnabled = (...args) => _defaultTerminal.setTerminal
 export const initializeTerminal = (...args) => _defaultTerminal.initializeTerminal(...args)
 export const activateSideTab = (...args) => _defaultTerminal.activateSideTab(...args)
 export const setupSideTabs = (...args) => _defaultTerminal.setupSideTabs(...args)
+// Helpers to get/set the terminal innerHTML for callers that need snapshot/restore
+export const getTerminalInnerHTML = () => {
+    try {
+        const out = document && document.getElementById ? document.getElementById('terminal-output') : null
+        return out ? out.innerHTML : null
+    } catch (_e) { return null }
+}
+
+export const setTerminalInnerHTML = (html) => {
+    try {
+        const out = document && document.getElementById ? document.getElementById('terminal-output') : null
+        if (out) out.innerHTML = html == null ? '' : String(html)
+    } catch (_e) { }
+}

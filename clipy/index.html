@@ -15,6 +15,25 @@
   <!-- Highlight.js styles for code blocks rendered from Markdown -->
   <link rel="stylesheet" href="./vendor/highlight-github.min.css">
   <script src="./vendor/marked-admonition-extension.js"></script>
+  <style>
+    /* Prevent terminal output from expanding the layout on long lines */
+    #terminal-output {
+      white-space: pre-wrap;
+      /* preserve newlines, wrap long lines */
+      word-break: break-word;
+      /* break long words/URLs */
+      overflow-wrap: anywhere;
+      /* allow breaks anywhere if needed */
+      max-width: 100%;
+    }
+
+    /* Keep replay controls on their own row and avoid forcing wider containers */
+    .replay-controls {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+  </style>
 </head>
 
 <body>
@@ -91,30 +110,52 @@
       <textarea id="code"></textarea>
       <div id="editor-host" class="cm-editor" aria-label="Code editor"></div>
       <div class="editor-controls">
-        <div class="editor-actions" style="display:flex;align-items:center;">
-          <div style="display:flex;gap:8px;align-items:center">
-            <button id="run" class="btn btn-primary" title="Run (Ctrl/Cmd+Enter)" aria-label="Run (Ctrl/Cmd+Enter)">
-              <span class="icon" aria-hidden="true">▶️</span>
-              <span>Run</span>
-            </button>
-            <button id="stop" class="btn btn-danger" title="Stop execution" style="display:none">
-              <span class="icon" aria-hidden="true">⏹️</span>
-              <span>Stop</span>
-            </button>
+        <div class="editor-actions" style="display:flex;align-items:center;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:12px;width:100%">
+            <div style="display:flex;gap:8px;align-items:center">
+              <button id="run" class="btn btn-primary" title="Run (Ctrl/Cmd+Enter)" aria-label="Run (Ctrl/Cmd+Enter)">
+                <span class="icon" aria-hidden="true">▶️</span>
+                <span>Run</span>
+              </button>
+              <button id="stop" class="btn btn-danger" title="Stop execution" style="display:none">
+                <span class="icon" aria-hidden="true">⏹️</span>
+                <span>Stop</span>
+              </button>
+            </div>
+
+            <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+              <button id="download-code" class="btn" title="Download workspace code">
+                <span class="icon" aria-hidden="true">⬇️</span>
+                <span>Download</span>
+              </button>
+              <button id="save-snapshot" class="btn" title="Save snapshot">
+                <span class="icon" aria-hidden="true">💾</span>
+                <span>Save snapshot</span>
+              </button>
+              <button id="history" class="btn" title="History">
+                <span class="icon" aria-hidden="true">🕘</span>
+                <span>History</span>
+              </button>
+            </div>
           </div>
 
-          <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
-            <button id="download-code" class="btn" title="Download workspace code">
-              <span class="icon" aria-hidden="true">⬇️</span>
-              <span>Download</span>
+          <!-- NEW: Replay controls on its own row to avoid expanding parent width -->
+          <div id="replay-controls" class="replay-controls"
+            style="display:none;width:100%;justify-content:flex-start;gap:8px">
+            <button id="replay-start" class="btn btn-info" title="Start replay of last execution">
+              <span class="icon" aria-hidden="true">🔄</span>
+              <span>Replay</span>
             </button>
-            <button id="save-snapshot" class="btn" title="Save snapshot">
-              <span class="icon" aria-hidden="true">💾</span>
-              <span>Save snapshot</span>
+            <button id="replay-step-back" class="btn btn-secondary" title="Step backward">
+              <span class="icon" aria-hidden="true">‹</span>
             </button>
-            <button id="history" class="btn" title="History">
-              <span class="icon" aria-hidden="true">🕘</span>
-              <span>History</span>
+            <button id="replay-step-forward" class="btn btn-secondary" title="Step forward">
+              <span class="icon" aria-hidden="true">›</span>
+            </button>
+            <input id="replay-scrubber" type="range" min="0" max="100" value="0" class="replay-scrubber"
+              title="Jump to execution step">
+            <button id="replay-exit" class="btn btn-outline-secondary" title="Exit replay mode">
+              <span class="icon" aria-hidden="true">×</span>
             </button>
           </div>
         </div>

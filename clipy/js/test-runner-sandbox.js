@@ -58,7 +58,7 @@ export function createSandboxedRunFn({ runtimeUrl = './vendor/micropython.mjs', 
                             // analysis result computed
                         } catch (err) {
                             // analysis failed
-                            if (typeof appendTerminal === 'function') try { appendTerminal('AST analysis failed: ' + String(err), 'runtime') } catch (_e) { }
+                            if (typeof appendTerminal === 'function') try { appendTerminal('AST analysis failed: ' + String(err).split('\n').filter(l => !/vendor\//.test(l)).slice(0, 5).join('\n'), 'runtime') } catch (_e) { }
                             throw err
                         }
                         let passed = false

@@ -4,6 +4,7 @@
  */
 import { debug as logDebug, info as logInfo, warn as logWarn, error as logError } from './logger.js'
 import { setSystemWriteMode } from './vfs-client.js'
+import { appendTerminal } from './terminal.js'
 
 export function createRunFn({ getFileManager, MAIN_FILE, runPythonCode, getConfig }) {
     if (!getFileManager) throw new Error('getFileManager required')
@@ -112,10 +113,15 @@ export function createRunFn({ getFileManager, MAIN_FILE, runPythonCode, getConfi
                                 // (e.g. prompt + input) can be asserted against stdout.
                                 try {
                                     if (next && typeof next === 'string') {
-                                        const outEl = document.getElementById('terminal-output')
-                                        if (outEl) {
-                                            // Mirror what a user would type and press Enter
-                                            outEl.textContent = (outEl.textContent || '') + next + '\n'
+                                        try {
+                                            // Use canonical terminal append so output is sanitized
+                                            appendTerminal(next + '\n', 'stdout')
+                                        } catch (_err) {
+                                            // Fallback to legacy direct DOM write if appendTerminal not available
+                                            const outEl = document.getElementById('terminal-output')
+                                            if (outEl) {
+                                                outEl.textContent = (outEl.textContent || '') + next + '\n'
+                                            }
                                         }
                                     }
                                 } catch (_e) { }
