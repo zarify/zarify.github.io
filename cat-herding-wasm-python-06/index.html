@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>WASM Python - Cat Herding 05 | Headtilt</title>
+<title>WASM Python - Cat Herding 06 | Headtilt</title>
 <meta name="keywords" content="ai, python, llm, agents, cat-herding, wasm-python">
 <meta name="description" content="Pre(r)amble
 This is part of a(n aspirationally) series of posts documenting some of the process of
@@ -16,13 +16,13 @@ You can find Part 1 here
 You can find Part 2 here
 You can find Part 3 here
 You can find Part 4 here
-This is Part 5!
-You can find Part 6 here
+You can find Part 5 here
+This is Part 6!
 
 I have a (somewhat) up to date version of this tool running on the site. Things might
 occasionally be broken, things might not work the same way as they did before.">
 <meta name="author" content="Rob">
-<link rel="canonical" href="https://headtilt.me/cat-herding-wasm-python-05/">
+<link rel="canonical" href="https://headtilt.me/cat-herding-wasm-python-06/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.1d79e034ed3fae3cce466e1b13b697315f9998d1ba8d908def178611b372b49f.css" integrity="sha256-HXngNO0/rjzORm4bE7aXMV&#43;ZmNG6jZCN7xeGEbNytJ8=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://headtilt.me/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://headtilt.me/favicon-16x16.png">
@@ -31,7 +31,7 @@ occasionally be broken, things might not work the same way as they did before.">
 <link rel="mask-icon" href="https://headtilt.me/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="https://headtilt.me/cat-herding-wasm-python-05/">
+<link rel="alternate" hreflang="en" href="https://headtilt.me/cat-herding-wasm-python-06/">
 <noscript>
     <style>
         #theme-toggle,
@@ -88,9 +88,9 @@ occasionally be broken, things might not work the same way as they did before.">
   <header class="post-header">
     
     <h1 class="post-title entry-hint-parent">
-      WASM Python - Cat Herding 05
+      WASM Python - Cat Herding 06
     </h1>
-    <div class="post-meta"><span title='2025-09-20 15:08:11 +0800 AWST'>Sat, Sep 20, 2025</span>&nbsp;·&nbsp;Rob
+    <div class="post-meta"><span title='2025-09-30 20:32:42 +0800 AWST'>Tue, Sep 30, 2025</span>&nbsp;·&nbsp;Rob
 
 </div>
   </header> <div class="toc">
@@ -108,13 +108,11 @@ occasionally be broken, things might not work the same way as they did before.">
                     <a href="#whats-happened-since" aria-label="What&rsquo;s happened since">What&rsquo;s happened since</a><ul>
                         
                 <li>
-                    <a href="#ui-enhancement" aria-label="UI enhancement">UI enhancement</a></li>
+                    <a href="#file-tab-manager" aria-label="File Tab Manager">File Tab Manager</a></li>
                 <li>
-                    <a href="#problem-lists" aria-label="Problem lists">Problem lists</a></li>
+                    <a href="#record-replay" aria-label="Record-Replay">Record-Replay</a></li>
                 <li>
-                    <a href="#persistent-success-indicators" aria-label="Persistent success indicators">Persistent success indicators</a></li>
-                <li>
-                    <a href="#feedback-rule-dependencies" aria-label="Feedback rule dependencies">Feedback rule dependencies</a></li></ul>
+                    <a href="#documentation" aria-label="Documentation">Documentation</a></li></ul>
                 </li>
                 <li>
                     <a href="#aintrospection" aria-label="(A)Introspection">(A)Introspection</a>
@@ -133,8 +131,8 @@ with just front-end JS and a WASM port of MicroPython.</p>
 <li><a href="https://headtilt.me/cat-herding-wasm-python-02/">You can find Part 2 here</a></li>
 <li><a href="https://headtilt.me/cat-herding-wasm-python-03/">You can find Part 3 here</a></li>
 <li><a href="https://headtilt.me/cat-herding-wasm-python-04/">You can find Part 4 here</a></li>
-<li>This is Part 5!</li>
-<li><a href="https://headtilt.me/cat-herding-wasm-python-06/">You can find Part 6 here</a></li>
+<li><a href="https://headtilt.me/cat-herding-wasm-python-05/">You can find Part 5 here</a></li>
+<li>This is Part 6!</li>
 </ul>
 <p>I have a (somewhat) up to date version of this tool running on the site. Things might
 occasionally be broken, things might not work the same way as they did before.</p>
@@ -152,18 +150,19 @@ new or different.</p>
       </div>
       <div class="admonition-content">
         <p>If you&rsquo;ve used this before, you might need to do a hard refresh to clear out
-any cached JS or CSS. I should probably put some clearing of IDB storage in there
-too, just in case. Maybe next week.</p>
+any cached JS or CSS.</p>
       </div>
     </div><h2 id="what-we-had-before">What we had before<a hidden class="anchor" aria-hidden="true" href="#what-we-had-before">#</a></h2>
-<p>See <a href="https://headtilt.me/cat-herding-wasm-python-04/">last week&rsquo;s post</a> for
+<p>See <a href="https://headtilt.me/cat-herding-wasm-python-05/">the last post</a> for
 some of the details and screenshots.</p>
 <ul>
-<li>Student verification codes (which are going to need some tweaks to the author side with the new problem list feature)</li>
-<li>Read-only file support in workspaces</li>
-<li>Per-test workspace files</li>
+<li>Loading problem lists, not just individual problems</li>
+<li>Persistent success indicators in problems and lists</li>
+<li>Dependencies for feedback items</li>
 </ul>
 <h2 id="whats-happened-since">What&rsquo;s happened since<a hidden class="anchor" aria-hidden="true" href="#whats-happened-since">#</a></h2>
+<p>The last week and a bit have mostly been about the user-facing
+side of Clipy.</p>
 <p>Here are some screenshots of the latest version with some of the new things from this week.</p>
 <style>
     .image-gallery {
@@ -236,125 +235,91 @@ some of the details and screenshots.</p>
 
 <ul class="image-gallery">
     <li>
-        <a href="/gallery/clipy/week5/01_config_list_collapsed.png" title="01_config_list_collapsed" class="lightbox-image">
-            <img src="/gallery/clipy/week5/01_config_list_collapsed.png" alt="01_config_list_collapsed" title="01_config_list_collapsed">
-            <span>01_config_list_collapsed</span>
+        <a href="/gallery/clipy/week6/01_user_rename_files.png" title="01_user_rename_files" class="lightbox-image">
+            <img src="/gallery/clipy/week6/01_user_rename_files.png" alt="01_user_rename_files" title="01_user_rename_files">
+            <span>01_user_rename_files</span>
         </a>
     </li>
     <li>
-        <a href="/gallery/clipy/week5/02_config_list_expanded.png" title="02_config_list_expanded" class="lightbox-image">
-            <img src="/gallery/clipy/week5/02_config_list_expanded.png" alt="02_config_list_expanded" title="02_config_list_expanded">
-            <span>02_config_list_expanded</span>
+        <a href="/gallery/clipy/week6/02_user_file_overflow.png" title="02_user_file_overflow" class="lightbox-image">
+            <img src="/gallery/clipy/week6/02_user_file_overflow.png" alt="02_user_file_overflow" title="02_user_file_overflow">
+            <span>02_user_file_overflow</span>
         </a>
     </li>
     <li>
-        <a href="/gallery/clipy/week5/03_feedback_msg_optional.png" title="03_feedback_msg_optional" class="lightbox-image">
-            <img src="/gallery/clipy/week5/03_feedback_msg_optional.png" alt="03_feedback_msg_optional" title="03_feedback_msg_optional">
-            <span>03_feedback_msg_optional</span>
+        <a href="/gallery/clipy/week6/03_user_file_list.png" title="03_user_file_list" class="lightbox-image">
+            <img src="/gallery/clipy/week6/03_user_file_list.png" alt="03_user_file_list" title="03_user_file_list">
+            <span>03_user_file_list</span>
         </a>
     </li>
     <li>
-        <a href="/gallery/clipy/week5/04_success_indicator_title.png" title="04_success_indicator_title" class="lightbox-image">
-            <img src="/gallery/clipy/week5/04_success_indicator_title.png" alt="04_success_indicator_title" title="04_success_indicator_title">
-            <span>04_success_indicator_title</span>
+        <a href="/gallery/clipy/week6/04_user_replay_controls.png" title="04_user_replay_controls" class="lightbox-image">
+            <img src="/gallery/clipy/week6/04_user_replay_controls.png" alt="04_user_replay_controls" title="04_user_replay_controls">
+            <span>04_user_replay_controls</span>
         </a>
     </li>
     <li>
-        <a href="/gallery/clipy/week5/05_success_indicator_configlist.png" title="05_success_indicator_configlist" class="lightbox-image">
-            <img src="/gallery/clipy/week5/05_success_indicator_configlist.png" alt="05_success_indicator_configlist" title="05_success_indicator_configlist">
-            <span>05_success_indicator_configlist</span>
-        </a>
-    </li>
-    <li>
-        <a href="/gallery/clipy/week5/06_success_indicator_snapshot.png" title="06_success_indicator_snapshot" class="lightbox-image">
-            <img src="/gallery/clipy/week5/06_success_indicator_snapshot.png" alt="06_success_indicator_snapshot" title="06_success_indicator_snapshot">
-            <span>06_success_indicator_snapshot</span>
-        </a>
-    </li>
-    <li>
-        <a href="/gallery/clipy/week5/07_admonitions_markdown.png" title="07_admonitions_markdown" class="lightbox-image">
-            <img src="/gallery/clipy/week5/07_admonitions_markdown.png" alt="07_admonitions_markdown" title="07_admonitions_markdown">
-            <span>07_admonitions_markdown</span>
-        </a>
-    </li>
-    <li>
-        <a href="/gallery/clipy/week5/08_disabled_run_key.png" title="08_disabled_run_key" class="lightbox-image">
-            <img src="/gallery/clipy/week5/08_disabled_run_key.png" alt="08_disabled_run_key" title="08_disabled_run_key">
-            <span>08_disabled_run_key</span>
-        </a>
-    </li>
-    <li>
-        <a href="/gallery/clipy/week5/09_dependent_feedback_neg.png" title="09_dependent_feedback_neg" class="lightbox-image">
-            <img src="/gallery/clipy/week5/09_dependent_feedback_neg.png" alt="09_dependent_feedback_neg" title="09_dependent_feedback_neg">
-            <span>09_dependent_feedback_neg</span>
-        </a>
-    </li>
-    <li>
-        <a href="/gallery/clipy/week5/10_dependent_feedback_pos.png" title="10_dependent_feedback_pos" class="lightbox-image">
-            <img src="/gallery/clipy/week5/10_dependent_feedback_pos.png" alt="10_dependent_feedback_pos" title="10_dependent_feedback_pos">
-            <span>10_dependent_feedback_pos</span>
+        <a href="/gallery/clipy/week6/05_user_replay_variable.png" title="05_user_replay_variable" class="lightbox-image">
+            <img src="/gallery/clipy/week6/05_user_replay_variable.png" alt="05_user_replay_variable" title="05_user_replay_variable">
+            <span>05_user_replay_variable</span>
         </a>
     </li>
     
 </ul>
-<h3 id="ui-enhancement">UI enhancement<a hidden class="anchor" aria-hidden="true" href="#ui-enhancement">#</a></h3>
-<p>I&rsquo;ve been trying to make things generally better looking and nicer to use, given that I typically
-rock a pretty utilitarian aesthetic by default. Some of the changes are (you can see some of them in
-the screenshots):</p>
+<h3 id="file-tab-manager">File Tab Manager<a hidden class="anchor" aria-hidden="true" href="#file-tab-manager">#</a></h3>
+<p>The fairly primitive tabbed file manager that we had in the earlier
+versions of Clipy are gone, replaced with something that I hope is
+a bit friendlier on smaller screens. I had a couple of ideas kicking
+around in my head:</p>
 <ul>
-<li>Shifting to non-emoji feedback indicators</li>
-<li>Feedback messages are now optional - the indicator and the title should do most of the job</li>
-<li>Run tests now visibly disabled when there are no tests to run</li>
-<li>Added an admonition extension to markdown rendering so authors can provide highlights to different types of content</li>
+<li>A sideways scrolling list of files, similar to Excel&rsquo;s worksheets</li>
+<li>Something more geared to vertical scrolling for more files</li>
 </ul>
-<h3 id="problem-lists">Problem lists<a hidden class="anchor" aria-hidden="true" href="#problem-lists">#</a></h3>
-<p>One of the things that bothered me about the initial design was the friction in getting multiple
-problems out to students. Each problem would have needed to have a new link with a URL parameter
-to load the next problem. Given that some problems might not take very long to solve, this would
-mean lots of bouncing back to a LMS page or email. However I still wanted to be able to have single
-problems loadable.</p>
-<p>So now we support lists of problems (in a <code>json</code> file format) that can be passed to the app just
-like individual problems. If the config file passed to the app ends up being a config list rather
-than a single problem, the user is presented with a menu to navigate through the different problem
-files found in the list (with its own problem set title in the page header). This way, we can still
-respect the &ldquo;client side only&rdquo; nature of the app, but also make it possible to have a learning
-sequence.</p>
-<p><a href="/clipy?config=https://raw.githubusercontent.com/zarify/clipy-configs/refs/heads/main/index.json">I have a config list containing simple test scripts that you can load here</a></p>
-<p>There is also a basic config list that loads by default.</p>
-<h3 id="persistent-success-indicators">Persistent success indicators<a hidden class="anchor" aria-hidden="true" href="#persistent-success-indicators">#</a></h3>
-<p>The problem with potentially not just seeing a single problem anymore is it&rsquo;s less likely to take
-just one session to solve them, so how do students keep track of their progress? Enter persistent
-success indicators in a few places:</p>
-<ul>
-<li>The page header now gets a success indicator if the student has passed the test suite for a single problem</li>
-<li>If a problem is part of a list, then we also badge problems with passing solutions in the drop-down menu for navigating between problems (this one was a struggle for the agent, and it broke things a few time 🫠)</li>
-<li>A &lsquo;passing&rsquo; snapshot is created (or updated) each time a test suite is passed.</li>
-</ul>
-<p>This gives students a few places where, if they pick up a problem set in another session, they can
-get a good visual indicator of whether or not they have passed a problem or not. The snapshot indicator
-also tells them <em>when</em> they passed the test suite last.</p>
-<h3 id="feedback-rule-dependencies">Feedback rule dependencies<a hidden class="anchor" aria-hidden="true" href="#feedback-rule-dependencies">#</a></h3>
-<p>I love feedback flexibility, and from personal experience it&rsquo;s frustrating when the ability to give feedback
-is limited by the tools you have to provide it. One of the features I added to testing that made me
-pretty happy was conditional runs for tests and grouping.</p>
-<p>This time I added some flexibility to when feedback rules trigger:</p>
-<ul>
-<li>Each feedback item can be dependent on a list of other feedback items to trigger</li>
-<li>Feedback dependency can be either &ldquo;must match&rdquo; or &ldquo;must not match&rdquo;</li>
-<li>Combining this with default hidden behaviour means you can surface &ldquo;just in time&rdquo; feedback means you can build some pretty flexible feedback types</li>
-</ul>
+<p>I hate Excel&rsquo;s worksheet navigation with a fiery passion, so the choice
+was easy, it was just a question of how to manage it.</p>
+<p>I settled on at most two files being visible at once with an &ldquo;N more&rdquo;
+button that would pop open a modal with other files in the workspace.
+<code>main.py</code> would always be visible, of course, with the last opened file
+also staying open, so you can swap between it and <code>main.py</code> easily.</p>
+<p>Rounding things out was renaming for files in the workspace (and in
+authoring as well).</p>
+<h3 id="record-replay">Record-Replay<a hidden class="anchor" aria-hidden="true" href="#record-replay">#</a></h3>
+<p>A couple of years ago I ran across an interesting Python library called
+<a href="https://github.com/cool-RR/pysnooper">PySnooper</a> which let you decorate
+some code and see variable state as you ran it. Sort of like print
+debugging, but there&rsquo;s almost nothing to clean up, and you don&rsquo;t need to
+know what you&rsquo;re looking for first.</p>
+<p>My first run at a WASM Python editor I made a little proof of concept for
+plugging something like PySnooper in for a basic program and, well, it
+was OK, but the whole environment was not much more than an interesting
+demo.</p>
+<p>This time the WASM part was worked out first, and I&rsquo;d almost forgotten
+about record-replay, but here we are. After the user runs their code
+(assuming it doesn&rsquo;t crash) they get a replay of the run. They can scrub
+through or step through their execution, with any variables on each line
+showing the current state, giving an opportunity to understand things
+like variables in <code>for</code> loops, just what is happening to that variable
+you re-used, etc. Not going to lie, I&rsquo;m pretty pleased that it seems to
+be working.</p>
+<h3 id="documentation">Documentation<a hidden class="anchor" aria-hidden="true" href="#documentation">#</a></h3>
+<p>I took the time to write up some documentation for the user and author
+during the week. Shame I need to go retake a bunch of screenshots now
+that the file manager looks different 😂</p>
+<p><a href="https://github.com/zarify/clipy/tree/main/docs">Check out the docs here</a>.</p>
 <h2 id="aintrospection">(A)Introspection<a hidden class="anchor" aria-hidden="true" href="#aintrospection">#</a></h2>
-<p>This week has been a bit of messing around trying to spec out problems in a way that makes it clear
-what I don&rsquo;t want to get broken, doing a <em>whole lot</em> of regression testing (much of it manual because
-I need to get around to putting together some decent e2e tests, and because there are a lot of round trips
-into browser storage more isolated tests aren&rsquo;t always a great indication of whether something has worked,
-or rather, not broken anything).</p>
-<p>One of the (funny|frustrating) things about agent instruction is the utter lack of self-awareness. There have
-been a couple of sessions where I&rsquo;ve been working on a feature and it doesn&rsquo;t work out the way I intended, or,
-after using the initial version a few times, I change my mind about how it should work. The agent then turns
-and tries to implement legacy migration features for something that hasn&rsquo;t even been committed yet, let
-alone pushed. The minor funny version of this is it&rsquo;ll write some code, I&rsquo;ll test it, authorise the next step
-and it&rsquo;ll tell me all about all the changes that it sees I&rsquo;ve made, despite it having just written the code.</p>
+<p>I&rsquo;m starting to hate Claude. For every time it&rsquo;s breezed through adding
+a feature, it&rsquo;s gotten stuck like a plus-sized Jack Russell in a rabbit
+hole many more times, chasing concepts that don&rsquo;t apply to the project,
+trying to create Python test files for an environment that runs in the
+browser, and just general boneheadedness that I wouldn&rsquo;t expect from any
+of my students, no matter how inexperienced.</p>
+<p>I&rsquo;ve been playing around with some other custom agent chat modes the last
+couple of weeks for planning and writing good spec documents, but haven&rsquo;t
+gotten around to playing with them much. Too much nervousness around the
+unknown quality and breaking things more than they sometimes are already
+when we&rsquo;re half-way through a feature. I need to find another side
+project to experiment with, or perhaps something small enough to do end
+to end with different methods.</p>
 
 
   </div>
