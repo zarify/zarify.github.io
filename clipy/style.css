@@ -72,6 +72,14 @@
     white-space: nowrap;
 }
 
+/* Ensure measurement spans use a predictable monospace stack to avoid
+   browser font-enumeration heuristics and provide consistent width
+   measurements for replay variable widgets. */
+.variable-name,
+.variable-value {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Courier New", monospace;
+}
+
 /* CodeMirror line widgets (added via addLineWidget) should not expand
    the editor width. Constrain them to the editor width and allow internal
    content to wrap or scroll locally. */
@@ -235,6 +243,10 @@ header {
         box-sizing: border-box;
         /* Allow the editor to scroll vertically but not expand horizontally */
         overflow-x: hidden;
+        /* Use an explicit monospace stack so vendor measurement uses a
+           predictable font instead of probing system fonts (reduces
+           browser font-access/visibility logs). */
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Courier New", monospace !important;
     }
 
     /* When CodeMirror is configured with lineWrapping, ensure pre elements wrap */

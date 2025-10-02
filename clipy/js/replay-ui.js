@@ -279,6 +279,11 @@ export class ReplayEngine {
                 if (this.lineDecorator) {
                     this.lineDecorator.clearAllDecorations()
                 }
+                // When rewinding, ensure we're on the correct file for the first step
+                const firstStep = executionTrace.getStep(0)
+                if (firstStep && firstStep.filename) {
+                    this.ensureCorrectFileIsActive(firstStep.filename)
+                }
                 this.displayCurrentStep()
                 this.updateUI()
                 return true
@@ -297,6 +302,14 @@ export class ReplayEngine {
             // Initialize line decorator
             if (window.cm) {
                 this.lineDecorator = new ReplayLineDecorator(window.cm)
+            }
+
+            // Before showing replay UI and displaying the first step, ensure
+            // we're viewing a Python code file (not a data file like .txt).
+            // Get the first execution step to determine which file to show.
+            const firstStep = executionTrace.getStep(0)
+            if (firstStep && firstStep.filename) {
+                this.ensureCorrectFileIsActive(firstStep.filename)
             }
 
             // Show replay UI
@@ -452,9 +465,10 @@ export class ReplayEngine {
 
             appendTerminalDebug(`Displaying step ${this.currentStepIndex}: line ${step.lineNumber} in ${step.filename || '/main.py'}`)
 
-            // If this step is in a different file, switch to that file's tab
-            if (step.filename && step.filename !== this.currentFilename) {
-                this.switchToFile(step.filename)
+            // Ensure we're viewing the correct Python code file for this step.
+            // This prevents highlighting lines in non-code files like .txt data files.
+            if (step.filename) {
+                this.ensureCorrectFileIsActive(step.filename)
             }
 
             // Clear previous decorations
@@ -469,6 +483,48 @@ export class ReplayEngine {
             }
         } catch (error) {
             appendTerminalDebug('Failed to display current step: ' + error)
+        }
+    }
+
+    /**
+     * Ensure the correct Python code file is active for replay. This prevents
+     * highlighting lines in non-code files (like .txt data files).
+     */
+    ensureCorrectFileIsActive(targetFilename) {
+        try {
+            // Get the currently active file from TabManager
+            const currentActiveFile = window.TabManager && typeof window.TabManager.getActive === 'function'
+                ? window.TabManager.getActive()
+                : null
+
+            // Normalize target filename
+            const normalizedTarget = targetFilename.startsWith('/') ? targetFilename : `/${targetFilename}`
+
+            // Check if target is a Python code file (not a data file)
+            const isTargetPythonFile = normalizedTarget.endsWith('.py')
+
+            if (!isTargetPythonFile) {
+                appendTerminalDebug(`Target file ${normalizedTarget} is not a Python file, defaulting to /main.py`)
+                this.switchToFile('/main.py')
+                return
+            }
+
+            // If current file is not a Python code file, or it's a different file than the target, switch
+            const isCurrentPythonFile = currentActiveFile && currentActiveFile.endsWith('.py')
+
+            if (!isCurrentPythonFile || currentActiveFile !== normalizedTarget) {
+                appendTerminalDebug(`Switching from ${currentActiveFile || 'unknown'} to ${normalizedTarget} for replay`)
+                this.switchToFile(normalizedTarget)
+            } else {
+                // Already on the correct file, just update our tracker
+                this.currentFilename = normalizedTarget
+            }
+        } catch (error) {
+            appendTerminalDebug('Failed to ensure correct file is active: ' + error)
+            // Fall back to main.py on error
+            try {
+                this.switchToFile('/main.py')
+            } catch (e) { /* ignore */ }
         }
     }
 
