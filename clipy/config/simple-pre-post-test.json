@@ -1,0 +1,109 @@
+{
+    "id": "simple-pre-post-test",
+    "title": "Simple Pre/Post Test",
+    "version": "1.0",
+    "description": "A simple test to verify __pre.py and __post.py execution",
+    "instructions": "Write code that prints 'Hello from main'",
+    "feedback": [],
+    "tests": {
+        "groups": [
+            {
+                "id": "group-1",
+                "name": "Basic Tests",
+                "collapsed": false,
+                "conditional": {
+                    "runIf": "always",
+                    "alwaysRun": false
+                },
+                "tests": [
+                    {
+                        "id": "test-1",
+                        "description": "Test with __pre.py only",
+                        "setup": {
+                            "/__pre.py": "print('Hello from pre')"
+                        },
+                        "main": "print('Hello from main')",
+                        "expected_stdout": "Hello from pre\nHello from main",
+                        "failureMessage": "Should see output from both pre and main",
+                        "conditional": {
+                            "runIf": "always",
+                            "alwaysRun": false
+                        }
+                    },
+                    {
+                        "id": "test-2",
+                        "description": "Test with __post.py only",
+                        "setup": {
+                            "/__post.py": "print('Hello from post')"
+                        },
+                        "main": "print('Hello from main')",
+                        "expected_stdout": "Hello from main\nHello from post",
+                        "failureMessage": "Should see output from both main and post",
+                        "conditional": {
+                            "runIf": "previous_passed",
+                            "alwaysRun": false
+                        }
+                    },
+                    {
+                        "id": "test-3",
+                        "description": "Test with both __pre.py and __post.py",
+                        "setup": {
+                            "/__pre.py": "print('Hello from pre')",
+                            "/__post.py": "print('Hello from post')"
+                        },
+                        "main": "print('Hello from main')",
+                        "expected_stdout": "Hello from pre\nHello from main\nHello from post",
+                        "failureMessage": "Should see output from pre, main, and post",
+                        "conditional": {
+                            "runIf": "previous_passed",
+                            "alwaysRun": false
+                        }
+                    },
+                    {
+                        "id": "test-4",
+                        "description": "Test shared namespace - pre sets variable, main uses it",
+                        "setup": {
+                            "/__pre.py": "test_vars = 42",
+                            "/__post.py": "from main import result\nif result != 42:\n    raise AssertionError(f'Expected 42, got {result}')\nprint('✓ Variable shared correctly')"
+                        },
+                        "main": "import __pre\nresult = __pre.test_var\nprint(f'Got value: {result}')",
+                        "expected_stdout": {
+                            "type": "regex",
+                            "expression": "Got value: 42.*Variable shared correctly",
+                            "flags": "s"
+                        },
+                        "failureMessage": "Namespace sharing failed",
+                        "conditional": {
+                            "runIf": "previous_passed",
+                            "alwaysRun": false
+                        }
+                    },
+                    {
+                        "id": "test-5",
+                        "description": "Test post can import from main",
+                        "setup": {
+                            "/__post.py": "from main import add\nresult = add(5, 3)\nif result != 8:\n    raise AssertionError(f'Expected 8, got {result}')\nprint('✓ Function import works')"
+                        },
+                        "main": "def add(a, b):\n    return a + b\n\nprint('Function defined')",
+                        "expected_stdout": {
+                            "type": "regex",
+                            "expression": "Function defined.*Function import works",
+                            "flags": "s"
+                        },
+                        "failureMessage": "Post should be able to import from main",
+                        "conditional": {
+                            "runIf": "previous_passed",
+                            "alwaysRun": false
+                        }
+                    }
+                ]
+            }
+        ],
+        "ungrouped": [],
+        "showGroupsToUsers": true
+    },
+    "starter": "print('Hello from main')",
+    "files": {
+        "/main.py": "print('Hello from main')"
+    }
+}

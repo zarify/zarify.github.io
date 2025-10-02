@@ -167,12 +167,49 @@ try {
         } catch (e) { log('writeFilesToFS outer error', e) }
     }
 
+    // Helper to detect if we're in author/test-authoring mode vs user/student mode.
+    // Author mode shows detailed error messages for __pre.py and __post.py failures.
+    // User mode shows generic "contact instructor" messages to protect test integrity.
+    // NOTE: This runs in an iframe, so we check the PARENT window's location.
+    function isAuthorMode() {
+        try {
+            // Check parent window's URL path for '/author/'
+            if (typeof window !== 'undefined' && window.parent && window.parent.location && window.parent.location.pathname) {
+                const parentPath = String(window.parent.location.pathname)
+                post({ type: 'debug', text: 'isAuthorMode: checking parent pathname: ' + parentPath })
+                if (parentPath.includes('/author/')) {
+                    post({ type: 'debug', text: 'isAuthorMode: AUTHOR MODE detected (path includes /author/)' })
+                    return true
+                }
+            }
+            // Check parent window's URL query params for 'author'
+            if (typeof window !== 'undefined' && window.parent && window.parent.location && window.parent.location.search) {
+                const parentSearch = String(window.parent.location.search)
+                post({ type: 'debug', text: 'isAuthorMode: checking parent search params: ' + parentSearch })
+                const params = new URLSearchParams(parentSearch)
+                if (params.has('author')) {
+                    post({ type: 'debug', text: 'isAuthorMode: AUTHOR MODE detected (query param)' })
+                    return true
+                }
+            }
+            post({ type: 'debug', text: 'isAuthorMode: USER MODE (default)' })
+        } catch (e) {
+            // If detection fails (e.g., cross-origin restrictions), default to user mode (safer)
+            post({ type: 'debug', text: 'isAuthorMode: Error during detection (defaulting to USER MODE): ' + String(e) })
+            return false
+        }
+        return false
+    }
+
     async function handleRunTest(test) {
         stdoutBuf = []
         stderrBuf = []
         pendingStdinResolves = []
         stdinRequested = false
         const start = Date.now()
+        const authorMode = isAuthorMode()
+        post({ type: 'debug', text: 'handleRunTest: authorMode = ' + authorMode })
+
         try {
             if (test.setup && typeof test.setup === 'object') {
                 writeFilesToFS(test.setup)
@@ -181,15 +218,18 @@ try {
                 writeFilesToFS(test.files)
             }
             const mainToRun = (test.main && typeof test.main === 'string') ? test.main : null
+
             // Helper to run an import expression directly. Previously we executed
             // a Python wrapper string which caused the runtime to report the
             // wrapper as the traceback source (e.g. "<stdin>"). Running the
             // import expression directly ensures tracebacks refer to the actual
             // module files (for example "/main.py"). We rely on the host-side
             // heuristic that moves tracebacks from stdout->stderr when needed.
+            // Returns { error: null } on success or { error: errorObject } on failure.
             const runImport = async (importExpr) => {
                 try {
                     await runtimeAdapter.run(importExpr)
+                    return { error: null }
                 } catch (e) {
                     // Some runtimes surface Python tracebacks by rejecting the
                     // promise with an error whose message contains the traceback.
@@ -204,20 +244,97 @@ try {
                             post({ type: 'stderr', text: filtered })
                         }
                     } catch (_err) { }
-                    // Swallow the error here; the harness will inspect buffers
-                    // and determine pass/fail. Returning allows the test run to
-                    // continue to the buffer-heuristic and result assembly.
+                    // Return the error object for caller to decide how to handle
+                    return { error: e }
                 }
             }
 
+            // Check if __pre.py and __post.py exist in test.setup or test.files
+            let hasPrePy = false
+            let hasPostPy = false
+            try {
+                if (test.setup && typeof test.setup === 'object') {
+                    if (test.setup['/__pre.py'] || test.setup['__pre.py']) hasPrePy = true
+                    if (test.setup['/__post.py'] || test.setup['__post.py']) hasPostPy = true
+                }
+                if (test.files && typeof test.files === 'object') {
+                    if (test.files['/__pre.py'] || test.files['__pre.py']) hasPrePy = true
+                    if (test.files['/__post.py'] || test.files['__post.py']) hasPostPy = true
+                }
+            } catch (e) {
+                log('Error detecting pre/post files', e)
+            }
+
+            // Track errors from each execution step
+            let preError = null
+            let mainError = null
+            let postError = null
+
+            // STEP 1: Execute __pre.py if present
+            if (hasPrePy) {
+                post({ type: 'debug', text: '__pre.py detected, executing pre-setup' })
+                const result = await runImport('import __pre')
+                if (result.error) {
+                    preError = result.error
+                    post({ type: 'debug', text: '__pre.py execution failed' })
+                    // Early termination: if pre fails, don't run main or post
+                    const duration = Date.now() - start
+                    const assemble = (buf) => {
+                        if (!buf || !buf.length) return ''
+                        let out = ''
+                        for (let i = 0; i < buf.length; i++) {
+                            const cur = String(buf[i] || '')
+                            if (i === 0) { out += cur; continue }
+                            const prev = out.length ? out[out.length - 1] : ''
+                            const nextFirst = cur.length ? cur[0] : ''
+                            const prevEndsWhitespace = prev && (/\s/.test(prev))
+                            const nextStartsWhitespace = nextFirst && (/\s/.test(nextFirst))
+                            if (!prevEndsWhitespace && !nextStartsWhitespace) out += '\n'
+                            out += cur
+                        }
+                        return out
+                    }
+                    const stderrJoined = assemble(stderrBuf)
+                    const errorMsg = authorMode
+                        ? '❌ Test setup failed (__pre.py)\n\n' + stderrJoined
+                        : 'Test configuration error. Please contact your instructor.'
+                    return {
+                        id: test.id,
+                        passed: false,
+                        stdout: assemble(stdoutBuf),
+                        stderr: errorMsg,
+                        durationMs: duration,
+                        reason: 'preConfigError',
+                        preConfigError: true
+                    }
+                } else {
+                    post({ type: 'debug', text: '__pre.py execution completed successfully' })
+                }
+            }
+
+            // STEP 2: Execute main.py
             if (mainToRun) {
                 // Write the inline main to /main.py inside the runtime FS so the
                 // traceback filename will point to /main.py when printed.
                 try { writeFilesToFS({ '/main.py': mainToRun }) } catch (e) { }
-                await runImport('import main')
+                post({ type: 'debug', text: 'executing main.py' })
+                const result = await runImport('import main')
+                if (result.error) {
+                    mainError = result.error
+                    post({ type: 'debug', text: 'main.py execution failed, will still attempt __post.py if present' })
+                } else {
+                    post({ type: 'debug', text: 'main.py execution completed' })
+                }
             } else if (test.entry && typeof test.entry === 'string') {
                 const mod = test.entry.replace(/\.[^/.]+$/, '')
-                await runImport(`import ${mod}`)
+                post({ type: 'debug', text: 'executing entry module: ' + mod })
+                const result = await runImport(`import ${mod}`)
+                if (result.error) {
+                    mainError = result.error
+                    post({ type: 'debug', text: 'entry module execution failed' })
+                } else {
+                    post({ type: 'debug', text: 'entry module execution completed' })
+                }
             } else {
                 // If no main/entry provided, attempt to import /main.py directly.
                 // Some runtime FS implementations may not expose lookupPath or
@@ -225,11 +342,26 @@ try {
                 // gracefully if the file doesn't exist.
                 try {
                     post({ type: 'debug', text: 'attempting import main' })
-                    await runImport('import main')
+                    const result = await runImport('import main')
+                    if (result.error) {
+                        mainError = result.error
+                    }
                     post({ type: 'debug', text: 'import main completed' })
                 } catch (e) {
                     post({ type: 'debug', text: 'import main failed: ' + String(e) })
                     // ignore -- handled below via buffers/heuristic
+                }
+            }
+
+            // STEP 3: Execute __post.py if present (even if main failed)
+            if (hasPostPy) {
+                post({ type: 'debug', text: '__post.py detected, executing post-verification' })
+                const result = await runImport('import __post')
+                if (result.error) {
+                    postError = result.error
+                    post({ type: 'debug', text: '__post.py execution failed' })
+                } else {
+                    post({ type: 'debug', text: '__post.py execution completed successfully' })
                 }
             }
 
@@ -284,6 +416,91 @@ try {
                 }
                 return out
             }
+
+            // Determine test result based on execution errors
+            // Priority: postError > mainError (if no post) > success
+            if (postError) {
+                // __post.py failed - this always fails the test
+                const stderrJoined = assemble(stderrBuf)
+                let errorMsg
+
+                if (authorMode) {
+                    // Enhanced error reporting for authors
+                    let contextInfo = '❌ Test verification failed (__post.py)'
+                    contextInfo += '\n\n📋 Execution context: '
+                    if (hasPrePy) {
+                        contextInfo += '__pre.py → main.py → __post.py'
+                    } else {
+                        contextInfo += 'main.py → __post.py'
+                    }
+
+                    if (mainError) {
+                        contextInfo += '\n   ⚠️  Warning: main.py also failed during execution'
+                        contextInfo += '\n   This may have caused __post.py verification to fail.'
+                        contextInfo += '\n   Consider fixing main.py errors first.'
+                    } else {
+                        if (hasPrePy) {
+                            contextInfo += '\n   ✓ __pre.py executed successfully'
+                        }
+                        contextInfo += '\n   ✓ main.py executed successfully'
+                        contextInfo += '\n   ✗ __post.py failed during verification'
+                    }
+
+                    contextInfo += '\n\n' + '─'.repeat(50) + '\n'
+                    errorMsg = contextInfo + '\n' + stderrJoined
+                } else {
+                    errorMsg = 'Test configuration error. Please contact your instructor.'
+                }
+
+                return {
+                    id: test.id,
+                    passed: false,
+                    stdout: assemble(stdoutBuf),
+                    stderr: errorMsg,
+                    durationMs: duration,
+                    reason: 'postConfigError',
+                    postConfigError: true,
+                    mainAlsoFailed: !!mainError
+                }
+            } else if (mainError) {
+                // main.py failed but __post.py succeeded (or wasn't present)
+                // In author mode with pre/post files, provide enhanced debugging context
+                const stderrJoined = assemble(stderrBuf)
+                let errorMsg = stderrJoined
+
+                if (authorMode && (hasPrePy || hasPostPy)) {
+                    // Enhanced error reporting for authors when using pre/post execution
+                    let contextInfo = '⚠️  Test execution failed in main.py'
+                    if (hasPrePy && hasPostPy) {
+                        contextInfo += '\n\n📋 Execution context: __pre.py → main.py → __post.py'
+                        contextInfo += '\n   ✓ __pre.py executed successfully'
+                        contextInfo += '\n   ✗ main.py failed (see error below)'
+                        contextInfo += '\n   ℹ️  __post.py was still executed but may have encountered issues due to main.py failure'
+                    } else if (hasPrePy) {
+                        contextInfo += '\n\n📋 Execution context: __pre.py → main.py'
+                        contextInfo += '\n   ✓ __pre.py executed successfully'
+                        contextInfo += '\n   ✗ main.py failed (see error below)'
+                    } else if (hasPostPy) {
+                        contextInfo += '\n\n📋 Execution context: main.py → __post.py'
+                        contextInfo += '\n   ✗ main.py failed (see error below)'
+                        contextInfo += '\n   ℹ️  __post.py was still executed'
+                    }
+
+                    contextInfo += '\n\n' + '─'.repeat(50) + '\n'
+                    errorMsg = contextInfo + '\n' + stderrJoined
+                }
+
+                return {
+                    id: test.id,
+                    passed: false,
+                    stdout: assemble(stdoutBuf),
+                    stderr: errorMsg,
+                    durationMs: duration,
+                    reason: String(mainError)
+                }
+            }
+
+            // All steps succeeded (or no errors encountered)
             return { id: test.id, passed: true, stdout: assemble(stdoutBuf), stderr: assemble(stderrBuf), durationMs: duration }
         } catch (err) {
             const duration = Date.now() - start

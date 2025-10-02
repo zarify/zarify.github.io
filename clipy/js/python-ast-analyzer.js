@@ -37,23 +37,31 @@ export class PythonASTAnalyzer {
             }
 
             // Analyze all variables to get line-by-line information
-            const allVariableAnalysis = this.astAnalyzer.analyzeVariables(ast, '*')
+            // Pass null/undefined (not '*') to get all variables
+            const allVariableAnalysis = this.astAnalyzer.analyzeVariables(ast, null)
 
-            if (!allVariableAnalysis || !Array.isArray(allVariableAnalysis)) {
-                appendTerminalDebug('No variable analysis results')
+            // The result is an object with a 'variables' property containing an array
+            if (!allVariableAnalysis || !allVariableAnalysis.variables || !Array.isArray(allVariableAnalysis.variables)) {
+                appendTerminalDebug(`AST analysis returned unexpected format: ${typeof allVariableAnalysis}`)
                 return false
             }
 
+            const variables = allVariableAnalysis.variables
+            appendTerminalDebug(`AST analysis found ${variables.length} variables`)
+
             // Build line-by-line mapping
-            for (const varInfo of allVariableAnalysis) {
-                if (!varInfo.name) continue
+            for (const varEntry of variables) {
+                if (!varEntry.name) continue
+
+                const varInfo = varEntry.report || varEntry
+                if (!varInfo) continue
 
                 // Process assignments (where variable is defined)
                 if (varInfo.assignments && Array.isArray(varInfo.assignments)) {
                     for (const assignment of varInfo.assignments) {
                         if (assignment.lineno) {
                             this.ensureLineEntry(assignment.lineno)
-                            this.lineVariableMap.get(assignment.lineno).defined.add(varInfo.name)
+                            this.lineVariableMap.get(assignment.lineno).defined.add(varEntry.name)
                         }
                     }
                 }
@@ -63,7 +71,7 @@ export class PythonASTAnalyzer {
                     for (const usage of varInfo.usages) {
                         if (usage.lineno) {
                             this.ensureLineEntry(usage.lineno)
-                            this.lineVariableMap.get(usage.lineno).used.add(varInfo.name)
+                            this.lineVariableMap.get(usage.lineno).used.add(varEntry.name)
                         }
                     }
                 }

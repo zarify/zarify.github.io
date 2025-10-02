@@ -3,7 +3,12 @@ import { appendTerminalDebug } from './terminal.js'
 import { getPythonASTAnalyzer } from './python-ast-analyzer.js'
 
 /**
- * Instrument Python source code to capture execution traces
+ * Instrument Python source code t                    instrumentedLines.push(`${indent}    _trace_execution(${originalLineNumber}, _trace_vars, _trace_filename)`)
+                    instrumentedLines.push(`${indent}except Exception as _trace_err:`)
+                    instrumentedLines.push(`${indent}    print(f"[TRACE CAPTURE ERROR] Line ${originalLineNumber}: {_trace_err}")`)
+
+                    // Now add the return statement itself
+                    instrumentedLines.push(lines[i])ure execution traces
  */
 export class PythonInstrumentor {
     constructor() {
@@ -26,9 +31,9 @@ export class PythonInstrumentor {
     /**
      * Instrument Python source code to add tracing
      */
-    async instrumentCode(sourceCode, runtimeAdapter = null) {
+    async instrumentCode(sourceCode, runtimeAdapter = null, filename = '/main.py') {
         try {
-            appendTerminalDebug('Instrumenting Python code for execution tracing')
+            appendTerminalDebug(`Instrumenting Python code for execution tracing: ${filename}`)
 
             this.sourceCode = sourceCode
 
@@ -43,16 +48,17 @@ export class PythonInstrumentor {
             instrumentedLines.push('# Execution tracing setup')
             instrumentedLines.push('import sys')
             instrumentedLines.push('_trace_vars = {}')
+            instrumentedLines.push(`_trace_filename = ${JSON.stringify(filename)}`)
             instrumentedLines.push('')
 
             // Add trace function with multiple communication methods
-            instrumentedLines.push('def _trace_execution(line_no, vars_dict):')
+            instrumentedLines.push('def _trace_execution(line_no, vars_dict, filename):')
             instrumentedLines.push('    try:')
             instrumentedLines.push('        # Method 1: Try MicroPython js module')
             instrumentedLines.push('        try:')
             instrumentedLines.push('            import js')
             instrumentedLines.push('            if hasattr(js, "_record_execution_step"):')
-            instrumentedLines.push('                js._record_execution_step(line_no, vars_dict)')
+            instrumentedLines.push('                js._record_execution_step(line_no, vars_dict, filename)')
             instrumentedLines.push('                return')
             instrumentedLines.push('        except: pass')
             instrumentedLines.push('        ')
@@ -66,20 +72,97 @@ export class PythonInstrumentor {
             instrumentedLines.push('            return  # Skip JSON if import failed')
             instrumentedLines.push('        ')
             instrumentedLines.push('        try:')
-            instrumentedLines.push('            trace_data = {"__TRACE__": {"line": line_no, "vars": vars_dict}}')
+            instrumentedLines.push('            trace_data = {"__TRACE__": {"line": line_no, "vars": vars_dict, "file": filename}}')
             instrumentedLines.push('            print(f"[TRACE_DATA_CREATED] {type(trace_data)}")  # Debug: data object created')
             instrumentedLines.push('            json_str = json.dumps(trace_data)')
             instrumentedLines.push('            print(f"[TRACE_JSON_DUMPS_OK] length={len(json_str)}")  # Debug: JSON conversion worked')
             instrumentedLines.push('            print("__EXECUTION_TRACE__" + json_str)')
-            instrumentedLines.push('            print(f"[TRACE_JSON_SENT] Line {line_no}")  # Debug: JSON sent')
+            instrumentedLines.push('            print(f"[TRACE_JSON_SENT] Line {line_no} in {filename}")  # Debug: JSON sent')
             instrumentedLines.push('        except Exception as json_err:')
-            instrumentedLines.push('            print(f"[TRACE JSON ERROR] Line {line_no}: {type(json_err).__name__}: {json_err}")')
+            instrumentedLines.push('            print(f"[TRACE JSON ERROR] Line {line_no} in {filename}: {type(json_err).__name__}: {json_err}")')
             instrumentedLines.push('    except Exception as e:')
-            instrumentedLines.push('        print(f"[TRACE ERROR] Line {line_no}: {e}")  # Show tracing errors')
+            instrumentedLines.push('        print(f"[TRACE ERROR] Line {line_no} in {filename}: {e}")  # Show tracing errors')
             instrumentedLines.push('')
 
             // Record how many header lines we've added before the user's code
             const headerLinesBeforeUserCode = instrumentedLines.length
+
+            // Collect all variable names from AST analysis to use for explicit capturing
+            const allVariableNames = new Set()
+            const astFoundVariables = this.astAnalyzer && this.astAnalyzer.lineVariableMap && this.astAnalyzer.lineVariableMap.size > 0
+
+            if (astFoundVariables) {
+                // Use AST analysis results (preferred - most accurate)
+                const builtins = new Set(['print', 'range', 'len', 'str', 'int', 'float', 'list', 'dict', 'set',
+                    'tuple', 'bool', 'type', 'isinstance', 'hasattr', 'getattr', 'setattr',
+                    'min', 'max', 'sum', 'abs', 'round', 'sorted', 'reversed', 'enumerate',
+                    'zip', 'map', 'filter', 'any', 'all', 'open', 'input', 'repr', 'chr', 'ord'])
+
+                for (const [lineNum, info] of this.astAnalyzer.lineVariableMap) {
+                    for (const varName of info.defined) {
+                        if (!builtins.has(varName)) {
+                            allVariableNames.add(varName)
+                        }
+                    }
+                    for (const varName of info.used) {
+                        if (!builtins.has(varName)) {
+                            allVariableNames.add(varName)
+                        }
+                    }
+                }
+                appendTerminalDebug(`AST analysis found ${allVariableNames.size} variables: ${Array.from(allVariableNames).join(', ')}`)
+            }
+
+            // If AST analysis didn't find variables, extract them heuristically from source
+            if (allVariableNames.size === 0) {
+                console.warn('🔍 HEURISTIC FALLBACK - AST found no variables')
+                appendTerminalDebug('AST analysis found no variables, using heuristic extraction')
+
+                // Extract variable names from source code using regex patterns
+                const varPattern = /\b([a-z_][a-z0-9_]*)\b/gi
+                const matches = sourceCode.matchAll(varPattern)
+
+                // Also identify loop variables in comprehensions to exclude them
+                // Matches list [x for x in ...], generator (x for x in ...), 
+                // dict {k:v for k,v in ...}, set {x for x in ...}, and nested comprehensions
+                const comprehensionLoopVars = new Set()
+                const comprehensionPattern = /[\[\{(].*?\bfor\s+([a-zA-Z_]\w*)\s+in\b.*?[\]\})]/gi
+                for (const match of sourceCode.matchAll(comprehensionPattern)) {
+                    comprehensionLoopVars.add(match[1])
+                }
+
+                // Also extract lambda parameters to exclude them
+                const lambdaParams = new Set()
+                const lambdaPattern = /\blambda\s+([^:]+):/g
+                for (const match of sourceCode.matchAll(lambdaPattern)) {
+                    // Parse lambda parameters (can be: lambda x: ..., lambda x,y: ..., lambda x,y,z: ...)
+                    const params = match[1].split(',').map(p => p.trim().split('=')[0].trim())
+                    params.forEach(p => lambdaParams.add(p))
+                }
+
+                for (const match of matches) {
+                    const varName = match[1]
+                    // Skip Python keywords and builtins
+                    const keywords = ['def', 'class', 'if', 'elif', 'else', 'for', 'while', 'try', 'except', 'finally',
+                        'with', 'as', 'import', 'from', 'return', 'yield', 'pass', 'break', 'continue',
+                        'and', 'or', 'not', 'in', 'is', 'None', 'True', 'False', 'lambda', 'global', 'nonlocal', 'assert',
+                        'print', 'range', 'len', 'str', 'int', 'float', 'list', 'dict', 'set', 'tuple',
+                        'isinstance', 'type', 'hasattr', 'getattr', 'setattr', 'repr']
+                    // Skip loop variables from comprehensions and lambda parameters (misleading - only shows last value)
+                    if (!keywords.includes(varName) && !comprehensionLoopVars.has(varName) && !lambdaParams.has(varName)) {
+                        allVariableNames.add(varName)
+                    }
+                }
+                console.log(`🔍 Heuristic extraction found ${allVariableNames.size} potential variables:`, Array.from(allVariableNames))
+                appendTerminalDebug(`Heuristic extraction found ${allVariableNames.size} potential variables`)
+            }
+
+            const hasVariableNames = allVariableNames.size > 0
+            if (hasVariableNames) {
+                appendTerminalDebug(`Using ${allVariableNames.size} variables for explicit capture: ${Array.from(allVariableNames).join(', ')}`)
+            } else {
+                appendTerminalDebug('Warning: No variables found, will use locals() fallback')
+            }
 
             // Instrument each line
             for (let i = 0; i < lines.length; i++) {
@@ -91,36 +174,112 @@ export class PythonInstrumentor {
                     continue
                 }
 
-                // Add the original line first
-                instrumentedLines.push(lines[i])
+                // Check if this is a return statement (needs special handling)
+                const isReturnStatement = line.startsWith('return ')
 
-                // Add tracing call after executable lines
-                if (this.isExecutableLine(line)) {
+                // For return statements, add tracing BEFORE the return
+                // For other statements, add tracing AFTER the statement
+                if (isReturnStatement && this.isExecutableLine(line)) {
                     const indent = this.getIndentation(lines[i])
 
-                    // Capture local variables and trace with ORIGINAL line number
+                    // Add trace code BEFORE the return statement
                     instrumentedLines.push(`${indent}try:`)
-                    instrumentedLines.push(`${indent}    # Capture variables after line execution`)
-                    instrumentedLines.push(`${indent}    _local_vars = locals()`)
+                    instrumentedLines.push(`${indent}    # Capture variables before return`)
                     instrumentedLines.push(`${indent}    _trace_vars = {}`)
-                    instrumentedLines.push(`${indent}    for _var_name in _local_vars:`)
-                    instrumentedLines.push(`${indent}        if not _var_name.startswith('_'):`)
-                    instrumentedLines.push(`${indent}            try:`)
-                    instrumentedLines.push(`${indent}                _var_value = _local_vars[_var_name]`)
-                    instrumentedLines.push(`${indent}                # Store values with proper representation for display`)
-                    instrumentedLines.push(`${indent}                if isinstance(_var_value, str):`)
-                    instrumentedLines.push(`${indent}                    _trace_vars[_var_name] = repr(_var_value)  # Keep quotes for strings`)
-                    instrumentedLines.push(`${indent}                elif isinstance(_var_value, (int, float, bool)):`)
-                    instrumentedLines.push(`${indent}                    _trace_vars[_var_name] = _var_value  # Store primitives as-is`)
-                    instrumentedLines.push(`${indent}                elif _var_value is None:`)
-                    instrumentedLines.push(`${indent}                    _trace_vars[_var_name] = None`)
-                    instrumentedLines.push(`${indent}                else:`)
-                    instrumentedLines.push(`${indent}                    _trace_vars[_var_name] = repr(_var_value)  # Use repr for complex types`)
-                    instrumentedLines.push(`${indent}            except Exception as _repr_err:`)
-                    instrumentedLines.push(`${indent}                _trace_vars[_var_name] = f'<error: {_repr_err}>'`)
-                    instrumentedLines.push(`${indent}    _trace_execution(${originalLineNumber}, _trace_vars)`)
+
+                    if (hasVariableNames) {
+                        for (const varName of allVariableNames) {
+                            if (varName.startsWith('_')) continue
+                            instrumentedLines.push(`${indent}    try:`)
+                            instrumentedLines.push(`${indent}        ${varName}`)
+                            instrumentedLines.push(`${indent}        if isinstance(${varName}, str):`)
+                            instrumentedLines.push(`${indent}            _trace_vars['${varName}'] = repr(${varName})`)
+                            instrumentedLines.push(`${indent}        elif isinstance(${varName}, (int, float, bool)):`)
+                            instrumentedLines.push(`${indent}            _trace_vars['${varName}'] = ${varName}`)
+                            instrumentedLines.push(`${indent}        elif ${varName} is None:`)
+                            instrumentedLines.push(`${indent}            _trace_vars['${varName}'] = None`)
+                            instrumentedLines.push(`${indent}        else:`)
+                            instrumentedLines.push(`${indent}            _trace_vars['${varName}'] = repr(${varName})`)
+                            instrumentedLines.push(`${indent}    except: pass`)
+                        }
+                    } else {
+                        instrumentedLines.push(`${indent}    _local_vars = locals()`)
+                        instrumentedLines.push(`${indent}    for _var_name in _local_vars:`)
+                        instrumentedLines.push(`${indent}        if not _var_name.startswith('_'):`)
+                        instrumentedLines.push(`${indent}            try:`)
+                        instrumentedLines.push(`${indent}                _var_value = _local_vars[_var_name]`)
+                        instrumentedLines.push(`${indent}                if isinstance(_var_value, str):`)
+                        instrumentedLines.push(`${indent}                    _trace_vars[_var_name] = repr(_var_value)`)
+                        instrumentedLines.push(`${indent}                elif isinstance(_var_value, (int, float, bool)):`)
+                        instrumentedLines.push(`${indent}                    _trace_vars[_var_name] = _var_value`)
+                        instrumentedLines.push(`${indent}                elif _var_value is None:`)
+                        instrumentedLines.push(`${indent}                    _trace_vars[_var_name] = None`)
+                        instrumentedLines.push(`${indent}                else:`)
+                        instrumentedLines.push(`${indent}                    _trace_vars[_var_name] = repr(_var_value)`)
+                        instrumentedLines.push(`${indent}            except: pass`)
+                    }
+
+                    instrumentedLines.push(`${indent}    _trace_execution(${originalLineNumber}, _trace_vars, _trace_filename)`)
                     instrumentedLines.push(`${indent}except Exception as _trace_err:`)
                     instrumentedLines.push(`${indent}    print(f"[TRACE CAPTURE ERROR] Line ${originalLineNumber}: {_trace_err}")`)
+
+                    // Now add the return statement itself
+                    instrumentedLines.push(lines[i])
+                } else {
+                    // Add the original line first
+                    instrumentedLines.push(lines[i])
+
+                    // Add tracing call after executable lines (for non-return statements)
+                    if (this.isExecutableLine(line)) {
+                        const indent = this.getIndentation(lines[i])
+
+                        instrumentedLines.push(`${indent}try:`)
+                        instrumentedLines.push(`${indent}    # Capture variables after line execution`)
+                        instrumentedLines.push(`${indent}    _trace_vars = {}`)
+
+                        if (hasVariableNames) {
+                            // Method 1: Explicit variable capture by name (MicroPython-compatible)
+                            // This works around MicroPython's limitation where locals() only returns globals in functions
+                            for (const varName of allVariableNames) {
+                                // Skip variables that start with underscore (internal)
+                                if (varName.startsWith('_')) continue
+
+                                instrumentedLines.push(`${indent}    try:`)
+                                instrumentedLines.push(`${indent}        ${varName}  # Reference to check if variable exists`)
+                                instrumentedLines.push(`${indent}        # Store value with proper representation`)
+                                instrumentedLines.push(`${indent}        if isinstance(${varName}, str):`)
+                                instrumentedLines.push(`${indent}            _trace_vars['${varName}'] = repr(${varName})`)
+                                instrumentedLines.push(`${indent}        elif isinstance(${varName}, (int, float, bool)):`)
+                                instrumentedLines.push(`${indent}            _trace_vars['${varName}'] = ${varName}`)
+                                instrumentedLines.push(`${indent}        elif ${varName} is None:`)
+                                instrumentedLines.push(`${indent}            _trace_vars['${varName}'] = None`)
+                                instrumentedLines.push(`${indent}        else:`)
+                                instrumentedLines.push(`${indent}            _trace_vars['${varName}'] = repr(${varName})`)
+                                instrumentedLines.push(`${indent}    except: pass  # Variable doesn't exist in this scope`)
+                            }
+                        } else {
+                            // Method 2: Fallback using globals() + locals() attempt
+                            // Note: locals() doesn't work in MicroPython functions, but at least works at module level
+                            instrumentedLines.push(`${indent}    _local_vars = locals()`)
+                            instrumentedLines.push(`${indent}    for _var_name in _local_vars:`)
+                            instrumentedLines.push(`${indent}        if not _var_name.startswith('_'):`)
+                            instrumentedLines.push(`${indent}            try:`)
+                            instrumentedLines.push(`${indent}                _var_value = _local_vars[_var_name]`)
+                            instrumentedLines.push(`${indent}                if isinstance(_var_value, str):`)
+                            instrumentedLines.push(`${indent}                    _trace_vars[_var_name] = repr(_var_value)`)
+                            instrumentedLines.push(`${indent}                elif isinstance(_var_value, (int, float, bool)):`)
+                            instrumentedLines.push(`${indent}                    _trace_vars[_var_name] = _var_value`)
+                            instrumentedLines.push(`${indent}                elif _var_value is None:`)
+                            instrumentedLines.push(`${indent}                    _trace_vars[_var_name] = None`)
+                            instrumentedLines.push(`${indent}                else:`)
+                            instrumentedLines.push(`${indent}                    _trace_vars[_var_name] = repr(_var_value)`)
+                            instrumentedLines.push(`${indent}            except: pass`)
+                        }
+
+                        instrumentedLines.push(`${indent}    _trace_execution(${originalLineNumber}, _trace_vars, _trace_filename)`)
+                        instrumentedLines.push(`${indent}except Exception as _trace_err:`)
+                        instrumentedLines.push(`${indent}    print(f"[TRACE CAPTURE ERROR] Line ${originalLineNumber}: {_trace_err}")`)
+                    }
                 }
             }
 
@@ -198,7 +357,8 @@ export class PythonInstrumentor {
         if (trimmed.startsWith('#')) return false
 
         // Skip control flow keywords that don't execute immediately
-        const skipKeywords = ['def ', 'class ', 'if ', 'elif ', 'else:', 'try:', 'except:', 'finally:', 'with ', 'for ', 'while ']
+        const skipKeywords = ['def ', 'class ', 'if ', 'elif ', 'else:', 'try:', 'except:', 'finally:',
+            'with ', 'for ', 'while ', 'global ', 'nonlocal ', 'lambda ', 'assert ']
         for (const keyword of skipKeywords) {
             if (trimmed.startsWith(keyword)) return false
         }
@@ -234,9 +394,10 @@ export class PythonInstrumentor {
      */
     setupTraceCallback() {
         // Create a global function that Python can call
-        window._record_execution_step = (lineNumber, varsDict) => {
+        window._record_execution_step = (lineNumber, varsDict, filename) => {
             try {
-                appendTerminalDebug(`JS Trace callback: Line ${lineNumber}, raw vars: ${JSON.stringify(varsDict)}`)
+                const file = filename || '/main.py'
+                appendTerminalDebug(`JS Trace callback: Line ${lineNumber} in ${file}, raw vars: ${JSON.stringify(varsDict)}`)
 
                 if (!this.hooks) {
                     appendTerminalDebug('No hooks available for recording')
@@ -248,25 +409,27 @@ export class PythonInstrumentor {
                 if (varsDict && typeof varsDict === 'object') {
                     appendTerminalDebug(`Processing ${Object.keys(varsDict).length} variables from Python`)
                     for (const [name, value] of Object.entries(varsDict)) {
-                        // Include ALL user variables now, with less aggressive filtering
-                        if (!name.startsWith('_') && name !== 'k') { // Only filter obvious internal vars
+                        // Filter out internal variables and module objects (noise for students)
+                        const isInternalVar = name.startsWith('_') || name === 'k'
+                        const isModuleObject = typeof value === 'string' && value.startsWith('<module ')
+
+                        if (!isInternalVar && !isModuleObject) {
                             allVariables.set(name, value)
                             appendTerminalDebug(`Added variable: ${name} = ${value}`)
                         } else {
-                            appendTerminalDebug(`Filtered out variable: ${name}`)
+                            appendTerminalDebug(`Filtered out variable: ${name} (internal=${isInternalVar}, module=${isModuleObject})`)
                         }
                     }
                 }
 
-                // Use AST analyzer to get only relevant variables for this line
-                const relevantVariables = this.astAnalyzer.getRelevantVariables(lineNumber, allVariables)
+                // Show ALL captured variables, not just AST-relevant ones
+                // Since we're explicitly capturing by name, if a variable was captured,
+                // it's because it exists in scope and should be shown
+                appendTerminalDebug(`Trace: Line ${lineNumber} in ${file}, captured ${allVariables.size} variables: ${Array.from(allVariables.keys()).join(', ')}`)
 
-                appendTerminalDebug(`Trace: Line ${lineNumber}, All vars: ${allVariables.size}, Relevant: ${relevantVariables.size}`)
-                appendTerminalDebug(`Relevant variables: ${JSON.stringify(Object.fromEntries(relevantVariables))}`)
-
-                // Call the recording hook with filtered variables
+                // Call the recording hook with ALL captured variables AND the filename
                 if (this.hooks.onExecutionStep) {
-                    this.hooks.onExecutionStep(lineNumber, relevantVariables, 'global')
+                    this.hooks.onExecutionStep(lineNumber, allVariables, 'global', file)
                 } else {
                     appendTerminalDebug('No onExecutionStep hook available')
                 }

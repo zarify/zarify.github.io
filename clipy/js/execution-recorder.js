@@ -5,13 +5,14 @@ import { appendTerminalDebug } from './terminal.js'
  * Data structure representing a single execution step
  */
 export class ExecutionStep {
-    constructor(lineNumber, variables = new Map(), scope = 'global', timestamp = null) {
+    constructor(lineNumber, variables = new Map(), scope = 'global', timestamp = null, filename = null) {
         this.lineNumber = lineNumber      // 1-based line number
         this.variables = variables        // Map of variable name -> VariableState
         this.scope = scope               // 'global', 'function:name', etc.
         this.timestamp = timestamp || performance.now()
         this.stackDepth = 0             // Function call depth
         this.executionType = 'line'     // 'line', 'call', 'return', 'exception'
+        this.filename = filename || '/main.py'  // File path where this step occurred
     }
 }
 
@@ -213,7 +214,7 @@ export class ExecutionRecorder {
     /**
      * Record a single execution step
      */
-    recordStep(lineNumber, variables = new Map(), scope = 'global', executionType = 'line') {
+    recordStep(lineNumber, variables = new Map(), scope = 'global', executionType = 'line', filename = null) {
         if (!this.isRecording || !this.currentTrace) {
             return
         }
@@ -226,9 +227,12 @@ export class ExecutionRecorder {
         }
 
         try {
-            const step = new ExecutionStep(lineNumber, variables, scope)
+            const step = new ExecutionStep(lineNumber, variables, scope, null, filename)
             step.executionType = executionType
             this.currentTrace.addStep(step)
+
+            // Log every step for debugging multi-file recording
+            appendTerminalDebug(`Recorded step ${this.currentTrace.getStepCount()}: line ${lineNumber} in ${filename || '/main.py'}, ${variables.size} vars`)
 
             if (this.currentTrace.getStepCount() % 100 === 0) {
                 appendTerminalDebug(`Recorded ${this.currentTrace.getStepCount()} execution steps`)
@@ -247,8 +251,8 @@ export class ExecutionRecorder {
         }
 
         return {
-            onExecutionStep: (lineNumber, variables, scope) => {
-                this.recordStep(lineNumber, variables, scope)
+            onExecutionStep: (lineNumber, variables, scope, filename) => {
+                this.recordStep(lineNumber, variables, scope, 'line', filename)
             },
             onExecutionComplete: () => {
                 this.finalizeRecording()

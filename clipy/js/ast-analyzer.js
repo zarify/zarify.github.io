@@ -126,14 +126,17 @@ export class ASTAnalyzer {
     analyzeVariables(ast, variableName) {
         // If no variableName provided, return an array of reports for each variable
         if (!variableName) {
-            // collect candidate variable names from Name nodes
+            // collect ALL variable names from Name nodes (both assignments and usages)
             const names = new Set();
-            // Collect declared variables only: Name targets in assignments, augassign,
-            // annotated assigns, for-loop targets, and function parameters.
             const collect = (n) => {
                 if (!n || typeof n !== 'object') return;
                 if (Array.isArray(n)) return n.forEach(collect);
                 try {
+                    // Collect ALL Name nodes - assignments, usages, parameters, etc.
+                    if (n.nodeType === 'Name' && n.id) {
+                        names.add(n.id);
+                    }
+                    // Also collect from assignment targets
                     if (n.nodeType === 'Assign' && Array.isArray(n.targets)) {
                         n.targets.forEach(t => {
                             if (t && t.nodeType === 'Name' && t.id) names.add(t.id);
@@ -145,7 +148,34 @@ export class ASTAnalyzer {
                     if (n.nodeType === 'AugAssign' && n.target && n.target.nodeType === 'Name' && n.target.id) {
                         names.add(n.target.id);
                     }
-                    // Note: do not collect loop targets or function parameters here.
+                    // Collect function parameters
+                    if (n.nodeType === 'FunctionDef' && n.args && Array.isArray(n.args.args)) {
+                        n.args.args.forEach(a => {
+                            const aname = a.arg || a.argname || a.id;
+                            if (aname) names.add(aname);
+                        });
+                    }
+                    // Collect function names
+                    if (n.nodeType === 'FunctionDef' && n.name) {
+                        names.add(n.name);
+                    }
+                    // Collect class names
+                    if (n.nodeType === 'ClassDef' && n.name) {
+                        names.add(n.name);
+                    }
+                    // Collect import names
+                    if (n.nodeType === 'Import' && Array.isArray(n.names)) {
+                        n.names.forEach(alias => {
+                            const name = alias.asname || alias.name;
+                            if (name) names.add(name);
+                        });
+                    }
+                    if (n.nodeType === 'ImportFrom' && Array.isArray(n.names)) {
+                        n.names.forEach(alias => {
+                            const name = alias.asname || alias.name;
+                            if (name && name !== '*') names.add(name);
+                        });
+                    }
                 } catch (e) {
                     // ignore
                 }

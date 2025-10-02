@@ -1756,19 +1756,26 @@ function setupExecutionStepMonitoring(executionHooks) {
                     try {
                         const traceData = JSON.parse(traceJson)
                         if (traceData.__TRACE__) {
-                            const { line, vars } = traceData.__TRACE__
+                            const { line, vars, file } = traceData.__TRACE__
+                            const filename = file || '/main.py'
                             const variables = new Map()
 
-                            // Convert vars object to Map
+                            // Convert vars object to Map, filtering out noise
                             if (vars && typeof vars === 'object') {
                                 for (const [name, value] of Object.entries(vars)) {
-                                    variables.set(name, value)
+                                    // Filter out internal variables and module objects (noise for students)
+                                    const isInternalVar = name.startsWith('_') || name === 'k'
+                                    const isModuleObject = typeof value === 'string' && value.startsWith('<module ')
+
+                                    if (!isInternalVar && !isModuleObject) {
+                                        variables.set(name, value)
+                                    }
                                 }
                             }
 
-                            appendTerminalDebug(`Trace: Line ${line}, Variables: ${JSON.stringify(vars)}`)
+                            appendTerminalDebug(`Trace: Line ${line} in ${filename}, Variables: ${JSON.stringify(vars)}`)
 
-                            recordExecutionStep(line, variables, 'traced')
+                            recordExecutionStep(line, variables, 'traced', filename)
                             return
                         }
                     } catch (parseError) {
@@ -1817,11 +1824,12 @@ function setupExecutionStepMonitoring(executionHooks) {
             }
         }
 
-        function recordExecutionStep(lineNumber, variables, context = 'execution') {
+        function recordExecutionStep(lineNumber, variables, context = 'execution', filename = null) {
             try {
                 if (executionHooks && executionHooks.onExecutionStep) {
-                    appendTerminalDebug(`Recording step: line ${lineNumber}, context: ${context}, vars: ${variables.size}`)
-                    executionHooks.onExecutionStep(lineNumber, variables, context)
+                    const file = filename || '/main.py'
+                    appendTerminalDebug(`Recording step: line ${lineNumber} in ${file}, context: ${context}, vars: ${variables.size}`)
+                    executionHooks.onExecutionStep(lineNumber, variables, context, file)
                 }
             } catch (error) {
                 appendTerminalDebug('Error recording execution step: ' + error)

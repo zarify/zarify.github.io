@@ -117,6 +117,10 @@
                 <span class="icon" aria-hidden="true">▶️</span>
                 <span>Run</span>
               </button>
+              <button id="replay-start-inline" class="btn" title="Start replay of last execution"
+                style="margin-left:8px;display:none">
+                <span>Replay</span>
+              </button>
               <button id="stop" class="btn btn-danger" title="Stop execution" style="display:none">
                 <span class="icon" aria-hidden="true">⏹️</span>
                 <span>Stop</span>
@@ -142,9 +146,9 @@
           <!-- NEW: Replay controls on its own row to avoid expanding parent width -->
           <div id="replay-controls" class="replay-controls"
             style="display:none;width:100%;justify-content:flex-start;gap:8px">
-            <button id="replay-start" class="btn btn-info" title="Start replay of last execution">
-              <span class="icon" aria-hidden="true">🔄</span>
-              <span>Replay</span>
+            <!-- Rewind button shown when replay controls are visible -->
+            <button id="replay-rewind" class="btn" title="Rewind replay" style="display:none">
+              <span>Rewind</span>
             </button>
             <button id="replay-step-back" class="btn btn-secondary" title="Step backward">
               <span class="icon" aria-hidden="true">‹</span>

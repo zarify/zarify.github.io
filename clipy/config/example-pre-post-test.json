@@ -1,0 +1,176 @@
+{
+    "id": "pre-post-demo",
+    "title": "Pre/Post Execution Demo",
+    "version": "1.0",
+    "description": "A demonstration of __pre.py and __post.py test execution.\n\nThis example shows how to use pre-execution for environment setup and post-execution for verification.",
+    "instructions": "Write a Python program that:\n\n1. Creates a function called `calculate_area(width, height)` that returns the area of a rectangle\n2. Creates a function called `calculate_perimeter(width, height)` that returns the perimeter\n3. Tests your functions with width=5 and height=3\n\nExample:\n```python\ndef calculate_area(width, height):\n    return width * height\n\ndef calculate_perimeter(width, height):\n    return 2 * (width + height)\n\n# Test the functions\nprint(f\"Area: {calculate_area(5, 3)}\")\nprint(f\"Perimeter: {calculate_perimeter(5, 3)}\")\n```",
+    "feedback": [],
+    "tests": {
+        "groups": [
+            {
+                "id": "group-basic",
+                "name": "Basic Output Tests",
+                "collapsed": false,
+                "conditional": {
+                    "runIf": "always",
+                    "alwaysRun": false
+                },
+                "tests": [
+                    {
+                        "id": "test-output",
+                        "description": "Checking that your program produces output",
+                        "expected_stdout": {
+                            "type": "regex",
+                            "expression": "Area.*Perimeter",
+                            "flags": "s"
+                        },
+                        "failureMessage": "Your program should print both the area and perimeter.",
+                        "conditional": {
+                            "runIf": "always",
+                            "alwaysRun": false
+                        }
+                    },
+                    {
+                        "id": "test-correct-values",
+                        "description": "Checking for correct area and perimeter values",
+                        "expected_stdout": {
+                            "type": "regex",
+                            "expression": "Area: 15.*Perimeter: 16",
+                            "flags": "s"
+                        },
+                        "failureMessage": "Make sure your calculations are correct. Area should be 15, perimeter should be 16.",
+                        "conditional": {
+                            "runIf": "previous_passed",
+                            "alwaysRun": false
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "group-functions",
+                "name": "Function Verification (using __post.py)",
+                "collapsed": false,
+                "conditional": {
+                    "runIf": "previous_passed",
+                    "alwaysRun": false
+                },
+                "tests": [
+                    {
+                        "id": "test-area-function",
+                        "description": "Verifying calculate_area function exists and works correctly",
+                        "setup": {
+                            "/__post.py": "from main import calculate_area\n\n# Test with multiple inputs\ntest_cases = [\n    (5, 3, 15),\n    (10, 2, 20),\n    (7, 7, 49),\n    (1, 100, 100)\n]\n\nfor width, height, expected in test_cases:\n    result = calculate_area(width, height)\n    if result != expected:\n        raise AssertionError(f'calculate_area({width}, {height}) returned {result}, expected {expected}')\n\nprint('✓ calculate_area function works correctly')"
+                        },
+                        "expected_stdout": "✓ calculate_area function works correctly",
+                        "failureMessage": "Your calculate_area function doesn't work correctly with all inputs.",
+                        "conditional": {
+                            "runIf": "previous_passed",
+                            "alwaysRun": false
+                        }
+                    },
+                    {
+                        "id": "test-perimeter-function",
+                        "description": "Verifying calculate_perimeter function exists and works correctly",
+                        "setup": {
+                            "/__post.py": "from main import calculate_perimeter\n\n# Test with multiple inputs\ntest_cases = [\n    (5, 3, 16),\n    (10, 2, 24),\n    (7, 7, 28),\n    (1, 100, 202)\n]\n\nfor width, height, expected in test_cases:\n    result = calculate_perimeter(width, height)\n    if result != expected:\n        raise AssertionError(f'calculate_perimeter({width}, {height}) returned {result}, expected {expected}')\n\nprint('✓ calculate_perimeter function works correctly')"
+                        },
+                        "expected_stdout": "✓ calculate_perimeter function works correctly",
+                        "failureMessage": "Your calculate_perimeter function doesn't work correctly with all inputs.",
+                        "conditional": {
+                            "runIf": "previous_passed",
+                            "alwaysRun": false
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "group-random",
+                "name": "Random Number Testing (using __pre.py)",
+                "collapsed": false,
+                "conditional": {
+                    "runIf": "previous_passed",
+                    "alwaysRun": false
+                },
+                "tests": [
+                    {
+                        "id": "test-random-with-seed",
+                        "description": "Testing with deterministic random numbers",
+                        "main": "import random\n\ndef calculate_area(width, height):\n    return width * height\n\ndef calculate_perimeter(width, height):\n    return 2 * (width + height)\n\n# Use random dimensions\nwidth = random.randint(1, 10)\nheight = random.randint(1, 10)\n\nprint(f\"Width: {width}, Height: {height}\")\nprint(f\"Area: {calculate_area(width, height)}\")\nprint(f\"Perimeter: {calculate_perimeter(width, height)}\")",
+                        "setup": {
+                            "/__pre.py": "import random\nrandom.seed(42)\nprint('Test initialized with fixed seed')"
+                        },
+                        "expected_stdout": {
+                            "type": "regex",
+                            "expression": "Width: 2, Height: 8",
+                            "flags": ""
+                        },
+                        "failureMessage": "With the fixed random seed, width should be 2 and height should be 8.",
+                        "conditional": {
+                            "runIf": "previous_passed",
+                            "alwaysRun": false
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "group-type-check",
+                "name": "Type Verification (using __post.py)",
+                "collapsed": false,
+                "conditional": {
+                    "runIf": "previous_passed",
+                    "alwaysRun": false
+                },
+                "tests": [
+                    {
+                        "id": "test-function-types",
+                        "description": "Checking that functions return numeric values",
+                        "setup": {
+                            "/__post.py": "from main import calculate_area, calculate_perimeter\nimport inspect\n\n# Check they are callable functions\nif not callable(calculate_area):\n    raise AssertionError('calculate_area is not a function')\nif not callable(calculate_perimeter):\n    raise AssertionError('calculate_perimeter is not a function')\n\n# Check return types\narea_result = calculate_area(5, 3)\nperimeter_result = calculate_perimeter(5, 3)\n\nif not isinstance(area_result, (int, float)):\n    raise AssertionError(f'calculate_area should return a number, got {type(area_result).__name__}')\nif not isinstance(perimeter_result, (int, float)):\n    raise AssertionError(f'calculate_perimeter should return a number, got {type(perimeter_result).__name__}')\n\nprint('✓ Both functions return numeric values')"
+                        },
+                        "expected_stdout": "✓ Both functions return numeric values",
+                        "failureMessage": "Your functions should return numeric values (int or float).",
+                        "conditional": {
+                            "runIf": "previous_passed",
+                            "alwaysRun": false
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "group-combined",
+                "name": "Combined Pre/Post Testing",
+                "collapsed": false,
+                "conditional": {
+                    "runIf": "previous_passed",
+                    "alwaysRun": false
+                },
+                "tests": [
+                    {
+                        "id": "test-full-workflow",
+                        "description": "Testing complete workflow with setup and verification",
+                        "setup": {
+                            "/__pre.py": "# Initialize test environment\nimport random\nrandom.seed(123)\nprint('=== Test Environment Initialized ===')",
+                            "/__post.py": "# Verify execution completed successfully\nfrom main import calculate_area, calculate_perimeter\n\n# Final verification\nif calculate_area(10, 10) != 100:\n    raise AssertionError('Final verification failed: area calculation incorrect')\nif calculate_perimeter(10, 10) != 40:\n    raise AssertionError('Final verification failed: perimeter calculation incorrect')\n\nprint('=== All Verifications Passed ===')"
+                        },
+                        "expected_stdout": {
+                            "type": "regex",
+                            "expression": "Test Environment Initialized.*All Verifications Passed",
+                            "flags": "s"
+                        },
+                        "failureMessage": "Complete workflow test failed. Check that your functions work correctly.",
+                        "conditional": {
+                            "runIf": "previous_passed",
+                            "alwaysRun": false
+                        }
+                    }
+                ]
+            }
+        ],
+        "ungrouped": [],
+        "showGroupsToUsers": true
+    },
+    "starter": "# Write your calculate_area and calculate_perimeter functions here\n\n",
+    "files": {
+        "/main.py": "# Write your calculate_area and calculate_perimeter functions here\n\n"
+    }
+}

@@ -138,8 +138,79 @@ export async function executeWithTimeout(executionPromise, timeoutMs, safetyTime
     }
 }
 
+/**
+ * Instrument all Python files in the workspace for execution tracing
+ * This must be called AFTER files are synced but BEFORE mounting
+ */
+async function instrumentAllPythonFiles(recordingEnabled, recorder, currentRuntimeAdapter) {
+    if (!recordingEnabled || !recorder) {
+        return
+    }
+
+    try {
+        const { getPythonInstrumentor } = await import('./python-instrumentor.js')
+        const instrumentor = getPythonInstrumentor()
+        const FileManager = getFileManager()
+        const fs = window.__ssg_runtime_fs
+
+        if (!FileManager || !fs) {
+            appendTerminalDebug('Cannot instrument files: FileManager or runtime FS not available')
+            return
+        }
+
+        const files = FileManager.list()
+        // Instrument all Python files EXCEPT main.py (which will be instrumented separately from the editor)
+        const pythonFiles = files.filter(f => f.endsWith('.py') && f !== MAIN_FILE)
+
+        appendTerminalDebug(`Found ${pythonFiles.length} Python files to instrument (excluding ${MAIN_FILE}): ${pythonFiles.join(', ')}`)
+
+        for (const filepath of pythonFiles) {
+            try {
+                const sourceCode = FileManager.read(filepath)
+                if (!sourceCode) {
+                    appendTerminalDebug(`Skipping empty file: ${filepath}`)
+                    continue
+                }
+
+                appendTerminalDebug(`Instrumenting ${filepath}...`)
+                const instrResult = await instrumentor.instrumentCode(sourceCode, currentRuntimeAdapter, filepath)
+
+                if (instrResult && typeof instrResult === 'object' && typeof instrResult.code === 'string') {
+                    // Write the instrumented version to the runtime FS
+                    try {
+                        markExpectedWrite(filepath, instrResult.code)
+                        try { window.__ssg_suppress_notifier = true } catch (_e) { }
+                        fs.writeFile(filepath, instrResult.code)
+                        try { window.__ssg_suppress_notifier = false } catch (_e) { }
+                        appendTerminalDebug(`Successfully instrumented and wrote ${filepath} to runtime FS`)
+                    } catch (writeErr) {
+                        appendTerminalDebug(`Failed to write instrumented ${filepath}: ${writeErr}`)
+                    }
+                } else if (typeof instrResult === 'string') {
+                    // Backwards compatibility: instrumentor returned string
+                    try {
+                        markExpectedWrite(filepath, instrResult)
+                        try { window.__ssg_suppress_notifier = true } catch (_e) { }
+                        fs.writeFile(filepath, instrResult)
+                        try { window.__ssg_suppress_notifier = false } catch (_e) { }
+                        appendTerminalDebug(`Successfully instrumented and wrote ${filepath} to runtime FS (legacy)`)
+                    } catch (writeErr) {
+                        appendTerminalDebug(`Failed to write instrumented ${filepath}: ${writeErr}`)
+                    }
+                }
+            } catch (instrErr) {
+                appendTerminalDebug(`Failed to instrument ${filepath}: ${instrErr}`)
+            }
+        }
+
+        appendTerminalDebug('Finished instrumenting all Python files')
+    } catch (error) {
+        appendTerminalDebug('Error instrumenting Python files: ' + error)
+    }
+}
+
 // Sync VFS files before execution
-async function syncVFSBeforeRun() {
+async function syncVFSBeforeRun(recordingEnabled, recorder, currentRuntimeAdapter) {
     try {
         const backend = window.__ssg_vfs_backend
         const fs = window.__ssg_runtime_fs
@@ -214,6 +285,9 @@ async function syncVFSBeforeRun() {
             }
             if (!mounted) appendTerminalDebug('Warning: VFS pre-run mount attempts exhausted')
         }
+
+        // NEW: Instrument all Python files for recording AFTER mounting so they don't get overwritten
+        await instrumentAllPythonFiles(recordingEnabled, recorder, currentRuntimeAdapter)
     } catch (_m) {
         appendTerminal('VFS pre-run mount error: ' + _sanitizeAppendable(_m), 'runtime')
     }
@@ -282,6 +356,14 @@ export async function runPythonCode(code, cfg) {
 
     // Clear any previous terminal content (including noisy runtime-init messages)
     try { if (typeof clearTerminal === 'function') clearTerminal() } catch (_e) { }
+
+    // Dismiss any active replay (clear decorations) when starting a run
+    try {
+        if (typeof window !== 'undefined' && window.ReplayEngine && typeof window.ReplayEngine.stopReplay === 'function') {
+            try { window.ReplayEngine.stopReplay() } catch (_e2) { /* ignore */ }
+            appendTerminalDebug('Stopped active replay before run')
+        }
+    } catch (_e) { appendTerminalDebug('Failed to stop replay before run: ' + _e) }
 
     setExecutionRunning(true)
     appendTerminal('>>> Running...', 'runtime')
@@ -544,8 +626,8 @@ except Exception:
             try { window.__ssg_appending_mapped = false } catch (_e) { }
             try { window.__ssg_mapping_in_progress = false } catch (_e) { }
 
-            // Sync VFS before execution
-            await syncVFSBeforeRun()
+            // Sync VFS before execution (and instrument all Python files if recording is enabled)
+            await syncVFSBeforeRun(recordingEnabled, recorder, currentRuntimeAdapter)
 
             // Check if this is asyncify MicroPython (runPythonAsync available)
             const isAsyncify = currentRuntimeAdapter && (typeof currentRuntimeAdapter.runPythonAsync === 'function')
@@ -574,7 +656,7 @@ except Exception:
                 try {
                     const { getPythonInstrumentor } = await import('./python-instrumentor.js')
                     const instrumentor = getPythonInstrumentor()
-                    const instrResult = await instrumentor.instrumentCode(codeToRun, currentRuntimeAdapter)
+                    const instrResult = await instrumentor.instrumentCode(codeToRun, currentRuntimeAdapter, MAIN_FILE)
                     // instrumentCode now returns { code, headerLines } on success
                     if (instrResult && typeof instrResult === 'object' && typeof instrResult.code === 'string') {
                         codeToRun = instrResult.code

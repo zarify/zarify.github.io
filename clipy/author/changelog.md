@@ -1,3 +1,7 @@
+## 2025-10-02
+- Fix: record/replay instrumentation and multi-file workspaces
+- Feature: pre and post files (optional) can be added to tests to modify what is being tested
+
 ## 2025-09-30
 - Feature: record/replay after a program run
   - Step through code execution and show variable state at the line that was executed

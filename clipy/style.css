@@ -669,6 +669,80 @@ textarea#code {
     font-size: 0.93rem
 }
 
+/* Replay start button visual states
+   - .needs-start: faint green background with a play glyph to indicate user should press to start
+   - .rewind: white background with a rewind/reset glyph to indicate it will rewind when pressed
+*/
+#replay-start {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Use a teal/blue tint for the 'needs-start' state so it contrasts with the
+   yellow replay frame. Use ↪ (U+21AA) to indicate forward/start, and ⏮
+   (U+23EE) to indicate rewind/reset while replaying. */
+#replay-start.needs-start {
+    background: rgba(13, 148, 136, 0.08);
+    /* very faint teal */
+    border-color: rgba(13, 148, 136, 0.18);
+    color: var(--text);
+}
+
+#replay-start.needs-start::before {
+    content: "\21AA";
+    /* ↪: rightwards arrow with hook (start/forward) */
+    font-size: 1.05em;
+    line-height: 1;
+    margin-left: 0.1rem;
+}
+
+#replay-start.rewind {
+    background: #fff;
+    border-color: #dfe6f7;
+    color: var(--text);
+}
+
+#replay-start.rewind::before {
+    content: "\23EE";
+    /* ⏮: last track button (rewind/reset) */
+    font-size: 1.05em;
+    line-height: 1;
+    margin-left: 0.1rem;
+}
+
+/* Replay inline start button (shown next to Run) */
+#replay-start-inline {
+    background: #e6f8f2;
+    border: 1px solid #bfeee2;
+    color: #0b6b56;
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    gap: 6px;
+}
+
+#replay-start-inline.needs-start::before {
+    content: '\21AA';
+    /* ↪ */
+}
+
+/* Rewind button inside the full replay controls */
+#replay-rewind {
+    background: white;
+    color: black;
+    border-radius: 4px;
+    padding: 6px 8px;
+    display: inline-flex;
+    align-items: center;
+}
+
+#replay-rewind::before {
+    content: '\23EE';
+    /* ⏮ */
+    margin-right: 6px;
+}
+
 /* Disabled button styling: make it clearly non-interactive and visually muted.
    Apply generally and add a slightly stronger rule for the run-tests control so
    it's obvious when there are no tests. */
