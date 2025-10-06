@@ -17,6 +17,13 @@ function _normalizePath(p) {
     return String(p).startsWith('/') ? p : `/${p}`
 }
 
+function _isSystemPath(p) {
+    try {
+        if (!p) return false
+        return /^\/dev\//i.test(p) || /^\/proc\//i.test(p) || /^\/tmp\//i.test(p) || /^\/temp\//i.test(p)
+    } catch (_e) { return false }
+}
+
 function isFileReadOnly(path) {
     try {
         if (!currentConfig || !currentConfig.fileReadOnlyStatus) return false
@@ -89,6 +96,17 @@ function render() {
 export async function openTab(path, opts = { select: true }) {
     const n = _normalizePath(path)
     // openTab called
+
+    // Diagnostic instrumentation: record every openTab call so we can
+    // later inspect which callers attempted to open pseudo-files like
+    // '<stdin>' during traceback mapping flows. This is intentionally
+    // lightweight and will be removed once root cause is identified.
+    try {
+        if (typeof window !== 'undefined') {
+            try { window.__ssg_tab_open_calls = window.__ssg_tab_open_calls || [] } catch (_e) { }
+            try { window.__ssg_tab_open_calls.push({ when: Date.now(), path: n, stack: (new Error()).stack || null }) } catch (_e) { }
+        }
+    } catch (_e) { }
 
     if (!openTabs.includes(n)) {
         openTabs.push(n)
@@ -254,6 +272,8 @@ export async function syncWithFileManager() {
     try {
         for (const p of files) {
             try {
+                // Do not auto-open runtime/system paths (e.g. /dev/null)
+                if (_isSystemPath(p)) continue
                 if (!openTabs.includes(p)) openTab(p, { select: false })
             } catch (_e) { }
         }
@@ -527,7 +547,8 @@ export function initializeTabManager(codeMirror, textareaElement) {
             const availableFiles = (FileManager && typeof FileManager.list === 'function') ? (FileManager.list() || []) : []
             for (const p of pending) {
                 try {
-                    // Only open pending tabs that actually exist
+                    // Only open pending tabs that actually exist and are not system paths
+                    if (_isSystemPath(p)) continue
                     if (p === MAIN_FILE || availableFiles.includes(p)) {
                         openTab(p, { select: false })
                     }
@@ -616,7 +637,8 @@ export function initializeTabManager(codeMirror, textareaElement) {
                     const availableFiles = (FileManager && typeof FileManager.list === 'function') ? (FileManager.list() || []) : []
                     for (const p of pending) {
                         try {
-                            // Only open pending tabs that actually exist
+                            // Only open pending tabs that actually exist and are not system paths
+                            if (_isSystemPath(p)) continue
                             if (p === MAIN_FILE || availableFiles.includes(p)) {
                                 openTab(p, { select: false })
                             }

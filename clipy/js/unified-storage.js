@@ -726,11 +726,18 @@ export async function migrateFromLocalStorage() {
             try {
                 const files = JSON.parse(vfsFiles)
                 for (const [path, content] of Object.entries(files)) {
-                    try { persistToInMemory(STORES.FILES, { path, content, timestamp: Date.now() }) } catch (_e) { }
-                    await saveFile(path, content)
+                    try {
+                        // Do not migrate runtime/system device files into unified storage.
+                        if (/^\/dev\//i.test(path) || /^\/proc\//i.test(path) || /^\/tmp\//i.test(path) || /^\/temp\//i.test(path)) {
+                            if (window.__SSG_DEBUG || window.__ssg_debug_logs) console.info('[migrate] Skipping system path during VFS migration:', path)
+                            continue
+                        }
+                        try { persistToInMemory(STORES.FILES, { path, content, timestamp: Date.now() }) } catch (_e) { }
+                        await saveFile(path, content)
+                    } catch (_e) { /* per-file ignore */ }
                 }
-                localStorage.removeItem('ssg_files_v1')
-                logDebug('Migrated VFS files')
+                try { localStorage.removeItem('ssg_files_v1') } catch (_e) { }
+                logDebug('Migrated VFS files (excluding runtime/system paths)')
             } catch (e) {
                 logWarn('Failed to migrate VFS files:', e)
             }

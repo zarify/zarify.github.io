@@ -193,6 +193,14 @@ async function createIndexedDBBackend() {
 
                 for (const p of files) {
                     try {
+                        // Skip known system/runtime paths (devices, proc, temp)
+                        // These are created by the runtime (e.g. /dev/null) and
+                        // must not be persisted into the backend or snapshots.
+                        if (/^\/dev\//i.test(p) || /^\/proc\//i.test(p) || /^\/tmp\//i.test(p) || /^\/temp\//i.test(p)) {
+                            if (window.__ssg_debug_logs) try { console.info('[VFS] Skipping system file during syncFromEmscripten:', p) } catch (_e) { }
+                            continue
+                        }
+
                         const raw = typeof FS.readFile === 'function' ? FS.readFile(p, { encoding: 'utf8' }) : null
                         const content = raw != null ? decodeToString(raw) : null
                         if (content != null) await this.write(p, content)
@@ -253,6 +261,12 @@ function createLocalStorageBackend() {
                 this._lastFullSync = now
                 for (const p of files) {
                     try {
+                        // Skip known system/runtime paths (devices, proc, temp)
+                        if (/^\/dev\//i.test(p) || /^\/proc\//i.test(p) || /^\/tmp\//i.test(p) || /^\/temp\//i.test(p)) {
+                            if (window.__ssg_debug_logs) try { console.info('[VFS] Skipping system file during local syncFromEmscripten:', p) } catch (_e) { }
+                            continue
+                        }
+
                         const content = typeof FS.readFile === 'function' ? FS.readFile(p, { encoding: 'utf8' }) : null
                         if (content != null) await this.write(p, content)
                     } catch (e) {

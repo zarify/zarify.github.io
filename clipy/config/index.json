@@ -2,6 +2,8 @@
     "listName": "Authoring Demos",
     "files": [
         "printing-press@1.0.json",
-        "sample.json"
+        "sample.json",
+        "rr-demo-logic@1.0.json",
+        "rr-demo-multifile@1.0.json"
     ]
 }

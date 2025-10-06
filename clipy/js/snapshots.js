@@ -299,6 +299,18 @@ async function saveSnapshot() {
             // On error, avoid touching localStorage; just continue with what we have.
         }
 
+        // Sanitize snapshot by removing runtime/system files such as /dev/*, /proc/*, /tmp/*
+        try {
+            const sanitizedFiles = {}
+            for (const k of Object.keys(snap.files || {})) {
+                try {
+                    if (/^\/dev\//i.test(k) || /^\/proc\//i.test(k) || /^\/tmp\//i.test(k) || /^\/temp\//i.test(k)) continue
+                    sanitizedFiles[k] = snap.files[k]
+                } catch (_e) { /* skip problematic keys */ }
+            }
+            snap.files = sanitizedFiles
+        } catch (_e) { }
+
         snaps.push(snap)
         await saveSnapshotsForCurrentConfig(snaps)
 
@@ -647,7 +659,15 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
 
         // Also queue restored files for tab opening so the UI re-opens them.
         try {
-            const restoredFiles = Object.keys(snap.files || {}).filter(p => p && p !== MAIN_FILE)
+            const restoredFiles = Object.keys(snap.files || {}).filter(p => {
+                try {
+                    if (!p) return false
+                    if (p === MAIN_FILE) return false
+                    // Skip runtime/system paths (devices, proc, temp)
+                    if (/^\/dev\//i.test(p) || /^\/proc\//i.test(p) || /^\/tmp\//i.test(p) || /^\/temp\//i.test(p)) return false
+                    return true
+                } catch (_e) { return false }
+            })
             if (restoredFiles.length) {
                 try {
                     // set pending tabs and attempt to flush immediately

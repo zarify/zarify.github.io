@@ -89,8 +89,10 @@ export function initializeEditor() {
             textarea.value = cm.getValue()
             textarea.dispatchEvent(new Event('input', { bubbles: true }))
 
-            // NEW: Invalidate any existing recording when code changes
-            if (window.ExecutionRecorder?.hasActiveRecording()) {
+            // NEW: Invalidate recording when code changes, BUT only if we're NOT currently replaying
+            // During replay, file switches shouldn't clear the recording - only a new Run should
+            const isReplaying = window.ReplayEngine?.isReplaying
+            if (!isReplaying && window.ExecutionRecorder?.hasActiveRecording()) {
                 window.ExecutionRecorder.invalidateRecording()
                 updateReplayUI(false) // Hide replay controls
             }

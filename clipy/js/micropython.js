@@ -7,6 +7,79 @@ import { debug as logDebug, info as logInfo, warn as logWarn, error as logError 
 // Global state
 let runtimeAdapter = null
 
+/**
+ * Detect if the runtime supports native sys.settrace()
+ * @param {Object} adapter - Runtime adapter to test
+ * @returns {Promise<boolean>} True if sys.settrace is available
+ */
+async function detectNativeTraceSupport(adapter) {
+    if (!adapter || typeof adapter.run !== 'function') {
+        appendTerminalDebug('Native trace detection skipped: no adapter or run function')
+        return false
+    }
+
+    try {
+        // Use the DIRECT approach from ASYNC_TROUBLESHOOTING.md
+        // Test if we can call a JavaScript function from Python
+        let callbackWasCalled = false
+        let capturedResult = null
+
+        // Set up test callback on globalThis (works in both browser and Node)
+        const testCallbackName = '_settrace_detection_test_' + Date.now()
+        globalThis[testCallbackName] = (result) => {
+            callbackWasCalled = true
+            capturedResult = result
+        }
+
+        appendTerminalDebug('🔍 Running native trace detection test...')
+
+        try {
+            // Python code that calls our test callback with the result
+            const testCode = `
+import sys
+try:
+    import js
+    has_settrace = hasattr(sys, 'settrace')
+    if hasattr(js, '${testCallbackName}'):
+        js.${testCallbackName}(has_settrace)
+    else:
+        print("ERROR: Test callback not found")
+except Exception as e:
+    print(f"ERROR: {e}")
+`
+            await adapter.run(testCode)
+
+            // Give it a tiny moment for the callback to fire
+            await new Promise(resolve => setTimeout(resolve, 10))
+
+        } finally {
+            // Clean up test callback
+            delete globalThis[testCallbackName]
+        }
+
+        if (!callbackWasCalled) {
+            appendTerminalDebug(`❌ Detection failed: callback was never called`)
+            appendTerminalDebug(`   Python->JavaScript bridge may not be working`)
+            return false
+        }
+
+        // Check the result (Python True becomes JavaScript true)
+        const hasTrace = capturedResult === true
+
+        if (hasTrace) {
+            appendTerminalDebug(`✅ Native sys.settrace: AVAILABLE - record/replay will work!`)
+        } else {
+            appendTerminalDebug(`❌ Native sys.settrace: NOT FOUND (result: ${capturedResult})`)
+            appendTerminalDebug(`   This runtime does not support sys.settrace`)
+        }
+
+        return hasTrace
+    } catch (err) {
+        appendTerminalDebug('❌ Native trace detection error: ' + err)
+        return false
+    }
+}
+
 // Helper: normalize a path for display to the user (strip any leading slashes)
 function _displayPathForUser(path) {
     try {
@@ -1159,9 +1232,11 @@ export async function loadMicroPythonRuntime(cfg) {
                         appendTerminalDebug('Failed to install runtime FS write guards: ' + _e)
                     }
 
-                    setRuntimeAdapter({
+                    // Create the adapter first, then detect native trace support
+                    const adapter = {
                         _module: mpInstance,  // Expose the module for asyncify detection
                         hasYieldingSupport: hasYieldingSupport,  // NEW: Flag to indicate asyncify features
+                        hasNativeTrace: false,  // Will be set by detection
                         runPythonAsync: async (code, executionHooks = null) => {
                             captured = ''
 
@@ -1213,7 +1288,25 @@ export async function loadMicroPythonRuntime(cfg) {
                         interruptExecution: hasYieldingSupport ? mpInstance.interruptExecution.bind(mpInstance) : null,
                         setYielding: hasYieldingSupport ? mpInstance.setYielding.bind(mpInstance) : null,
                         clearInterrupt: hasYieldingSupport ? mpInstance.clearInterrupt.bind(mpInstance) : null
-                    })
+                    }
+
+                    // Set the adapter first
+                    setRuntimeAdapter(adapter)
+
+                    // Now detect native trace support and update the adapter
+                    try {
+                        appendTerminalDebug('⏳ Detecting native sys.settrace support...')
+                        const hasNativeTrace = await detectNativeTraceSupport(adapter)
+                        adapter.hasNativeTrace = hasNativeTrace
+                        if (hasNativeTrace) {
+                            appendTerminalDebug(`✅ Native sys.settrace support: ENABLED - record/replay will work`)
+                        } else {
+                            appendTerminalDebug(`❌ Native sys.settrace support: DISABLED - record/replay will NOT work`)
+                        }
+                    } catch (detectErr) {
+                        adapter.hasNativeTrace = false
+                        appendTerminalDebug('❌ Native trace detection failed: ' + detectErr)
+                    }
 
                     return runtimeAdapter
                 } catch (e) {
@@ -1285,6 +1378,73 @@ export function setRuntimeAdapter(adapter) {
     // sanitization or accidental suppression of mapped tracebacks.
 
     appendTerminalDebug(`Runtime adapter set: ${adapter ? 'available' : 'null'}`)
+
+    // Expose a helper function to check settrace support from browser console
+    if (typeof window !== 'undefined') {
+        window.checkSettraceSupport = async function () {
+            if (!runtimeAdapter) {
+                console.log('❌ No runtime adapter available')
+                return false
+            }
+
+            try {
+                // Use the RELIABLE callback approach from ASYNC_TROUBLESHOOTING.md
+                let callbackCalled = false
+                let result = null
+
+                // Test callback
+                globalThis._settrace_test = (hasIt) => {
+                    callbackCalled = true
+                    result = hasIt
+                    console.log('✓ Callback was called from Python!')
+                    console.log('✓ Result:', hasIt)
+                }
+
+                console.log('Testing sys.settrace availability...')
+
+                const testCode = `
+import sys
+try:
+    import js
+    has_settrace = hasattr(sys, 'settrace')
+    if hasattr(js, '_settrace_test'):
+        js._settrace_test(has_settrace)
+    else:
+        print("ERROR: _settrace_test callback not found")
+except Exception as e:
+    print(f"ERROR: {e}")
+`
+
+                await runtimeAdapter.run(testCode)
+
+                // Wait a moment for async callback
+                await new Promise(resolve => setTimeout(resolve, 20))
+
+                // Clean up
+                delete globalThis._settrace_test
+
+                if (!callbackCalled) {
+                    console.log('❌ Callback was never called - Python->JS bridge may be broken')
+                    return false
+                }
+
+                if (result === true) {
+                    console.log('✅ sys.settrace IS available!')
+                    console.log('💡 The MicroPython runtime supports native tracing')
+                    console.log('💡 You can use the record-replay feature')
+                    return true
+                } else {
+                    console.log('❌ sys.settrace is NOT available')
+                    console.log('💡 Result was:', result)
+                    console.log('💡 The WASM may not have been compiled with MICROPY_PY_SYS_SETTRACE')
+                    return false
+                }
+            } catch (err) {
+                console.error('❌ Error testing settrace:', err)
+                return false
+            }
+        }
+    }
 }
 
 export function getRuntimeAdapter() {
@@ -1419,9 +1579,27 @@ function installRuntimeFsGuards(fs) {
             } catch (_e) { return false }
         }
 
+        // Helper to check for invalid filenames (e.g., tracebacks used as filenames)
+        function _isInvalidFilename(path) {
+            try {
+                const pathStr = String(path)
+                // Block paths that look like tracebacks or error messages
+                if (/Traceback|KeyboardInterrupt|File ""/i.test(pathStr)) return true
+                // Block paths with newlines (tracebacks are multi-line)
+                if (pathStr.includes('\n')) return true
+                // Block paths that are suspiciously long (likely error messages)
+                if (pathStr.length > 500) return true
+                return false
+            } catch (_e) { return false }
+        }
+
         if (typeof fs.writeFile === 'function') {
             const _orig = fs.writeFile.bind(fs)
             fs.writeFile = function (path, data, opts) {
+                if (_isInvalidFilename(path)) {
+                    try { appendTerminalDebug('[vfs-guard] blocking invalid filename: ' + String(path).substring(0, 100)) } catch (_e) { }
+                    return // Silently ignore invalid filenames
+                }
                 if (_isPathReadOnlyForUser(path)) {
                     try { appendTerminalDebug('[vfs-guard] blocking writeFile to ' + _displayPathForUser(path)) } catch (_e) { }
                     _throwReadOnly(fs, path, false)
@@ -1434,6 +1612,10 @@ function installRuntimeFsGuards(fs) {
         if (typeof fs.writeFileSync === 'function') {
             const _orig = fs.writeFileSync.bind(fs)
             fs.writeFileSync = function (path, data, opts) {
+                if (_isInvalidFilename(path)) {
+                    try { appendTerminalDebug('[vfs-guard] blocking invalid filename (sync): ' + String(path).substring(0, 100)) } catch (_e) { }
+                    return // Silently ignore invalid filenames
+                }
                 if (_isPathReadOnlyForUser(path)) {
                     try { appendTerminalDebug('[vfs-guard] blocking writeFileSync to ' + _displayPathForUser(path)) } catch (_e) { }
                     _throwReadOnly(fs, path, false)
@@ -1446,6 +1628,10 @@ function installRuntimeFsGuards(fs) {
             const _orig = fs.createDataFile.bind(fs)
             fs.createDataFile = function (parent, name, data, canRead, canWrite) {
                 const path = (parent === '/' ? '' : parent) + '/' + name
+                if (_isInvalidFilename(path)) {
+                    try { appendTerminalDebug('[vfs-guard] blocking invalid filename (createDataFile): ' + String(path).substring(0, 100)) } catch (_e) { }
+                    return // Silently ignore invalid filenames
+                }
                 if (_isPathReadOnlyForUser(path)) {
                     try { appendTerminalDebug('[vfs-guard] blocking createDataFile -> ' + _displayPathForUser(path)) } catch (_e) { }
                     _throwReadOnly(fs, path, false)

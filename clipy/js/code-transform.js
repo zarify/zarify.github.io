@@ -24,13 +24,29 @@ export function highlightMappedTracebackInEditor(filePath, lineNumber) {
     // "/other.py".
     const normPath = (typeof filePath === 'string' && filePath.startsWith('/')) ? filePath : ('/' + String(filePath || '').replace(/^\/+/, ''))
 
-    // Open/select the file tab if possible (use normalized path)
+    // CRITICAL FIX (KAN-8): Only call selectTab if the error is in a DIFFERENT file
+    // than the currently active tab. This allows switching to show errors in other
+    // files, but prevents reloading the current file content which would overwrite
+    // the user's edits with stale FileManager data.
+
+    // Open the file tab if it's not already open
     if (window.TabManager && typeof window.TabManager.openTab === 'function') {
         try { window.TabManager.openTab(normPath, { select: false }) } catch (_e) { }
     }
+
+    // Only select/reload the tab if it's NOT the currently active one
     if (window.TabManager && typeof window.TabManager.selectTab === 'function') {
-        try { window.TabManager.selectTab(normPath) } catch (_e) { }
+        try {
+            const currentlyActive = window.TabManager.getActive ? window.TabManager.getActive() : null
+            if (currentlyActive !== normPath) {
+                // Error is in a different file - switch to it
+                window.TabManager.selectTab(normPath)
+            }
+            // If currentlyActive === normPath, we're already on the right tab
+            // Don't call selectTab because it would reload and overwrite editor content
+        } catch (_e) { }
     }
+
     // Highlight the line in CodeMirror when available, but always record
     // the highlight in our maps so it can be re-applied later if the editor
     // isn't initialized yet (tests and some flows call this early).
@@ -391,6 +407,65 @@ export function mapTracebackAndShow(rawText, headerLines, userCode, appendTermin
     }
 
     if (!rawText) return
+
+    // Native trace mode: headerLines === 0 means line numbers are already correct
+    // No mapping needed - just display the error as-is (but replace <stdin> with /main.py)
+    if (headerLines === 0) {
+        _safeAppendTerminalDebug('Native trace mode - no line number mapping needed')
+
+        // KAN-8 FIX: Replace <stdin> and <string> with /main.py in the display text
+        // so the terminal shows the correct filename instead of runtime pseudo-names
+        let displayText = rawText
+        try {
+            displayText = rawText.replace(/File\s+["']<stdin>["']/g, 'File "/main.py"')
+            displayText = displayText.replace(/File\s+["']<string>["']/g, 'File "/main.py"')
+        } catch (_e) { displayText = rawText }
+
+        // Attempt to parse a File "<fname>", line N frame from the raw traceback
+        // and call highlightMappedTracebackInEditor with a proper file path and
+        // line number. This prevents passing the entire traceback string as a
+        // filename which previously caused the TabManager to create an empty
+        // file/tab named with the traceback text.
+        try {
+            const m = /File\s+["']([^"']+)["']\s*,\s*line\s+(\d+)/.exec(rawText)
+            if (m) {
+                let rawF = m[1]
+                const ln = Number(m[2]) || 1
+                // If the runtime reports pseudo-filenames like <stdin> or <string>,
+                // prefer the caller-provided userCode when it looks like a path.
+                // Otherwise fall back to the conventional '/main.py'. This ensures
+                // we never call the editor highlight with a pseudo-name which
+                // previously caused a tab to be created named '<stdin>'.
+                try {
+                    if (rawF === '<stdin>' || rawF === '<string>') {
+                        if (typeof userCode === 'string' && userCode.indexOf('\n') === -1 && (userCode.startsWith('/') || userCode.indexOf('.') !== -1)) {
+                            rawF = userCode
+                        } else {
+                            rawF = '/main.py'
+                        }
+                    }
+                } catch (_e) { /* ignore and use rawF as-is */ }
+
+                const norm = (rawF && rawF.startsWith('/')) ? rawF : ('/' + String(rawF || '').replace(/^\/+/, ''))
+                try { highlightMappedTracebackInEditor(norm, ln) } catch (_e) { }
+            } else {
+                // No parsable frame found: avoid calling highlight with rawText
+                // to prevent creating tabs named with the traceback. Just log.
+                _safeAppendTerminalDebug('No file/line frame found in native traceback; skipping highlight')
+            }
+        } catch (_e) { }
+
+        // Append to terminal if available (use displayText with replaced filenames)
+        if (typeof window !== 'undefined' && window.appendTerminal && typeof window.appendTerminal === 'function') {
+            try {
+                window.appendTerminal(displayText, 'stderr')
+                return displayText
+            } catch (_e) { }
+        }
+
+        return displayText
+    }
+
     // Normalize headerLines to a number and attempt a best-effort
     // fallback when callers did not supply a headerLines value. Some
     // call sites historically passed 0; in those cases we can try to

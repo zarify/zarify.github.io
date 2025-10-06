@@ -170,15 +170,25 @@ function setupNotificationSystem() {
                 } catch (_e) { }
 
                 // Queue the path for the UI to open later via the existing pending-tabs flow,
-                // but only for actual file writes (content != null). For deletions (content == null),
-                // don't queue the file to be reopened.
+                // but only for actual file writes (content != null) and only for valid Python files.
+                // Filter out system files, temporary files, and non-.py files
                 try {
                     if (n !== MAIN_FILE && content != null) {
-                        try { window.__ssg_pending_tabs = (window.__ssg_pending_tabs || []).concat([n]) } catch (_e) { }
-                    }
-                } catch (_e) { }
+                        // Only add Python files (.py or .txt) to pending tabs
+                        // Exclude: /dev/*, traceback files, files without extensions, etc.
+                        const isPythonFile = /\.py$/i.test(n)
+                        const isTextFile = /\.txt$/i.test(n)
+                        const isSystemFile = /^\/dev\//i.test(n) || /^\/tmp\//i.test(n) || /^\/temp\//i.test(n)
+                        const looksLikeTraceback = /traceback/i.test(n) || /KeyboardInterrupt/i.test(n) || n.includes('File ""')
 
-                // Ensure the pending list is deduplicated but keep entries for the UI to consume.
+                        if ((isPythonFile || isTextFile) && !isSystemFile && !looksLikeTraceback) {
+                            try { window.__ssg_pending_tabs = (window.__ssg_pending_tabs || []).concat([n]) } catch (_e) { }
+                        } else if (looksLikeTraceback) {
+                            // Log that we're blocking a traceback file
+                            try { appendTerminalDebug('[vfs] Blocking traceback file from pending tabs: ' + n.substring(0, 100)) } catch (_e) { }
+                        }
+                    }
+                } catch (_e) { }                // Ensure the pending list is deduplicated but keep entries for the UI to consume.
                 try { window.__ssg_pending_tabs = Array.from(new Set(window.__ssg_pending_tabs || [])) } catch (_e) { }
                 try { setTimeout(() => { try { flushPendingTabs() } catch (_e) { } }, 10) } catch (_e) { }
             } catch (_e) { }
@@ -432,6 +442,14 @@ export async function initializeVFS(cfg) {
             const names = await backend.list()
             for (const n of names) {
                 try {
+                    // Skip known runtime/system paths that may have been
+                    // persisted by older versions (e.g. /dev/null from the
+                    // interpreter). Prevent loading them into the in-memory
+                    // mirror so tabs are not opened for these pseudo-files.
+                    if (/^\/dev\//i.test(n) || /^\/proc\//i.test(n) || /^\/tmp\//i.test(n) || /^\/temp\//i.test(n)) {
+                        if (window.__ssg_debug_logs) try { console.info('[VFS] Skipping persisted system file when populating mem:', n) } catch (_e) { }
+                        continue
+                    }
                     mem[n] = await backend.read(n)
                 } catch (e) {
                     mem[n] = null

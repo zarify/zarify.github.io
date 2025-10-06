@@ -3,6 +3,47 @@ export function $(id) {
     return document.getElementById(id)
 }
 
+/**
+ * Normalize a filename for internal use (AST lookups, trace recording, etc.)
+ * 
+ * Rules:
+ * 1. <stdin> → /main.py (MicroPython's interactive mode maps to main.py)
+ * 2. Add leading / if missing (all internal paths use /filename format)
+ * 3. Handle null/undefined safely
+ * 
+ * @param {string|null|undefined} filename - Raw filename from trace/event
+ * @returns {string|null} Normalized filename or null if input was null/undefined
+ */
+export function normalizeFilename(filename) {
+    if (!filename) {
+        return filename  // null or undefined → pass through
+    }
+
+    // Special case: MicroPython's <stdin> maps to /main.py
+    if (filename === '<stdin>') {
+        return '/main.py'
+    }
+
+    // Ensure leading slash
+    if (!filename.startsWith('/')) {
+        return `/${filename}`
+    }
+
+    return filename
+}
+
+/**
+ * Create a line key for AST/trace lookups
+ * 
+ * @param {string|null} filename - Filename (will be normalized)
+ * @param {number} lineNumber - Line number (1-indexed)
+ * @returns {string} Line key in format "/filename:lineNumber" or "lineNumber"
+ */
+export function makeLineKey(filename, lineNumber) {
+    const normalized = normalizeFilename(filename)
+    return normalized ? `${normalized}:${lineNumber}` : String(lineNumber)
+}
+
 export class DebounceTimer {
     constructor(delay = 300) {
         this.delay = delay

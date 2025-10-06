@@ -1279,6 +1279,329 @@ export class ASTAnalyzer {
             handlerCount: exceptHandlers.length
         } : null;
     }
+
+    /**
+     * Extract variables and function calls referenced on each line
+     * Returns a map of line number -> { variables: Set, functionCalls: Set }
+     */
+    getVariablesAndCallsPerLine(ast) {
+        const perLine = new Map();
+
+        const getLine = (node) => node && (node.lineno || node.line_number || node.line);
+
+        const ensureLine = (lineNo) => {
+            if (!lineNo || lineNo < 1) return null;
+            if (!perLine.has(lineNo)) {
+                perLine.set(lineNo, {
+                    assigned: new Set(),      // Variables assigned on this line (Store context)
+                    referenced: new Set(),    // Variables referenced on this line (Load context)
+                    functionCalls: new Set(), // Function calls on this line
+                    subscripts: []            // Subscript expressions like obj[key]
+                });
+            }
+            return perLine.get(lineNo);
+        };
+
+        const traverse = (node, inheritedLineNo = null) => {
+            if (!node || typeof node !== 'object') return;
+
+            // For arrays, we need to first determine the line number from the parent context
+            // then pass it down to each array element
+            if (Array.isArray(node)) {
+                node.forEach(n => traverse(n, inheritedLineNo));
+                return;
+            }
+
+            // Use node's line number if it has one, otherwise inherit from parent
+            // HOWEVER: F-string expressions have incorrect line numbers (relative to f-string, not source)
+            // If we have an inherited line number and the node's line is suspiciously low (e.g., 1),
+            // prefer the inherited line number
+            const nodeLine = getLine(node);
+            const lineNo = (inheritedLineNo && nodeLine && nodeLine < 10 && inheritedLineNo > nodeLine)
+                ? inheritedLineNo
+                : (nodeLine || inheritedLineNo);
+            const lineData = ensureLine(lineNo);
+
+            // Collect variable references (Name nodes)
+            if (node.nodeType === 'Name' && node.id) {
+                const ctx = node.ctx && (node.ctx.nodeType || node.ctx._type || node.ctx.type);
+                // Separate Load (usage) and Store (assignment) contexts
+                if (lineData) {
+                    if (ctx === 'Store') {
+                        lineData.assigned.add(node.id);
+                    } else if (ctx === 'Load') {
+                        lineData.referenced.add(node.id);
+                    }
+                }
+            }
+
+            // Collect function calls
+            if (node.nodeType === 'Call' && node.func) {
+                let funcName = null;
+                if (node.func.nodeType === 'Name') {
+                    funcName = node.func.id;
+                } else if (node.func.nodeType === 'Attribute') {
+                    funcName = this.extractQualifiedName(node.func);
+                }
+                if (lineData && funcName) {
+                    lineData.functionCalls.add(funcName);
+                }
+            }
+
+            // Collect subscript expressions (e.g., obj[key], list[0], dict[var])
+            if (node.nodeType === 'Subscript' && lineData) {
+                // Extract the object being subscripted
+                let objName = null;
+                if (node.value && node.value.nodeType === 'Name') {
+                    objName = node.value.id;
+                }
+
+                // Extract the subscript key
+                let keyName = null;
+                if (node.slice) {
+                    if (node.slice.nodeType === 'Name') {
+                        keyName = node.slice.id;
+                    } else if (node.slice.nodeType === 'Constant') {
+                        keyName = node.slice.value;
+                    }
+                }
+
+                // Only add if we have both object and key, and it's a Load context (not assignment)
+                const ctx = node.ctx && (node.ctx.nodeType || node.ctx._type || node.ctx.type);
+                if (objName && keyName !== null && ctx === 'Load') {
+                    lineData.subscripts.push({ object: objName, key: keyName });
+                }
+            }
+
+            // Collect from assignment targets
+            if (node.nodeType === 'Assign' && Array.isArray(node.targets)) {
+                node.targets.forEach(t => {
+                    if (t && t.nodeType === 'Name' && t.id && lineData) {
+                        lineData.assigned.add(t.id);
+                    }
+                });
+            }
+
+            // Collect from augmented assignment (e.g., x += 1)
+            if (node.nodeType === 'AugAssign' && node.target && node.target.nodeType === 'Name' && node.target.id && lineData) {
+                lineData.assigned.add(node.target.id);
+            }
+
+            // Collect from annotated assignment
+            if (node.nodeType === 'AnnAssign' && node.target && node.target.nodeType === 'Name' && node.target.id && lineData) {
+                lineData.assigned.add(node.target.id);
+            }
+
+            // Collect from import statements (imports create variables)
+            if (node.nodeType === 'ImportFrom' && Array.isArray(node.names)) {
+                node.names.forEach(alias => {
+                    const name = alias.asname || alias.name;
+                    if (name && name !== '*' && lineData) {
+                        lineData.assigned.add(name);
+                    }
+                });
+            }
+
+            // Collect from regular import statements
+            if (node.nodeType === 'Import' && Array.isArray(node.names)) {
+                node.names.forEach(alias => {
+                    const name = alias.asname || alias.name;
+                    if (name && lineData) {
+                        lineData.assigned.add(name);
+                    }
+                });
+            }
+
+            // Collect from for loop targets (e.g., for i in range(10))
+            if (node.nodeType === 'For' && node.target) {
+                if (node.target.nodeType === 'Name' && node.target.id && lineData) {
+                    lineData.assigned.add(node.target.id);
+                }
+            }
+
+            // Collect from with statement targets (e.g., with open('file') as f)
+            if (node.nodeType === 'With' && Array.isArray(node.items)) {
+                node.items.forEach(item => {
+                    if (item.optional_vars && item.optional_vars.nodeType === 'Name' && item.optional_vars.id && lineData) {
+                        lineData.assigned.add(item.optional_vars.id);
+                    }
+                });
+            }
+
+            // Recursively traverse child nodes
+            for (const k of Object.keys(node)) {
+                const c = node[k];
+                if (c && typeof c === 'object') {
+                    // Pass down the current line number to children that might not have their own
+                    traverse(c, lineNo);
+                }
+            }
+        };
+
+        if (ast && Array.isArray(ast.body)) {
+            ast.body.forEach(traverse);
+        }
+
+        return perLine;
+    }
+
+    /**
+     * Build a map of function names to their local variable names (in assignment order)
+     * This is used to translate local_0, local_1, etc. to real variable names
+     * @param {Object} ast - Parsed Python AST
+     * @returns {Object} Map of function name -> array of local variable names
+     */
+    buildFunctionLocalMaps(ast) {
+        const functionMaps = {};
+
+        const extractLocalVars = (functionNode) => {
+            const vars = [];
+            const seen = new Set();
+
+            const traverse = (node) => {
+                if (!node || typeof node !== 'object') return;
+
+                // Track assignments (these become local_0, local_1, etc. in order)
+                if (node.nodeType === 'Assign' && Array.isArray(node.targets)) {
+                    node.targets.forEach(target => {
+                        if (target.nodeType === 'Name' && target.id && !seen.has(target.id)) {
+                            seen.add(target.id);
+                            vars.push(target.id);
+                        }
+                    });
+                }
+
+                // Augmented assignments (+=, -=, etc.)
+                if (node.nodeType === 'AugAssign' && node.target?.nodeType === 'Name' && node.target.id && !seen.has(node.target.id)) {
+                    seen.add(node.target.id);
+                    vars.push(node.target.id);
+                }
+
+                // For loops
+                if (node.nodeType === 'For' && node.target?.nodeType === 'Name' && node.target.id && !seen.has(node.target.id)) {
+                    seen.add(node.target.id);
+                    vars.push(node.target.id);
+                }
+
+                // With statements
+                if (node.nodeType === 'With' && Array.isArray(node.items)) {
+                    node.items.forEach(item => {
+                        if (item.optional_vars?.nodeType === 'Name' && item.optional_vars.id && !seen.has(item.optional_vars.id)) {
+                            seen.add(item.optional_vars.id);
+                            vars.push(item.optional_vars.id);
+                        }
+                    });
+                }
+
+                // Recursively traverse child nodes (but don't traverse nested functions)
+                for (const k of Object.keys(node)) {
+                    if (k === 'body' || k === 'orelse' || k === 'finalbody') {
+                        const c = node[k];
+                        if (Array.isArray(c)) {
+                            c.forEach(child => {
+                                // Skip nested function definitions
+                                if (child?.nodeType !== 'FunctionDef' && child?.nodeType !== 'AsyncFunctionDef') {
+                                    traverse(child);
+                                }
+                            });
+                        }
+                    }
+                }
+            };
+
+            // Traverse the function body
+            if (functionNode.body && Array.isArray(functionNode.body)) {
+                functionNode.body.forEach(traverse);
+            }
+
+            return vars;
+        };
+
+        const findFunctions = (node) => {
+            if (!node || typeof node !== 'object') return;
+
+            if ((node.nodeType === 'FunctionDef' || node.nodeType === 'AsyncFunctionDef') && node.name) {
+                functionMaps[node.name] = extractLocalVars(node);
+            }
+
+            // Recursively search for functions
+            for (const k of Object.keys(node)) {
+                const c = node[k];
+                if (Array.isArray(c)) {
+                    c.forEach(findFunctions);
+                } else if (c && typeof c === 'object') {
+                    findFunctions(c);
+                }
+            }
+        };
+
+        if (ast && Array.isArray(ast.body)) {
+            ast.body.forEach(findFunctions);
+        }
+
+        return functionMaps;
+    }
+
+    /**
+     * Build a map of line numbers to function names
+     * @param {Object} ast - Parsed Python AST
+     * @returns {Map} Map of line number -> function name
+     */
+    buildLineFunctionMap(ast) {
+        const lineToFunction = new Map();
+
+        const processFunction = (node, functionName) => {
+            if (!node || typeof node !== 'object') return;
+
+            // Mark this node's line as belonging to the function
+            if (node.lineno) {
+                lineToFunction.set(node.lineno, functionName);
+            }
+
+            // Recursively process child nodes (but not nested functions)
+            for (const k of Object.keys(node)) {
+                const c = node[k];
+                if (Array.isArray(c)) {
+                    c.forEach(child => {
+                        if (child?.nodeType !== 'FunctionDef' && child?.nodeType !== 'AsyncFunctionDef') {
+                            processFunction(child, functionName);
+                        } else if (child?.nodeType === 'FunctionDef' || child?.nodeType === 'AsyncFunctionDef') {
+                            // Nested function - process it separately
+                            processFunction(child, child.name);
+                        }
+                    });
+                } else if (c && typeof c === 'object') {
+                    if (c.nodeType !== 'FunctionDef' && c.nodeType !== 'AsyncFunctionDef') {
+                        processFunction(c, functionName);
+                    }
+                }
+            }
+        };
+
+        const findFunctions = (node) => {
+            if (!node || typeof node !== 'object') return;
+
+            if ((node.nodeType === 'FunctionDef' || node.nodeType === 'AsyncFunctionDef') && node.name) {
+                processFunction(node, node.name);
+            } else {
+                // Recursively search for functions
+                for (const k of Object.keys(node)) {
+                    const c = node[k];
+                    if (Array.isArray(c)) {
+                        c.forEach(findFunctions);
+                    } else if (c && typeof c === 'object') {
+                        findFunctions(c);
+                    }
+                }
+            }
+        };
+
+        if (ast && Array.isArray(ast.body)) {
+            ast.body.forEach(findFunctions);
+        }
+
+        return lineToFunction;
+    }
 }
 
 /**

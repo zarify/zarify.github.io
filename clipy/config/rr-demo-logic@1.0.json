@@ -1,0 +1,14 @@
+{
+  "id": "rr-demo-logic",
+  "title": "RR Demo Logic",
+  "version": "1.0",
+  "description": "",
+  "instructions": "A demo of how RR could be used when debugging a Rock-Paper-Scissors program.",
+  "feedback": "",
+  "tests": "",
+  "starter": "from random import randint\n\ndef check_win(h, c):\n    beats = {1: 3, 2: 1, 3: 2}\n    if h == c:\n        return \"draw\"\n    elif beats[h] == c:\n        return \"win\"\n    else:\n        return \"lose\"\n\nmoves = {1: \"Rock\", 2: \"Paper\", 3: \"Scissors\"}\n\nprint(\"Moves are:\\n\\t1: Rock\\n\\t2: Paper\\n\\t3: Scissors\")\nmove = int(input(\"What is your move? \"))\n\nif randint(1, 3) == 1:\n    print(f\"{moves[move]} vs Rock\")\n    print(f\"You {check_win(move, 1)}\")\nelif randint(1, 3) == 2:\n    print(f\"{moves[move]} vs Paper\")\n    print(f\"You {check_win(move, 2)}\")\nelif randint(1, 3) == 3:\n    print(f\"{moves[move]} vs Scissors\")\n    print(f\"You {check_win(move, 3)}\")",
+  "files": {
+    "/main.py": "from random import randint\n\ndef check_win(h, c):\n    beats = {1: 3, 2: 1, 3: 2}\n    if h == c:\n        return \"draw\"\n    elif beats[h] == c:\n        return \"win\"\n    else:\n        return \"lose\"\n\nmoves = {1: \"Rock\", 2: \"Paper\", 3: \"Scissors\"}\n\nprint(\"Moves are:\\n\\t1: Rock\\n\\t2: Paper\\n\\t3: Scissors\")\nmove = int(input(\"What is your move? \"))\n\nif randint(1, 3) == 1:\n    print(f\"{moves[move]} vs Rock\")\n    print(f\"You {check_win(move, 1)}\")\nelif randint(1, 3) == 2:\n    print(f\"{moves[move]} vs Paper\")\n    print(f\"You {check_win(move, 2)}\")\nelif randint(1, 3) == 3:\n    print(f\"{moves[move]} vs Scissors\")\n    print(f\"You {check_win(move, 3)}\")"
+  },
+  "fileReadOnlyStatus": {}
+}

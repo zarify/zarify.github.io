@@ -155,6 +155,15 @@ export function createConfigManager(opts = {}) {
         config = newCfg
         try { if (typeof window !== 'undefined') window.Config = window.Config || {}; window.Config.current = config } catch (_e) { }
 
+        // Clear record/replay state when switching configs to avoid leaking
+        // per-config caches like AST maps, originalTrace, and active recordings.
+        try {
+            // Lazy import to avoid circular dependency with storage-manager / vfs
+            import('./record-replay-reset.js').then(mod => {
+                try { if (mod && typeof mod.resetRecordReplayState === 'function') mod.resetRecordReplayState() } catch (_e) { }
+            }).catch(() => { /* ignore import failures */ })
+        } catch (_e) { }
+
         // Notify tab system of config change for read-only indicators
         try {
             if (typeof window !== 'undefined' && window.TabManager && typeof window.TabManager.updateConfig === 'function') {

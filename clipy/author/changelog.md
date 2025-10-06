@@ -1,3 +1,7 @@
+## 2025-10-06
+- Fix: replaced record-replay with lower level micropython implementation instead of higher level python instrumentation
+  - Broke almost everything about record-replay and had to fix it again 🤪
+
 ## 2025-10-02
 - Fix: record/replay instrumentation and multi-file workspaces
 - Feature: pre and post files (optional) can be added to tests to modify what is being tested
