@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>WASM Python - Cat Herding 07 | Headtilt</title>
+<meta name="keywords" content="ai, python, llm, agents, cat-herding, wasm-python">
+<meta name="description" content="Pre(r)amble
+This is part of a series of posts documenting some of the process of
+(building|cat herding an AI agent to build) Clipy, an easily hosted Python teaching tool built
+with just front-end JS and a WASM port of MicroPython.
+You can find the GitHub repo for the project here
+I keep a relatively up to date version here if you want to try it
+What we had before
+Last week was adding the record-replay feature (lots more about that this week, what a rabbit hole)
+and putting in nicer file management (which still needs some tweaks, but I&rsquo;m pretty happy with it).">
+<meta name="author" content="Rob">
+<link rel="canonical" href="https://headtilt.me/cat-herding-wasm-python-07/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.1d79e034ed3fae3cce466e1b13b697315f9998d1ba8d908def178611b372b49f.css" integrity="sha256-HXngNO0/rjzORm4bE7aXMV&#43;ZmNG6jZCN7xeGEbNytJ8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://headtilt.me/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://headtilt.me/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://headtilt.me/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://headtilt.me/apple-touch-icon.png">
+<link rel="mask-icon" href="https://headtilt.me/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://headtilt.me/cat-herding-wasm-python-07/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/css/formatting.css">
+
+
+
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://headtilt.me/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="https://headtilt.me/images/headtilt.png" alt="" aria-label="logo"
+                    height="30">Adjust your angle</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://headtilt.me/post" title="posts">
+                    <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/page/about/" title="about">
+                    <span><i class="fa-solid fa-circle-info"></i> about</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/categories/" title="categories">
+                    <span><i class="fa-solid fa-layer-group"></i> categories</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/tags/" title="tags">
+                    <span><i class="fa-solid fa-tags"></i> tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      WASM Python - Cat Herding 07
+    </h1>
+    <div class="post-meta"><span title='2025-10-06 06:10:35 +0800 AWST'>Mon, Oct 6, 2025</span>&nbsp;·&nbsp;Rob
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#preramble" aria-label="Pre(r)amble">Pre(r)amble</a></li>
+                <li>
+                    <a href="#what-we-had-before" aria-label="What we had before">What we had before</a></li>
+                <li>
+                    <a href="#whats-happened-since" aria-label="What&rsquo;s happened since">What&rsquo;s happened since</a><ul>
+                        
+                <li>
+                    <a href="#record-replay" aria-label="Record-Replay">Record-Replay</a></li></ul>
+                </li>
+                <li>
+                    <a href="#aintrospection" aria-label="(A)Introspection">(A)Introspection</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h2 id="preramble">Pre(r)amble<a hidden class="anchor" aria-hidden="true" href="#preramble">#</a></h2>
+<p>This is part of a series of posts documenting some of the process of
+(building|cat herding an AI agent to build) Clipy, an easily hosted Python teaching tool built
+with just front-end JS and a WASM port of MicroPython.</p>
+<p><a href="https://github.com/zarify/clipy">You can find the GitHub repo for the project here</a></p>
+<p><a href="https://headtilt.me/clipy?author">I keep a relatively up to date version here if you want to try it</a></p>
+<h2 id="what-we-had-before">What we had before<a hidden class="anchor" aria-hidden="true" href="#what-we-had-before">#</a></h2>
+<p>Last week was adding the record-replay feature (lots more about that this week, what a rabbit hole)
+and putting in nicer file management (which still needs some tweaks, but I&rsquo;m pretty happy with it).</p>
+<p><a href="https://headtilt.me/cat-herding-wasm-python-06/">Read about it in the post from last time</a></p>
+<h2 id="whats-happened-since">What&rsquo;s happened since<a hidden class="anchor" aria-hidden="true" href="#whats-happened-since">#</a></h2>
+<p>This week is mostly about the record-replay feature. There&rsquo;s some info about the change in
+implementation, but here&rsquo;s a similar demo to the one from last week using multiple files.</p>
+<video width="100%" controls>
+  <source src="/images/clipy/rr-demo-dice.mov" type="video/mp4">
+</video>
+<p><a href="/clipy/?config=rr-demo-multifile@1.0.json">You can try this demo out for yourself here</a> or
+just write your own code and try stuff out. If you find any interesting edge cases, let me
+know in an issue <a href="https://github.com/zarify/clipy">on GitHub</a></p>
+<h3 id="record-replay">Record-Replay<a hidden class="anchor" aria-hidden="true" href="#record-replay">#</a></h3>
+<p>Basically this whole week has been discovering hairy edge cases with the mongrel way that the
+record-replay feature was implemented (through a bunch of Python instrumentation and code transforms).
+From the get-go it was difficult to do things that way because any time the code was transformed
+it needed to play nicely with things like tracebacks so the user got information about <em>their</em> code
+and not the wrapped version.</p>
+<p>The more sensible method of course would just to be use something like Python&rsquo;s
+<a href="https://docs.python.org/3/library/sys.html#sys.settrace"><code>sys.settrace</code></a> but the MicroPython WASM
+port didn&rsquo;t have that available, and apparently I didn&rsquo;t learn my lesson from the very start of this
+project when I just routed around the blocking code issue by putting in hacks in the runtime. It
+took a few days of bashing my head against successive edge cases where the instrumentation approach
+broke to come around to &ldquo;let&rsquo;s just go modify the runtime source again&rdquo;.</p>
+<p>I&rsquo;m not going to lie, I honestly have no idea what the agent did with most of the underlying C
+in MicroPython. The moment you start <em>really</em> talking about how the bytecode works and the optmisations
+for how locals work I very much glaze over. In the end, I think what we&rsquo;ve got works, and although
+it occasionally looks like it breaks, it&rsquo;s almost always the front-end code doing the breaking.</p>
+<p>The trouble is, debuggers like to tell you what the state is <em>before</em> something happens, and the
+replay is intended to show what what <em>did</em> happen. This led to some, uh, interesting situations
+when we had a value being assigned from an expression of a function call, since the trace doesn&rsquo;t
+know what it is yet, and the AST can&rsquo;t evaluate the expression.</p>
+<p>Traditional debugger:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">msg</span> <span class="o">=</span> <span class="s2">&#34;hi&#34;</span>  <span class="c1"># nothing to see on this line</span>
+</span></span><span class="line"><span class="cl"><span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>  <span class="c1"># now msg has a value</span>
+</span></span></code></pre></div><p>Record-Replay:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">msg</span> <span class="o">=</span> <span class="s2">&#34;hi&#34;</span>  <span class="c1"># show that on this line we gave `msg` the value &#34;hi&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>  <span class="c1"># show on this line the value of `msg` that we used was &#34;hi&#34;</span>
+</span></span></code></pre></div><p>This led to some creative problem solving using lookaheads (which of course broke <em>loads</em> of
+times, and no doubt will again in the future). Loops also have some&hellip; interesting issues, like
+the trace not seeing some of the conditions as they seem to be optimised away somewhere, the final
+iteration of a loop with no code after it not having anything to look ahead <em>to</em>, and so on. Fun
+times.</p>
+<p>Lastly, my choice of MicroPython made some things pretty difficult as locals get captured as
+anonymous slots, which then require a combination of extracting the slot values and re-associating
+them with their names using the AST in order to show the user what&rsquo;s going on in a function, look
+at function parameters, and so on.</p>
+<p>This one is still a work in progress as I keep finding little edge cases that behave strangely
+with my intended replay model like phantom lines of execution in loops. In recording a demo video
+for this post I ended up falling down a rabbit hole that ended up back in the MicroPython source
+again that isn&rsquo;t resolved yet.</p>
+<h2 id="aintrospection">(A)Introspection<a hidden class="anchor" aria-hidden="true" href="#aintrospection">#</a></h2>
+<p>I&rsquo;ve been reading a bit about MCP over the last couple of months, and I was coincidentally
+teaching some of my students about project tracking tools and signed up for a free Jira account.
+I noticed that Atlassian have an MCP server and thought &ldquo;Why not?&rdquo;. So I spent a bit of time
+writing up issues for my agents to follow instead of using the chat interface as much, which,
+whilst being kinda weird, actually worked pretty well. Feels super weird having two agents who
+both use my creds have a conversation as the &ldquo;MicroPython dev&rdquo; talks to the &ldquo;Front-end dev&rdquo;.</p>
+<p>I&rsquo;ve also been playing around with a couple of the chat modes from
+<a href="https://github.com/github/awesome-copilot/tree/main/chatmodes">AwesomeCopilot</a> like the
+Implementation Plan mode, which has been interesting. Feels a bit strange switching between
+different chat modes, and I&rsquo;m still not super convinced of the effectiveness, but I&rsquo;ll keep
+at it.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://headtilt.me/tags/ai/">Ai</a></li>
+      <li><a href="https://headtilt.me/tags/python/">Python</a></li>
+      <li><a href="https://headtilt.me/tags/llm/">Llm</a></li>
+      <li><a href="https://headtilt.me/tags/agents/">Agents</a></li>
+      <li><a href="https://headtilt.me/tags/cat-herding/">Cat-Herding</a></li>
+      <li><a href="https://headtilt.me/tags/wasm-python/">Wasm-Python</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>Rob Poulter</span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a><script type="text/javascript" src="/js/lightbox.js"></script>
+<link rel="stylesheet" href="/css/lightbox.css">
+<script data-goatcounter="https://headtilt_me.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

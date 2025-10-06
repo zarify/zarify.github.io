@@ -7,8 +7,23 @@
     <generator>Hugo -- 0.149.0</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
-    <lastBuildDate>Tue, 30 Sep 2025 20:32:42 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 06 Oct 2025 06:10:35 +0800</lastBuildDate>
     <atom:link href="https://headtilt.me/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>WASM Python - Cat Herding 07</title>
+      <link>https://headtilt.me/cat-herding-wasm-python-07/</link>
+      <pubDate>Mon, 06 Oct 2025 06:10:35 +0800</pubDate>
+      <guid>https://headtilt.me/cat-herding-wasm-python-07/</guid>
+      <description>&lt;h2 id=&#34;preramble&#34;&gt;Pre(r)amble&lt;/h2&gt;
+&lt;p&gt;This is part of a series of posts documenting some of the process of
+(building|cat herding an AI agent to build) Clipy, an easily hosted Python teaching tool built
+with just front-end JS and a WASM port of MicroPython.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/zarify/clipy&#34;&gt;You can find the GitHub repo for the project here&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://headtilt.me/clipy?author&#34;&gt;I keep a relatively up to date version here if you want to try it&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;what-we-had-before&#34;&gt;What we had before&lt;/h2&gt;
+&lt;p&gt;Last week was adding the record-replay feature (lots more about that this week, what a rabbit hole)
+and putting in nicer file management (which still needs some tweaks, but I&amp;rsquo;m pretty happy with it).&lt;/p&gt;</description>
+    </item>
     <item>
       <title>WASM Python - Cat Herding 06</title>
       <link>https://headtilt.me/cat-herding-wasm-python-06/</link>
