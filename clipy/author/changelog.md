@@ -1,3 +1,6 @@
+## 2025-10-07
+- Feature: Persistent playground config
+
 ## 2025-10-06
 - Fix: replaced record-replay with lower level micropython implementation instead of higher level python instrumentation
   - Broke almost everything about record-replay and had to fix it again 🤪

@@ -955,6 +955,174 @@ export class ExecutionRecorder {
     }
 
     /**
+     * KAN-14: Check if current line is unreachable after a control flow statement
+     * (break/continue/return) in the same block
+     * @private
+     */
+    _isUnreachableAfterControlFlow(lineNumber, filename) {
+        if (!this.currentTrace || this.currentTrace.getStepCount() === 0) {
+            return false
+        }
+
+        // Get source code to analyze indentation
+        const sourceCode = this.currentTrace.getMetadata('sourceCode')
+        if (!sourceCode) return false
+
+        const lines = sourceCode.split('\n')
+        const currentLineIndex = lineNumber - 1
+        if (currentLineIndex < 0 || currentLineIndex >= lines.length) {
+            return false
+        }
+
+        const currentLine = lines[currentLineIndex]
+        const currentIndent = currentLine.length - currentLine.trimStart().length
+
+        // Look back through recent steps to find control flow statements
+        const lookback = Math.min(5, this.currentTrace.getStepCount())
+
+        for (let i = this.currentTrace.getStepCount() - 1; i >= this.currentTrace.getStepCount() - lookback; i--) {
+            const step = this.currentTrace.getStep(i)
+            if (!step || step.filename !== filename) continue
+
+            const stepLineIndex = step.lineNumber - 1
+            if (stepLineIndex < 0 || stepLineIndex >= lines.length) continue
+
+            const stepLine = lines[stepLineIndex].trim()
+            const stepIndent = lines[stepLineIndex].length - lines[stepLineIndex].trimStart().length
+
+            // Check if this step is a control flow statement
+            const isControlFlow = stepLine.startsWith('break') ||
+                stepLine.startsWith('continue') ||
+                stepLine.startsWith('return')
+
+            if (isControlFlow) {
+                // Check if current line is at same or deeper indentation
+                // This means it's in the same block as the control flow statement
+                if (currentIndent >= stepIndent) {
+                    // Verify we haven't exited and re-entered the block by checking
+                    // intermediate indentations
+                    let allDeeperOrEqual = true
+                    for (let j = i + 1; j < this.currentTrace.getStepCount(); j++) {
+                        const intermediateStep = this.currentTrace.getStep(j)
+                        if (!intermediateStep || intermediateStep.filename !== filename) continue
+
+                        const intLineIndex = intermediateStep.lineNumber - 1
+                        if (intLineIndex < 0 || intLineIndex >= lines.length) continue
+
+                        const intIndent = lines[intLineIndex].length - lines[intLineIndex].trimStart().length
+                        if (intIndent < stepIndent) {
+                            allDeeperOrEqual = false
+                            break
+                        }
+                    }
+
+                    if (allDeeperOrEqual) {
+                        return true
+                    }
+                }
+
+                // If we've exited to shallower indent, stop looking
+                if (currentIndent < stepIndent) {
+                    break
+                }
+            }
+        }
+
+        return false
+    }
+
+    /**
+     * KAN-14: Check if this is a phantom trace in a loop's conditional block
+     * This is the main KAN-14 bug: last line in loop body traced even when
+     * conditional is FALSE
+     * @private
+     */
+    _isPhantomConditionalTrace(lineNumber, variables, filename) {
+        if (!this.currentTrace || this.currentTrace.getStepCount() === 0) {
+            return false
+        }
+
+        const prevStep = this.currentTrace.getStep(this.currentTrace.getStepCount() - 1)
+        if (!prevStep || prevStep.filename !== filename) {
+            return false
+        }
+
+        // Get source code to analyze
+        const sourceCode = this.currentTrace.getMetadata('sourceCode')
+        if (!sourceCode) return false
+
+        const lines = sourceCode.split('\n')
+        const prevLineIndex = prevStep.lineNumber - 1
+        const currentLineIndex = lineNumber - 1
+
+        if (prevLineIndex < 0 || prevLineIndex >= lines.length ||
+            currentLineIndex < 0 || currentLineIndex >= lines.length) {
+            return false
+        }
+
+        const prevLine = lines[prevLineIndex].trim()
+        const currentLine = lines[currentLineIndex]
+        const prevIndent = lines[prevLineIndex].length - lines[prevLineIndex].trimStart().length
+        const currentIndent = currentLine.length - currentLine.trimStart().length
+
+        // Check if previous line is a conditional statement
+        const isConditional = /^(if|elif|while)\s/.test(prevLine)
+
+        if (!isConditional || currentIndent <= prevIndent) {
+            return false
+        }
+
+        // Pattern 1: Direct jump from conditional to deeper indent with 'pass' or empty line
+        const currentTrimmed = currentLine.trim()
+        const lineJump = lineNumber - prevStep.lineNumber
+
+        if (currentTrimmed === 'pass' || currentTrimmed === '' || currentTrimmed.startsWith('#')) {
+            // If it's just pass or empty, it's likely a phantom
+            return true
+        }
+
+        // Pattern 2: Check if condition evaluates to FALSE based on variable values
+        // Extract condition from previous line and evaluate
+        const ifMatch = prevLine.match(/^(?:if|elif|while)\s+(.+):/)
+        if (ifMatch) {
+            const condition = ifMatch[1].trim()
+
+            // Try to evaluate simple conditions like "i > 2", "x < 5", etc.
+            const simpleCondMatch = condition.match(/^(\w+)\s*([><=!]+)\s*(\d+)$/)
+            if (simpleCondMatch) {
+                const varName = simpleCondMatch[1]
+                const operator = simpleCondMatch[2]
+                const threshold = parseInt(simpleCondMatch[3])
+
+                // Get variable value from current variables
+                const varsMap = variables?.entries ? variables : new Map(Object.entries(variables || {}))
+                const varValue = varsMap.has ? varsMap.get(varName) : variables?.[varName]
+
+                if (varValue !== undefined && typeof varValue === 'number') {
+                    // Evaluate condition
+                    let conditionTrue = false
+                    switch (operator) {
+                        case '>': conditionTrue = varValue > threshold; break
+                        case '<': conditionTrue = varValue < threshold; break
+                        case '>=': conditionTrue = varValue >= threshold; break
+                        case '<=': conditionTrue = varValue <= threshold; break
+                        case '==': conditionTrue = varValue == threshold; break
+                        case '!=': conditionTrue = varValue != threshold; break
+                    }
+
+                    // If condition is FALSE but we're tracing the body, it's a phantom
+                    if (!conditionTrue) {
+                        appendTerminalDebug(`  ⚠️ Phantom conditional detected: ${condition} evaluates to FALSE (${varName}=${varValue})`)
+                        return true
+                    }
+                }
+            }
+        }
+
+        return false
+    }
+
+    /**
      * Internal: flush any buffered comprehension iterations into a single
      * execution step per comprehension line. Uses the last captured variables
      * for the final collapsed step and annotates metadata with collapsed count.
@@ -1388,6 +1556,21 @@ export class ExecutionRecorder {
                         return
                     }
                 }
+            }
+
+            // KAN-14 FIX: Filter phantom traces caused by MicroPython VM bugs
+            // Phase 1: Check for unreachable code after break/continue/return
+            if (this._isUnreachableAfterControlFlow(lineNumber, filename)) {
+                appendTerminalDebug(`Skipped unreachable code after control flow: line ${lineNumber}`)
+                return
+            }
+
+            // Phase 2: Check for phantom conditional traces (main KAN-14 bug)
+            // MicroPython fires LINE events for last line in loop body even when
+            // conditional is FALSE. We detect this by evaluating the condition.
+            if (this._isPhantomConditionalTrace(lineNumber, variables, filename)) {
+                appendTerminalDebug(`Skipped phantom conditional trace: line ${lineNumber}`)
+                return
             }
 
             // Skip for-loop phantom traces: Python traces line AFTER loop before first iteration

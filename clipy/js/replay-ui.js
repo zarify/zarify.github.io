@@ -517,14 +517,24 @@ export class ReplayLineDecorator {
         }
 
         // Debug: Show what filename we received
+        let normalizedFilename = filename
         if (filename) {
             appendTerminalDebug(`  🔍 getReferencedNamesForLine called with filename="${filename}", lineNumber=${lineNumber}`)
+
+            // Add new highlight (diagnostic)
+            if (lineNumber > 0) {
+                // Diagnostic: log the current editor line text being highlighted
+                let dbgLineText = ''
+                try { dbgLineText = this.codemirror.getLine(lineNumber - 1) || '' } catch (_) { dbgLineText = '' }
+                appendTerminalDebug(`  ✳️ highlightExecutionLine: adding highlight for line ${lineNumber} (text="${String(dbgLineText).slice(0, 80)}")`)
+                try { this.codemirror.addLineClass(lineNumber - 1, 'background', 'execution-current') } catch (_) { }
+                this.currentExecutionLine = lineNumber
+            }
         }
 
-        // Normalize special filenames: <stdin> → /main.py
-        let normalizedFilename = filename
-        if (filename === '<stdin>') normalizedFilename = '/main.py'
-        else if (filename && !filename.startsWith('/')) normalizedFilename = `/${filename}`
+        if (normalizedFilename === '<stdin>') normalizedFilename = '/main.py'
+        else if (normalizedFilename && !normalizedFilename.startsWith('/')) normalizedFilename = `/${normalizedFilename}`
+
         // Use filename-qualified key for multi-file support
         const key = makeLineKey(normalizedFilename, lineNumber)
         if (!this.lineReferenceMap.has(key)) {
@@ -591,8 +601,15 @@ export class ReplayLineDecorator {
         }
 
         // Determine which function this line belongs to (use filename-qualified key)
-        const key = makeLineKey(filename, lineNumber)
+        // Use shared utility to normalize filename and build the key
+        const key = makeLineKey(normalizedFilename, lineNumber)
         const functionName = this.lineFunctionMap.get(key);
+
+        // Diagnostic logging to help debug KAN-14 repros
+        try {
+            appendTerminalDebug(`  🔤 translateLocalVariables (Decorator): filename='${filename}', normalizedKey='${key}', functionName='${functionName || 'NONE'}'`)
+            appendTerminalDebug(`  🔤 Has functionLocalMaps: ${!!this.functionLocalMaps}, lineFunctionMap size: ${this.lineFunctionMap ? this.lineFunctionMap.size : 0}`)
+        } catch (e) { /* ignore logging errors */ }
 
         // DEBUG: Log translation attempts for dice.py
         if (filename && filename.includes('dice')) {
@@ -1003,6 +1020,21 @@ export class ReplayEngine {
                         })
                     }
 
+                    // Also build function local maps and line->function map from the seeded AST
+                    try {
+                        const fileFunctionLocalMaps = analyzer.buildFunctionLocalMaps(ast) || {}
+                        const fileLineFunctionMap = analyzer.buildLineFunctionMap(ast) || new Map()
+
+                        // Merge into engine-wide maps
+                        Object.assign(this.functionLocalMaps, fileFunctionLocalMaps)
+                        for (const [lineNum, funcName] of fileLineFunctionMap.entries()) {
+                            const key = makeLineKey('/main.py', Number(lineNum))
+                            this.lineFunctionMap.set(key, funcName)
+                        }
+                    } catch (e) {
+                        appendTerminalDebug('  ⚠️ Failed to build function maps from trace sourceCode: ' + e)
+                    }
+
                     appendTerminalDebug('✅ Seeded /main.py AST from trace metadata sourceCode')
                 } catch (e) {
                     appendTerminalDebug('Failed to seed /main.py from sourceCode: ' + e)
@@ -1240,8 +1272,15 @@ export class ReplayEngine {
         }
 
         // Determine which function this line belongs to (use filename-qualified key)
-        const key = makeLineKey(filename, lineNumber)
+        // Use shared utility to normalize filename and build the key
+        const key = makeLineKey(normalizedFilename, lineNumber)
         const functionName = this.lineFunctionMap.get(key);
+
+        // Diagnostic logging to help debug KAN-14 repros
+        try {
+            appendTerminalDebug(`  🔤 translateLocalVariables (Engine): filename='${filename}', normalizedKey='${key}', functionName='${functionName || 'NONE'}'`)
+            appendTerminalDebug(`  🔤 Has functionLocalMaps: ${!!this.functionLocalMaps}, lineFunctionMap size: ${this.lineFunctionMap ? this.lineFunctionMap.size : 0}`)
+        } catch (e) { /* ignore logging errors */ }
         if (!functionName) {
             // Module level - no translation needed
             return variables;
@@ -1300,11 +1339,19 @@ export class ReplayEngine {
             // Clear previous decorations
             this.lineDecorator.clearAllDecorations()
 
-            // Highlight execution line
-            this.lineDecorator.highlightExecutionLine(step.lineNumber)
-
             // Translate local_N variables to real names
             const translatedVariables = this.translateLocalVariables(step.variables, step.lineNumber, step.filename)
+
+            // Only highlight the execution line if AST indicates variables to show
+            // or if our translated variables map has displayable entries. This
+            // avoids drawing attention to lines like `pass` which have no
+            // assigned/referenced variables.
+            const astData = this.lineReferenceMap ? this.lineReferenceMap.get(makeLineKey(step.filename === '<stdin>' ? '/main.py' : (step.filename && step.filename.startsWith('/') ? step.filename : `/${step.filename}`), step.lineNumber)) : null
+            const hasAstVars = astData && ((astData.assigned && astData.assigned.size > 0) || (astData.referenced && astData.referenced.size > 0))
+
+            if (hasAstVars || (translatedVariables && translatedVariables.size > 0)) {
+                this.lineDecorator.highlightExecutionLine(step.lineNumber)
+            }
 
             // Show variables if available
             if (translatedVariables && translatedVariables.size > 0) {

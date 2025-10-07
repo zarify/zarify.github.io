@@ -27,15 +27,67 @@ export function createConfigManager(opts = {}) {
             const body = await res.json()
             // New format: expect an object { listName?: string, files: [...] }
             if (body && typeof body === 'object' && Array.isArray(body.files)) {
-                try { if (typeof window !== 'undefined') window.__ssg_remote_config_list = window.__ssg_remote_config_list || { url: configIndexUrl, items: body.files, listName: body.listName || null } } catch (_e) { }
-                return body.files
+                const enrichedItems = []
+
+                // Determine base URL for resolving remote items
+                const isRemoteList = /^https?:\/\//i.test(configIndexUrl)
+                const baseUrl = isRemoteList ? new URL('./', configIndexUrl).href : null
+
+                // Convert each file to an enriched object with all metadata
+                for (const file of body.files) {
+                    const item = {
+                        id: String(file),
+                        url: isRemoteList ? new URL(String(file), baseUrl).href : ('./config/' + encodeURIComponent(String(file))),
+                        title: null,  // Will be fetched on-demand or remain null
+                        version: null,
+                        source: isRemoteList ? 'remote' : 'local'
+                    }
+                    enrichedItems.push(item)
+                }
+
+                // Add playground at the end if available (always local)
+                const playgroundPath = './config/playground@1.0.json'
+                try {
+                    const check = await fetchFn(playgroundPath)
+                    if (check && check.ok) {
+                        enrichedItems.push({
+                            id: 'playground@1.0.json',
+                            url: playgroundPath,
+                            title: 'Playground',
+                            version: '1.0',
+                            source: 'local'
+                        })
+                    }
+                } catch (_e) { /* ignore fetch failures */ }
+
+                // Store the enriched list
+                try {
+                    if (typeof window !== 'undefined') {
+                        window.__ssg_remote_config_list = {
+                            url: configIndexUrl,
+                            items: enrichedItems,
+                            listName: body.listName || null
+                        }
+                    }
+                } catch (_e) { }
+
+                // Notify listeners (app.js) that the discovered remote list changed
+                try { if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') window.dispatchEvent(new CustomEvent('ssg:remote-config-list-changed')) } catch (_e) { }
+                return enrichedItems
             }
             return []
         } catch (e) {
             try {
                 const res = await fetchFn('./config/sample.json')
                 if (!res.ok) throw e
-                return ['sample.json']
+                // Return enriched object even for fallback
+                return [{
+                    id: 'sample.json',
+                    url: './config/sample.json',
+                    title: null,
+                    version: null,
+                    source: 'local'
+                }]
             } catch (_e) { return [] }
         }
     }
@@ -47,14 +99,15 @@ export function createConfigManager(opts = {}) {
         try {
             // If the input looks like an absolute or network URL, use it as-is.
             if (!/^https?:\/\//i.test(trimmed)) {
-                // For non-URL inputs, only accept plain filenames (no path
-                // separators or directory traversal). This prevents unintended
-                // access outside the `config/` directory and makes the
-                // parameter user-friendly (e.g. `?config=printing-press.json`).
-                if (/[\\/]/.test(trimmed) || trimmed.includes('..') || trimmed.startsWith('.')) {
+                // For non-URL inputs, allow './config/' paths (for playground and similar) or plain filenames
+                if (trimmed.startsWith('./config/')) {
+                    urlToLoad = trimmed
+                } else if (/[\\/]/.test(trimmed) || trimmed.includes('..') || trimmed.startsWith('.')) {
+                    // Security check: reject other paths with separators or directory traversal
                     throw new Error('Invalid config name; provide a filename (no path) or a full URL')
+                } else {
+                    urlToLoad = './config/' + encodeURIComponent(trimmed)
                 }
-                urlToLoad = './config/' + encodeURIComponent(trimmed)
             }
             const res = await fetchFn(urlToLoad)
             if (!res.ok) throw new Error('Failed to fetch: ' + res.status + ' ' + res.statusText)
@@ -69,6 +122,51 @@ export function createConfigManager(opts = {}) {
             try { if (typeof window !== 'undefined') window.Config = window.Config || {}; window.Config.current = config } catch (_e) { }
             try { await saveCurrentConfig(config) } catch (_e) { }
             try { if (typeof clearTerminal === 'function') clearTerminal() } catch (_e) { }
+            // When a single config is loaded explicitly (not from a server list), treat it as a list with the playground appended
+            try {
+                if (typeof window !== 'undefined') {
+                    const playgroundPath = './config/playground@1.0.json'
+                    window.__ssg_remote_config_list = window.__ssg_remote_config_list || { url: null, items: [] }
+
+                    // Only synthesize a list when:
+                    // 1. There's no server list (url is null)
+                    // 2. AND there's no existing synthetic list (items is empty or missing)
+                    const existingList = window.__ssg_remote_config_list
+                    const hasServerList = existingList && existingList.url
+                    const hasSyntheticList = existingList && Array.isArray(existingList.items) && existingList.items.length > 0 && !existingList.url
+
+                    if (!hasServerList && !hasSyntheticList) {
+                        const enrichedItems = []
+
+                        // Add the loaded config as first item (enriched object)
+                        const isRemoteUrl = /^https?:\/\//i.test(trimmed)
+                        enrichedItems.push({
+                            id: trimmed,
+                            url: urlToLoad,
+                            title: normalized?.title || null,
+                            version: normalized?.version || null,
+                            source: isRemoteUrl ? 'remote' : 'local'
+                        })
+
+                        // Add playground if available (always local)
+                        try {
+                            const check = await fetchFn(playgroundPath)
+                            if (check && check.ok) {
+                                enrichedItems.push({
+                                    id: 'playground@1.0.json',
+                                    url: playgroundPath,
+                                    title: 'Playground',
+                                    version: '1.0',
+                                    source: 'local'
+                                })
+                            }
+                        } catch (_e) { /* ignore */ }
+
+                        window.__ssg_remote_config_list.items = enrichedItems
+                        try { if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') window.dispatchEvent(new CustomEvent('ssg:remote-config-list-changed')) } catch (_e) { }
+                    }
+                }
+            } catch (_e) { }
             return normalized
         } catch (e) {
             if (e instanceof TypeError && /failed to fetch/i.test(String(e.message))) {
@@ -87,6 +185,53 @@ export function createConfigManager(opts = {}) {
         try { if (typeof window !== 'undefined') window.Config = window.Config || {}; window.Config.current = config } catch (_e) { }
         try { await saveCurrentConfig(config) } catch (_e) { }
         try { if (typeof clearTerminal === 'function') clearTerminal() } catch (_e) { }
+
+        // When loading a local author file, expose a synthetic remote_config_list
+        // so the UI treats it as a list with the author config first and playground last.
+        // Author uploads ALWAYS create a new synthetic list (replacing any existing one)
+        // because they represent a completely new user action/context.
+        try {
+            if (typeof window !== 'undefined') {
+                const playgroundPath = './config/playground@1.0.json'
+                window.__ssg_remote_config_list = window.__ssg_remote_config_list || { url: null, items: [] }
+
+                // Author configs always create a new synthetic list UNLESS there's a server list
+                const existingList = window.__ssg_remote_config_list
+                const hasServerList = existingList && existingList.url
+
+                if (!hasServerList) {
+                    const enrichedItems = []
+
+                    // Add author config as first item (enriched object with in-memory config)
+                    enrichedItems.push({
+                        id: 'author-config',
+                        url: null,  // No URL for in-memory author config
+                        title: normalized?.title || 'Author config',
+                        version: normalized?.version || null,
+                        source: 'author',
+                        configObject: normalized  // Store the actual config for direct access
+                    })
+
+                    // Add playground if available (always local)
+                    try {
+                        const check = await fetchFn(playgroundPath)
+                        if (check && check.ok) {
+                            enrichedItems.push({
+                                id: 'playground@1.0.json',
+                                url: playgroundPath,
+                                title: 'Playground',
+                                version: '1.0',
+                                source: 'local'
+                            })
+                        }
+                    } catch (_e) { /* ignore */ }
+
+                    window.__ssg_remote_config_list.items = enrichedItems
+                    // Dispatch event AFTER adding both author config and playground
+                    try { if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') window.dispatchEvent(new CustomEvent('ssg:remote-config-list-changed')) } catch (_e) { }
+                }
+            }
+        } catch (_e) { }
         return normalized
     }
 

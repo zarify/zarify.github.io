@@ -1,0 +1,14 @@
+{
+  "id": "playground",
+  "title": "Playground",
+  "version": "1.0",
+  "description": "Default playground to be used across all configs.",
+  "instructions": "# Playground\n\nUse this space for whatever you like. It will follow your between any problem you are working on.\n\nThere are no tests or feedback.",
+  "feedback": "",
+  "tests": "",
+  "starter": "",
+  "files": {
+    "/main.py": ""
+  },
+  "fileReadOnlyStatus": {}
+}

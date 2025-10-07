@@ -65,7 +65,17 @@ try {
                 const remote = window.__ssg_remote_config_list
                 const existing = document.getElementById('config-select-header')
                 if (remote && Array.isArray(remote.items) && !existing) {
-                    const serverItems = remote.items.map((it, i) => ({ label: typeof it === 'string' ? it : (it.label || String(it)), value: '__list::' + i }))
+                    const serverItems = remote.items.map((it, i) => {
+                        if (!it) return { label: 'Unknown', value: '__list::' + i }
+                        // Enriched objects have title already
+                        let label = it.title || it.id || 'Unknown'
+                        if (it.title && it.version) label = it.title + ' (v' + it.version + ')'
+                        if (it.source === 'author') {
+                            label = it.title || 'Author config'
+                            if (it.version) label += ' (v' + it.version + ')'
+                        }
+                        return { label, value: '__list::' + i }
+                    })
                     try { createOrUpdateHeaderSelect(serverItems, true) } catch (_e) { }
                     clearInterval(watchInterval)
                     return
@@ -137,27 +147,6 @@ async function main() {
         //   resolve it relative to the list URL so remote lists fetch from the
         //   originating host. If the list URL is local, leave plain filenames
         //   unchanged so the centralized loader can treat them as local names.
-        function resolveListItemPath(item, listUrl) {
-            try {
-                if (!item) return item
-                const s = String(item)
-                if (/^(https?:)?\/\//i.test(s)) return s
-                if (!listUrl) return s
-                const base = listUrl.endsWith('/') ? listUrl : listUrl.replace(/[^/]*$/, '')
-                const listIsRemote = /^(https?:)?\/\//i.test(listUrl)
-                if (s.startsWith('./') || s.startsWith('/')) {
-                    try { return new URL(s, base).href } catch (_e) { return s }
-                }
-                if (listIsRemote) {
-                    try { return new URL(s, base).href } catch (_e) { return s }
-                }
-                // Local list and plain filename: return unchanged and let centralized loader handle it
-                return s
-            } catch (_e) {
-                return item
-            }
-        }
-
         let cfg = null
         try {
             if (typeof window !== 'undefined') {
@@ -201,20 +190,59 @@ async function main() {
                             } else {
                                 const r = await fetch(toLoad)
                                 if (r && r.ok) {
-                                    const raw = await r.json()
+                                    // Get text first, then parse - this allows us to debug parse failures
+                                    const text = await r.text()
+                                    let raw
+                                    try {
+                                        raw = JSON.parse(text)
+                                    } catch (jsonErr) {
+                                        console.error('[DEBUG] Failed to parse JSON from', toLoad)
+                                        console.error('[DEBUG] Response content type:', r.headers.get('content-type'))
+                                        console.error('[DEBUG] Response text preview:', text.substring(0, 200))
+                                        throw new Error('Invalid JSON response from ' + toLoad + ': ' + jsonErr.message)
+                                    }
                                     // Only treat as remote list if the resource is the new object shape with `files`
                                     if (raw && typeof raw === 'object' && Array.isArray(raw.files)) {
-                                        const items = raw.files
+                                        const files = raw.files
                                         const listName = raw.listName ? String(raw.listName) : null
-                                        window.__ssg_remote_config_list = { url: toLoad, items: items, listName }
+
+                                        // Build enriched items with full URLs
+                                        const enrichedItems = []
+                                        const isRemoteList = /^https?:\/\//i.test(toLoad)
+                                        const baseUrl = isRemoteList ? new URL('./', toLoad).href : null
+
+                                        for (const file of files) {
+                                            enrichedItems.push({
+                                                id: String(file),
+                                                url: isRemoteList ? new URL(String(file), baseUrl).href : ('./config/' + encodeURIComponent(String(file))),
+                                                title: null,
+                                                version: null,
+                                                source: isRemoteList ? 'remote' : 'local'
+                                            })
+                                        }
+
+                                        // Add playground if available (always local)
+                                        const playgroundPath = './config/playground@1.0.json'
+                                        try {
+                                            const check = await fetch(playgroundPath)
+                                            if (check && check.ok) {
+                                                enrichedItems.push({
+                                                    id: 'playground@1.0.json',
+                                                    url: playgroundPath,
+                                                    title: 'Playground',
+                                                    version: '1.0',
+                                                    source: 'local'
+                                                })
+                                            }
+                                        } catch (_e) { /* ignore */ }
+
+                                        window.__ssg_remote_config_list = { url: toLoad, items: enrichedItems, listName }
                                         try { if (typeof window !== 'undefined') delete window.__ssg_explicit_single_config } catch (_e) { }
-                                        if (items && items.length > 0) {
-                                            let first = items[0]
+
+                                        if (enrichedItems && enrichedItems.length > 0) {
+                                            const first = enrichedItems[0]
                                             try {
-                                                first = resolveListItemPath(first, toLoad)
-                                            } catch (_e) { }
-                                            try {
-                                                const normalized = await loadConfigFromStringOrUrl(first)
+                                                const normalized = await loadConfigFromStringOrUrl(first.url)
                                                 cfg = normalized
                                                 // Mark that we successfully loaded the first item from
                                                 // the remote config list so the UI can reflect the
@@ -271,22 +299,23 @@ async function main() {
                         // and may attach a listName). Avoid clobbering it with null.
                         const existingName = (typeof window !== 'undefined' && window.__ssg_remote_config_list && window.__ssg_remote_config_list.listName) ? window.__ssg_remote_config_list.listName : null
                         window.__ssg_remote_config_list = { url: indexUrl, items: items, listName: existingName }
-                        let first = items[0]
-                        try { first = resolveListItemPath(first, indexUrl) } catch (_e) { }
-                        try {
-                            const normalized = await loadConfigFromStringOrUrl(first)
-                            cfg = normalized
-                            // Mark that we successfully loaded the first item from
-                            // the remote config list so the UI can reflect the
-                            // origin and pre-select the corresponding dropdown
-                            // entry (e.g. '__list::0').
-                            try { window.__ssg_loaded_from_list_index = 0 } catch (_e2) { }
+                        const first = items[0]
+                        if (first && first.url) {
                             try {
-                                if (window.__ssg_remote_config_list) window.__ssg_remote_config_list.loadedIndex = 0
-                            } catch (_e3) { }
-                            logInfo('main: loaded first config from index list:', cfg.id, cfg.version)
-                        } catch (e) {
-                            logWarn('Failed to load first config from index list:', e)
+                                const normalized = await loadConfigFromStringOrUrl(first.url)
+                                cfg = normalized
+                                // Mark that we successfully loaded the first item from
+                                // the remote config list so the UI can reflect the
+                                // origin and pre-select the corresponding dropdown
+                                // entry (e.g. '__list::0').
+                                try { window.__ssg_loaded_from_list_index = 0 } catch (_e2) { }
+                                try {
+                                    if (window.__ssg_remote_config_list) window.__ssg_remote_config_list.loadedIndex = 0
+                                } catch (_e3) { }
+                                logInfo('main: loaded first config from index list:', cfg.id, cfg.version)
+                            } catch (e) {
+                                logWarn('Failed to load first config from index list:', e)
+                            }
                         }
                     } catch (_e) { }
                 } else {
@@ -1444,45 +1473,56 @@ async function main() {
                         // attempting to fetch each config's metadata (title/version) for a nicer label.
                         let serverItems = []
                         if (window.__ssg_remote_config_list && Array.isArray(window.__ssg_remote_config_list.items)) {
-                            const listUrl = window.__ssg_remote_config_list.url
-                            const base = listUrl.endsWith('/') ? listUrl : listUrl.replace(/[^/]*$/, '')
                             for (let i = 0; i < window.__ssg_remote_config_list.items.length; i++) {
-                                const raw = window.__ssg_remote_config_list.items[i]
-                                let display = String(raw)
-                                try {
-                                    const resolved = /^(https?:)?\/\//i.test(String(raw)) ? String(raw) : new URL(String(raw), base).href
-                                    const r = await fetch(resolved)
-                                    if (r && r.ok) {
-                                        try {
-                                            const parsed = await r.json()
-                                            const title = parsed && parsed.title ? String(parsed.title) : null
-                                            const ver = parsed && parsed.version ? String(parsed.version) : null
-                                            if (title) display = ver ? (title + ' (v' + ver + ')') : title
-                                        } catch (_e) { }
-                                    }
-                                } catch (_e) { }
+                                const item = window.__ssg_remote_config_list.items[i]
+                                // Enriched objects already have metadata or URL for fetching
+                                let display = item.title || item.id || 'Unknown'
+                                if (item.title && item.version) {
+                                    display = item.title + ' (v' + item.version + ')'
+                                } else if (!item.title && item.url) {
+                                    // Try to fetch metadata if not already loaded
+                                    try {
+                                        const r = await fetch(item.url)
+                                        if (r && r.ok) {
+                                            try {
+                                                const parsed = await r.json()
+                                                const title = parsed && parsed.title ? String(parsed.title) : null
+                                                const ver = parsed && parsed.version ? String(parsed.version) : null
+                                                if (title) {
+                                                    display = ver ? (title + ' (v' + ver + ')') : title
+                                                    // Update enriched object with fetched metadata
+                                                    item.title = title
+                                                    item.version = ver
+                                                }
+                                            } catch (_e) { }
+                                        }
+                                    } catch (_e) { }
+                                }
                                 serverItems.push({ label: display, value: '__list::' + i })
                             }
                         } else {
                             try {
                                 const items = await fetchAvailableServerConfigs()
                                 for (let i = 0; i < (items || []).length; i++) {
-                                    const it = items[i]
-                                    let display = String(it)
-                                    try {
+                                    const item = items[i]
+                                    let display = item.title || item.id || 'Unknown'
+                                    if (item.title && item.version) {
+                                        display = item.title + ' (v' + item.version + ')'
+                                    } else if (!item.title && item.url) {
                                         // Try to fetch the config to get title/version
-                                        const resolved = /^(https?:)?\/\//i.test(String(it)) ? String(it) : ('./config/' + encodeURIComponent(String(it)))
-                                        const r = await fetch(resolved)
-                                        if (r && r.ok) {
-                                            try {
-                                                const parsed = await r.json()
-                                                const title = parsed && parsed.title ? String(parsed.title) : null
-                                                const ver = parsed && parsed.version ? String(parsed.version) : null
-                                                if (title) display = ver ? (title + ' (v' + ver + ')') : title
-                                            } catch (_e) { }
-                                        }
-                                    } catch (_e) { }
-                                    serverItems.push({ label: display, value: String(it) })
+                                        try {
+                                            const r = await fetch(item.url)
+                                            if (r && r.ok) {
+                                                try {
+                                                    const parsed = await r.json()
+                                                    const title = parsed && parsed.title ? String(parsed.title) : null
+                                                    const ver = parsed && parsed.version ? String(parsed.version) : null
+                                                    if (title) display = ver ? (title + ' (v' + ver + ')') : title
+                                                } catch (_e) { }
+                                            }
+                                        } catch (_e) { }
+                                    }
+                                    serverItems.push({ label: display, value: '__list::' + i })
                                 }
                             } catch (_e) { serverItems = [] }
                         }
@@ -1548,30 +1588,26 @@ async function main() {
                                         try {
                                             const val = select.value
                                             if (!val) return
-                                            let toLoad = val
                                             if (val.startsWith('__list::') && window.__ssg_remote_config_list) {
                                                 const idx = parseInt(val.split('::')[1], 10)
-                                                let source = window.__ssg_remote_config_list.items[idx]
-                                                if (!source) return
-                                                try {
-                                                    const listUrl = window.__ssg_remote_config_list.url
-                                                    const base = listUrl.endsWith('/') ? listUrl : listUrl.replace(/[^/]*$/, '')
-                                                    const listIsRemote = /^(https?:)?\/\//i.test(listUrl)
-                                                    if (!/^(https?:)?\/\//i.test(source)) {
-                                                        if (source.startsWith('./') || source.startsWith('/')) {
-                                                            source = new URL(source, base).href
-                                                        } else if (listIsRemote) {
-                                                            // Resolve plain filenames relative to remote list URL
-                                                            source = new URL(source, base).href
-                                                        } else {
-                                                            // Leave plain filename unchanged to be processed by centralized loader
-                                                        }
-                                                    }
-                                                } catch (_e) { }
-                                                toLoad = source
+                                                const item = window.__ssg_remote_config_list.items[idx]
+                                                if (!item) return
+                                                // Enriched object has everything we need
+                                                if (item.source === 'author' && item.configObject) {
+                                                    // Author config is already in memory
+                                                    await applyConfigToWorkspace(item.configObject)
+                                                } else if (item.url) {
+                                                    // Load from URL (works for both local and remote)
+                                                    const normalized = await loadConfigFromStringOrUrl(item.url)
+                                                    await applyConfigToWorkspace(normalized)
+                                                } else {
+                                                    throw new Error('Invalid config item: no URL or config object')
+                                                }
+                                            } else {
+                                                // Direct URL/filename provided
+                                                const normalized = await loadConfigFromStringOrUrl(val)
+                                                await applyConfigToWorkspace(normalized)
                                             }
-                                            const normalized = await loadConfigFromStringOrUrl(toLoad)
-                                            await applyConfigToWorkspace(normalized)
                                         } catch (e) {
                                             const msg = 'Failed to load selected configuration: ' + (e && e.message ? e.message : e)
                                             try { showConfigError(msg, configModal) } catch (_e) { }
@@ -1634,10 +1670,15 @@ async function main() {
                                         if (!(typeof window !== 'undefined' && window.Config && window.Config.current)) {
                                             try {
                                                 const idx = 0
-                                                let source = window.__ssg_remote_config_list.items[idx]
-                                                try { source = resolveListItemPath(source, window.__ssg_remote_config_list && window.__ssg_remote_config_list.url) } catch (_e) { }
-                                                const normalized = await loadConfigFromStringOrUrl(source)
-                                                await applyConfigToWorkspace(normalized)
+                                                const item = window.__ssg_remote_config_list.items[idx]
+                                                if (item) {
+                                                    if (item.source === 'author' && item.configObject) {
+                                                        await applyConfigToWorkspace(item.configObject)
+                                                    } else if (item.url) {
+                                                        const normalized = await loadConfigFromStringOrUrl(item.url)
+                                                        await applyConfigToWorkspace(normalized)
+                                                    }
+                                                }
                                             } catch (_e) {
                                                 // If loading the first item fails, leave the select visible so user can try others
                                                 dbg('dbg: failed to auto-load first remote list item', _e)
@@ -1861,6 +1902,39 @@ async function main() {
                                             btn.textContent = `${normalized.title || normalized.id} ${normalized.version ? ('v' + normalized.version + ' ') : ''}(local)`
                                             btn.addEventListener('click', async () => {
                                                 try {
+                                                    // ALWAYS create synthetic list for author config from storage
+                                                    // This replaces any existing server list because loading a saved
+                                                    // author config is a new user action that changes context
+                                                    const playgroundPath = './config/playground@1.0.json'
+                                                    const enrichedItems = []
+
+                                                    // Add author config as first item
+                                                    enrichedItems.push({
+                                                        id: 'author-config',
+                                                        url: null,
+                                                        title: normalized?.title || 'Author config',
+                                                        version: normalized?.version || null,
+                                                        source: 'author',
+                                                        configObject: normalized
+                                                    })
+
+                                                    // Add playground if available
+                                                    try {
+                                                        const check = await fetch(playgroundPath)
+                                                        if (check && check.ok) {
+                                                            enrichedItems.push({
+                                                                id: 'playground@1.0.json',
+                                                                url: playgroundPath,
+                                                                title: 'Playground',
+                                                                version: '1.0',
+                                                                source: 'local'
+                                                            })
+                                                        }
+                                                    } catch (_e) { /* ignore */ }
+
+                                                    window.__ssg_remote_config_list = { url: null, items: enrichedItems }
+                                                    window.dispatchEvent(new CustomEvent('ssg:remote-config-list-changed'))
+
                                                     await applyConfigToWorkspace(normalized)
                                                     closeModal(configModal)
                                                 } catch (e) {
@@ -1885,20 +1959,30 @@ async function main() {
                                     listContainer.textContent = '(no configurations available)'
                                 }
                             } else {
-                                for (const name of items) {
+                                for (const item of items) {
                                     try {
-                                        // Try to fetch the config metadata (title/version) for a nicer display.
-                                        let meta = null
-                                        try {
-                                            const url = /^https?:\/\//i.test(name) ? name : './config/' + encodeURIComponent(name)
-                                            const r = await fetch(url)
-                                            if (r && r.ok) {
-                                                try { meta = await r.json() } catch (_e) { meta = null }
-                                            }
-                                        } catch (_e) { meta = null }
+                                        // Items are now enriched objects with {id, url, title, version, source}
+                                        let displayTitle = item.title || item.id
+                                        let versionText = item.version ? ('v' + item.version) : ''
 
-                                        const displayTitle = (meta && meta.title) ? meta.title : name
-                                        const versionText = (meta && meta.version) ? ('v' + meta.version) : ''
+                                        // If no title yet and we have a URL, try to fetch metadata
+                                        if (!item.title && item.url) {
+                                            try {
+                                                const r = await fetch(item.url)
+                                                if (r && r.ok) {
+                                                    const meta = await r.json()
+                                                    if (meta.title) {
+                                                        displayTitle = meta.title
+                                                        item.title = meta.title // Update enriched object
+                                                    }
+                                                    if (meta.version) {
+                                                        versionText = 'v' + meta.version
+                                                        item.version = meta.version // Update enriched object
+                                                    }
+                                                }
+                                            } catch (_e) { /* use existing values */ }
+                                        }
+
                                         const label = versionText ? `${displayTitle} ${versionText}` : displayTitle
 
                                         const btn = document.createElement('button')
@@ -1912,11 +1996,8 @@ async function main() {
                                             ; (async () => {
                                                 try {
                                                     const { getSuccessSnapshotForConfig } = await import('./js/snapshots.js')
-                                                    // Construct a likely identity: prefer meta.id@meta.version if available,
-                                                    // otherwise use the raw name source which is passed into the click handler.
-                                                    let identity = null
-                                                    if (meta && meta.id && meta.version) identity = `${meta.id}@${meta.version}`
-                                                    if (!identity) identity = name
+                                                    // Use item URL as identity
+                                                    const identity = item.url || item.id
                                                     const snap = await getSuccessSnapshotForConfig(identity)
                                                     if (snap) {
                                                         const star = document.createElement('span')
@@ -1927,12 +2008,22 @@ async function main() {
                                                     }
                                                 } catch (_e) { }
                                             })()
-                                        // keep original filename/identifier available for click handler
-                                        btn.dataset.configSource = name
+                                        // Store URL for click handler (or configObject for author configs)
+                                        if (item.source === 'author' && item.configObject) {
+                                            btn.dataset.authorConfig = JSON.stringify(item.configObject)
+                                        } else if (item.url) {
+                                            btn.dataset.configSource = item.url
+                                        }
                                         btn.addEventListener('click', async () => {
                                             try {
-                                                const source = btn.dataset.configSource || name
-                                                const normalized = await loadConfigFromStringOrUrl(source)
+                                                let normalized
+                                                if (btn.dataset.authorConfig) {
+                                                    // Author config is already in memory
+                                                    normalized = JSON.parse(btn.dataset.authorConfig)
+                                                } else {
+                                                    const source = btn.dataset.configSource || item.url
+                                                    normalized = await loadConfigFromStringOrUrl(source)
+                                                }
                                                 await applyConfigToWorkspace(normalized)
                                                 closeModal(configModal)
                                             } catch (e) {
@@ -1959,6 +2050,54 @@ async function main() {
                 configInfoEl.addEventListener('keydown', (ev) => {
                     if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openHandler(ev) }
                 })
+                // Listen for remote-config-list changes so header select can be rebuilt
+                try {
+                    window.addEventListener && window.addEventListener('ssg:remote-config-list-changed', async () => {
+                        try {
+                            const remote = window.__ssg_remote_config_list
+                            if (remote && Array.isArray(remote.items)) {
+                                const serverItems = []
+                                for (let i = 0; i < remote.items.length; i++) {
+                                    const item = remote.items[i]
+                                    if (!item) continue
+
+                                    // Enriched objects have title/version already, or fetch on-demand
+                                    let label = item.title || item.id || 'Unknown'
+
+                                    // If no title yet and we have a URL, try to fetch metadata
+                                    if (!item.title && item.url) {
+                                        try {
+                                            const r = await fetch(item.url)
+                                            if (r && r.ok) {
+                                                const text = await r.text()
+                                                const parsed = JSON.parse(text)
+                                                const title = parsed?.title
+                                                const ver = parsed?.version
+                                                if (title) {
+                                                    label = ver ? (title + ' (v' + ver + ')') : title
+                                                    // Update the enriched object for future use
+                                                    item.title = title
+                                                    item.version = ver
+                                                }
+                                            }
+                                        } catch (_e) { /* use fallback label */ }
+                                    } else if (item.title && item.version) {
+                                        label = item.title + ' (v' + item.version + ')'
+                                    }
+
+                                    // For author configs, use label from enriched object
+                                    if (item.source === 'author') {
+                                        label = item.title || 'Author config'
+                                        if (item.version) label += ' (v' + item.version + ')'
+                                    }
+
+                                    serverItems.push({ label, value: '__list::' + i })
+                                }
+                                try { createOrUpdateHeaderSelect(serverItems, true) } catch (_e) { }
+                            }
+                        } catch (_e) { }
+                    })
+                } catch (_e) { }
             }
 
             // URL load button
@@ -2034,14 +2173,17 @@ async function main() {
                                                 let toLoad = val2
                                                 if (val2.startsWith('__list::') && window.__ssg_remote_config_list) {
                                                     const idx = parseInt(val2.split('::')[1], 10)
-                                                    let source = window.__ssg_remote_config_list.items[idx]
-                                                    if (!source) return
-                                                    try {
-                                                        const listUrl = window.__ssg_remote_config_list.url
-                                                        const base = listUrl.endsWith('/') ? listUrl : listUrl.replace(/[^/]*$/, '')
-                                                        source = /^(https?:)?\/\//i.test(source) ? source : new URL(source, base).href
-                                                    } catch (_e) { }
-                                                    toLoad = source
+                                                    const item = window.__ssg_remote_config_list.items[idx]
+                                                    if (!item) return
+                                                    // Handle enriched objects
+                                                    if (item.source === 'author' && item.configObject) {
+                                                        await applyConfigToWorkspace(item.configObject)
+                                                        return
+                                                    } else if (item.url) {
+                                                        toLoad = item.url
+                                                    } else {
+                                                        return
+                                                    }
                                                 }
                                                 const normalized = await loadConfigFromStringOrUrl(toLoad)
                                                 await applyConfigToWorkspace(normalized)
@@ -2280,22 +2422,39 @@ function createOrUpdateHeaderSelect(serverItems, hasRemoteList) {
 
                     if (!val) return
                     let toLoad = val
+                    // Handle author option (in-memory config object)
+                    if (val.indexOf('__author::') === 0) {
+                        const cfgJson = (select.options[select.selectedIndex] && select.options[select.selectedIndex].dataset && select.options[select.selectedIndex].dataset.authorConfig) ? select.options[select.selectedIndex].dataset.authorConfig : null
+                        if (cfgJson) {
+                            try {
+                                const cfgObj = JSON.parse(cfgJson)
+                                await applyConfigToWorkspace(cfgObj)
+                                return
+                            } catch (_e) { /* fall back to default handling */ }
+                        }
+                    }
                     if (val.startsWith('__list::') && window.__ssg_remote_config_list) {
                         const idx = parseInt(val.split('::')[1], 10)
-                        let source = window.__ssg_remote_config_list.items[idx]
-                        if (!source) return
-                        try {
-                            const listUrl = window.__ssg_remote_config_list.url
-                            const base = listUrl.endsWith('/') ? listUrl : listUrl.replace(/[^/]*$/, '')
-                            if (!/^(https?:)?\/\//i.test(source)) {
-                                if (source.startsWith('./') || source.startsWith('/')) {
-                                    source = new URL(source, base).href
-                                } else if (/^(https?:)?\/\//i.test(listUrl)) {
-                                    source = new URL(source, base).href
-                                }
+                        const item = window.__ssg_remote_config_list.items[idx]
+
+                        if (!item) return
+
+                        // Handle enriched objects with pre-resolved URLs
+                        if (item.source === 'author' && item.configObject) {
+                            // Author config: use in-memory config object
+                            try {
+                                await applyConfigToWorkspace(item.configObject)
+                                return
+                            } catch (_e) {
+                                // fall through to default handling if apply fails
                             }
-                        } catch (err) { /* ignore resolution errors */ }
-                        toLoad = source
+                        } else if (item.url) {
+                            // Regular config: use pre-resolved URL
+                            toLoad = item.url
+                        } else {
+                            // Fallback for unexpected item shape
+                            return
+                        }
                     }
 
                     // Attempt to load and apply the selected config, logging any load errors
@@ -2322,13 +2481,30 @@ function createOrUpdateHeaderSelect(serverItems, hasRemoteList) {
 
         for (const it of serverItems) {
             const opt = document.createElement('option')
-            if (typeof it === 'string') {
-                opt.value = it
-                opt.textContent = it
-            } else {
-                // expected shape: { label, value }
-                opt.value = it.value || String(it)
-                opt.textContent = it.label || String(it.value || it)
+            try {
+                // Support 3 input shapes:
+                // - string: legacy filename or value
+                // - { label, value }
+                // - author object: { label, sourceType: 'author', configObject }
+                if (typeof it === 'string') {
+                    opt.value = it
+                    // Try to show a friendly label by default (may be replaced via async fetch)
+                    opt.textContent = it
+                } else if (it && it.sourceType === 'author' && it.configObject) {
+                    // Author-provided config: attach a special value so change handler can detect and apply directly
+                    // Use a reserved prefix so identity resolution can detect author entries
+                    opt.value = '__author::' + (it.configObject.id || 'author')
+                    opt.textContent = it.label || (it.configObject.title ? (it.configObject.title + (it.configObject.version ? (' (v' + it.configObject.version + ')') : '')) : opt.value)
+                    // Store the full config object so handlers can access it without extra fetch
+                    opt.dataset.authorConfig = JSON.stringify(it.configObject)
+                } else {
+                    // expected shape: { label, value }
+                    opt.value = it.value || String(it)
+                    opt.textContent = it.label || String(it.value || it)
+                }
+            } catch (_e) {
+                opt.value = String(it)
+                opt.textContent = String(it)
             }
             select.appendChild(opt)
         }
@@ -2364,20 +2540,70 @@ function createOrUpdateHeaderSelect(serverItems, hasRemoteList) {
                         let source = window.__ssg_remote_config_list.items[idx]
                         if (!source) {
                             identity = opt.value
+                        } else if (source && source.source === 'author' && source.configObject) {
+                            // author object stored in list (enriched format)
+                            identity = (source.configObject.id && source.configObject.version) ? `${source.configObject.id}@${source.configObject.version}` : opt.value
+                            // update displayed label to author title if available
+                            try { opt.textContent = source.title || (source.configObject.title ? (source.configObject.title + (source.version ? (' (v' + source.version + ')') : '')) : opt.textContent) } catch (_e) { }
+                            // expose the full author config on the option so change handler can apply it
+                            try { opt.dataset.authorConfig = JSON.stringify(source.configObject) } catch (_e) { }
+                        } else if (source && source.url) {
+                            // Enriched object with URL
+                            identity = source.url
                         } else {
-                            // Resolve relative to list URL when appropriate (best-effort)
-                            try {
-                                const listUrl = window.__ssg_remote_config_list.url
-                                if (typeof source === 'string' && listUrl && /^(https?:)?\/\//i.test(listUrl) && !/^(https?:)?\/\//i.test(source)) {
-                                    source = new URL(source, listUrl.endsWith('/') ? listUrl : listUrl.replace(/[^/]*$/, '')).href
-                                }
-                            } catch (_e) { }
-                            identity = typeof source === 'string' ? source : String(source)
+                            // Fallback for unexpected format
+                            identity = String(source)
                         }
+                    } else if (typeof opt.value === 'string' && opt.value.indexOf('__author::') === 0) {
+                        // author options store full config in data attribute
+                        const cfgJson = opt.dataset && opt.dataset.authorConfig ? opt.dataset.authorConfig : null
+                        if (cfgJson) {
+                            try {
+                                const cfgObj = JSON.parse(cfgJson)
+                                identity = (cfgObj.id && cfgObj.version) ? `${cfgObj.id}@${cfgObj.version}` : opt.value
+                            } catch (_e) {
+                                identity = opt.value
+                            }
+                        } else identity = opt.value
                     } else {
                         identity = typeof opt.value === 'string' ? opt.value : String(opt.value)
                     }
                     opt.dataset.identity = identity
+                        // If the option text looks like a filename/url we can fetch metadata to improve the label
+                        (async () => {
+                            try {
+                                const txt = opt.textContent || ''
+                                const looksLikeFilename = typeof txt === 'string' && (txt.endsWith('.json') || /config\//i.test(txt) || /@\d+/.test(txt))
+                                const looksLikeUrl = typeof identity === 'string' && /^(https?:)?\/\//i.test(identity)
+                                if ((looksLikeFilename || looksLikeUrl) && identity) {
+                                    try {
+                                        // If identity is a plain filename and no remote list URL is present,
+                                        // try resolving against ./config/ so single-config synthetic lists fetch metadata.
+                                        let fetchTarget = identity
+                                        try {
+                                            if (!/^(https?:)?\/\//i.test(String(identity))) {
+                                                // For plain filenames, prefer fetching from ./config/<name>
+                                                fetchTarget = './config/' + encodeURIComponent(String(identity))
+                                            }
+                                        } catch (_e) { fetchTarget = identity }
+
+                                        const r = await fetch(fetchTarget)
+                                        if (r && r.ok) {
+                                            try {
+                                                const parsed = await r.json()
+                                                const title = parsed && parsed.title ? String(parsed.title) : null
+                                                const ver = parsed && parsed.version ? String(parsed.version) : null
+                                                if (title) {
+                                                    const label = ver ? (title + ' (v' + ver + ')') : title
+                                                    // Update option label if it hasn't been user-changed
+                                                    try { if (opt && (!opt.dataset || !opt.dataset.userLabel)) opt.textContent = label } catch (_e) { }
+                                                }
+                                            } catch (_e) { }
+                                        }
+                                    } catch (_e) { }
+                                }
+                            } catch (_e) { }
+                        })()
                 } catch (_e) { /* ignore individual option failures */ }
             }
             // Single async refresh to decorate stars based on current snapshot data
@@ -2411,15 +2637,16 @@ async function refreshConfigSelectBadges(changedConfigIdentity) {
                     try {
                         if (typeof opt.value === 'string' && opt.value.indexOf('__list::') === 0 && window.__ssg_remote_config_list) {
                             const idx = parseInt(opt.value.split('::')[1], 10)
-                            let source = window.__ssg_remote_config_list.items[idx]
-                            if (source) {
-                                try {
-                                    const listUrl = window.__ssg_remote_config_list.url
-                                    if (typeof source === 'string' && listUrl && /^(https?:)?\/\//i.test(listUrl) && !/^(https?:)?\/\//i.test(source)) {
-                                        source = new URL(source, listUrl.endsWith('/') ? listUrl : listUrl.replace(/[^/]*$/, '')).href
-                                    }
-                                } catch (_e) { }
-                                identity = typeof source === 'string' ? source : String(source)
+                            const item = window.__ssg_remote_config_list.items[idx]
+                            if (item) {
+                                // Handle enriched objects
+                                if (item.source === 'author' && item.configObject) {
+                                    identity = `${item.configObject.id}@${item.configObject.version}`
+                                } else if (item.url) {
+                                    identity = item.url
+                                } else {
+                                    identity = item.id || opt.value
+                                }
                                 opt.dataset.identity = identity
                             } else {
                                 identity = opt.value
@@ -2533,8 +2760,17 @@ try {
                     attempts++
                     const titleLine = document.querySelector('.config-title-line')
                     if (titleLine) {
-                        // Build serverItems with friendly labels and call the shared creator
-                        const serverItems = remote.items.map((it, i) => ({ label: typeof it === 'string' ? it : (it.label || String(it)), value: '__list::' + i }))
+                        // Build serverItems with friendly labels from enriched objects
+                        const serverItems = remote.items.map((it, i) => {
+                            if (!it) return { label: 'Unknown', value: '__list::' + i }
+                            let label = it.title || it.id || 'Unknown'
+                            if (it.title && it.version) label = it.title + ' (v' + it.version + ')'
+                            if (it.source === 'author') {
+                                label = it.title || 'Author config'
+                                if (it.version) label += ' (v' + it.version + ')'
+                            }
+                            return { label, value: '__list::' + i }
+                        })
                         try { createOrUpdateHeaderSelect(serverItems, true) } catch (_e) { }
                         clearInterval(interval)
                         return
