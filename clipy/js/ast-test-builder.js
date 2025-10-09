@@ -38,7 +38,10 @@ export function buildASTTestForm(existing = {}) {
             info.setAttribute('tabindex', '0')
             info.setAttribute('role', 'img')
             info.setAttribute('aria-label', labelText + ' help')
-            info.innerHTML = '<span class="info-symbol">ℹ</span>'
+            const infoSymbol = document.createElement('span')
+            infoSymbol.className = 'info-symbol'
+            infoSymbol.textContent = 'ℹ'
+            info.appendChild(infoSymbol)
             const tip = document.createElement('span')
             tip.className = 'info-tooltip'
             tip.textContent = helpText
@@ -86,7 +89,17 @@ export function buildASTTestForm(existing = {}) {
     header.style.borderRadius = '4px'
     header.style.marginBottom = '12px'
     header.style.border = '1px solid #b3d9ff'
-    header.innerHTML = '<strong>🔍 AST Code Analysis Test</strong><br><span style="font-size: 0.9em; color: #666;">This test analyzes code structure instead of input/output behavior.</span>'
+    // Build header content safely using DOM APIs
+    const headerStrong = document.createElement('strong')
+    headerStrong.textContent = '🔍 AST Code Analysis Test'
+    const headerBr = document.createElement('br')
+    const headerSpan = document.createElement('span')
+    headerSpan.style.fontSize = '0.9em'
+    headerSpan.style.color = '#666'
+    headerSpan.textContent = 'This test analyzes code structure instead of input/output behavior.'
+    header.appendChild(headerStrong)
+    header.appendChild(headerBr)
+    header.appendChild(headerSpan)
 
     // Build the form
     root.appendChild(header)

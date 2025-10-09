@@ -122,6 +122,38 @@ header {
     display: flex;
     justify-content: space-between;
 
+    /* App title layout: main line with indicator + list name, subtitle below */
+    #app-title {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .app-title-main {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .app-title-subtitle {
+        font-size: 0.9rem;
+        font-weight: 400;
+        color: #666;
+        line-height: 1.3;
+    }
+
+    .list-indicator {
+        font-weight: 700;
+        font-size: 1.3rem;
+    }
+
+    .list-name {
+        font-weight: 700;
+    }
+
     /* Config info is only clickable when authoring is enabled to avoid 
        cursor on hover which is confusing to users. */
     .config-info {

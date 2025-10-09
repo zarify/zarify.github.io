@@ -129,36 +129,77 @@ export function createStorageManager(opts = {}) {
                 const modal = doc.createElement('div')
                 modal.className = 'modal'
                 modal.setAttribute('aria-hidden', 'false')
-                modal.innerHTML = `
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h3>Storage Quota Exceeded</h3>
-                        </div>
-                        <div class="storage-info">
-                            <p>Your browser storage is full (${usage.totalSizeMB}MB used).</p>
-                            <p>Choose how to free up space:</p>
-                            <div class="storage-breakdown">
-                                ${Object.entries(usage.breakdown).map(([category, size]) =>
-                    `<div>${category}: ${(size / (1024 * 1024)).toFixed(2)}MB</div>`
-                ).join('')}
-                            </div>
-                        </div>
-                        <div class="modal-actions">
-                            <button id="cleanup-old-snapshots" class="btn">Delete Old Snapshots</button>
-                            <button id="cleanup-other-configs" class="btn">Delete Other Config Snapshots</button>
-                            <button id="cleanup-all" class="btn btn-danger">Delete All Storage Data</button>
-                            <button id="cancel-cleanup" class="btn">Cancel</button>
-                        </div>
-                    </div>
-                `
+
+                // Build modal content using safe DOM APIs instead of innerHTML
+                const content = doc.createElement('div')
+                content.className = 'modal-content'
+
+                const header = doc.createElement('div')
+                header.className = 'modal-header'
+                const h3 = doc.createElement('h3')
+                h3.textContent = 'Storage Quota Exceeded'
+                header.appendChild(h3)
+
+                const info = doc.createElement('div')
+                info.className = 'storage-info'
+                const p1 = doc.createElement('p')
+                p1.textContent = `Your browser storage is full (${usage.totalSizeMB}MB used).`
+                const p2 = doc.createElement('p')
+                p2.textContent = 'Choose how to free up space:'
+
+                const breakdownDiv = doc.createElement('div')
+                breakdownDiv.className = 'storage-breakdown'
+                try {
+                    Object.entries(usage.breakdown || {}).forEach(([category, size]) => {
+                        const entry = doc.createElement('div')
+                        entry.textContent = `${category}: ${(size / (1024 * 1024)).toFixed(2)}MB`
+                        breakdownDiv.appendChild(entry)
+                    })
+                } catch (_e) { }
+
+                info.appendChild(p1)
+                info.appendChild(p2)
+                info.appendChild(breakdownDiv)
+
+                const actions = doc.createElement('div')
+                actions.className = 'modal-actions'
+
+                const btnOld = doc.createElement('button')
+                btnOld.id = 'cleanup-old-snapshots'
+                btnOld.className = 'btn'
+                btnOld.textContent = 'Delete Old Snapshots'
+
+                const btnOther = doc.createElement('button')
+                btnOther.id = 'cleanup-other-configs'
+                btnOther.className = 'btn'
+                btnOther.textContent = 'Delete Other Config Snapshots'
+
+                const btnAll = doc.createElement('button')
+                btnAll.id = 'cleanup-all'
+                btnAll.className = 'btn btn-danger'
+                btnAll.textContent = 'Delete All Storage Data'
+
+                const btnCancel = doc.createElement('button')
+                btnCancel.id = 'cancel-cleanup'
+                btnCancel.className = 'btn'
+                btnCancel.textContent = 'Cancel'
+
+                actions.appendChild(btnOld)
+                actions.appendChild(btnOther)
+                actions.appendChild(btnAll)
+                actions.appendChild(btnCancel)
+
+                content.appendChild(header)
+                content.appendChild(info)
+                content.appendChild(actions)
+                modal.appendChild(content)
 
                 doc.body.appendChild(modal)
 
-                const q = (sel) => modal.querySelector(sel)
-                q('#cleanup-old-snapshots').addEventListener('click', () => { doc.body.removeChild(modal); resolve('cleanup-old-snapshots') })
-                q('#cleanup-other-configs').addEventListener('click', () => { doc.body.removeChild(modal); resolve('cleanup-other-configs') })
-                q('#cleanup-all').addEventListener('click', () => { doc.body.removeChild(modal); resolve('cleanup-all') })
-                q('#cancel-cleanup').addEventListener('click', () => { doc.body.removeChild(modal); resolve('cancel') })
+                btnOld.addEventListener('click', () => { try { doc.body.removeChild(modal) } catch (_e) { }; resolve('cleanup-old-snapshots') })
+                btnOther.addEventListener('click', () => { try { doc.body.removeChild(modal) } catch (_e) { }; resolve('cleanup-other-configs') })
+                btnAll.addEventListener('click', () => { try { doc.body.removeChild(modal) } catch (_e) { }; resolve('cleanup-all') })
+                btnCancel.addEventListener('click', () => { try { doc.body.removeChild(modal) } catch (_e) { }; resolve('cancel') })
             } catch (_e) { resolve('cancel') }
         })
     }

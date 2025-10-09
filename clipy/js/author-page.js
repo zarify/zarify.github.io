@@ -4,7 +4,7 @@ import { initAuthorFeedback } from './author-feedback.js'
 import { initAuthorTests } from './author-tests.js'
 import { showConfirmModal, openModal, closeModal, showInputModal } from './modals.js'
 import { debug as logDebug, warn as logWarn, error as logError } from './logger.js'
-import { renderMarkdown } from './utils.js'
+import { renderMarkdown, sanitizeHtml, setInnerHTML } from './utils.js'
 import { initVerificationTab, renderStudentsList } from './author-verification.js'
 import { loadConfigFromFile, loadConfigFromStringOrUrl } from './config.js'
 import { TabOverflowManager } from './tab-overflow-manager.js'
@@ -121,7 +121,8 @@ function renderFileList() {
 
     // Fallback: Render as simple tabs (legacy author UI)
     const tabs = $('file-tabs')
-    tabs.innerHTML = ''
+    // clear children safely
+    if (tabs) while (tabs.firstChild) tabs.removeChild(tabs.firstChild)
     for (const p of Object.keys(files)) {
         const tab = document.createElement('div')
         tab.className = 'tab' + (p === currentFile ? ' active' : '')
@@ -165,7 +166,7 @@ function renderFileList() {
         if (p !== '/main.py') {
             const close = document.createElement('button')
             close.className = 'close'
-            close.innerHTML = '×'
+            close.textContent = '×'
             close.title = 'Delete file'
             close.style.border = 'none'
             close.style.background = 'none'
@@ -321,6 +322,13 @@ async function saveToLocalStorage() {
         } catch (_e) { /* keep raw string if invalid JSON */ }
         // try to validate/normalize but don't block autosave on failure
         try {
+            // Do not add or modify runtime.url from the authoring UI.
+            // Authors should not be able to change which runtime the app uses.
+            // Ensure any runtime field is removed before validation so the
+            // normalized config uses the app's vendored runtime by default.
+            if (cfg && cfg.runtime) {
+                try { delete cfg.runtime.url } catch (_e) { }
+            }
             const norm = validateAndNormalizeConfig(cfg)
             // Await the async save when unified-storage is available so
             // writes complete before navigation away from the page.
@@ -418,7 +426,8 @@ function updateInstructionsPreview() {
     try {
         // prefer local renderer from utils to keep consistent behavior
         const html = renderMarkdown(md)
-        preview.innerHTML = html
+        // Use centralized helper for DOM insertion so sanitization + fallback are consistent
+        try { setInnerHTML(preview, html) } catch (_e) { preview.textContent = md }
         // highlight code blocks if highlight.js available
         try { if (window.hljs && typeof window.hljs.highlightAll === 'function') window.hljs.highlightAll() } catch (_e) { }
     } catch (e) {
@@ -904,13 +913,32 @@ async function handleVerificationFile(file) {
 function setExternalVerificationConfigsFromLoaded(parsed, sourceName) {
     // parsed can be an array (list of configs), or object with .files/listName, or single config object
     const container = { source: sourceName }
+
+    // Helper to check if an item is a playground config
+    const isPlayground = (item) => {
+        if (!item) return false
+        if (typeof item === 'string') {
+            return item === 'playground@1.0.json' || item === './config/playground@1.0.json' || item.includes('playground@1.0')
+        }
+        if (typeof item === 'object') {
+            return item.id === 'playground' || item.id === 'playground@1.0.json'
+        }
+        return false
+    }
+
     if (Array.isArray(parsed)) {
-        container.items = parsed
+        // Filter out playground configs from arrays
+        container.items = parsed.filter(item => !isPlayground(item))
     } else if (parsed && typeof parsed === 'object' && Array.isArray(parsed.files)) {
         // New configList shape: { listName?, files: [...] }
-        container.items = parsed.files
+        // Filter out playground configs from the files array
+        container.items = parsed.files.filter(item => !isPlayground(item))
         if (parsed.listName) container.listName = parsed.listName
     } else if (parsed && typeof parsed === 'object') {
+        // Check if the single config is playground - if so, reject it
+        if (isPlayground(parsed)) {
+            throw new Error('Playground configs cannot be used for verification (they have no tests)')
+        }
         container._single = parsed
     } else {
         throw new Error('Unsupported config format')
@@ -1020,7 +1048,8 @@ function updateVerificationSelectUI() {
     }
 
     // Build options: authored (default) + external entries
-    select.innerHTML = ''
+    // clear children safely
+    if (select) while (select.firstChild) select.removeChild(select.firstChild)
     const optAuth = document.createElement('option')
     optAuth.value = '_authored'
     optAuth.textContent = 'Use authored config'
@@ -1114,7 +1143,15 @@ async function openChangelogModal() {
 
     try {
         // Load and render changelog content
-        contentEl.innerHTML = '<p style="text-align:center;color:#666;font-style:italic;">Loading changelog...</p>'
+        if (contentEl) {
+            while (contentEl.firstChild) contentEl.removeChild(contentEl.firstChild)
+            const loading = document.createElement('p')
+            loading.style.textAlign = 'center'
+            loading.style.color = '#666'
+            loading.style.fontStyle = 'italic'
+            loading.textContent = 'Loading changelog...'
+            contentEl.appendChild(loading)
+        }
 
         try {
             // Use relative path that works from author/ directory
@@ -1125,36 +1162,87 @@ async function openChangelogModal() {
                 if (markdownContent.trim()) {
                     // Render markdown to HTML
                     const htmlContent = renderMarkdown(markdownContent)
-                    contentEl.innerHTML = htmlContent
+                    // Sanitize markdown-rendered HTML before inserting into the changelog modal
+                    if (contentEl) {
+                        while (contentEl.firstChild) contentEl.removeChild(contentEl.firstChild)
+                        const wrapper = document.createElement('div')
+                        try { setInnerHTML(wrapper, htmlContent) } catch (_e) { wrapper.textContent = htmlContent }
+                        while (wrapper.firstChild) contentEl.appendChild(wrapper.firstChild)
+                    }
                 } else {
-                    // Empty file
-                    contentEl.innerHTML = `
-                        <div style="text-align:center;padding:40px;">
-                            <h3 style="color:#666;margin-bottom:12px;">📋 No Changelog Available</h3>
-                            <p style="color:#888;margin-bottom:16px;">The changelog file is empty.</p>
-                            <p style="color:#999;font-size:0.9em;">Edit <code>author/changelog.md</code> to add changelog content.</p>
-                        </div>
-                    `
+                    // Empty file - insert equivalent elements safely
+                    if (contentEl) {
+                        while (contentEl.firstChild) contentEl.removeChild(contentEl.firstChild)
+                        const outer = document.createElement('div')
+                        outer.style.textAlign = 'center'
+                        outer.style.padding = '40px'
+                        const h3 = document.createElement('h3')
+                        h3.style.color = '#666'
+                        h3.style.marginBottom = '12px'
+                        h3.textContent = '📋 No Changelog Available'
+                        const p1 = document.createElement('p')
+                        p1.style.color = '#888'
+                        p1.style.marginBottom = '16px'
+                        p1.textContent = 'The changelog file is empty.'
+                        const p2 = document.createElement('p')
+                        p2.style.color = '#999'
+                        p2.style.fontSize = '0.9em'
+                        p2.textContent = 'Edit author/changelog.md to add changelog content.'
+                        outer.appendChild(h3)
+                        outer.appendChild(p1)
+                        outer.appendChild(p2)
+                        contentEl.appendChild(outer)
+                    }
                 }
             } else {
-                // File not found or error
-                contentEl.innerHTML = `
-                    <div style="text-align:center;padding:40px;">
-                        <h3 style="color:#666;margin-bottom:12px;">📋 Changelog Not Found</h3>
-                        <p style="color:#888;margin-bottom:16px;">No changelog file was found.</p>
-                        <p style="color:#999;font-size:0.9em;">Create <code>author/changelog.md</code> to add changelog content.</p>
-                    </div>
-                `
+                // File not found or error - insert equivalent elements safely
+                if (contentEl) {
+                    while (contentEl.firstChild) contentEl.removeChild(contentEl.firstChild)
+                    const outer = document.createElement('div')
+                    outer.style.textAlign = 'center'
+                    outer.style.padding = '40px'
+                    const h3 = document.createElement('h3')
+                    h3.style.color = '#666'
+                    h3.style.marginBottom = '12px'
+                    h3.textContent = '📋 Changelog Not Found'
+                    const p1 = document.createElement('p')
+                    p1.style.color = '#888'
+                    p1.style.marginBottom = '16px'
+                    p1.textContent = 'No changelog file was found.'
+                    const p2 = document.createElement('p')
+                    p2.style.color = '#999'
+                    p2.style.fontSize = '0.9em'
+                    p2.textContent = 'Create author/changelog.md to add changelog content.'
+                    outer.appendChild(h3)
+                    outer.appendChild(p1)
+                    outer.appendChild(p2)
+                    contentEl.appendChild(outer)
+                }
             }
         } catch (error) {
             logError('Failed to load changelog:', error)
-            contentEl.innerHTML = `
-                <div style="text-align:center;padding:40px;">
-                    <h3 style="color:#d32f2f;margin-bottom:12px;">⚠️ Error Loading Changelog</h3>
-                    <p style="color:#888;margin-bottom:16px;">Failed to load the changelog file.</p>
-                    <p style="color:#999;font-size:0.9em;">Check the console for details.</p>
-                </div>
-            `
+            if (contentEl) {
+                while (contentEl.firstChild) contentEl.removeChild(contentEl.firstChild)
+                const outer = document.createElement('div')
+                outer.style.textAlign = 'center'
+                outer.style.padding = '40px'
+                const h3 = document.createElement('h3')
+                h3.style.color = '#d32f2f'
+                h3.style.marginBottom = '12px'
+                h3.textContent = '⚠️ Error Loading Changelog'
+                const p1 = document.createElement('p')
+                p1.style.color = '#888'
+                p1.style.marginBottom = '16px'
+                p1.textContent = 'Failed to load the changelog file.'
+                const p2 = document.createElement('p')
+                p2.style.color = '#999'
+                p2.style.fontSize = '0.9em'
+                p2.textContent = 'Check the console for details.'
+                outer.appendChild(h3)
+                outer.appendChild(p1)
+                outer.appendChild(p2)
+                contentEl.appendChild(outer)
+            }
         }
 
         // Use shared modal function for accessibility (ESC key, focus management, etc.)
@@ -1408,77 +1496,133 @@ async function openLoadDraftsModal() {
         const draftEntries = await listDrafts()
 
         if (draftEntries.length === 0) {
-            contentEl.innerHTML = `
-                <div style="text-align:center;padding:40px;">
-                    <h3 style="color:#666;margin-bottom:12px;">📄 No Drafts Found</h3>
-                    <p style="color:#888;margin-bottom:16px;">You haven't saved any draft configurations yet.</p>
-                    <p style="color:#999;font-size:0.9em;">Use the "Save Draft" button to save your current configuration.</p>
-                </div>
-            `
+            if (contentEl) {
+                while (contentEl.firstChild) contentEl.removeChild(contentEl.firstChild)
+                const outer = document.createElement('div')
+                outer.style.textAlign = 'center'
+                outer.style.padding = '40px'
+                const h3 = document.createElement('h3')
+                h3.style.color = '#666'
+                h3.style.marginBottom = '12px'
+                h3.textContent = '📄 No Drafts Found'
+                const p1 = document.createElement('p')
+                p1.style.color = '#888'
+                p1.style.marginBottom = '16px'
+                p1.textContent = "You haven't saved any draft configurations yet."
+                const p2 = document.createElement('p')
+                p2.style.color = '#999'
+                p2.style.fontSize = '0.9em'
+                p2.textContent = 'Use the "Save Draft" button to save your current configuration.'
+                outer.appendChild(h3)
+                outer.appendChild(p1)
+                outer.appendChild(p2)
+                contentEl.appendChild(outer)
+            }
         } else {
             // Sort drafts by updatedAt (newest first)
             draftEntries.sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0))
 
-            let html = '<div style="display:flex;flex-direction:column;gap:8px;">'
+            if (contentEl) {
+                while (contentEl.firstChild) contentEl.removeChild(contentEl.firstChild)
+                const listContainer = document.createElement('div')
+                listContainer.style.display = 'flex'
+                listContainer.style.flexDirection = 'column'
+                listContainer.style.gap = '8px'
 
-            for (const draft of draftEntries) {
-                const config = draft.config || {}
-                const title = config.title || 'Untitled'
-                const id = config.id || 'No ID'
-                const version = config.version || 'No version'
-                const timestamp = draft.updatedAt ? new Date(draft.updatedAt).toLocaleString() : 'Unknown'
-                const draftName = draft.name || `${title} (${timestamp})`
+                for (const draft of draftEntries) {
+                    const config = draft.config || {}
+                    const title = config.title || 'Untitled'
+                    const id = config.id || 'No ID'
+                    const version = config.version || 'No version'
+                    const timestamp = draft.updatedAt ? new Date(draft.updatedAt).toLocaleString() : 'Unknown'
+                    const draftName = draft.name || `${title} (${timestamp})`
 
-                html += `
-                    <div style="border:1px solid #ddd;border-radius:6px;padding:12px;background:#f8f9fa;">
-                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
-                            <div>
-                                <h4 style="margin:0;color:#333;">${escapeHtml(draftName)}</h4>
-                                <p style="margin:4px 0 0 0;color:#666;font-size:0.9em;">ID: ${escapeHtml(id)} | Version: ${escapeHtml(version)}</p>
-                                <p style="margin:4px 0 0 0;color:#999;font-size:0.85em;">Saved: ${escapeHtml(timestamp)}</p>
-                            </div>
-                            <div style="display:flex;gap:8px;">
-                                <button class="btn btn-small load-draft-btn" data-draft-id="${escapeHtml(draft.id)}">Load</button>
-                                <button class="btn btn-small btn-danger delete-draft-btn" data-draft-id="${escapeHtml(draft.id)}">Delete</button>
-                            </div>
-                        </div>
-                    </div>
-                `
+                    const card = document.createElement('div')
+                    card.style.border = '1px solid #ddd'
+                    card.style.borderRadius = '6px'
+                    card.style.padding = '12px'
+                    card.style.background = '#f8f9fa'
+
+                    const row = document.createElement('div')
+                    row.style.display = 'flex'
+                    row.style.justifyContent = 'space-between'
+                    row.style.alignItems = 'flex-start'
+                    row.style.marginBottom = '8px'
+
+                    const left = document.createElement('div')
+                    const h4 = document.createElement('h4')
+                    h4.style.margin = '0'
+                    h4.style.color = '#333'
+                    h4.textContent = draftName
+                    const pMeta = document.createElement('p')
+                    pMeta.style.margin = '4px 0 0 0'
+                    pMeta.style.color = '#666'
+                    pMeta.style.fontSize = '0.9em'
+                    pMeta.textContent = `ID: ${id} | Version: ${version}`
+                    const pSaved = document.createElement('p')
+                    pSaved.style.margin = '4px 0 0 0'
+                    pSaved.style.color = '#999'
+                    pSaved.style.fontSize = '0.85em'
+                    pSaved.textContent = `Saved: ${timestamp}`
+                    left.appendChild(h4)
+                    left.appendChild(pMeta)
+                    left.appendChild(pSaved)
+
+                    const right = document.createElement('div')
+                    right.style.display = 'flex'
+                    right.style.gap = '8px'
+
+                    const loadBtn = document.createElement('button')
+                    loadBtn.className = 'btn btn-small load-draft-btn'
+                    loadBtn.setAttribute('data-draft-id', String(draft.id))
+                    loadBtn.textContent = 'Load'
+                    loadBtn.addEventListener('click', async () => { await loadDraftById(draft.id) })
+
+                    const delBtn = document.createElement('button')
+                    delBtn.className = 'btn btn-small btn-danger delete-draft-btn'
+                    delBtn.setAttribute('data-draft-id', String(draft.id))
+                    delBtn.textContent = 'Delete'
+                    delBtn.addEventListener('click', async () => { await deleteDraftById(draft.id) })
+
+                    right.appendChild(loadBtn)
+                    right.appendChild(delBtn)
+
+                    row.appendChild(left)
+                    row.appendChild(right)
+                    card.appendChild(row)
+                    listContainer.appendChild(card)
+                }
+
+                contentEl.appendChild(listContainer)
             }
-
-            html += '</div>'
-            contentEl.innerHTML = html
-
-            // Add event listeners for load and delete buttons
-            const loadButtons = contentEl.querySelectorAll('.load-draft-btn')
-            const deleteButtons = contentEl.querySelectorAll('.delete-draft-btn')
-
-            loadButtons.forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    const draftId = e.target.getAttribute('data-draft-id')
-                    await loadDraftById(draftId)
-                })
-            })
-
-            deleteButtons.forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    const draftId = e.target.getAttribute('data-draft-id')
-                    await deleteDraftById(draftId)
-                })
-            })
         }
 
         // Open the modal
         openModal(modal)
     } catch (e) {
         logError('Failed to open load drafts modal:', e)
-        contentEl.innerHTML = `
-            <div style="text-align:center;padding:40px;">
-                <h3 style="color:#d32f2f;margin-bottom:12px;">⚠️ Error Loading Drafts</h3>
-                <p style="color:#888;margin-bottom:16px;">Failed to load draft configurations.</p>
-                <p style="color:#999;font-size:0.9em;">Check the console for details.</p>
-            </div>
-        `
+        if (contentEl) {
+            while (contentEl.firstChild) contentEl.removeChild(contentEl.firstChild)
+            const outer = document.createElement('div')
+            outer.style.textAlign = 'center'
+            outer.style.padding = '40px'
+            const h3 = document.createElement('h3')
+            h3.style.color = '#d32f2f'
+            h3.style.marginBottom = '12px'
+            h3.textContent = '⚠️ Error Loading Drafts'
+            const p1 = document.createElement('p')
+            p1.style.color = '#888'
+            p1.style.marginBottom = '16px'
+            p1.textContent = 'Failed to load draft configurations.'
+            const p2 = document.createElement('p')
+            p2.style.color = '#999'
+            p2.style.fontSize = '0.9em'
+            p2.textContent = 'Check the console for details.'
+            outer.appendChild(h3)
+            outer.appendChild(p1)
+            outer.appendChild(p2)
+            contentEl.appendChild(outer)
+        }
         openModal(modal)
     }
 }
@@ -1562,14 +1706,22 @@ function showSaveDraftSuccessModal(draftName) {
     const contentEl = $('save-draft-success-content')
 
     if (modal && contentEl) {
-        contentEl.innerHTML = `
-            <p style="margin:0;color:#333;font-size:1rem;margin-bottom:12px;">
-                <strong>Draft saved successfully!</strong>
-            </p>
-            <p style="margin:0;color:#666;font-size:0.9em;">
-                Saved as: "${escapeHtml(draftName)}"
-            </p>
-        `
+        while (contentEl.firstChild) contentEl.removeChild(contentEl.firstChild)
+        const p1 = document.createElement('p')
+        p1.style.margin = '0'
+        p1.style.color = '#333'
+        p1.style.fontSize = '1rem'
+        p1.style.marginBottom = '12px'
+        const strong = document.createElement('strong')
+        strong.textContent = 'Draft saved successfully!'
+        p1.appendChild(strong)
+        const p2 = document.createElement('p')
+        p2.style.margin = '0'
+        p2.style.color = '#666'
+        p2.style.fontSize = '0.9em'
+        p2.textContent = `Saved as: "${escapeHtml(draftName)}"`
+        contentEl.appendChild(p1)
+        contentEl.appendChild(p2)
         openModal(modal)
     }
 }
@@ -1590,18 +1742,34 @@ function showLoadDraftSuccessInModal(draftName) {
     if (modal && contentEl && titleEl) {
         // Change the title and content to show success
         titleEl.textContent = 'Draft Loaded Successfully'
-        contentEl.innerHTML = `
-            <div style="text-align:center;padding:40px;">
-                <div style="color:#4caf50;font-size:48px;margin-bottom:16px;">✓</div>
-                <h3 style="color:#333;margin-bottom:12px;">Configuration Loaded</h3>
-                <p style="color:#666;margin-bottom:16px;">
-                    "${escapeHtml(draftName)}" has been loaded into the author page.
-                </p>
-                    <p style="color:#999;font-size:0.9em;">
-                        The configuration has been applied and saved.
-                    </p>
-            </div>
-        `
+        if (contentEl) {
+            while (contentEl.firstChild) contentEl.removeChild(contentEl.firstChild)
+            const outer = document.createElement('div')
+            outer.style.textAlign = 'center'
+            outer.style.padding = '40px'
+            const check = document.createElement('div')
+            check.style.color = '#4caf50'
+            check.style.fontSize = '48px'
+            check.style.marginBottom = '16px'
+            check.textContent = '✓'
+            const h3 = document.createElement('h3')
+            h3.style.color = '#333'
+            h3.style.marginBottom = '12px'
+            h3.textContent = 'Configuration Loaded'
+            const p1 = document.createElement('p')
+            p1.style.color = '#666'
+            p1.style.marginBottom = '16px'
+            p1.textContent = `"${escapeHtml(draftName)}" has been loaded into the author page.`
+            const p2 = document.createElement('p')
+            p2.style.color = '#999'
+            p2.style.fontSize = '0.9em'
+            p2.textContent = 'The configuration has been applied and saved.'
+            outer.appendChild(check)
+            outer.appendChild(h3)
+            outer.appendChild(p1)
+            outer.appendChild(p2)
+            contentEl.appendChild(outer)
+        }
         openModal(modal)
     }
 }
@@ -1612,3 +1780,6 @@ function escapeHtml(text) {
     div.textContent = text
     return div.innerHTML
 }
+
+// Export helpers used by unit tests and other modules
+export { updateInstructionsPreview, openChangelogModal, openLoadDraftsModal }

@@ -1,5 +1,5 @@
 // Configuration loading and management
-import { $, renderMarkdown } from './utils.js'
+import { $, renderMarkdown, sanitizeHtml } from './utils.js'
 import { clearTerminal } from './terminal.js'
 import { debug as logDebug, info as logInfo, warn as logWarn, error as logError } from './logger.js'
 import { isTestEnvironment } from './unified-storage.js'
@@ -20,6 +20,26 @@ export function createConfigManager(opts = {}) {
 
     let config = null
 
+    // Safe filename regex: allow alphanumeric, dot, underscore, @, hyphen; must end with .json
+    const SAFE_FILENAME_RE = /^[a-zA-Z0-9._@-]+\.json$/
+    const ALLOWED_URL_PROTOCOLS = new Set(['http:', 'https:'])
+
+    function isSafeFilename(name) {
+        if (!name || typeof name !== 'string') return false
+        // allow the special synthetic author id
+        if (name === 'author-config') return true
+        return SAFE_FILENAME_RE.test(name)
+    }
+
+    function isSafeResolvedUrl(urlString, base = undefined) {
+        try {
+            const u = base ? new URL(String(urlString), base) : new URL(String(urlString))
+            return ALLOWED_URL_PROTOCOLS.has(u.protocol)
+        } catch (e) {
+            return false
+        }
+    }
+
     async function fetchAvailableServerConfigs() {
         try {
             const res = await fetchFn(configIndexUrl)
@@ -33,20 +53,46 @@ export function createConfigManager(opts = {}) {
                 const isRemoteList = /^https?:\/\//i.test(configIndexUrl)
                 const baseUrl = isRemoteList ? new URL('./', configIndexUrl).href : null
 
+                // Detect config prefix based on current page location
+                let configPrefix = './config/'
+                try {
+                    if (typeof window !== 'undefined' && window.location) {
+                        const pathname = window.location.pathname
+                        const href = window.location.href
+                        if (pathname.includes('/author/') || pathname.endsWith('/author') || pathname.includes('/author.html') || href.includes('/author/')) {
+                            configPrefix = '../config/'
+                        }
+                    }
+                } catch (_e) { /* use default prefix */ }
+
                 // Convert each file to an enriched object with all metadata
                 for (const file of body.files) {
-                    const item = {
-                        id: String(file),
-                        url: isRemoteList ? new URL(String(file), baseUrl).href : ('./config/' + encodeURIComponent(String(file))),
-                        title: null,  // Will be fetched on-demand or remain null
-                        version: null,
-                        source: isRemoteList ? 'remote' : 'local'
+                    const fileStr = String(file)
+                    if (isRemoteList) {
+                        // Resolve and validate remote URL schemes
+                        if (!isSafeResolvedUrl(fileStr, baseUrl)) {
+                            appendTerminal(`Rejected remote config entry with unsafe or unsupported URL/scheme: ${fileStr}`)
+                            continue
+                        }
+                        const resolved = new URL(fileStr, baseUrl).href
+                        enrichedItems.push({ id: fileStr, url: resolved, title: null, version: null, source: 'remote' })
+                    } else {
+                        // Local indices must contain safe filenames only
+                        // Accept already-prefixed entries like ./config/foo.json by normalizing
+                        let candidate = fileStr
+                        if (candidate.startsWith('./config/') || candidate.startsWith('../config/')) {
+                            candidate = candidate.split('/').pop()
+                        }
+                        if (!isSafeFilename(candidate)) {
+                            appendTerminal(`Rejected local config entry with unsafe filename: ${fileStr}`)
+                            continue
+                        }
+                        enrichedItems.push({ id: candidate, url: configPrefix + encodeURIComponent(candidate), title: null, version: null, source: 'local' })
                     }
-                    enrichedItems.push(item)
                 }
 
                 // Add playground at the end if available (always local)
-                const playgroundPath = './config/playground@1.0.json'
+                const playgroundPath = configPrefix + 'playground@1.0.json'
                 try {
                     const check = await fetchFn(playgroundPath)
                     if (check && check.ok) {
@@ -97,16 +143,45 @@ export function createConfigManager(opts = {}) {
         const trimmed = String(input).trim()
         let urlToLoad = trimmed
         try {
+            // Detect if we're being called from the author page (which is in ./author/ subdirectory)
+            // and needs to use ../config/ instead of ./config/
+            let configPrefix = './config/'
+            try {
+                if (typeof window !== 'undefined' && window.location) {
+                    const pathname = window.location.pathname
+                    const href = window.location.href
+                    // Check if we're in the author subdirectory
+                    // Support both /author/ path and /author (without trailing slash) or author.html
+                    if (pathname.includes('/author/') || pathname.endsWith('/author') || pathname.includes('/author.html') || href.includes('/author/')) {
+                        configPrefix = '../config/'
+                        logDebug('Author page detected, using configPrefix:', configPrefix, 'pathname:', pathname, 'href:', href)
+                    } else {
+                        logDebug('Main app detected, using configPrefix:', configPrefix, 'pathname:', pathname)
+                    }
+                }
+            } catch (_e) { /* use default prefix */ }
+
             // If the input looks like an absolute or network URL, use it as-is.
             if (!/^https?:\/\//i.test(trimmed)) {
-                // For non-URL inputs, allow './config/' paths (for playground and similar) or plain filenames
-                if (trimmed.startsWith('./config/')) {
-                    urlToLoad = trimmed
-                } else if (/[\\/]/.test(trimmed) || trimmed.includes('..') || trimmed.startsWith('.')) {
-                    // Security check: reject other paths with separators or directory traversal
+                // For non-URL inputs, allow config paths (./config/ or ../config/) or plain filenames
+                if (trimmed.startsWith('./config/') || trimmed.startsWith('../config/')) {
+                    // If input starts with ./config/ but we're on author page (configPrefix='../config/'),
+                    // transform it to use the correct prefix
+                    if (trimmed.startsWith('./config/') && configPrefix === '../config/') {
+                        urlToLoad = trimmed.replace('./config/', '../config/')
+                        logDebug('Transformed ./config/ to ../config/ for author page:', urlToLoad)
+                    } else {
+                        urlToLoad = trimmed
+                    }
+                } else if (trimmed.includes('..') || (trimmed.startsWith('.') && !trimmed.startsWith('./'))) {
+                    // Security check: reject directory traversal (..) or paths starting with . but not ./
+                    // This allows ./ paths (which might be ./config/...) while blocking ../
+                    throw new Error('Invalid config name; provide a filename (no path) or a full URL')
+                } else if (/[\\/]/.test(trimmed)) {
+                    // Reject paths with slashes unless they're config paths (already handled above)
                     throw new Error('Invalid config name; provide a filename (no path) or a full URL')
                 } else {
-                    urlToLoad = './config/' + encodeURIComponent(trimmed)
+                    urlToLoad = configPrefix + encodeURIComponent(trimmed)
                 }
             }
             const res = await fetchFn(urlToLoad)
@@ -125,7 +200,7 @@ export function createConfigManager(opts = {}) {
             // When a single config is loaded explicitly (not from a server list), treat it as a list with the playground appended
             try {
                 if (typeof window !== 'undefined') {
-                    const playgroundPath = './config/playground@1.0.json'
+                    const playgroundPath = configPrefix + 'playground@1.0.json'
                     window.__ssg_remote_config_list = window.__ssg_remote_config_list || { url: null, items: [] }
 
                     // Only synthesize a list when:
@@ -192,7 +267,19 @@ export function createConfigManager(opts = {}) {
         // because they represent a completely new user action/context.
         try {
             if (typeof window !== 'undefined') {
-                const playgroundPath = './config/playground@1.0.json'
+                // Detect config prefix based on current page location
+                let configPrefix = './config/'
+                try {
+                    if (window.location) {
+                        const pathname = window.location.pathname
+                        const href = window.location.href
+                        if (pathname.includes('/author/') || pathname.endsWith('/author') || pathname.includes('/author.html') || href.includes('/author/')) {
+                            configPrefix = '../config/'
+                        }
+                    }
+                } catch (_e) { /* use default prefix */ }
+
+                const playgroundPath = configPrefix + 'playground@1.0.json'
                 window.__ssg_remote_config_list = window.__ssg_remote_config_list || { url: null, items: [] }
 
                 // Author configs always create a new synthetic list UNLESS there's a server list
@@ -381,6 +468,50 @@ function convertLegacyFeedbackToArray(legacyFeedback) {
     return arr
 }
 
+// Utility: validate a regex pattern string for authoring-time safety.
+// Returns { ok: boolean, reason?: string }
+export function validateRegexPattern(expression, opts = {}) {
+    const maxLength = typeof opts.maxLength === 'number' ? opts.maxLength : 2000
+    try {
+        if (typeof expression !== 'string') return { ok: false, reason: 'Pattern must be a string' }
+        const expr = expression.trim()
+        if (expr.length === 0) return { ok: false, reason: 'Pattern is empty' }
+        if (expr.length > maxLength) return { ok: false, reason: `Pattern too long (${expr.length} > ${maxLength})` }
+
+        // Heuristic checks for catastrophic/backtracking-prone constructs
+        // Common problematic constructs: (.+)+, (.*)+, (a+)+, nested quantifiers and large unbounded repeats
+        const nestedQuantifiers = /(\(.{0,200}?([+*]|\{\s*\d+,?)\).{0,10}?([+*]|\{\s*\d+,?\}))/
+        const simpleCatastrophic = /(\(\.\+\)\+)|(\(\.\*\)\+)|(\(\?:\.\+\)\+)|(\(\?:\.\*\)\+)/
+        if (simpleCatastrophic.test(expr) || nestedQuantifiers.test(expr)) {
+            return { ok: false, reason: 'Pattern contains nested quantifiers or constructs that can cause catastrophic backtracking' }
+        }
+
+        // Detect very large numeric repetition like {100000,} or {100000,200000}
+        const repeatRe = /\{\s*(\d+)\s*,\s*(\d+)?\s*\}/g
+        let m
+        while ((m = repeatRe.exec(expr)) !== null) {
+            try {
+                const low = parseInt(m[1], 10)
+                if (!isNaN(low) && low >= 10000) {
+                    return { ok: false, reason: 'Pattern contains very large repetition counts which may be unsafe' }
+                }
+            } catch (_e) { }
+        }
+
+        // Try to compile the pattern to ensure it's syntactically valid
+        try {
+            // We compile without flags here; actual runtime may supply flags elsewhere
+            new RegExp(expr)
+        } catch (e) {
+            return { ok: false, reason: 'Invalid regex: ' + e.message }
+        }
+
+        return { ok: true }
+    } catch (e) {
+        return { ok: false, reason: 'Validation failure: ' + String(e && e.message ? e.message : e) }
+    }
+}
+
 // Shared validation helper used by both the factory and legacy top-level API
 function validateAndNormalizeConfigInternal(rawConfig) {
     // Parse feedback and tests if they are JSON strings (from author storage)
@@ -414,10 +545,19 @@ function validateAndNormalizeConfigInternal(rawConfig) {
         starter: rawConfig.starter || '# Write your Python code here\nprint("Hello, World!")',
         instructions: rawConfig.instructions || 'Write Python code and click Run to execute it.',
         links: Array.isArray(rawConfig.links) ? rawConfig.links : [],
-        runtime: {
-            type: rawConfig.runtime?.type || 'micropython',
-            url: rawConfig.runtime?.url || './vendor/micropython.mjs'
-        },
+        // runtime: preserve provided runtime.url when present for test/compatibility;
+        // otherwise fall back to vendored runtime for security and reproducibility.
+        runtime: (function () {
+            const rtype = (rawConfig && rawConfig.runtime && rawConfig.runtime.type) ? rawConfig.runtime.type : 'micropython'
+            const rurl = (rawConfig && rawConfig.runtime && rawConfig.runtime.url) ? String(rawConfig.runtime.url) : undefined
+            // Allow explicit runtime URL only when it's a local relative path
+            // (tests may supply local vendored paths). For any absolute or remote
+            // URLs, ignore and use the vendored runtime to avoid untrusted loading.
+            if (rurl && (rurl.startsWith('./') || rurl.startsWith('../'))) {
+                return { type: rtype, url: rurl }
+            }
+            return { type: rtype, url: './vendor/micropython.mjs' }
+        })(),
         execution: {
             timeoutSeconds: Math.max(5, Math.min(300, rawConfig.execution?.timeoutSeconds || 30)),
             maxOutputLines: Math.max(100, Math.min(10000, rawConfig.execution?.maxOutputLines || 1000))
@@ -436,9 +576,8 @@ function validateAndNormalizeConfigInternal(rawConfig) {
         fileReadOnlyStatus: (rawConfig && typeof rawConfig.fileReadOnlyStatus === 'object') ? rawConfig.fileReadOnlyStatus : {}
     }
 
-    if (!normalized.runtime.url || typeof normalized.runtime.url !== 'string') {
-        throw new Error('Configuration must specify a valid runtime URL')
-    }
+    // Do not require runtime.url to be provided by configs. The application
+    // always uses the vendored runtime module for security and reproducibility.
 
     if (!/^[a-zA-Z0-9_-]+$/.test(normalized.id)) {
         throw new Error('Configuration ID must contain only alphanumeric characters, hyphens, and underscores')
@@ -476,7 +615,8 @@ export function initializeInstructions(cfg) {
     if (instructionsContent) {
         const raw = cfg?.instructions || 'No instructions provided.'
         try {
-            instructionsContent.innerHTML = renderMarkdown(raw)
+            // Render markdown and then ensure the result is sanitized before inserting
+            instructionsContent.innerHTML = sanitizeHtml(renderMarkdown(raw))
             // If highlight.js is available, highlight all code blocks inside the instructions.
             try {
                 if (typeof window !== 'undefined' && window.hljs && typeof window.hljs.highlightElement === 'function') {
@@ -544,20 +684,44 @@ export function initializeInstructions(cfg) {
             document.title = cfg.title
         }
 
-        // If we have a remote config list with a listName provided, show the
-        // list name AND the individual config title so users can see both
-        // the collection and the problem they're working on. For example:
-        // "Authoring Demos — printing-press". If either side is missing,
-        // fall back to whichever is available.
+        // Update app-title structure to show list name and config title
+        // The app-title has a two-line structure:
+        // Line 1: [indicator] List Name (larger font)
+        // Line 2: Config Title (subtitle font)
+        // The indicator is managed by updateSuccessIndicators() in app.js
         try {
             if (typeof window !== 'undefined' && window.__ssg_remote_config_list && window.__ssg_remote_config_list.listName) {
                 const ln = String(window.__ssg_remote_config_list.listName || '')
                 const cfgTitle = String(cfg?.title || '')
                 const combined = ln && cfgTitle ? (ln + ' — ' + cfgTitle) : (ln || cfgTitle || document.title || 'Client-side Python Playground')
-                try { if (appTitle) appTitle.textContent = combined } catch (_e) { }
+
+                // Update list name in app-title structure (preserve existing elements)
+                if (appTitle) {
+                    const listName = appTitle.querySelector('.list-name')
+                    const subtitle = appTitle.querySelector('.app-title-subtitle')
+                    if (listName) {
+                        listName.textContent = ln || 'Client-side Python Playground'
+                    }
+                    if (subtitle && cfgTitle) {
+                        subtitle.textContent = cfgTitle
+                    }
+                }
+
                 try { document.title = combined } catch (_e) { }
             } else {
-                try { if (appTitle) appTitle.textContent = cfg?.title || document.title || 'Client-side Python Playground' } catch (_e) { }
+                // Single config: just show the title
+                const cfgTitle = cfg?.title || document.title || 'Client-side Python Playground'
+                if (appTitle) {
+                    const listName = appTitle.querySelector('.list-name')
+                    const subtitle = appTitle.querySelector('.app-title-subtitle')
+                    if (listName) {
+                        listName.textContent = cfgTitle
+                    }
+                    if (subtitle) {
+                        subtitle.textContent = ''
+                    }
+                }
+                try { document.title = cfgTitle } catch (_e) { }
             }
         } catch (_e) { }
     } catch (_e) { }

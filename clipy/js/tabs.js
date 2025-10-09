@@ -59,7 +59,8 @@ function render() {
         } catch (_e) { /* fall back to default rendering on error */ }
     }
 
-    tabsHost.innerHTML = ''
+    // clear children safely
+    if (tabsHost) while (tabsHost.firstChild) tabsHost.removeChild(tabsHost.firstChild)
     openTabs.forEach(p => {
         const tab = document.createElement('div')
         // Check if file is marked as read-only
@@ -69,7 +70,10 @@ function render() {
         tab.setAttribute('role', 'tab')
         const label = p.startsWith('/') ? p.slice(1) : p
 
-        tab.innerHTML = `<span class="tab-label">${label}</span>`
+        const labelSpan = document.createElement('span')
+        labelSpan.className = 'tab-label'
+        labelSpan.textContent = label
+        tab.appendChild(labelSpan)
 
         const close = document.createElement('button')
         close.className = 'close'
@@ -80,7 +84,7 @@ function render() {
             // hide close for protected main file and read-only files
             close.style.display = 'none'
         } else {
-            close.innerHTML = '×'
+            close.textContent = '×'
             close.addEventListener('click', (ev) => {
                 ev.stopPropagation()
                 closeTab(p)

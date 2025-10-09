@@ -1065,56 +1065,105 @@ export class ExecutionRecorder {
         const prevIndent = lines[prevLineIndex].length - lines[prevLineIndex].trimStart().length
         const currentIndent = currentLine.length - currentLine.trimStart().length
 
-        // Check if previous line is a conditional statement
+        // Pattern 1: Previous line is a conditional and current line is in its body
         const isConditional = /^(if|elif|while)\s/.test(prevLine)
 
-        if (!isConditional || currentIndent <= prevIndent) {
-            return false
+        if (isConditional && currentIndent > prevIndent) {
+            // Check if condition evaluates to FALSE based on variable values
+            const ifMatch = prevLine.match(/^(?:if|elif|while)\s+(.+):/)
+            if (ifMatch) {
+                const condition = ifMatch[1].trim()
+
+                // Try to evaluate simple conditions like "i > 2", "x < 5", etc.
+                const simpleCondMatch = condition.match(/^(\w+)\s*([><=!]+)\s*(\d+)$/)
+                if (simpleCondMatch) {
+                    const varName = simpleCondMatch[1]
+                    const operator = simpleCondMatch[2]
+                    const threshold = parseInt(simpleCondMatch[3])
+
+                    // Get variable value from current variables
+                    const varsMap = variables?.entries ? variables : new Map(Object.entries(variables || {}))
+                    const varValue = varsMap.has ? varsMap.get(varName) : variables?.[varName]
+
+                    if (varValue !== undefined && typeof varValue === 'number') {
+                        // Evaluate condition
+                        let conditionTrue = false
+                        switch (operator) {
+                            case '>': conditionTrue = varValue > threshold; break
+                            case '<': conditionTrue = varValue < threshold; break
+                            case '>=': conditionTrue = varValue >= threshold; break
+                            case '<=': conditionTrue = varValue <= threshold; break
+                            case '==': conditionTrue = varValue == threshold; break
+                            case '!=': conditionTrue = varValue != threshold; break
+                        }
+
+                        // If condition is FALSE but we're tracing the body, it's a phantom
+                        if (!conditionTrue) {
+                            appendTerminalDebug(`  ⚠️ Phantom conditional detected: ${condition} evaluates to FALSE (${varName}=${varValue})`)
+                            return true
+                        }
+                    }
+                }
+            }
         }
 
-        // Pattern 1: Direct jump from conditional to deeper indent with 'pass' or empty line
-        const currentTrimmed = currentLine.trim()
-        const lineJump = lineNumber - prevStep.lineNumber
+        // Pattern 2: Current line is at deeper indentation than previous, suggesting we jumped
+        // into a nested block. Scan backwards to find the controlling conditional.
+        // This catches the case where we trace Line 5 after Line 2 (while loop), but Line 5
+        // is actually inside a nested if statement (Line 4) that we haven't traced yet.
+        if (currentIndent > prevIndent && prevStep.lineNumber < lineNumber) {
+            // Scan backwards from current line to find the immediate controlling conditional
+            for (let i = currentLineIndex - 1; i >= 0; i--) {
+                const scanLine = lines[i]
+                const scanIndent = scanLine.length - scanLine.trimStart().length
+                const scanTrimmed = scanLine.trim()
 
-        if (currentTrimmed === 'pass' || currentTrimmed === '' || currentTrimmed.startsWith('#')) {
-            // If it's just pass or empty, it's likely a phantom
-            return true
-        }
+                // Stop if we've gone to shallower or equal indent as current line
+                // (we've exited the block that contains the current line)
+                if (scanIndent < currentIndent - 4) { // Allow for one level of nesting (4 spaces)
+                    break
+                }
 
-        // Pattern 2: Check if condition evaluates to FALSE based on variable values
-        // Extract condition from previous line and evaluate
-        const ifMatch = prevLine.match(/^(?:if|elif|while)\s+(.+):/)
-        if (ifMatch) {
-            const condition = ifMatch[1].trim()
+                // Check if this line is a conditional that would control current line
+                const isControllingConditional = /^(if|elif)\s/.test(scanTrimmed) &&
+                    scanIndent === currentIndent - 4
 
-            // Try to evaluate simple conditions like "i > 2", "x < 5", etc.
-            const simpleCondMatch = condition.match(/^(\w+)\s*([><=!]+)\s*(\d+)$/)
-            if (simpleCondMatch) {
-                const varName = simpleCondMatch[1]
-                const operator = simpleCondMatch[2]
-                const threshold = parseInt(simpleCondMatch[3])
+                if (isControllingConditional) {
+                    // Found the controlling conditional - check if it evaluates to FALSE
+                    const ifMatch = scanTrimmed.match(/^(?:if|elif)\s+(.+):/)
+                    if (ifMatch) {
+                        const condition = ifMatch[1].trim()
 
-                // Get variable value from current variables
-                const varsMap = variables?.entries ? variables : new Map(Object.entries(variables || {}))
-                const varValue = varsMap.has ? varsMap.get(varName) : variables?.[varName]
+                        // Try to evaluate simple conditions
+                        const simpleCondMatch = condition.match(/^(\w+)\s*([><=!]+)\s*(\d+)$/)
+                        if (simpleCondMatch) {
+                            const varName = simpleCondMatch[1]
+                            const operator = simpleCondMatch[2]
+                            const threshold = parseInt(simpleCondMatch[3])
 
-                if (varValue !== undefined && typeof varValue === 'number') {
-                    // Evaluate condition
-                    let conditionTrue = false
-                    switch (operator) {
-                        case '>': conditionTrue = varValue > threshold; break
-                        case '<': conditionTrue = varValue < threshold; break
-                        case '>=': conditionTrue = varValue >= threshold; break
-                        case '<=': conditionTrue = varValue <= threshold; break
-                        case '==': conditionTrue = varValue == threshold; break
-                        case '!=': conditionTrue = varValue != threshold; break
+                            const varsMap = variables?.entries ? variables : new Map(Object.entries(variables || {}))
+                            const varValue = varsMap.has ? varsMap.get(varName) : variables?.[varName]
+
+                            if (varValue !== undefined && typeof varValue === 'number') {
+                                let conditionTrue = false
+                                switch (operator) {
+                                    case '>': conditionTrue = varValue > threshold; break
+                                    case '<': conditionTrue = varValue < threshold; break
+                                    case '>=': conditionTrue = varValue >= threshold; break
+                                    case '<=': conditionTrue = varValue <= threshold; break
+                                    case '==': conditionTrue = varValue == threshold; break
+                                    case '!=': conditionTrue = varValue != threshold; break
+                                }
+
+                                if (!conditionTrue) {
+                                    appendTerminalDebug(`  ⚠️ Phantom conditional (nested) detected: line ${i + 1} condition "${condition}" evaluates to FALSE (${varName}=${varValue}), skipping line ${lineNumber}`)
+                                    return true
+                                }
+                            }
+                        }
                     }
-
-                    // If condition is FALSE but we're tracing the body, it's a phantom
-                    if (!conditionTrue) {
-                        appendTerminalDebug(`  ⚠️ Phantom conditional detected: ${condition} evaluates to FALSE (${varName}=${varValue})`)
-                        return true
-                    }
+                    // Found the controlling conditional - stop scanning
+                    break
                 }
             }
         }

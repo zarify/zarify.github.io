@@ -74,22 +74,48 @@ export class TabOverflowManager {
         modal.setAttribute('role', 'dialog')
         modal.setAttribute('aria-hidden', 'true')
         modal.setAttribute('aria-labelledby', 'file-dropdown-title')
+        const wrapper = document.createElement('div')
+        wrapper.className = 'modal-content file-dropdown-content'
 
-        modal.innerHTML = `
-            <div class="modal-content file-dropdown-content">
-                <div class="modal-header">
-                    <h3 id="file-dropdown-title">Files</h3>
-                    <button id="file-dropdown-close" class="btn modal-close-btn">×</button>
-                </div>
-                <div class="modal-body">
-                    <div id="file-dropdown-search" style="margin-bottom: 12px;">
-                        <input id="file-search-input" type="text" placeholder="Search files..." 
-                               style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                    </div>
-                    <div id="file-dropdown-list" class="file-dropdown-list"></div>
-                </div>
-            </div>
-        `
+        const header = document.createElement('div')
+        header.className = 'modal-header'
+        const h3 = document.createElement('h3')
+        h3.id = 'file-dropdown-title'
+        h3.textContent = 'Files'
+        const closeBtn = document.createElement('button')
+        closeBtn.id = 'file-dropdown-close'
+        closeBtn.className = 'btn modal-close-btn'
+        closeBtn.textContent = '×'
+        header.appendChild(h3)
+        header.appendChild(closeBtn)
+
+        const body = document.createElement('div')
+        body.className = 'modal-body'
+
+        const searchWrap = document.createElement('div')
+        searchWrap.id = 'file-dropdown-search'
+        searchWrap.style.marginBottom = '12px'
+        const searchInput = document.createElement('input')
+        searchInput.id = 'file-search-input'
+        searchInput.type = 'text'
+        searchInput.placeholder = 'Search files...'
+        searchInput.style.width = '100%'
+        searchInput.style.padding = '8px'
+        searchInput.style.border = '1px solid #ddd'
+        searchInput.style.borderRadius = '4px'
+        searchWrap.appendChild(searchInput)
+
+        const list = document.createElement('div')
+        list.id = 'file-dropdown-list'
+        list.className = 'file-dropdown-list'
+
+        body.appendChild(searchWrap)
+        body.appendChild(list)
+
+        wrapper.appendChild(header)
+        wrapper.appendChild(body)
+
+        modal.appendChild(wrapper)
 
         document.body.appendChild(modal)
 
@@ -132,7 +158,8 @@ export class TabOverflowManager {
         // Remaining files that can overflow
         const overflowFiles = files.filter(f => !alwaysVisible.includes(f))
 
-        container.innerHTML = ''
+        // Clear container safely
+        while (container.firstChild) container.removeChild(container.firstChild)
 
         // Render always-visible tabs
         alwaysVisible.forEach(file => {
@@ -175,17 +202,24 @@ export class TabOverflowManager {
         const displayName = this.getDisplayName(filePath)
         const fileIcon = this.getFileIcon(filePath)
 
-        tab.innerHTML = `
-            <span class="file-icon" aria-hidden="true">${fileIcon}</span>
-            <span class="tab-label">${displayName}</span>
-        `
+        const iconSpan = document.createElement('span')
+        iconSpan.className = 'file-icon'
+        iconSpan.setAttribute('aria-hidden', 'true')
+        iconSpan.textContent = fileIcon
+
+        const labelSpan = document.createElement('span')
+        labelSpan.className = 'tab-label'
+        labelSpan.textContent = displayName
+
+        tab.appendChild(iconSpan)
+        tab.appendChild(labelSpan)
 
         // Add rename functionality for active tab
         if (isActive && !isReadOnly && filePath !== MAIN_FILE) {
             const renameBtn = document.createElement('button')
             renameBtn.className = 'tab-action-btn rename-btn'
             renameBtn.title = 'Rename file'
-            renameBtn.innerHTML = '✏️'
+            renameBtn.textContent = '✏️'
             renameBtn.addEventListener('click', (e) => {
                 e.stopPropagation()
                 this.handleRename(filePath)
@@ -198,7 +232,7 @@ export class TabOverflowManager {
             const closeBtn = document.createElement('button')
             closeBtn.className = 'tab-action-btn close'
             closeBtn.title = 'Close'
-            closeBtn.innerHTML = '×'
+            closeBtn.textContent = '×'
             closeBtn.addEventListener('click', (e) => {
                 e.stopPropagation()
                 this.onTabClose(filePath)
@@ -218,10 +252,14 @@ export class TabOverflowManager {
         const count = overflowFiles.length
         const activeInOverflow = overflowFiles.includes(activeTab)
 
-        btn.innerHTML = `
-            <span class="overflow-icon">📁</span>
-            <span class="overflow-text">${count} more${activeInOverflow ? ' (active)' : ''}</span>
-        `
+        const icon = document.createElement('span')
+        icon.className = 'overflow-icon'
+        icon.textContent = '📁'
+        const text = document.createElement('span')
+        text.className = 'overflow-text'
+        text.textContent = `${count} more${activeInOverflow ? ' (active)' : ''}`
+        btn.appendChild(icon)
+        btn.appendChild(text)
 
         btn.addEventListener('click', () => this.openDropdown(overflowFiles, activeTab))
         container.appendChild(btn)
@@ -268,7 +306,8 @@ export class TabOverflowManager {
         const list = $('file-dropdown-list')
         if (!list) return
 
-        list.innerHTML = ''
+        // Clear list safely
+        while (list.firstChild) list.removeChild(list.firstChild)
 
         files.forEach(file => {
             const item = document.createElement('div')
@@ -279,21 +318,53 @@ export class TabOverflowManager {
             const dirHint = this.getDirectoryHint(file)
             const isReadOnly = this.isFileReadOnly(file)
 
-            item.innerHTML = `
-                <div class="file-item-main">
-                    <span class="file-icon" aria-hidden="true">${fileIcon}</span>
-                    <div class="file-info">
-                        <div class="file-name">${displayName}${isReadOnly ? ' <em>(read-only)</em>' : ''}</div>
-                        ${dirHint ? `<div class="file-path">${dirHint}</div>` : ''}
-                    </div>
-                </div>
-                <div class="file-actions">
-                    ${!isReadOnly ? `<button class="file-action-btn close-btn" title="Close file">×</button>` : ''}
-                </div>
-            `
+            const main = document.createElement('div')
+            main.className = 'file-item-main'
+
+            const iconEl = document.createElement('span')
+            iconEl.className = 'file-icon'
+            iconEl.setAttribute('aria-hidden', 'true')
+            iconEl.textContent = fileIcon
+
+            const info = document.createElement('div')
+            info.className = 'file-info'
+
+            const nameDiv = document.createElement('div')
+            nameDiv.className = 'file-name'
+            nameDiv.textContent = displayName
+            if (isReadOnly) {
+                const em = document.createElement('em')
+                em.textContent = '(read-only)'
+                nameDiv.appendChild(document.createTextNode(' '))
+                nameDiv.appendChild(em)
+            }
+            info.appendChild(nameDiv)
+
+            if (dirHint) {
+                const pathDiv = document.createElement('div')
+                pathDiv.className = 'file-path'
+                pathDiv.textContent = dirHint
+                info.appendChild(pathDiv)
+            }
+
+            main.appendChild(iconEl)
+            main.appendChild(info)
+
+            const actions = document.createElement('div')
+            actions.className = 'file-actions'
+            if (!isReadOnly) {
+                const cb = document.createElement('button')
+                cb.className = 'file-action-btn close-btn'
+                cb.title = 'Close file'
+                cb.textContent = '×'
+                actions.appendChild(cb)
+            }
+
+            item.appendChild(main)
+            item.appendChild(actions)
 
             // Click to select file
-            item.querySelector('.file-item-main').addEventListener('click', () => {
+            main.addEventListener('click', () => {
                 this.onTabSelect(file)
                 this.closeDropdown()
             })

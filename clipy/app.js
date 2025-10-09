@@ -793,12 +793,12 @@ async function main() {
                                         try {
                                             const { saveSuccessSnapshotForCurrentConfig } = await import('./js/snapshots.js')
                                             await saveSuccessSnapshotForCurrentConfig(snap)
-                                            appendTerminal('Success snapshot saved for ' + (snap.config || ''), 'runtime')
+                                            logDebug('Success snapshot saved for ' + (snap.config || ''), 'runtime')
                                         } catch (e) {
                                             // Non-fatal: log and continue
-                                            try { appendTerminal('Failed to save success snapshot: ' + e, 'runtime') } catch (_e) { }
+                                            try { logDebug('Failed to save success snapshot: ' + e, 'runtime') } catch (_e) { }
                                         }
-                                    } catch (e) { try { appendTerminal('Failed to create success snapshot: ' + e, 'runtime') } catch (_e) { } }
+                                    } catch (e) { try { logDebug('Failed to create success snapshot: ' + e, 'runtime') } catch (_e) { } }
                                 }
                             } catch (_e) { }
                         } catch (_e) { }
@@ -1615,8 +1615,8 @@ async function main() {
                                     })
                                 }
 
-                                // Populate options
-                                select.innerHTML = ''
+                                // Populate options (use safe DOM operations rather than innerHTML)
+                                while (select.firstChild) select.removeChild(select.firstChild)
                                 const optPlaceholder = document.createElement('option')
                                 optPlaceholder.value = ''
                                 optPlaceholder.textContent = 'Select configuration…'
@@ -1764,7 +1764,8 @@ async function main() {
                             let items = null
                             try {
                                 items = await fetchAvailableServerConfigs()
-                                listContainer.innerHTML = ''
+                                // Clear children safely
+                                while (listContainer.firstChild) listContainer.removeChild(listContainer.firstChild)
 
                                 // If fetchAvailableServerConfigs returned no items, try a direct
                                 // fallback to ./config/index.json (handles environments where
@@ -1816,7 +1817,8 @@ async function main() {
                             } catch (e) {
                                 // Clear the loading placeholder and show an inline error, but
                                 // don't return early — continue to populate any authoring config
-                                listContainer.innerHTML = ''
+                                // Clear children safely
+                                while (listContainer.firstChild) listContainer.removeChild(listContainer.firstChild)
                                 let errorEl = document.getElementById('config-server-error')
                                 if (!errorEl) {
                                     errorEl = document.createElement('div')
@@ -2342,56 +2344,165 @@ async function main() {
     }
 }
 
+// Helper to check if a config has tests
+function configHasTests(cfg) {
+    if (!cfg) return false
+    const tests = cfg.tests
+    if (!tests) return false
+
+    // Handle array format
+    if (Array.isArray(tests)) {
+        return tests.length > 0
+    }
+
+    // Handle grouped format
+    if (tests.groups || tests.ungrouped) {
+        const groupCount = (tests.groups || []).reduce((sum, g) => sum + (g.tests || []).length, 0)
+        const ungroupedCount = (tests.ungrouped || []).length
+        return (groupCount + ungroupedCount) > 0
+    }
+
+    return false
+}
+
 // Update DOM indicators for solved status: app title, config title line, and config list entries
 async function updateSuccessIndicators() {
     try {
-        const { getSuccessSnapshotForCurrentConfig } = await import('./js/snapshots.js')
-        const success = !!(await getSuccessSnapshotForCurrentConfig())
+        const { getSuccessSnapshotForConfig } = await import('./js/snapshots.js')
+        const currentConfig = (window.Config && window.Config.current) ? window.Config.current : null
+        const currentSuccess = !!(await getSuccessSnapshotForConfig(currentConfig ? `${currentConfig.id}@${currentConfig.version}` : null))
+        const hasTests = configHasTests(currentConfig)
 
+        // Calculate configList-wide success: only show ✓ if ALL configs with tests are passed
+        let configListSuccess = null  // null = unknown, true = all passed, false = some incomplete
+        const remoteList = (window.__ssg_remote_config_list && Array.isArray(window.__ssg_remote_config_list.items)) ? window.__ssg_remote_config_list.items : []
+
+        if (remoteList.length > 0) {
+            let configsWithTests = 0
+            let configsPassed = 0
+
+            for (const item of remoteList) {
+                try {
+                    let configObj = null
+                    let identity = null
+
+                    if (item.source === 'author' && item.configObject) {
+                        configObj = item.configObject
+                        identity = `${configObj.id}@${configObj.version}`
+                    } else if (item.url) {
+                        // Try to fetch config to get id@version and check if it has tests
+                        try {
+                            const r = await fetch(item.url)
+                            if (r && r.ok) {
+                                configObj = await r.json()
+                                // Use id@version as identity, not URL
+                                if (configObj.id && configObj.version) {
+                                    identity = `${configObj.id}@${configObj.version}`
+                                } else {
+                                    identity = item.url
+                                }
+                            }
+                        } catch (_e) {
+                            // If fetch fails, use URL as fallback
+                            identity = item.url
+                        }
+                    }
+
+                    if (configObj && configHasTests(configObj)) {
+                        configsWithTests++
+                        const snap = await getSuccessSnapshotForConfig(identity)
+                        if (snap) {
+                            configsPassed++
+                        }
+                    }
+                } catch (_e) { }
+            }
+
+            if (configsWithTests > 0) {
+                configListSuccess = (configsPassed === configsWithTests)
+            }
+        }
+
+        // Update app-title structure
         const appTitle = document.getElementById('app-title')
+        if (appTitle) {
+            const listIndicator = appTitle.querySelector('.list-indicator')
+            const listName = appTitle.querySelector('.list-name')
+            const subtitle = appTitle.querySelector('.app-title-subtitle')
+
+            // Update list indicator based on configList-wide success
+            if (listIndicator) {
+                let glyph = ''
+                let color = ''
+
+                if (configListSuccess === true) {
+                    glyph = '✓'
+                    color = '#2e7d32'
+                } else if (configListSuccess === false) {
+                    glyph = '□'
+                    color = '#666'
+                } else {
+                    // No configs with tests, or unknown
+                    glyph = '-'
+                    color = '#999'
+                }
+
+                listIndicator.textContent = glyph
+                listIndicator.style.color = color
+            }
+
+            // Update list name
+            if (listName) {
+                const listNameText = (window.__ssg_remote_config_list && window.__ssg_remote_config_list.listName)
+                    ? window.__ssg_remote_config_list.listName
+                    : 'Client-side Python Playground'
+                listName.textContent = listNameText
+            }
+
+            // Update subtitle with current config title (no indicator)
+            if (subtitle && currentConfig) {
+                subtitle.textContent = currentConfig.title || currentConfig.id
+            }
+        }
+
         const configTitleLine = document.querySelector('.config-title-line')
 
         function ensureIndicator(host) {
             if (!host) return
             let el = host.querySelector('.success-indicator')
-            if (success) {
-                if (!el) {
-                    el = document.createElement('span')
-                    el.className = 'success-indicator'
-                    el.textContent = ' ★'
-                    el.style.color = '#2e7d32'
-                    el.style.fontWeight = '700'
-                    el.style.marginLeft = '6px'
-                    host.appendChild(el)
-                }
+
+            // Determine glyph based on state
+            let glyph = ''
+            let color = ''
+            if (currentSuccess) {
+                glyph = '✓'  // Solved (passed tests)
+                color = '#2e7d32'
+            } else if (hasTests) {
+                glyph = '□'  // Unsolved with tests
+                color = '#666'
             } else {
-                if (el) try { el.parentElement && el.parentElement.removeChild(el) } catch (_e) { }
+                glyph = '-'  // No tests (playground/exploratory)
+                color = '#999'
             }
+
+            if (!el) {
+                el = document.createElement('span')
+                el.className = 'success-indicator'
+                host.appendChild(el)
+            }
+
+            el.textContent = ' ' + glyph
+            el.style.color = color
+            el.style.fontWeight = '700'
+            el.style.marginLeft = '6px'
         }
 
-        ensureIndicator(appTitle)
         ensureIndicator(configTitleLine)
 
-        // For config-select-header options, add a star to option labels when success
+        // Trigger refresh of config-select-header badges
+        // Don't modify option text here - let refreshConfigSelectBadges handle all glyph updates
         try {
-            const select = document.getElementById('config-select-header')
-            if (select) {
-                // If current config is a single loaded config, the select may be removed; ignore
-                for (const opt of Array.from(select.options || [])) {
-                    // Do not mutate placeholder option
-                    if (!opt.value) continue
-                    try {
-                        const cur = (window.Config && window.Config.current) ? `${window.Config.current.id}@${window.Config.current.version}` : null
-                        // Prefer attached identity when available
-                        const optIdentity = (opt.dataset && opt.dataset.identity) ? opt.dataset.identity : (typeof opt.value === 'string' ? opt.value : null)
-                        if (cur && optIdentity && optIdentity === cur && success) {
-                            if (!opt.text.includes('★')) opt.text = opt.text + ' ★'
-                        } else {
-                            opt.text = opt.text.replace(/\s*★\s*$/, '')
-                        }
-                    } catch (_e) { }
-                }
-            }
+            await refreshConfigSelectBadges()
         } catch (_e) { }
     } catch (e) {
         try { console.warn('updateSuccessIndicators failed', e) } catch (_e) { }
@@ -2547,6 +2658,8 @@ function createOrUpdateHeaderSelect(serverItems, hasRemoteList) {
                             try { opt.textContent = source.title || (source.configObject.title ? (source.configObject.title + (source.version ? (' (v' + source.version + ')') : '')) : opt.textContent) } catch (_e) { }
                             // expose the full author config on the option so change handler can apply it
                             try { opt.dataset.authorConfig = JSON.stringify(source.configObject) } catch (_e) { }
+                            // Store hasTests for author configs immediately
+                            try { opt.dataset.hasTests = String(configHasTests(source.configObject)) } catch (_e) { }
                         } else if (source && source.url) {
                             // Enriched object with URL
                             identity = source.url
@@ -2561,6 +2674,8 @@ function createOrUpdateHeaderSelect(serverItems, hasRemoteList) {
                             try {
                                 const cfgObj = JSON.parse(cfgJson)
                                 identity = (cfgObj.id && cfgObj.version) ? `${cfgObj.id}@${cfgObj.version}` : opt.value
+                                // Store hasTests for author configs
+                                opt.dataset.hasTests = String(configHasTests(cfgObj))
                             } catch (_e) {
                                 identity = opt.value
                             }
@@ -2598,6 +2713,12 @@ function createOrUpdateHeaderSelect(serverItems, hasRemoteList) {
                                                     // Update option label if it hasn't been user-changed
                                                     try { if (opt && (!opt.dataset || !opt.dataset.userLabel)) opt.textContent = label } catch (_e) { }
                                                 }
+                                                // Store hasTests info
+                                                try {
+                                                    opt.dataset.hasTests = String(configHasTests(parsed))
+                                                } catch (_e) { }
+                                                // Trigger badge refresh after fetching config data
+                                                try { refreshConfigSelectBadges() } catch (_e) { }
                                             } catch (_e) { }
                                         }
                                     } catch (_e) { }
@@ -2616,8 +2737,26 @@ function createOrUpdateHeaderSelect(serverItems, hasRemoteList) {
 
 // Listen for success snapshot changes to update UI
 try {
-    window.addEventListener && window.addEventListener('ssg:success-saved', (ev) => { try { const cfg = ev && ev.detail ? ev.detail.config : null; updateSuccessIndicators(); refreshConfigSelectBadges(cfg); refreshModalConfigListBadges(cfg) } catch (_e) { } })
-    window.addEventListener && window.addEventListener('ssg:success-cleared', (ev) => { try { const cfg = ev && ev.detail ? ev.detail.config : null; updateSuccessIndicators(); refreshConfigSelectBadges(cfg); refreshModalConfigListBadges(cfg) } catch (_e) { } })
+    window.addEventListener && window.addEventListener('ssg:success-saved', async (ev) => {
+        try {
+            const cfg = ev && ev.detail ? ev.detail.config : null
+            await updateSuccessIndicators()
+            await refreshConfigSelectBadges(cfg)
+            await refreshModalConfigListBadges(cfg)
+        } catch (e) {
+            console.error('[app] Error in ssg:success-saved handler:', e)
+        }
+    })
+    window.addEventListener && window.addEventListener('ssg:success-cleared', async (ev) => {
+        try {
+            const cfg = ev && ev.detail ? ev.detail.config : null
+            await updateSuccessIndicators()
+            await refreshConfigSelectBadges(cfg)
+            await refreshModalConfigListBadges(cfg)
+        } catch (e) {
+            console.error('[app] Error in ssg:success-cleared handler:', e)
+        }
+    })
 } catch (_e) { }
 
 // Refresh just the header select option badges by re-checking success snapshots
@@ -2626,82 +2765,110 @@ async function refreshConfigSelectBadges(changedConfigIdentity) {
         const select = document.getElementById('config-select-header')
         if (!select) return
         const { getSuccessSnapshotForConfig } = await import('./js/snapshots.js')
+
         for (const opt of Array.from(select.options || [])) {
             try {
                 if (!opt.value) continue
 
-                // Derive a best-effort identity for this option. Prefer an
-                // attached dataset.identity, otherwise resolve __list::idx -> source.
+                // Derive identity and configObj from stored data or remote list
                 let identity = (opt.dataset && opt.dataset.identity) ? opt.dataset.identity : null
-                if (!identity) {
-                    try {
-                        if (typeof opt.value === 'string' && opt.value.indexOf('__list::') === 0 && window.__ssg_remote_config_list) {
-                            const idx = parseInt(opt.value.split('::')[1], 10)
-                            const item = window.__ssg_remote_config_list.items[idx]
-                            if (item) {
-                                // Handle enriched objects
-                                if (item.source === 'author' && item.configObject) {
-                                    identity = `${item.configObject.id}@${item.configObject.version}`
-                                } else if (item.url) {
-                                    identity = item.url
-                                } else {
-                                    identity = item.id || opt.value
+                let configObj = null
+                let hasTests = false
+
+                // Try to get config object from various sources
+                if (typeof opt.value === 'string' && opt.value.indexOf('__list::') === 0 && window.__ssg_remote_config_list) {
+                    const idx = parseInt(opt.value.split('::')[1], 10)
+                    const item = window.__ssg_remote_config_list.items[idx]
+                    if (item) {
+                        if (item.source === 'author' && item.configObject) {
+                            identity = `${item.configObject.id}@${item.configObject.version}`
+                            configObj = item.configObject
+                            hasTests = configHasTests(configObj)
+                        } else if (item.url) {
+                            // Try to fetch config to get id@version and check tests
+                            try {
+                                const r = await fetch(item.url)
+                                if (r && r.ok) {
+                                    configObj = await r.json()
+                                    // Use id@version as identity, not URL
+                                    if (configObj.id && configObj.version) {
+                                        identity = `${configObj.id}@${configObj.version}`
+                                    } else {
+                                        identity = item.url
+                                    }
+                                    hasTests = configHasTests(configObj)
+                                    // Store for future reference
+                                    opt.dataset.hasTests = String(hasTests)
                                 }
-                                opt.dataset.identity = identity
-                            } else {
-                                identity = opt.value
-                                opt.dataset.identity = identity
+                            } catch (_e) {
+                                // If fetch fails, use URL as fallback identity
+                                identity = item.url
+                                // Check if we have cached hasTests
+                                if (opt.dataset && typeof opt.dataset.hasTests !== 'undefined') {
+                                    hasTests = opt.dataset.hasTests === 'true'
+                                }
                             }
-                        } else {
-                            identity = typeof opt.value === 'string' ? opt.value : String(opt.value)
-                            opt.dataset.identity = identity
                         }
-                    } catch (_e) {
-                        identity = typeof opt.value === 'string' ? opt.value : String(opt.value)
-                        try { opt.dataset.identity = identity } catch (_e2) { }
+                    }
+                } else if (typeof opt.value === 'string' && opt.value.indexOf('__author::') === 0) {
+                    const cfgJson = opt.dataset && opt.dataset.authorConfig ? opt.dataset.authorConfig : null
+                    if (cfgJson) {
+                        try {
+                            configObj = JSON.parse(cfgJson)
+                            identity = `${configObj.id}@${configObj.version}`
+                            hasTests = configHasTests(configObj)
+                        } catch (_e) { }
+                    }
+                } else {
+                    // For plain string values (URLs or file paths), fetch the config to get proper identity
+                    if (identity && /\.(json|js)$/i.test(identity)) {
+                        try {
+                            const r = await fetch(identity)
+                            if (r && r.ok) {
+                                configObj = await r.json()
+                                // Use id@version as identity, not URL/path
+                                if (configObj.id && configObj.version) {
+                                    identity = `${configObj.id}@${configObj.version}`
+                                }
+                                hasTests = configHasTests(configObj)
+                                opt.dataset.hasTests = String(hasTests)
+                            }
+                        } catch (_e) {
+                            // Fetch failed, use URL as identity
+                        }
                     }
                 }
 
-                // If a snapshot exists under the derived identity, decorate now.
+                if (!identity) continue
+
+                // Check for success snapshot
                 let snap = null
                 try {
-                    snap = identity ? await getSuccessSnapshotForConfig(identity) : null
+                    snap = await getSuccessSnapshotForConfig(identity)
                 } catch (_e) { snap = null }
 
-                // If no snapshot found and identity looks like a remote URL, try
-                // a best-effort fetch to obtain a canonical `id@version` identity
-                // and re-check. This is background-only and won't block the UI.
-                if (!snap && identity && /^(https?:)?\/\//i.test(String(identity))) {
-                    (async () => {
-                        try {
-                            const r = await fetch(String(identity))
-                            if (r && r.ok) {
-                                try {
-                                    const parsed = await r.json()
-                                    if (parsed && parsed.id && parsed.version) {
-                                        const canonical = `${parsed.id}@${parsed.version}`
-                                        try { opt.dataset.identity = canonical } catch (_e) { }
-                                        const snap2 = await getSuccessSnapshotForConfig(canonical)
-                                        if (snap2) {
-                                            if (!opt.text.includes('★')) opt.text = opt.text + ' ★'
-                                            return
-                                        }
-                                    }
-                                } catch (_e) { }
-                            }
-                        } catch (_e) { }
-                    })()
+                // Determine appropriate glyph
+                let glyph = ''
+                if (snap) {
+                    glyph = '✓'  // Solved
+                } else if (hasTests) {
+                    glyph = '□'  // Unsolved with tests
+                } else {
+                    glyph = '-'  // No tests
                 }
 
-                // Apply or remove star based on snapshot check
-                if (snap) {
-                    if (!opt.text.includes('★')) opt.text = opt.text + ' ★'
-                } else {
-                    opt.text = opt.text.replace(/\s*★\s*$/, '')
+                // Remove any existing glyph markers and add new one
+                opt.text = opt.text.replace(/\s*[✓□\-★]\s*$/, '')
+                if (glyph) {
+                    opt.text = opt.text + ' ' + glyph
                 }
-            } catch (_e) { }
+            } catch (e) {
+                console.error('[refreshConfigSelectBadges] Error processing option:', e)
+            }
         }
-    } catch (_e) { }
+    } catch (e) {
+        console.error('[refreshConfigSelectBadges] Fatal error:', e)
+    }
 }
 
 // Refresh the modal config-server-list buttons to add/remove stars

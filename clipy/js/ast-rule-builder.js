@@ -1,10 +1,11 @@
 /**
  * AST Rule Builder Module
- * 
+ *
  * Provides reusable AST rule building functionality for both feedback and tests.
  * This module creates standardized AST rule configurations that can be used
  * in both feedback (edit-time) and testing (run-time) contexts.
  */
+import { sanitizeHtml, setInnerHTML } from './utils.js'
 
 /**
  * Create AST rule builder UI
@@ -69,7 +70,11 @@ export function createASTRuleBuilder(existing = {}, ruleType = 'feedback') {
             info.setAttribute('tabindex', '0')
             info.setAttribute('role', 'img')
             info.setAttribute('aria-label', labelText + ' help')
-            info.innerHTML = '<span class="info-symbol">ℹ</span>'
+            // Build info symbol using safe DOM APIs (avoid innerHTML)
+            const infoSymbol = document.createElement('span')
+            infoSymbol.className = 'info-symbol'
+            infoSymbol.textContent = 'ℹ'
+            info.appendChild(infoSymbol)
             const tip = document.createElement('span')
             tip.className = 'info-tooltip'
             tip.textContent = helpText
@@ -157,7 +162,9 @@ export function createASTRuleBuilder(existing = {}, ruleType = 'feedback') {
     examplesContent.style.background = '#fff'
     examplesContent.style.border = '1px solid #e0e0e0'
     examplesContent.style.borderRadius = '3px'
-    examplesContent.innerHTML = `
+    // Use centralized helper for this static examples block to avoid direct innerHTML insertion
+    try {
+        setInnerHTML(examplesContent, `
         <strong>Examples:</strong><br>
         • <code>result && result.name === 'calculate_average'</code> (function_exists)<br>
         • <code>result && result.parameters >= 1</code> (function_exists)<br>
@@ -170,11 +177,14 @@ export function createASTRuleBuilder(existing = {}, ruleType = 'feedback') {
         • <code>result && result.tryCount > 0</code> (exception_handling)<br>
         • <code>result && result.tryBlocks && result.tryBlocks.some(tb => tb.calls && tb.calls.some(c => c.name === 'do_work'))</code> (exception_handling: check calls in try)<br>
         • <code>result && result.annotation === 'int'</code> (variable_usage: annotated variable)<br>
-        • <code>result && result.annotations && result.annotations.some(a => a.name === 'x' && a.annotation === 'float')</code> (variable_usage: annotations list)<br>
+        • <code>result && result.annotations && result.annotations.some(a => a.name === 'x' && a.annotation === 'int')</code> (variable_usage: annotations list)<br>
         • <code>result && result.comprehensions && result.comprehensions.some(c => c.type === 'ListComp' && c.generators === 1)</code> (comprehensions)
         <br>• <code>result && result.functions && result.functions.some(f => f.name === 'print' && f.count &gt; 0)</code> (function_calls: all functions)
         <br>• <code>result && result.name === 'calculate' && result.count &gt;= 1</code> (function_calls: target-specific)
-    `
+    `)
+    } catch (_e) {
+        examplesContent.textContent = 'Examples: (unable to render examples)'
+    }
 
     matcherExamples.appendChild(examplesSummary)
     matcherExamples.appendChild(examplesContent)
@@ -293,7 +303,7 @@ export function createASTRuleBuilder(existing = {}, ruleType = 'feedback') {
         // Update preview
         const selectedOption = astTypeSelect.querySelector(`option[value="${analysisType}"]`)
         const help = selectedOption ? selectedOption.getAttribute('data-help') : ''
-        astPreview.innerHTML = `<strong>Expression:</strong> ${astExpression.value}<br><strong>Description:</strong> ${help}`
+        try { setInnerHTML(astPreview, `<strong>Expression:</strong> ${astExpression.value}<br><strong>Description:</strong> ${help}`) } catch (_e) { astPreview.textContent = `${astExpression.value} — ${help}` }
     }
 
     // Event listeners
@@ -710,7 +720,13 @@ function showTestResult(resultElement, type, content) {
     const style = styles[type] || styles.warning
     resultElement.style.background = style.background
     resultElement.style.borderColor = style.border
-    resultElement.innerHTML = content
+    // Sanitize content before inserting as HTML to avoid XSS from matcher outputs
+    try {
+        resultElement.innerHTML = sanitizeHtml(content)
+    } catch (_e) {
+        // Fallback: set as textContent if sanitization fails
+        resultElement.textContent = String(content)
+    }
 }
 
 /**

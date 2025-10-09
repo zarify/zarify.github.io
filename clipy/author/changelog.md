@@ -1,3 +1,11 @@
+## 2025-10-09
+- Feature: Success indicators for lists of problems
+  - When a problem's test suite is passed a check will appear in the config list drop-down
+  - When all problems with tests in a list are passed a check will appear in the config list title in the top-left
+  - Tests with no tests are indicated by a `-`
+  - Tests with unpassed tests are indicated by a checkbox
+  - Tests with passed tests are indicated by a tick
+
 ## 2025-10-07
 - Feature: Persistent playground config
 

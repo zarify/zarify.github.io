@@ -348,14 +348,18 @@ async function renderSnapshots() {
     const configIdentity = getConfigIdentity()
 
     if (!snaps.length) {
-        if (snapshotList) snapshotList.innerHTML = `<div class="no-snapshots">No snapshots for ${configIdentity}</div>`
+        if (snapshotList) {
+            // Clear and insert a safe no-snapshots message
+            while (snapshotList.firstChild) snapshotList.removeChild(snapshotList.firstChild)
+            const no = document.createElement('div')
+            no.className = 'no-snapshots'
+            no.textContent = `No snapshots for ${configIdentity}`
+            snapshotList.appendChild(no)
+        }
         // Continue so header/footer summaries are updated below
     } else {
-        if (snapshotList) snapshotList.innerHTML = ''
+        if (snapshotList) while (snapshotList.firstChild) snapshotList.removeChild(snapshotList.firstChild)
     }
-
-    // Clear list
-    if (snapshotList) snapshotList.innerHTML = ''
 
     // If a success snapshot exists, render it at the top with a distinctive style
     if (successSnap && snapshotList) {
@@ -441,7 +445,19 @@ async function renderSnapshots() {
         mid.style.alignItems = 'center'
         mid.style.justifyContent = 'flex-start'
         mid.style.gap = '8px'
-        mid.innerHTML = `<span class="snapshot-ts">${new Date(s.ts).toLocaleString()}</span> <small class="snapshot-meta" style="color:#666">(${fileCount} file${fileCount === 1 ? '' : 's'}, ${sizeText} used)</small>`
+        // Build timestamp and meta using safe DOM methods
+        const spanTs = document.createElement('span')
+        spanTs.className = 'snapshot-ts'
+        spanTs.textContent = new Date(s.ts).toLocaleString()
+
+        const smallMeta = document.createElement('small')
+        smallMeta.className = 'snapshot-meta'
+        smallMeta.style.color = '#666'
+        smallMeta.textContent = `(${fileCount} file${fileCount === 1 ? '' : 's'}, ${sizeText} used)`
+
+        mid.appendChild(spanTs)
+        mid.appendChild(document.createTextNode(' '))
+        mid.appendChild(smallMeta)
         // Actions: textual Load and Delete buttons on the right
         const actions = document.createElement('div')
         actions.style.display = 'inline-flex'

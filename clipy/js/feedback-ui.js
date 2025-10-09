@@ -15,8 +15,8 @@ function renderList() {
         // id for older pages/tests.
         const host = $('fdbk-list') || $('feedback-list')
         if (!host) return
-        // Clear host first, then add run-tests control at top
-        host.innerHTML = ''
+        // Clear host first, then add run-tests control at top (clear children safely)
+        while (host.firstChild) host.removeChild(host.firstChild)
         const controlRow = document.createElement('div')
         controlRow.style.display = 'flex'
         controlRow.style.justifyContent = 'flex-end'
@@ -982,7 +982,8 @@ function showTestResultsModal(results) {
     const modal = createResultsModal()
     const content = modal.querySelector('.test-results-content')
     if (!content) return
-    content.innerHTML = ''
+    // Clear existing modal content safely without assigning HTML
+    while (content.firstChild) content.removeChild(content.firstChild)
 
     // attach accessibility handlers when showing
     try { if (modal._attachAccessibility) modal._attachAccessibility() } catch (e) { }
@@ -1057,8 +1058,8 @@ function renderTestResults(results, cfgMap, groupMap, showGroups) {
     const content = modal.querySelector('.test-results-content')
     if (!content) return
 
-    // Clear content
-    content.innerHTML = ''
+    // Clear content safely without assigning raw HTML
+    while (content.firstChild) content.removeChild(content.firstChild)
 
     // Filter out skipped tests: modal should only show executed tests
     const visibleResults = Array.isArray(results) ? results.filter(r => !r.skipped) : []
@@ -1409,7 +1410,8 @@ function showTestResultsLoading() {
     const modal = createResultsModal()
     const content = modal.querySelector('.test-results-content')
     if (!content) return
-    content.innerHTML = ''
+    // Clear content safely without assigning raw HTML
+    while (content.firstChild) content.removeChild(content.firstChild)
     const loading = document.createElement('div')
     loading.className = 'test-results-loading'
     loading.textContent = 'Running tests...'

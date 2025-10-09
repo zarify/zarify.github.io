@@ -24,14 +24,19 @@ export class ReplayLineDecorator {
      * @param {string} filename - The filename for this step (used for multi-file AST lookup)
      */
     showVariablesAtLine(lineNumber, variables, executionTrace = null, currentStepIndex = -1, originalTrace = null, filename = null) {
-        if (!this.codemirror || !variables || variables.size === 0) {
-            appendTerminalDebug(`showVariablesAtLine: skipped - codemirror=${!!this.codemirror}, variables=${variables ? variables.size : 'null'}`)
+        if (!this.codemirror) {
+            appendTerminalDebug(`showVariablesAtLine: skipped - no codemirror`)
             return
         }
 
         try {
-            appendTerminalDebug(`showVariablesAtLine: line ${lineNumber}, ${variables.size} variables total`)
-            if (filename && filename.includes('dice')) {
+            // Allow the function to proceed even with no variables, since we still need to scroll
+            if (!variables || variables.size === 0) {
+                appendTerminalDebug(`showVariablesAtLine: no variables but will still scroll if needed`)
+            } else {
+                appendTerminalDebug(`showVariablesAtLine: line ${lineNumber}, ${variables.size} variables total`)
+            }
+            if (filename && filename.includes('dice') && variables) {
                 appendTerminalDebug(`  🎯 Received variables: ${Array.from(variables.entries()).map(([k, v]) => `${k}=${v}`).join(', ')}`)
             }
 
@@ -195,7 +200,7 @@ export class ReplayLineDecorator {
                 }
 
                 appendTerminalDebug(`  📍 Line ${lineNumber}: assigned=${Array.from(astData.assigned).join(',')}, referenced=${Array.from(astData.referenced).join(',')}`)
-                appendTerminalDebug(`  📍 Current step: ${Array.from(variables.entries()).map(([k, v]) => `${k}=${v}`).join(', ')}`)
+                appendTerminalDebug(`  📍 Current step: ${variables ? Array.from(variables.entries()).map(([k, v]) => `${k}=${v}`).join(', ') : 'none'}`)
                 appendTerminalDebug(`  📍 Next step: ${nextStepVars ? Array.from(nextStepVars.entries()).map(([k, v]) => `${k}=${v}`).join(', ') : 'none'}`)
                 appendTerminalDebug(`  📍 Next step (same file): ${nextStepSameFileVars ? Array.from(nextStepSameFileVars.entries()).map(([k, v]) => `${k}=${v}`).join(', ') : 'none'}`)
                 appendTerminalDebug(`  📍 Return event lookups will be resolved per-variable (anchored near originalIndex ${originalIndex})`)
@@ -203,7 +208,7 @@ export class ReplayLineDecorator {
                 // First, add all assigned variables
                 for (const name of astData.assigned) {
                     // Skip built-ins
-                    if (isBuiltinOrInternal(name, variables.get(name))) {
+                    if (isBuiltinOrInternal(name, variables?.get(name))) {
                         continue
                     }
 
@@ -231,7 +236,7 @@ export class ReplayLineDecorator {
 
                     // Final fallback to current step (shouldn't happen in normal cases)
                     if (value === undefined) {
-                        value = variables.get(name)
+                        value = variables?.get(name)
                     }
 
                     // Special case: if variable not found but next step has local_N variables,
@@ -274,9 +279,19 @@ export class ReplayLineDecorator {
 
                     let chosen = undefined
 
-                    // Prefer next-step (translated) values when present - these represent
-                    // post-execution assigned values and avoid showing stale previous values
-                    if (nextStepVars && typeof nextStepVars.get === 'function' && nextStepVars.has(name)) {
+                    // CRITICAL FIX: If the current step already has this variable, use it!
+                    // Only use lookahead when the current step is missing the variable
+                    // (which can happen due to sys.settrace timing issues where a line
+                    // event fires before the assignment executes).
+                    // This fixes the issue where loop conditions (e.g., "while i < 5:")
+                    // were showing the NEXT iteration's value instead of the current one.
+                    if (currentVal !== undefined) {
+                        chosen = currentVal
+                        appendTerminalDebug(`  ✅ Using current step value for referenced '${name}': ${chosen}`)
+                    }
+
+                    // Only use next-step lookahead if current step doesn't have the variable
+                    if (chosen === undefined && nextStepVars && typeof nextStepVars.get === 'function' && nextStepVars.has(name)) {
                         chosen = nextStepVars.get(name)
                         appendTerminalDebug(`  🔁 Using next-step lookahead for referenced '${name}': ${chosen}`)
                     }
@@ -351,7 +366,7 @@ export class ReplayLineDecorator {
                 }
 
                 // Finally, evaluate and add subscript expressions (e.g., beats[h] = 1)
-                if (astData.subscripts && astData.subscripts.length > 0) {
+                if (astData.subscripts && astData.subscripts.length > 0 && variables) {
                     for (const { object, key } of astData.subscripts) {
                         try {
                             // Get the object value
@@ -387,32 +402,59 @@ export class ReplayLineDecorator {
             } else if (astData) {
                 // AST data exists but indicates no variables assigned or referenced on this line
                 // Show nothing (e.g., return statement with a constant, pass, etc.)
-            } else {
+            } else if (variables) {
                 // Fallback: if AST not available at all, show all variables (better than showing nothing)
                 for (const [name, value] of variables) {
                     displayVars.set(name, value)
                 }
             }
 
-            if (displayVars.size === 0) {
-                return
-            }
-
             if (filename && filename.includes('dice')) {
                 appendTerminalDebug(`  🎨 Final displayVars: ${Array.from(displayVars.entries()).map(([k, v]) => `${k}=${v}`).join(', ')}`)
             }
 
-            // Create HTML element for variable display (each variable on its own row)
-            const variableDisplay = this.formatVariablesForDisplay(displayVars)
+            // ALWAYS scroll to the line, even if there are no variables to display
+            // This ensures highlighted lines are visible with proper margin
+            try {
+                const lineHeight = this.codemirror.defaultTextHeight() || 18
+                const contextLines = 3
 
-            // Ensure value text doesn't overflow a reasonable width — cap to editor width
-            // Add line widget below the specified line
-            const widget = this.codemirror.addLineWidget(lineNumber - 1, variableDisplay, {
-                coverGutter: false,
-                noHScroll: true,
-                above: false
-            })
-            this.activeWidgets.push(widget)
+                // If we have variables to display, we'll add a widget and need to account for its height
+                // Otherwise, just scroll with basic margin
+                let widgetHeight = 0
+
+                if (displayVars.size > 0) {
+                    // Create HTML element for variable display (each variable on its own row)
+                    const variableDisplay = this.formatVariablesForDisplay(displayVars)
+
+                    // Add line widget below the specified line
+                    const widget = this.codemirror.addLineWidget(lineNumber - 1, variableDisplay, {
+                        coverGutter: false,
+                        noHScroll: true,
+                        above: false
+                    })
+                    this.activeWidgets.push(widget)
+
+                    // Get the actual widget height (it's now in the DOM)
+                    try {
+                        if (variableDisplay && variableDisplay.offsetHeight) {
+                            widgetHeight = variableDisplay.offsetHeight
+                        }
+                    } catch (e) {
+                        widgetHeight = 100 // fallback estimate
+                    }
+                }
+
+                // Calculate margin: 3 lines above + widget height below (if any)
+                const margin = (contextLines * lineHeight) + widgetHeight
+
+                this.codemirror.scrollIntoView(
+                    { line: lineNumber - 1, ch: 0 },
+                    margin  // This ensures we have 3 lines above and widget space below
+                )
+            } catch (scrollError) {
+                appendTerminalDebug('Failed to scroll to line: ' + scrollError)
+            }
         } catch (error) {
             appendTerminalDebug('Failed to show variables at line: ' + error)
         }
@@ -475,6 +517,7 @@ export class ReplayLineDecorator {
 
     /**
      * Highlight current execution line
+     * Note: Scrolling is handled separately in showVariablesAtLine after widgets are added
      */
     highlightExecutionLine(lineNumber) {
         try {
@@ -487,19 +530,7 @@ export class ReplayLineDecorator {
             if (lineNumber > 0) {
                 this.codemirror.addLineClass(lineNumber - 1, 'background', 'execution-current')
                 this.currentExecutionLine = lineNumber
-
-                // Scroll to the line with proper margin
-                // CodeMirror's scrollIntoView accepts a margin parameter (in pixels)
-                // We want 3 lines of context above/below, plus space for variable widgets
-                const lineHeight = this.codemirror.defaultTextHeight() || 18
-                const contextLines = 3
-                const widgetEstimate = 100  // Estimate for variable display widget
-                const margin = (contextLines * lineHeight) + widgetEstimate
-
-                this.codemirror.scrollIntoView(
-                    { line: lineNumber - 1, ch: 0 },
-                    margin  // This ensures we have space above AND below
-                )
+                // Scrolling moved to showVariablesAtLine to account for actual widget height
             }
         } catch (error) {
             appendTerminalDebug('Failed to highlight execution line: ' + error)
@@ -1356,6 +1387,20 @@ export class ReplayEngine {
             // Show variables if available
             if (translatedVariables && translatedVariables.size > 0) {
                 this.lineDecorator.showVariablesAtLine(step.lineNumber, translatedVariables, this.executionTrace, this.currentStepIndex, this.originalTrace, step.filename)
+            } else if (hasAstVars) {
+                // Line is highlighted but has no variables to show - still need to scroll
+                try {
+                    const lineHeight = this.lineDecorator.codemirror.defaultTextHeight() || 18
+                    const contextLines = 3
+                    const margin = contextLines * lineHeight
+
+                    this.lineDecorator.codemirror.scrollIntoView(
+                        { line: step.lineNumber - 1, ch: 0 },
+                        margin  // 3 lines of context above and below
+                    )
+                } catch (scrollError) {
+                    appendTerminalDebug('Failed to scroll to line: ' + scrollError)
+                }
             }
         } catch (error) {
             appendTerminalDebug('Failed to display current step: ' + error)

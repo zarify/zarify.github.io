@@ -6,6 +6,7 @@ import { debug as logDebug, warn as logWarn, error as logError } from './logger.
 
 import { openModal as openModalHelper, closeModal as closeModalHelper } from './modals.js'
 import { buildASTTestForm, createDefaultASTTest } from './ast-test-builder.js'
+import { validateRegexPattern } from './config.js'
 
 function $(sel, root = document) { return root.querySelector(sel) }
 
@@ -60,7 +61,7 @@ function calculateTestNumbers(testConfig) {
 }
 
 function populateGroupSelector(groupSelect, testConfig, currentGroupId = null) {
-    groupSelect.innerHTML = ''
+    while (groupSelect.firstChild) groupSelect.removeChild(groupSelect.firstChild)
 
     // Add "Ungrouped" option
     const ungroupedOption = document.createElement('option')
@@ -447,10 +448,17 @@ function buildEditorForm(existing) {
         cursor: pointer;
         transition: border-color 0.3s;
     `
-    uploadArea.innerHTML = `
-        <div>📁 Drop files here or click to browse</div>
-        <div style="font-size: 0.8em; color: #666; margin-top: 4px">Files will be available to the test at their specified paths</div>
-    `
+    // Build uploadArea content without innerHTML
+    while (uploadArea.firstChild) uploadArea.removeChild(uploadArea.firstChild)
+    const uaLine1 = document.createElement('div')
+    uaLine1.textContent = '📁 Drop files here or click to browse'
+    const uaLine2 = document.createElement('div')
+    uaLine2.style.fontSize = '0.8em'
+    uaLine2.style.color = '#666'
+    uaLine2.style.marginTop = '4px'
+    uaLine2.textContent = 'Files will be available to the test at their specified paths'
+    uploadArea.appendChild(uaLine1)
+    uploadArea.appendChild(uaLine2)
 
     const fileInput = document.createElement('input')
     fileInput.type = 'file'
@@ -498,9 +506,13 @@ function buildEditorForm(existing) {
     let filesData = existing.files || {}
 
     function renderFileList() {
-        fileList.innerHTML = ''
+        while (fileList.firstChild) fileList.removeChild(fileList.firstChild)
         if (Object.keys(filesData).length === 0) {
-            fileList.innerHTML = '<div style="color: #666; font-style: italic;">No files attached</div>'
+            const none = document.createElement('div')
+            none.style.color = '#666'
+            none.style.fontStyle = 'italic'
+            none.textContent = 'No files attached'
+            fileList.appendChild(none)
             return
         }
 
@@ -1327,7 +1339,7 @@ export function initAuthorTests() {
     }
 
     function render() {
-        list.innerHTML = ''
+        while (list.firstChild) list.removeChild(list.firstChild)
         const testNumbers = calculateTestNumbers(testConfig)
 
         // Render groups
@@ -1579,7 +1591,7 @@ export function initAuthorTests() {
 
         // Inject Save/Cancel into header action holder
         const actionHolder = header ? header.querySelector('.modal-header-actions') : null
-        actionHolder && (actionHolder.innerHTML = '')
+        if (actionHolder) { while (actionHolder.firstChild) actionHolder.removeChild(actionHolder.firstChild) }
         const save = document.createElement('button')
         save.className = 'btn btn-primary'
         save.textContent = 'Save'
@@ -1590,7 +1602,7 @@ export function initAuthorTests() {
         actionHolder && actionHolder.appendChild(cancel)
 
         const body = m.querySelector('#author-tests-modal-body')
-        body.innerHTML = ''
+        while (body.firstChild) body.removeChild(body.firstChild)
         body.appendChild(contentWrapper)
 
         try { openModalHelper(m) } catch (_e) { m.setAttribute('aria-hidden', 'false'); m.style.display = 'flex' }
@@ -1614,6 +1626,25 @@ export function initAuthorTests() {
                     }
                 }
             } catch (_e) { /* ignore DOM-check failures */ }
+            // Validate any expected regex patterns authored in the test
+            try {
+                const expectedOut = val.expected_stdout
+                if (expectedOut && typeof expectedOut === 'object' && expectedOut.type === 'regex') {
+                    const vr = validateRegexPattern(String(expectedOut.expression || ''), { maxLength: 2000 })
+                    if (!vr.ok) {
+                        if (headerMessage) headerMessage.textContent = 'Rejected stdout pattern: ' + (vr.reason || 'unsafe pattern')
+                        return
+                    }
+                }
+                const expectedErr = val.expected_stderr
+                if (expectedErr && typeof expectedErr === 'object' && expectedErr.type === 'regex') {
+                    const vr2 = validateRegexPattern(String(expectedErr.expression || ''), { maxLength: 2000 })
+                    if (!vr2.ok) {
+                        if (headerMessage) headerMessage.textContent = 'Rejected stderr pattern: ' + (vr2.reason || 'unsafe pattern')
+                        return
+                    }
+                }
+            } catch (_e) { /* ignore validation errors */ }
             if (!val.id) val.id = genId()
 
             const selectedGroupId = val._selectedGroupId
@@ -1777,6 +1808,26 @@ export function initAuthorTests() {
                 }
             } catch (_e) { /* ignore DOM-check failures */ }
             if (!val.id) val.id = genId()
+
+            // Validate any expected regex patterns authored in the test (new)
+            try {
+                const expectedOut = val.expected_stdout
+                if (expectedOut && typeof expectedOut === 'object' && expectedOut.type === 'regex') {
+                    const vr = validateRegexPattern(String(expectedOut.expression || ''), { maxLength: 2000 })
+                    if (!vr.ok) {
+                        if (headerMessage) headerMessage.textContent = 'Rejected stdout pattern: ' + (vr.reason || 'unsafe pattern')
+                        return
+                    }
+                }
+                const expectedErr = val.expected_stderr
+                if (expectedErr && typeof expectedErr === 'object' && expectedErr.type === 'regex') {
+                    const vr2 = validateRegexPattern(String(expectedErr.expression || ''), { maxLength: 2000 })
+                    if (!vr2.ok) {
+                        if (headerMessage) headerMessage.textContent = 'Rejected stderr pattern: ' + (vr2.reason || 'unsafe pattern')
+                        return
+                    }
+                }
+            } catch (_e) { /* ignore validation errors */ }
 
             const selectedGroupId = val._selectedGroupId
             delete val._selectedGroupId // Remove the temporary field

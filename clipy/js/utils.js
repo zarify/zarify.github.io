@@ -206,3 +206,87 @@ export function renderMarkdown(md) {
 
     return s
 }
+
+/**
+ * Sanitize an HTML fragment using DOMPurify when available, or fall
+ * back to escaping angle brackets. This helper centralises sanitization
+ * so other modules can call it when they need to insert HTML into the DOM.
+ */
+export function sanitizeHtml(html) {
+    try {
+        const raw = html == null ? '' : String(html)
+        if (typeof window !== 'undefined' && window.DOMPurify && typeof window.DOMPurify.sanitize === 'function') {
+            return window.DOMPurify.sanitize(raw)
+        }
+        // Fallback: escape angle brackets to avoid active HTML
+        return String(raw).replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    } catch (_e) {
+        try { return String(html == null ? '' : html).replace(/</g, '&lt;').replace(/>/g, '&gt;') } catch (_ee) { return '' }
+    }
+}
+
+/**
+ * Safely set an element's innerHTML using the central sanitizer. Falls back
+ * to setting textContent if assignment fails.
+ * @param {Element|null|undefined} el - DOM element to update
+ * @param {string|null|undefined} html - Raw HTML fragment (will be sanitized)
+ */
+export function setInnerHTML(el, html) {
+    if (!el) return
+    try {
+        // Use the shared sanitizer to keep behavior consistent across the app.
+        // If DOMPurify is available, insert sanitized HTML. If not, fall back
+        // to setting textContent so potentially dangerous HTML is not
+        // interpreted by the DOM (tests expect this behavior when DOMPurify
+        // isn't present in the test environment).
+        if (typeof window !== 'undefined' && window.DOMPurify && typeof window.DOMPurify.sanitize === 'function') {
+            el.innerHTML = sanitizeHtml(html)
+        } else {
+            // No DOMPurify available: attempt a DOM-based sanitization pass.
+            // This parses the fragment, removes script elements and any
+            // attributes starting with "on" (event handlers), and strips
+            // javascript: URLs. If DOMParser is not available or parsing
+            // fails, fall back to textContent to avoid injecting HTML.
+            try {
+                if (typeof DOMParser !== 'undefined') {
+                    const dp = new DOMParser()
+                    const doc = dp.parseFromString(String(html == null ? '' : html), 'text/html')
+                    if (doc && doc.body) {
+                        // Remove script elements
+                        const scripts = Array.from(doc.body.querySelectorAll('script'))
+                        for (const s of scripts) try { s.remove() } catch (_e) { }
+
+                        // Remove event handler attributes and javascript: href/src
+                        const elems = Array.from(doc.body.querySelectorAll('*'))
+                        for (const elNode of elems) {
+                            try {
+                                const attrs = Array.from(elNode.attributes || [])
+                                for (const a of attrs) {
+                                    const name = String(a.name || '')
+                                    const val = String(a.value || '')
+                                    if (/^on/i.test(name)) {
+                                        elNode.removeAttribute(name)
+                                        continue
+                                    }
+                                    if (/^href$|^src$/i.test(name) && /javascript:/i.test(val)) {
+                                        elNode.removeAttribute(name)
+                                        continue
+                                    }
+                                }
+                            } catch (_e) { }
+                        }
+
+                        // Insert sanitized HTML
+                        el.innerHTML = doc.body.innerHTML
+                        return
+                    }
+                }
+            } catch (_e) { /* fall through to textContent fallback */ }
+
+            // Fallback to textContent if parsing/sanitization failed
+            el.textContent = String(html == null ? '' : html)
+        }
+    } catch (_e) {
+        try { el.textContent = String(html == null ? '' : html) } catch (_ee) { }
+    }
+}

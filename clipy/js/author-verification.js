@@ -191,12 +191,27 @@ export async function renderStudentsList(testConfig = null) {
     const students = getStudentsList()
 
     if (students.length === 0) {
-        container.innerHTML = '<p style="text-align:center;color:#666;font-style:italic;margin:0;">No students added yet.</p>'
+        // Render placeholder using safe DOM APIs instead of innerHTML
+        const p = document.createElement('p')
+        p.style.textAlign = 'center'
+        p.style.color = '#666'
+        p.style.fontStyle = 'italic'
+        p.style.margin = '0'
+        p.textContent = 'No students added yet.'
+        // Clear existing children then append placeholder
+        while (container.firstChild) container.removeChild(container.firstChild)
+        container.appendChild(p)
         return
     }
 
-    // Show loading state
-    container.innerHTML = '<p style="text-align:center;color:#666;margin:0;">Generating codes...</p>'
+    // Show loading state (use safe DOM APIs)
+    while (container.firstChild) container.removeChild(container.firstChild)
+    const loadingP = document.createElement('p')
+    loadingP.style.textAlign = 'center'
+    loadingP.style.color = '#666'
+    loadingP.style.margin = '0'
+    loadingP.textContent = 'Generating codes...'
+    container.appendChild(loadingP)
 
     // Generate codes if we have a test config
     let codes = []
@@ -207,42 +222,89 @@ export async function renderStudentsList(testConfig = null) {
         codes = students.map(studentId => ({ studentId, code: 'Load test config to see codes' }))
     }
 
-    // Render the list
-    let html = '<div style="display:grid;gap:8px;">'
+    // Render the list using DOM methods to avoid innerHTML with dynamic content
+    const wrapper = document.createElement('div')
+    wrapper.style.display = 'grid'
+    wrapper.style.gap = '8px'
 
     codes.forEach(({ studentId, code }) => {
-        // If code indicates no tests, show a friendly notice instead of a code block
+        const item = document.createElement('div')
+
         if (code === 'No tests available in this config') {
-            html += `
-                <div style="padding:8px 12px;background:#fff3cd;border:1px solid #ffeeba;border-radius:4px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <div>
-                            <strong style="color:#333;">${escapeHtml(studentId)}</strong>
-                            <div style="color:#856404;font-family:monospace;font-size:0.9em;margin-top:4px;">This configuration contains no tests. Add tests to generate verification codes.</div>
-                        </div>
-                        <button class="remove-student-btn btn btn-small" data-student="${escapeHtml(studentId)}" 
-                                style="color:#dc3545;border-color:#dc3545;">Remove</button>
-                    </div>
-                </div>
-            `
+            item.style.padding = '8px 12px'
+            item.style.background = '#fff3cd'
+            item.style.border = '1px solid #ffeeba'
+            item.style.borderRadius = '4px'
+
+            const row = document.createElement('div')
+            row.style.display = 'flex'
+            row.style.justifyContent = 'space-between'
+            row.style.alignItems = 'center'
+
+            const left = document.createElement('div')
+            const strong = document.createElement('strong')
+            strong.style.color = '#333'
+            strong.textContent = studentId
+            left.appendChild(strong)
+
+            const note = document.createElement('div')
+            note.style.color = '#856404'
+            note.style.fontFamily = 'monospace'
+            note.style.fontSize = '0.9em'
+            note.style.marginTop = '4px'
+            note.textContent = 'This configuration contains no tests. Add tests to generate verification codes.'
+            left.appendChild(note)
+
+            const removeBtn = document.createElement('button')
+            removeBtn.className = 'remove-student-btn btn btn-small'
+            removeBtn.dataset.student = studentId
+            removeBtn.style.color = '#dc3545'
+            removeBtn.style.borderColor = '#dc3545'
+            removeBtn.textContent = 'Remove'
+
+            row.appendChild(left)
+            row.appendChild(removeBtn)
+            item.appendChild(row)
         } else {
-            html += `
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:white;border:1px solid #ddd;border-radius:4px;">
-                    <div>
-                        <strong style="color:#333;">${escapeHtml(studentId)}</strong>
-                        <div style="color:#666;font-family:monospace;font-size:0.9em;margin-top:4px;">
-                            ${escapeHtml(code)}
-                        </div>
-                    </div>
-                    <button class="remove-student-btn btn btn-small" data-student="${escapeHtml(studentId)}" 
-                            style="color:#dc3545;border-color:#dc3545;">Remove</button>
-                </div>
-            `
+            item.style.display = 'flex'
+            item.style.justifyContent = 'space-between'
+            item.style.alignItems = 'center'
+            item.style.padding = '8px 12px'
+            item.style.background = 'white'
+            item.style.border = '1px solid #ddd'
+            item.style.borderRadius = '4px'
+
+            const left = document.createElement('div')
+            const strong = document.createElement('strong')
+            strong.style.color = '#333'
+            strong.textContent = studentId
+            left.appendChild(strong)
+
+            const codeDiv = document.createElement('div')
+            codeDiv.style.color = '#666'
+            codeDiv.style.fontFamily = 'monospace'
+            codeDiv.style.fontSize = '0.9em'
+            codeDiv.style.marginTop = '4px'
+            codeDiv.textContent = String(code)
+            left.appendChild(codeDiv)
+
+            const removeBtn = document.createElement('button')
+            removeBtn.className = 'remove-student-btn btn btn-small'
+            removeBtn.dataset.student = studentId
+            removeBtn.style.color = '#dc3545'
+            removeBtn.style.borderColor = '#dc3545'
+            removeBtn.textContent = 'Remove'
+
+            item.appendChild(left)
+            item.appendChild(removeBtn)
         }
+
+        wrapper.appendChild(item)
     })
 
-    html += '</div>'
-    container.innerHTML = html
+    // Replace container contents safely
+    container.textContent = ''
+    container.appendChild(wrapper)
 
     // Add remove handlers
     container.querySelectorAll('.remove-student-btn').forEach(btn => {

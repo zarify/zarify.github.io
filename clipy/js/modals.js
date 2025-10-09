@@ -131,36 +131,75 @@ export function showInputModal(title, message, defaultValue) {
                 modal.className = 'modal'
                 modal.setAttribute('role', 'dialog')
                 modal.setAttribute('aria-hidden', 'true')
-                modal.innerHTML = `
-                    <div class="modal-content input-modal-content">
-                        <div class="modal-header">
-                            <h3 id="input-modal-title">Input</h3>
-                            <button id="input-modal-close" class="btn modal-close-btn">×</button>
-                        </div>
-                        <div class="modal-body">
-                            <p id="input-modal-desc" style="margin-top:0;margin-bottom:8px;color:#444"></p>
-                            <input id="input-modal-field" type="text" />
-                        </div>
-                        <div class="modal-actions">
-                            <button id="input-modal-cancel" class="btn">Cancel</button>
-                            <button id="input-modal-ok" class="btn btn-primary">OK</button>
-                        </div>
-                    </div>
-                `
+
+                // Build modal content using safe DOM APIs (avoid innerHTML)
+                const content = document.createElement('div')
+                content.className = 'modal-content input-modal-content'
+
+                const header = document.createElement('div')
+                header.className = 'modal-header'
+
+                const h3 = document.createElement('h3')
+                h3.id = 'input-modal-title'
+                h3.textContent = 'Input'
+
+                const closeButton = document.createElement('button')
+                closeButton.id = 'input-modal-close'
+                closeButton.className = 'btn modal-close-btn'
+                closeButton.textContent = '×'
+
+                header.appendChild(h3)
+                header.appendChild(closeButton)
+
+                const body = document.createElement('div')
+                body.className = 'modal-body'
+
+                const descP = document.createElement('p')
+                descP.id = 'input-modal-desc'
+                descP.style.marginTop = '0'
+                descP.style.marginBottom = '8px'
+                descP.style.color = '#444'
+
+                const inputField = document.createElement('input')
+                inputField.id = 'input-modal-field'
+                inputField.type = 'text'
+
+                body.appendChild(descP)
+                body.appendChild(inputField)
+
+                const actions = document.createElement('div')
+                actions.className = 'modal-actions'
+
+                const cancelBtn = document.createElement('button')
+                cancelBtn.id = 'input-modal-cancel'
+                cancelBtn.className = 'btn'
+                cancelBtn.textContent = 'Cancel'
+
+                const okBtn = document.createElement('button')
+                okBtn.id = 'input-modal-ok'
+                okBtn.className = 'btn btn-primary'
+                okBtn.textContent = 'OK'
+
+                actions.appendChild(cancelBtn)
+                actions.appendChild(okBtn)
+
+                content.appendChild(header)
+                content.appendChild(body)
+                content.appendChild(actions)
+                modal.appendChild(content)
                 document.body.appendChild(modal)
 
                 // Wire up the close button to behave like cancel
-                const closeBtn = $('input-modal-close')
-                if (closeBtn) closeBtn.addEventListener('click', () => {
+                closeButton.addEventListener('click', () => {
                     try { closeModal(modal) } catch (_e) { }
                 })
 
                 // Re-query elements now that modal exists
-                titleEl = $('input-modal-title')
-                desc = $('input-modal-desc')
-                field = $('input-modal-field')
-                ok = $('input-modal-ok')
-                cancel = $('input-modal-cancel')
+                titleEl = h3
+                desc = descP
+                field = inputField
+                ok = okBtn
+                cancel = cancelBtn
             }
 
             titleEl.textContent = title || 'Input'

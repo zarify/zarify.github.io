@@ -1,4 +1,4 @@
-import { $ as _$ } from './utils.js'
+import { $ as _$, sanitizeHtml, setInnerHTML } from './utils.js'
 import { debug as logDebug } from './logger.js'
 import { mapTracebackAndShow } from './code-transform.js'
 
@@ -418,8 +418,6 @@ export function createTerminal(host = (typeof window !== 'undefined' ? window : 
             // It's better to show an unmapped traceback than no traceback at all.
             if ((!mappedText || typeof mappedText !== 'string' || mappedText.trim() === '') && Array.isArray(buf) && buf.length) {
                 try {
-                    console.log('[KAN-8-FIX] Traceback fallback: No mapped text, showing raw stderr')
-                    console.log('[KAN-8-FIX] Buffered stderr lines:', buf.length)
                     appendTerminalDebug('[traceback-fix] No valid mapped text, appending raw buffered stderr')
                     appendTerminal('[DEBUG] TRACEBACK FALLBACK: Showing unmapped error (mapping failed)', 'stdout')
                     const joined = buf.join('\n')
@@ -429,7 +427,6 @@ export function createTerminal(host = (typeof window !== 'undefined' ? window : 
                     try { host.__ssg_terminal_event_log = host.__ssg_terminal_event_log || []; host.__ssg_terminal_event_log.push({ when: Date.now(), action: 'replaceBufferedStderr_raw_append', sample: joined.slice(0, 200) }) } catch (_e) { }
                     return
                 } catch (_e) {
-                    console.error('[KAN-8-FIX] Failed to append raw stderr:', _e)
                     appendTerminalDebug('[traceback-fix] Failed to append raw stderr: ' + _e)
                 }
             }
@@ -823,6 +820,9 @@ export const getTerminalInnerHTML = () => {
 export const setTerminalInnerHTML = (html) => {
     try {
         const out = document && document.getElementById ? document.getElementById('terminal-output') : null
-        if (out) out.innerHTML = html == null ? '' : String(html)
+        if (out) {
+            // Use centralized helper to ensure consistent sanitization and fallback
+            try { setInnerHTML(out, html == null ? '' : html) } catch (_e) { out.textContent = String(html == null ? '' : html) }
+        }
     } catch (_e) { }
 }
