@@ -37,10 +37,10 @@ async function scheduleAutosave() {
         const configIdentity = getConfigIdentity()
         let files = {}
         if (FileManager && typeof FileManager.list === 'function') {
-            const names = FileManager.list()
+            const names = await FileManager.list()
             for (const n of names) {
                 try {
-                    const v = await Promise.resolve(FileManager.read(n))
+                    const v = await FileManager.read(n)
                     if (v != null) files[n] = v
                 } catch (_e) { }
             }

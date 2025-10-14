@@ -720,28 +720,7 @@ export async function migrateFromLocalStorage() {
             }
         }
 
-        // Migrate VFS files
-        const vfsFiles = localStorage.getItem('ssg_files_v1')
-        if (vfsFiles) {
-            try {
-                const files = JSON.parse(vfsFiles)
-                for (const [path, content] of Object.entries(files)) {
-                    try {
-                        // Do not migrate runtime/system device files into unified storage.
-                        if (/^\/dev\//i.test(path) || /^\/proc\//i.test(path) || /^\/tmp\//i.test(path) || /^\/temp\//i.test(path)) {
-                            if (window.__SSG_DEBUG || window.__ssg_debug_logs) console.info('[migrate] Skipping system path during VFS migration:', path)
-                            continue
-                        }
-                        try { persistToInMemory(STORES.FILES, { path, content, timestamp: Date.now() }) } catch (_e) { }
-                        await saveFile(path, content)
-                    } catch (_e) { /* per-file ignore */ }
-                }
-                try { localStorage.removeItem('ssg_files_v1') } catch (_e) { }
-                logDebug('Migrated VFS files (excluding runtime/system paths)')
-            } catch (e) {
-                logWarn('Failed to migrate VFS files:', e)
-            }
-        }
+        // Legacy localStorage VFS migration removed: 'ssg_files_v1' is no longer used.
 
         // Migrate author config
         const authorConfig = localStorage.getItem('author_config')
@@ -802,7 +781,6 @@ export function cleanupLocalStorage() {
         if (key && (
             key.startsWith('snapshots_') ||
             key === 'current_config' ||
-            key === 'ssg_files_v1' ||
             key === 'author_config' ||
             key === 'autosave' ||
             key === 'student_id' ||
@@ -821,42 +799,6 @@ export function cleanupLocalStorage() {
 // the unified FILES store (i.e., every path/value pair matches an entry
 // in the unified storage). Returns an object describing the outcome.
 export async function verifyAndCleanupVfsLocalStorage() {
-    const KEY = 'ssg_files_v1'
-    if (!window.localStorage) return { removed: false, reason: 'no_localStorage' }
-    const raw = localStorage.getItem(KEY)
-    if (!raw) return { removed: false, reason: 'missing' }
-
-    let parsed = null
-    try { parsed = JSON.parse(raw) } catch (e) { return { removed: false, reason: 'invalid_json', error: e && e.message } }
-
-    // parsed should be an object mapping path -> content
-    if (!parsed || typeof parsed !== 'object') return { removed: false, reason: 'invalid_shape' }
-
-    try {
-        // For each file, compare with unified storage's saved file content
-        const mismatches = []
-        const keys = Object.keys(parsed)
-        for (const p of keys) {
-            try {
-                const unifiedContent = await loadFile(p)
-                const legacyContent = parsed[p]
-                // Coerce both to strings for comparison (null/undefined -> '')
-                if (String(unifiedContent || '') !== String(legacyContent || '')) {
-                    mismatches.push({ path: p, legacy: String(legacyContent || ''), unified: String(unifiedContent || '') })
-                }
-            } catch (e) {
-                mismatches.push({ path: p, error: e && e.message })
-            }
-        }
-
-        if (mismatches.length === 0) {
-            // All files present and match; safe to remove legacy key
-            try { localStorage.removeItem(KEY) } catch (_e) { /* ignore */ }
-            return { removed: true, count: keys.length }
-        }
-
-        return { removed: false, reason: 'mismatches', mismatches }
-    } catch (e) {
-        return { removed: false, reason: 'error', error: e && e.message }
-    }
+    // Legacy localStorage VFS key no longer used. Report as already removed.
+    return { removed: true, count: 0, reason: 'deprecated' }
 }

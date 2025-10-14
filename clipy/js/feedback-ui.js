@@ -1,6 +1,8 @@
-import { $ } from './utils.js'
+import { $, renderMarkdown, setInnerHTML } from './utils.js'
 import { debug as logDebug } from './logger.js'
 import { getStudentIdentifier, generateVerificationCode, shouldShowVerificationCode } from './zero-knowledge-verification.js'
+
+
 
 let _matches = []
 let _config = { feedback: [] }
@@ -160,7 +162,11 @@ function renderList() {
                     titleEl.className = 'feedback-title'
                     const authorEntry = findAuthorEntryById(r.id) || (r.meta || null)
                     const displayTitle = (authorEntry && (authorEntry.description || authorEntry.title)) ? (authorEntry.description || authorEntry.title) : ((r.description) ? r.description : (r.id || ''))
-                    titleEl.textContent = displayTitle
+                    try {
+                        setInnerHTML(titleEl, renderMarkdown(String(displayTitle || '')))
+                    } catch (_e) {
+                        titleEl.textContent = displayTitle
+                    }
                     titleRow.appendChild(titleEl)
                     tr.appendChild(titleRow)
 
@@ -198,7 +204,7 @@ function renderList() {
                                 fm.className = 'test-failure-message'
                                 fm.style.marginTop = '6px'
                                 fm.style.color = '#d33'
-                                fm.textContent = String(authorEntry.failureMessage)
+                                try { setInnerHTML(fm, renderMarkdown(String(authorEntry.failureMessage || ''))) } catch (_e) { fm.textContent = String(authorEntry.failureMessage) }
                                 detailsWrap.appendChild(fm)
                             }
                         } catch (_e) { }
@@ -250,7 +256,7 @@ function renderList() {
                                 fm.className = 'test-failure-message'
                                 fm.style.marginTop = '6px'
                                 fm.style.color = '#d33'
-                                fm.textContent = String(authorEntry.failureMessage)
+                                try { setInnerHTML(fm, renderMarkdown(String(authorEntry.failureMessage || ''))) } catch (_e) { fm.textContent = String(authorEntry.failureMessage) }
                                 detailsWrap.appendChild(fm)
                             }
                         } catch (_e) { }
@@ -275,7 +281,7 @@ function renderList() {
                             fm.className = 'test-failure-message'
                             fm.style.marginTop = '6px'
                             fm.style.color = '#d33'
-                            fm.textContent = String(authorEntry.failureMessage)
+                            try { setInnerHTML(fm, renderMarkdown(String(authorEntry.failureMessage || ''))) } catch (_e) { fm.textContent = String(authorEntry.failureMessage) }
                             astWrap.appendChild(fm)
                             tr.appendChild(astWrap)
                         }
@@ -316,7 +322,11 @@ function renderList() {
                     titleEl.className = 'feedback-title'
                     const authorEntry = findAuthorEntryById(r.id) || (r.meta || null)
                     const displayTitle = (authorEntry && (authorEntry.description || authorEntry.title)) ? (authorEntry.description || authorEntry.title) : ((r.description) ? r.description : (r.id || ''))
-                    titleEl.textContent = displayTitle
+                    try {
+                        setInnerHTML(titleEl, renderMarkdown(String(displayTitle || '')))
+                    } catch (_e) {
+                        titleEl.textContent = displayTitle
+                    }
                     titleRow.appendChild(titleEl)
                     tr.appendChild(titleRow)
                     tr.addEventListener('click', () => { try { window.dispatchEvent(new CustomEvent('ssg:test-click', { detail: r })) } catch (_e) { } })
@@ -335,7 +345,7 @@ function renderList() {
                             fm.className = 'test-failure-message'
                             fm.style.marginTop = '6px'
                             fm.style.color = '#d33'
-                            fm.textContent = String(authorEntry.failureMessage)
+                            try { setInnerHTML(fm, renderMarkdown(String(authorEntry.failureMessage || ''))) } catch (_e) { fm.textContent = String(authorEntry.failureMessage) }
                             astWrap.appendChild(fm)
                             tr.appendChild(astWrap)
                         }
@@ -381,7 +391,7 @@ function renderList() {
                     // If we attached meta to the result earlier, use it as a fallback
                     if (!authorEntry && r && r.meta) authorEntry = r.meta
                     const displayTitle = (authorEntry && (authorEntry.description || authorEntry.title)) ? (authorEntry.description || authorEntry.title) : ((r.description) ? r.description : (r.id || ''))
-                    titleEl.textContent = displayTitle
+                    try { setInnerHTML(titleEl, renderMarkdown(String(displayTitle || ''))) } catch (_e) { titleEl.textContent = displayTitle }
                     titleRow.appendChild(titleEl)
                     tr.appendChild(titleRow)
 
@@ -404,7 +414,7 @@ function renderList() {
                             fm.className = 'test-failure-message'
                             fm.style.marginTop = '6px'
                             fm.style.color = '#d33'
-                            fm.textContent = String(authorEntry.failureMessage)
+                            try { setInnerHTML(fm, renderMarkdown(String(authorEntry.failureMessage || ''))) } catch (_e) { fm.textContent = String(authorEntry.failureMessage) }
                             det.appendChild(fm)
                             tr.appendChild(det)
                         }
@@ -415,7 +425,7 @@ function renderList() {
             } else {
                 const p = document.createElement('div')
                 p.className = 'feedback-msg feedback-msg-hidden'
-                p.textContent = '(no test results)'
+                try { setInnerHTML(p, renderMarkdown('(no test results)')) } catch (_e) { p.textContent = '(no test results)' }
                 testsSection.appendChild(p)
             }
         }
@@ -450,7 +460,7 @@ function renderList() {
 
             const titleEl = document.createElement('div')
             titleEl.className = 'feedback-title'
-            titleEl.textContent = title
+            try { setInnerHTML(titleEl, renderMarkdown(String(title || ''))) } catch (_e) { titleEl.textContent = title }
             titleRow.appendChild(titleEl)
 
             // If matched, always show a compact right-aligned indicator in the title row
@@ -481,7 +491,7 @@ function renderList() {
                 // a subtle child of the title rather than a boxed panel.
                 const msg = document.createElement('div')
                 msg.className = 'feedback-msg feedback-msg-matched matched-' + sev
-                msg.textContent = matched.message
+                try { setInnerHTML(msg, renderMarkdown(String(matched.message || ''))) } catch (_e) { msg.textContent = matched.message }
                 wrapper.appendChild(msg)
             } else if (entry.visibleByDefault) {
                 // Show an empty placeholder or hint for visible-by-default entries
@@ -602,6 +612,16 @@ export function setFeedbackConfig(cfg) {
     } catch (_e) { }
 
     _config = normalizedCfg
+    // When the config changes, any previously-computed matches or
+    // stream buffers from the prior config may be stale. Clear them so
+    // the feedback rules will be re-evaluated and the UI won't show
+    // matches that belonged to the previous config.
+    try {
+        _matches = []
+        _prevMatchedIds = new Set()
+        _streamBuffers = {}
+    } catch (_e) { }
+
     renderList()
     // Mark feedback tab as having new feedback if there are visible entries
     try {
@@ -1092,7 +1112,7 @@ function renderTestResults(results, cfgMap, groupMap, showGroups) {
             groupSection.style.marginBottom = '20px'
 
             const groupHeader = document.createElement('h3')
-            groupHeader.textContent = groupData.info.name
+            try { setInnerHTML(groupHeader, renderMarkdown(String(groupData.info.name || ''))) } catch (_e) { groupHeader.textContent = groupData.info.name }
             groupHeader.style.margin = '16px 0 12px 0'
             groupHeader.style.padding = '4px 0 4px 5px'
             groupHeader.style.borderLeft = '4px solid #5c5'
@@ -1206,7 +1226,7 @@ function createTestResultRow(r, cfgMap, groupMap, isGrouped) {
         }
     }
 
-    title.textContent = titleText
+    try { setInnerHTML(title, renderMarkdown(String(titleText || ''))) } catch (_e) { title.textContent = titleText }
     title.style.fontWeight = '600'
     left.appendChild(title)
 
@@ -1308,13 +1328,13 @@ function createTestResultRow(r, cfgMap, groupMap, isGrouped) {
     if (r.passed && meta && meta.pass_feedback) {
         const pf = document.createElement('div')
         pf.className = 'test-pass-feedback'
-        pf.textContent = String(meta.pass_feedback)
+        try { setInnerHTML(pf, renderMarkdown(String(meta.pass_feedback || ''))) } catch (_e) { pf.textContent = String(meta.pass_feedback) }
         pf.style.color = '#0a6'
         fb.appendChild(pf)
     } else if (!r.passed && meta && meta.fail_feedback) {
         const ff = document.createElement('div')
         ff.className = 'test-fail-feedback'
-        ff.textContent = String(meta.fail_feedback)
+        try { setInnerHTML(ff, renderMarkdown(String(meta.fail_feedback || ''))) } catch (_e) { ff.textContent = String(meta.fail_feedback) }
         ff.style.color = '#d33'
         fb.appendChild(ff)
     }
@@ -1354,7 +1374,7 @@ function createTestResultRow(r, cfgMap, groupMap, isGrouped) {
                 fm.className = 'test-failure-message'
                 fm.style.marginTop = '6px'
                 fm.style.color = '#d33'
-                fm.textContent = String(meta.failureMessage)
+                try { setInnerHTML(fm, renderMarkdown(String(meta.failureMessage || ''))) } catch (_e) { fm.textContent = String(meta.failureMessage) }
                 detWrap.appendChild(fm)
             }
         } catch (_e) { }
@@ -1379,7 +1399,7 @@ function createTestResultRow(r, cfgMap, groupMap, isGrouped) {
             fm.className = 'test-failure-message'
             fm.style.marginTop = '6px'
             fm.style.color = '#d33'
-            fm.textContent = String(meta.failureMessage)
+            try { setInnerHTML(fm, renderMarkdown(String(meta.failureMessage || ''))) } catch (_e) { fm.textContent = String(meta.failureMessage) }
             astWrap.appendChild(fm)
             fb.appendChild(astWrap)
         }

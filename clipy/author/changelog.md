@@ -1,3 +1,11 @@
+## 2025-10-14
+- Fix: Feedback rules get recalculated on problem change
+- Fix: Config state is cleaned on problem change
+- Fix: AST docstring test works now
+- Change: Removed in-memory mirror of workspace. Just using IDB now.
+- Feature: Feedback and tests can use markdown now
+- Feature: Errors from config loads now displayed to user
+
 ## 2025-10-09
 - Feature: Success indicators for lists of problems
   - When a problem's test suite is passed a check will appear in the config list drop-down

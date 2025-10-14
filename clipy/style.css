@@ -1298,6 +1298,88 @@ pre#terminal-output {
     /* pale yellow */
 }
 
+/* Compact markdown/feedback spacing tweaks
+   These rules reduce vertical whitespace for rendered markdown inside
+   feedback entries and the test-results modal so lists remain compact
+   after switching to a markdown renderer. They are scoped tightly to
+   avoid affecting global content. */
+.feedback-entry,
+.feedback-section,
+.feedback-section * {
+    /* Use slightly tighter defaults inside feedback areas */
+    line-height: 1.25;
+}
+
+.feedback-entry .feedback-msg,
+.feedback-entry .feedback-msg-matched,
+.feedback-entry .feedback-title,
+.feedback-entry .feedback-title-row {
+    margin: 0;
+    padding: 0;
+}
+
+/* Target common rendered markdown elements within feedback entries */
+.feedback-entry p,
+.feedback-entry ul,
+.feedback-entry ol,
+.feedback-entry pre,
+.feedback-entry blockquote,
+.feedback-entry h1,
+.feedback-entry h2,
+.feedback-entry h3,
+.feedback-entry h4,
+.feedback-entry h5,
+.feedback-entry h6 {
+    margin-top: 0.2rem;
+    margin-bottom: 0.2rem;
+}
+
+.feedback-entry p+p,
+.feedback-entry ul+p,
+.feedback-entry p+ul {
+    margin-top: 0.25rem;
+}
+
+.feedback-entry ul,
+.feedback-entry ol {
+    padding-left: 1.1em;
+    /* keep bullets aligned but compact */
+}
+
+.feedback-entry pre {
+    padding: 6px;
+    margin: 0.2rem 0;
+    border-radius: 4px;
+    max-height: 18rem;
+    overflow: auto;
+}
+
+/* Compact styling for the test results modal content */
+.test-results-content,
+.test-results-box {
+    line-height: 1.25;
+}
+
+.test-results-content p,
+.test-results-content li,
+.test-results-content ol,
+.test-results-content ul,
+.test-results-content pre,
+.test-results-content blockquote {
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+/* Reduce padding on individual test result rows to keep list compact */
+.test-result-row {
+    padding: 6px 0;
+}
+
+/* Make verification code area a bit tighter */
+#verification-code-display {
+    padding: 8px 12px;
+}
+
 .matched-success .feedback-match-indicator,
 .matched-success.feedback-entry .feedback-match-indicator,
 .severity-success .feedback-match-indicator {

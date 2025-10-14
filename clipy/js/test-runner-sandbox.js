@@ -36,15 +36,22 @@ export function createSandboxedRunFn({ runtimeUrl = './vendor/micropython.mjs', 
                     // parent short-circuit for AST test
                     // proceed using astRuleObj (may be empty object)
                     try {
-                        // Determine code to analyze: prefer test.main, then filesSnapshot['/main.py'] or similar
+                        // Determine code to analyze: prefer test.main, then read from FileManager
+                        // which now reads directly from IndexedDB (single source of truth, fixes KAN-25).
                         let code = ''
                         if (typeof test.main === 'string' && test.main.trim()) {
                             code = test.main
                         } else {
-                            // Use provided snapshot keys; support both '/main.py' and 'main.py'
-                            const mainKeys = ['/main.py', 'main.py', '/main', 'main']
-                            for (const k of mainKeys) {
-                                if (Object.prototype.hasOwnProperty.call(filesSnapshot || {}, k)) { code = String(filesSnapshot[k] || ''); break }
+                            // Read from FileManager - now async and always reads from backend
+                            try {
+                                const { getFileManager, MAIN_FILE } = await import('./vfs-client.js')
+                                const FileManager = (typeof getFileManager === 'function') ? getFileManager() : null
+                                if (FileManager && typeof FileManager.read === 'function') {
+                                    code = (await FileManager.read(MAIN_FILE || '/main.py')) || ''
+                                }
+                            } catch (e) {
+                                // Import or read failed - code remains empty
+                                code = ''
                             }
                         }
                         // Import analyzer and evaluate

@@ -914,7 +914,7 @@ export class ReplayEngine {
                 // When rewinding, ensure we're on the correct file for the first step
                 const firstStep = executionTrace.getStep(0)
                 if (firstStep && firstStep.filename) {
-                    this.ensureCorrectFileIsActive(firstStep.filename)
+                    try { await this.ensureCorrectFileIsActive(firstStep.filename) } catch (e) { appendTerminalDebug('ensureCorrectFileIsActive rewind error: ' + e) }
                 }
                 this.displayCurrentStep()
                 this.updateUI()
@@ -955,7 +955,18 @@ export class ReplayEngine {
             // Get the first execution step to determine which file to show.
             const firstStep = executionTrace.getStep(0)
             if (firstStep && firstStep.filename) {
-                this.ensureCorrectFileIsActive(firstStep.filename)
+                // Ensure the asynchronous tab/file switch completes BEFORE we
+                // set `originalTrace`. Previously we called the switch helper
+                // without awaiting and then set originalTrace immediately; the
+                // comment claimed we set it "after file switching is complete",
+                // but because `switchToFile` is async that wasn't guaranteed and
+                // could race with editor/file-change handlers that invalidate
+                // recordings. Await the switch to avoid that race.
+                try {
+                    await this.switchToFile(firstStep.filename)
+                } catch (e) {
+                    appendTerminalDebug('Failed to switch file before setting originalTrace: ' + e)
+                }
             }
 
             // NOW set originalTrace AFTER file switching is complete
@@ -980,7 +991,8 @@ export class ReplayEngine {
             appendTerminalDebug(`🎬 About to display first step - originalTrace: ${this.originalTrace ? `${this.originalTrace.getStepCount()} steps` : 'NULL!'} `)
             this.displayCurrentStep()
 
-            appendTerminalDebug(`Replay started with ${executionTrace.getStepCount()} steps`)
+            // Log the actual number of UI-visible steps (filtered executionTrace)
+            appendTerminalDebug(`Replay started with ${this.executionTrace ? this.executionTrace.getStepCount() : 0} steps`)
             return true
         } catch (error) {
             appendTerminalDebug('Failed to start replay: ' + error)
@@ -1345,7 +1357,7 @@ export class ReplayEngine {
     /**
      * Display the current step
      */
-    displayCurrentStep() {
+    async displayCurrentStep() {
         appendTerminalDebug(`📺 displayCurrentStep() START - originalTrace: ${this.originalTrace ? `${this.originalTrace.getStepCount()} steps` : 'NULL!'}`)
         if (!this.isReplaying || !this.executionTrace || !this.lineDecorator) {
             return
@@ -1363,7 +1375,12 @@ export class ReplayEngine {
             // This prevents highlighting lines in non-code files like .txt data files.
             if (step.filename) {
                 appendTerminalDebug(`📁 About to ensureCorrectFileIsActive - originalTrace: ${this.originalTrace ? `${this.originalTrace.getStepCount()} steps` : 'NULL!'}`)
-                this.ensureCorrectFileIsActive(step.filename)
+                // Await the file switch to ensure editor setValue completes before applying decorations
+                try {
+                    await this.ensureCorrectFileIsActive(step.filename)
+                } catch (e) {
+                    appendTerminalDebug('ensureCorrectFileIsActive error: ' + e)
+                }
                 appendTerminalDebug(`📁 After ensureCorrectFileIsActive - originalTrace: ${this.originalTrace ? `${this.originalTrace.getStepCount()} steps` : 'NULL!'}`)
             }
 
@@ -1411,22 +1428,27 @@ export class ReplayEngine {
      * Ensure the correct Python code file is active for replay. This prevents
      * highlighting lines in non-code files (like .txt data files).
      */
-    ensureCorrectFileIsActive(targetFilename) {
+    async ensureCorrectFileIsActive(targetFilename) {
         try {
             // Get the currently active file from TabManager
             const currentActiveFile = window.TabManager && typeof window.TabManager.getActive === 'function'
                 ? window.TabManager.getActive()
                 : null
 
-            // Normalize target filename
-            const normalizedTarget = targetFilename.startsWith('/') ? targetFilename : `/${targetFilename}`
+            // Normalize target filename using shared utility so special
+            // values like '<stdin>' are mapped to '/main.py'. This avoids
+            // switching to incorrect paths like '/<stdin>' which break
+            // AST lookups and variable annotation.
+            const normalizedTarget = (typeof normalizeFilename === 'function')
+                ? normalizeFilename(targetFilename)
+                : (targetFilename && targetFilename.startsWith('/') ? targetFilename : `/${targetFilename}`)
 
             // Check if target is a Python code file (not a data file)
-            const isTargetPythonFile = normalizedTarget.endsWith('.py')
+            const isTargetPythonFile = normalizedTarget && normalizedTarget.endsWith('.py')
 
             if (!isTargetPythonFile) {
                 // appendTerminalDebug(`Target file ${normalizedTarget} is not a Python file, defaulting to /main.py`)
-                this.switchToFile('/main.py')
+                await this.switchToFile('/main.py')
                 return
             }
 
@@ -1435,7 +1457,7 @@ export class ReplayEngine {
 
             if (!isCurrentPythonFile || currentActiveFile !== normalizedTarget) {
                 // appendTerminalDebug(`Switching from ${currentActiveFile || 'unknown'} to ${normalizedTarget} for replay`)
-                this.switchToFile(normalizedTarget)
+                await this.switchToFile(normalizedTarget)
             } else {
                 // Already on the correct file, just update our tracker
                 this.currentFilename = normalizedTarget
@@ -1444,7 +1466,7 @@ export class ReplayEngine {
             appendTerminalDebug('Failed to ensure correct file is active: ' + error)
             // Fall back to main.py on error
             try {
-                this.switchToFile('/main.py')
+                await this.switchToFile('/main.py')
             } catch (e) { /* ignore */ }
         }
     }
@@ -1452,10 +1474,14 @@ export class ReplayEngine {
     /**
      * Switch to a different file tab
      */
-    switchToFile(filename) {
+    async switchToFile(filename) {
         try {
-            // Normalize the filename
-            const normalizedFilename = filename.startsWith('/') ? filename : `/${filename}`
+            // Normalize the filename using shared utility so special values
+            // like '<stdin>' are mapped to '/main.py' and leading-slash
+            // rules are applied consistently.
+            const normalizedFilename = (typeof normalizeFilename === 'function')
+                ? normalizeFilename(filename)
+                : (filename && filename.startsWith('/') ? filename : `/${filename}`)
 
             // Try to switch to the tab using the TabManager
             if (window.TabManager && typeof window.TabManager.selectTab === 'function') {
@@ -1473,7 +1499,7 @@ export class ReplayEngine {
                             if (typeof FileManager.write === 'function' && cur !== null) {
                                 // Use system write mode wherever callers expect it to bypass read-only checks
                                 try { if (typeof window.setSystemWriteMode === 'function') window.setSystemWriteMode(true) } catch (_e) { }
-                                try { FileManager.write(activePath, cur) } catch (_e) { }
+                                try { await FileManager.write(activePath, cur) } catch (_e) { }
                                 try { if (typeof window.setSystemWriteMode === 'function') window.setSystemWriteMode(false) } catch (_e) { }
                             }
                         } catch (_e) { /* swallow persistence errors */ }
@@ -1481,7 +1507,16 @@ export class ReplayEngine {
                 } catch (_e) { }
 
                 appendTerminalDebug(`Switching to file: ${normalizedFilename}`)
-                window.TabManager.selectTab(normalizedFilename)
+                // TabManager.selectTab is async; await it so the editor
+                // setValue and any change handlers complete before we
+                // attempt to add highlights or widgets. Not awaiting
+                // caused race conditions where highlights were cleared
+                // by the programmatic setValue that runs during tab switch.
+                try {
+                    await window.TabManager.selectTab(normalizedFilename)
+                } catch (_e) {
+                    // If selectTab fails for any reason, still set currentFilename
+                }
                 this.currentFilename = normalizedFilename
             } else {
                 appendTerminalDebug('TabManager not available for file switching')

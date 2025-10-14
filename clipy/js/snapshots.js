@@ -20,7 +20,7 @@ export async function restoreCurrentSnapshotIfExists() {
 }
 // Snapshot management system
 import { $ } from './utils.js'
-import { getFileManager, MAIN_FILE, getBackendRef, getMem, setSystemWriteMode } from './vfs-client.js'
+import { getFileManager, MAIN_FILE, getBackendRef, setSystemWriteMode } from './vfs-client.js'
 import { openModal, closeModal, showConfirmModal } from './modals.js'
 import { appendTerminal, activateSideTab } from './terminal.js'
 import { getConfigKey, getConfigIdentity, getConfig } from './config.js'
@@ -268,21 +268,18 @@ async function saveSnapshot() {
         }
 
         const FileManager = getFileManager()
-        const mem = getMem()
         const backendRef = getBackendRef()
 
         // Use the global FileManager as the authoritative source for snapshot contents
         try {
             if (FileManager && typeof FileManager.list === 'function') {
-                const names = FileManager.list()
+                const names = await FileManager.list()
                 for (const n of names) {
                     try {
                         const v = await Promise.resolve(FileManager.read(n))
                         if (v != null) snap.files[n] = v
                     } catch (_e) { }
                 }
-            } else if (mem && Object.keys(mem).length) {
-                for (const k of Object.keys(mem)) snap.files[k] = mem[k]
             } else if (backendRef && typeof backendRef.list === 'function') {
                 const names = await backendRef.list()
                 for (const n of names) {
@@ -293,7 +290,10 @@ async function saveSnapshot() {
             } else {
                 // No backend/FileManager available; avoid using localStorage.
                 // Leave snap.files empty rather than writing/reading legacy mirrors.
-                // Tests may populate window.__ssg_mem or provide a backend.
+                // Tests should not rely on the legacy global `window.__ssg_mem`.
+                // Instead, provide a FileManager test shim (via
+                // `createFileManager(host)`) or mock the backend so snapshot
+                // reads/writes are deterministic and do not depend on a global.
             }
         } catch (e) {
             // On error, avoid touching localStorage; just continue with what we have.
@@ -555,7 +555,8 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
         const snap = s
 
         const backend = window.__ssg_vfs_backend
-        const { mem } = await window.__ssg_vfs_ready.catch(() => ({ mem: window.__ssg_mem }))
+        // Do not fall back to legacy global mem; rely on backend/FileManager for state.
+        await window.__ssg_vfs_ready.catch(() => ({}))
         const FileManager = window.FileManager
 
         if (backend && typeof backend.write === 'function') {
@@ -587,29 +588,13 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
                 }
             }
 
-            // Replace in-memory mirror with snapshot contents for synchronous reads
-            try {
-                if (mem) {
-                    Object.keys(mem).forEach(k => delete mem[k])
-                    for (const p of Object.keys(snap.files || {})) mem[p] = snap.files[p]
-                }
-            } catch (e) {
-                logError('Failed to update mem:', e)
-            }
-        } else if (mem) {
-            // Replace mem entirely so files from other snapshots are removed
-            try {
-                Object.keys(mem).forEach(k => delete mem[k])
-                for (const p of Object.keys(snap.files || {})) mem[p] = snap.files[p]
-            } catch (e) {
-                logError('Failed to update mem directly:', e)
-            }
+            // No internal mem to update; rely on backend/FileManager for read paths.
         }
 
         // Reconcile via FileManager to ensure mem/localStorage/backend are consistent
         try {
             if (FileManager && typeof FileManager.list === 'function') {
-                const existing = FileManager.list() || []
+                const existing = (await FileManager.list()) || []
                 for (const p of existing) {
                     try {
                         if (p === MAIN_FILE) continue
@@ -637,20 +622,7 @@ async function restoreSnapshot(index, snapshots, suppressSideTab = false) {
             logError('FileManager reconciliation failed:', e)
         }
 
-        // Definitively replace in-memory map with snapshot contents to avoid any stale entries
-        try {
-            if (mem) {
-                Object.keys(mem).forEach(k => delete mem[k])
-                for (const p of Object.keys(snap.files || {})) mem[p] = snap.files[p]
-                try {
-                    // Do not update legacy localStorage mirror.
-                } catch (e) {
-                    logError('Final localStorage update failed:', e)
-                }
-            }
-        } catch (e) {
-            logError('Final mem update failed:', e)
-        }
+        // No internal mem mirror to update in this process.
 
         const modal = $('snapshot-modal')
         closeModal(modal)
@@ -923,35 +895,10 @@ async function clearStorage() {
             } catch (_e) { }
         }
 
-        // Legacy localStorage fallback: remove `ssg_files_v1` if it exists and count its files
-        try {
-            if (typeof localStorage !== 'undefined') {
-                const legacy = localStorage.getItem('ssg_files_v1')
-                if (legacy) {
-                    try {
-                        const parsed = JSON.parse(legacy)
-                        if (parsed && typeof parsed === 'object') {
-                            const fileCount = Object.keys(parsed).length
-                            if (fileCount > 0) {
-                                actuallyDeleted += fileCount
-                                try { localStorage.removeItem('ssg_files_v1') } catch (_e) { }
-                            }
-                        }
-                    } catch (_e) { }
-                }
-                // Remove any legacy snapshots_* keys from localStorage too
-                try {
-                    const toRemove = []
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const key = localStorage.key(i)
-                        if (key && key.startsWith('snapshots_')) toRemove.push(key)
-                    }
-                    for (const k of toRemove) {
-                        try { localStorage.removeItem(k) } catch (_e) { }
-                    }
-                } catch (_e) { }
-            }
-        } catch (_e) { }
+        // Legacy localStorage mirror removal is intentionally skipped here.
+        // Unified storage clear operations above are authoritative. Tests
+        // that install a localStorage shim or in-memory fallback should
+        // manage their own cleanup. Avoid touching browser localStorage.
 
         // Report that snapshot data was cleared. Use a simple, generic
         // message instead of attempting to report exact counts which can

@@ -165,7 +165,12 @@ export class ExecutionStep {
         this.timestamp = timestamp || performance.now()
         this.stackDepth = 0             // Function call depth
         this.executionType = 'line'     // 'line', 'call', 'return', 'exception'
-        this.filename = filename || '/main.py'  // File path where this step occurred
+        // Normalize filename to canonical internal form (use /main.py for <stdin>)
+        try {
+            this.filename = normalizeFilename(filename) || '/main.py'
+        } catch (_e) {
+            this.filename = filename || '/main.py'
+        }
     }
 }
 
@@ -1303,6 +1308,12 @@ export class ExecutionRecorder {
         }
 
         try {
+            // Normalize filename early to ensure all internal maps use the
+            // canonical leading-slash form and that '<stdin>' maps to '/main.py'.
+            try {
+                filename = normalizeFilename(filename) || '/main.py'
+            } catch (_e) { filename = filename || '/main.py' }
+
             // If this line is part of a comprehension we want to collapse
             // internal iteration steps (which usually have no user-visible
             // variable assignments) into a single step. We detect this by

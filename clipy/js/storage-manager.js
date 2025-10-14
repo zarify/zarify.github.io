@@ -37,6 +37,7 @@ export function createStorageManager(opts = {}) {
                     if (key.startsWith('snapshots_')) {
                         breakdown.snapshots += size
                     } else if (key === 'ssg_files_v1') {
+                        // Legacy key may exist in some test harnesses; account under files
                         breakdown.files += size
                     } else if (key === 'autosave') {
                         breakdown.autosave += size
@@ -259,7 +260,8 @@ export function createStorageManager(opts = {}) {
         try {
             for (let key in storage) {
                 if (Object.prototype.hasOwnProperty.call(storage, key)) {
-                    if (key.startsWith('snapshots_') || key === 'ssg_files_v1' || key === 'autosave') keysToRemove.push(key)
+                    // Remove snapshots, autosave and known legacy file mirror keys
+                    if (key.startsWith('snapshots_') || key === 'autosave' || key === 'ssg_files_v1' || key === 'legacy_files') keysToRemove.push(key)
                 }
             }
         } catch (_e) { }

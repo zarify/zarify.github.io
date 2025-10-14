@@ -160,10 +160,10 @@ async function syncVFSBeforeRun(recordingEnabled, recorder, currentRuntimeAdapte
             if (backend && typeof backend.write === 'function' && typeof FileManager?.list === 'function') {
                 try {
                     setSystemWriteMode(true)
-                    const files = FileManager.list()
+                    const files = await FileManager.list()
                     for (const p of files) {
                         try {
-                            const c = FileManager.read(p)
+                            const c = await FileManager.read(p)
                             // suppress notifier echoes while we push UI files into backend
                             try { window.__ssg_suppress_notifier = true } catch (_e) { }
                             await backend.write(p, c == null ? '' : c)
@@ -176,10 +176,10 @@ async function syncVFSBeforeRun(recordingEnabled, recorder, currentRuntimeAdapte
                 appendTerminalDebug('Synced UI FileManager -> backend (pre-run)')
             } else if (fs && typeof fs.writeFile === 'function' && typeof FileManager?.list === 'function') {
                 // no async backend available; write directly into runtime FS from UI FileManager
-                const files = FileManager.list()
+                const files = await FileManager.list()
                 for (const p of files) {
                     try {
-                        const content = FileManager.read(p) || ''
+                        const content = (await FileManager.read(p)) || ''
                         try { markExpectedWrite(p, content) } catch (_e) { }
                         try { window.__ssg_suppress_notifier = true } catch (_e) { }
                         fs.writeFile(p, content)
@@ -296,7 +296,7 @@ async function syncVFSAfterRun() {
                         const FileManager = getFileManager()
                         let mainContent = null
                         if (FileManager && typeof FileManager.read === 'function') {
-                            mainContent = FileManager.read(MAIN_FILE)
+                            mainContent = await FileManager.read(MAIN_FILE)
                         }
                         // Fallback to the current editor content only if FileManager doesn't have MAIN_FILE
                         if (mainContent == null) {
@@ -304,17 +304,23 @@ async function syncVFSAfterRun() {
                             const textarea = document.getElementById('code')
                             mainContent = (cm ? cm.getValue() : (textarea ? textarea.value : ''))
                         }
-                        const map = JSON.parse(localStorage.getItem('ssg_files_v1') || '{}')
-                        map[MAIN_FILE] = mainContent || ''
-                        localStorage.setItem('ssg_files_v1', JSON.stringify(map))
+                        // Prefer FileManager/unified storage; do not write legacy localStorage mirror.
+                        try {
+                            const FileManager = getFileManager()
+                            if (FileManager && typeof FileManager.write === 'function' && mainContent != null) {
+                                await FileManager.write(MAIN_FILE, mainContent)
+                            }
+                        } catch (_e) {
+                            // best-effort no-op if FileManager unavailable
+                        }
                     } catch (_e) {
-                        // Best-effort fallback: write current editor content if anything fails
-                        const cm = window.cm
-                        const textarea = document.getElementById('code')
-                        const cur = (cm ? cm.getValue() : (textarea ? textarea.value : ''))
-                        const map = JSON.parse(localStorage.getItem('ssg_files_v1') || '{}')
-                        map['/main.py'] = cur
-                        localStorage.setItem('ssg_files_v1', JSON.stringify(map))
+                        // Best-effort fallback: write current editor content into in-memory shim
+                        try {
+                            const cm = window.cm
+                            const textarea = document.getElementById('code')
+                            const cur = (cm ? cm.getValue() : (textarea ? textarea.value : ''))
+                            try { window.__ssg_unified_inmemory = window.__ssg_unified_inmemory || {}; window.__ssg_unified_inmemory['ssg_files_v1'] = window.__ssg_unified_inmemory['ssg_files_v1'] || {}; window.__ssg_unified_inmemory['ssg_files_v1']['/main.py'] = cur } catch (_e) { }
+                        } catch (_e) { }
                     }
                 }
             } catch (_e) { }
@@ -1101,13 +1107,13 @@ except Exception:
                         try {
                             const FileManager = getFileManager()
                             if (FileManager && typeof FileManager.list === 'function') {
-                                const files = FileManager.list() || []
+                                const files = (await FileManager.list()) || []
                                 if (Array.isArray(files)) filenamesArr = files.slice()
                             }
                         } catch (_e) {
                             try {
-                                const map = JSON.parse(localStorage.getItem('ssg_files_v1') || '{}')
-                                filenamesArr = Object.keys(map || {})
+                                // No localStorage fallback: if FileManager isn't available, return empty filenames list
+                                filenamesArr = []
                             } catch (_e2) { filenamesArr = [] }
                         }
                         window.Feedback.evaluateFeedbackOnRun({ stdout: stdoutFull, stderr: stderrFull, stdin: stdinFull, filename: filenamesArr })

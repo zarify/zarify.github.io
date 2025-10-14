@@ -57,6 +57,12 @@ export class ASTAnalyzer {
             case 'control_flow': return this.analyzeControlFlow(ast, target);
             case 'function_count': return this.countFunctions(ast);
             case 'code_quality': return this.analyzeCodeQuality(ast, target);
+            // Backwards/shortcut support: allow 'has_docstring' as a top-level
+            // expression (used by the AST rule builder). Map it to a helper
+            // that will either return a single detail object when a target
+            // name is provided (function/class name), or the details array
+            // when no target is provided.
+            case 'has_docstring': return this.analyzeHasDocstring(ast, target);
             case 'class_analysis': return this.analyzeClasses(ast, target);
             case 'import_statements': return this.analyzeImports(ast, target);
             case 'magic_numbers': return this.analyzeMagicNumbers(ast, target);
@@ -674,6 +680,25 @@ export class ASTAnalyzer {
 
         const hasAnyDocstring = analysis.functions.withDocstring > 0 || analysis.classes.withDocstring > 0;
         return hasAnyDocstring ? analysis : null;
+    }
+
+    /**
+     * Analyze has_docstring at top-level: if a specific name is provided,
+     * return the matching detail object (function or class). If no name
+     * is provided, return the full details array (or null if none).
+     */
+    analyzeHasDocstring(ast, name) {
+        const report = this.checkDocstrings(ast);
+        if (!report || !report.details || report.details.length === 0) return null;
+
+        if (name && name !== '*') {
+            // Try to find a matching detail by exact name (function or class)
+            const found = report.details.find(d => d.name === name) || null;
+            return found || null;
+        }
+
+        // No specific name requested — return the details array itself
+        return { details: report.details };
     }
 
     /**

@@ -42,22 +42,13 @@ function isFileReadOnlyForUserWrite(path) {
 
 function scheduleMirrorDelete(path, host = window) {
     try {
-        if (typeof window !== 'undefined' && window.indexedDB) {
+        // Persist deletion to unified storage (if available). Do not use legacy localStorage mirror.
+        try {
             import('./unified-storage.js').then(mod => {
                 try { if (mod && typeof mod.deleteFile === 'function') mod.deleteFile(path).catch(() => { }) } catch (_e) { }
             }).catch(() => { /* ignore import failures */ })
             return { success: true }
-        }
-
-        try {
-            const map = JSON.parse((host.localStorage.getItem('ssg_files_v1') || '{}'))
-            delete map[path]
-            const result = safeSetItem('ssg_files_v1', JSON.stringify(map))
-            if (!result.success) logWarn('Failed to update localStorage mirror:', result.error)
-            return result
-        } catch (err) {
-            return { success: false, error: err && err.message }
-        }
+        } catch (e) { return { success: false, error: e && e.message } }
     } catch (e) {
         return { success: false, error: e && e.message }
     }
@@ -68,7 +59,28 @@ export const MAIN_FILE = '/main.py'
 
 // VFS runtime references (populated during async VFS init)
 let backendRef = null
-let mem = null
+// internal mem removed: we no longer keep a module-level synchronous mirror
+// Internal in-memory mirror (private).
+// NOTE: the legacy global mirror (`window.__ssg_mem`) and the exported
+// `getMem()` accessor were intentionally removed to prevent accidental
+// reliance on a synchronous global. Tests or other code that require
+// synchronous, in-memory access should use `createFileManager(host)` or
+// the `FileManager` returned by `initializeVFS()` instead of depending on
+// an exported `mem` object.
+
+function scheduleMirrorSave(path, content, host = window) {
+    try {
+        // Persist to unified storage; do not maintain legacy localStorage mirror.
+        try {
+            import('./unified-storage.js').then(mod => {
+                try { if (mod && typeof mod.saveFile === 'function') mod.saveFile(path, content).catch(() => { }) } catch (_e) { }
+            }).catch(() => { /* ignore import failures */ })
+            return { success: true }
+        } catch (e) { return { success: false, error: e && e.message } }
+    } catch (e) {
+        return { success: false, error: e && e.message }
+    }
+}
 
 // Expose a promise that resolves when the VFS/mem/backend has been initialized
 let vfsReadyResolve = null
@@ -80,20 +92,19 @@ window.__ssg_vfs_ready = new Promise((res, rej) => {
 })
 
 // Helper to settle the global VFS-ready promise when runtime FS becomes available
-function resolveVFSReady(backend, memRef) {
+function resolveVFSReady(backend) {
     if (vfsReadySettled) return
     vfsReadySettled = true
     backendRef = backend
-    mem = memRef
     setupNotificationSystem()
-    if (vfsReadyResolve) vfsReadyResolve({ backend, mem })
+    if (vfsReadyResolve) vfsReadyResolve({ backend })
 }
 
 // Function to manually settle VFS ready promise
 function settleVfsReady() {
     if (vfsReadySettled) return
     vfsReadySettled = true
-    if (vfsReadyResolve) vfsReadyResolve({ backend: backendRef, mem })
+    if (vfsReadyResolve) vfsReadyResolve({ backend: backendRef })
 }
 
 /**
@@ -140,15 +151,10 @@ function setupNotificationSystem() {
                 // Log the notification only to debug logs (avoid noisy terminal output)
                 // notification: path written -> UI will handle enqueueing/opening
 
-                // update mem and localStorage mirror for tests and fallbacks (always keep mem in sync)
+                // update localStorage mirror for tests and fallbacks
                 try {
-                    if (typeof mem !== 'undefined') {
-                        if (content == null) {
-                            try { delete mem[n] } catch (_e) { }
-                        } else {
-                            mem[n] = content
-                        }
-                    }
+                    if (content == null) scheduleMirrorDelete(n)
+                    else scheduleMirrorSave(n, content)
                 } catch (_e) { }
                 try {
                     if (content == null) scheduleMirrorDelete(n)
@@ -234,19 +240,7 @@ export function createNotificationSystem(host = window) {
 
                     // notification: path written - consumed or forwarded to UI
 
-                    try {
-                        if (typeof mem !== 'undefined') {
-                            if (content == null) {
-                                try { delete mem[n] } catch (_e) { }
-                            } else {
-                                mem[n] = content
-                            }
-                        }
-                    } catch (_e) { }
-                    try {
-                        if (content == null) scheduleMirrorDelete(n, host)
-                        else scheduleMirrorSave(n, content, host)
-                    } catch (_e) { }
+                    try { if (content == null) scheduleMirrorDelete(n, host); else scheduleMirrorSave(n, content, host) } catch (_e) { }
 
                     // If this was a deletion, instruct the TabManager on the host
                     // to close any associated tab and sync state.
@@ -356,7 +350,7 @@ export function markExpectedWrite(p, content, host = window) {
 // Simple FileManager shim (localStorage-backed initially) created via factory
 let FileManager = createFileManager(window)
 
-// Convenience helper: wait for a file to appear in mem/runtime/backend
+// Convenience helper: wait for a file to appear in runtime/backend
 window.waitForFile = async function (path, timeoutMs = 2000) {
     const n = path && path.startsWith('/') ? path : ('/' + path)
     const start = Date.now()
@@ -364,8 +358,14 @@ window.waitForFile = async function (path, timeoutMs = 2000) {
 
     while (Date.now() - start < timeoutMs) {
         try {
-            // check mem first (synchronous)
-            if (mem && Object.prototype.hasOwnProperty.call(mem, n)) return mem[n]
+            // Check FileManager (sync via returned Promise) and runtime FS/backends
+            try {
+                const fm = FileManager
+                if (fm && typeof fm.read === 'function') {
+                    const v = await Promise.resolve(fm.read(n))
+                    if (v != null) return v
+                }
+            } catch (_e) { }
         } catch (_e) { }
 
         try {
@@ -383,12 +383,7 @@ window.waitForFile = async function (path, timeoutMs = 2000) {
             }
         } catch (_e) { }
 
-        try {
-            if (backendRef && typeof backendRef.read === 'function') {
-                const d = await backendRef.read(n).catch(() => null)
-                if (d != null) return d
-            }
-        } catch (_e) { }
+        try { if (backendRef && typeof backendRef.read === 'function') { const d = await backendRef.read(n).catch(() => null); if (d != null) return d } } catch (_e) { }
 
         await new Promise(r => setTimeout(r, 120))
     }
@@ -436,41 +431,24 @@ export async function initializeVFS(cfg) {
             setSystemWriteMode(false)
         }
 
-        // build an in-memory snapshot adapter
-        mem = {}
-        try {
-            const names = await backend.list()
-            for (const n of names) {
-                try {
-                    // Skip known runtime/system paths that may have been
-                    // persisted by older versions (e.g. /dev/null from the
-                    // interpreter). Prevent loading them into the in-memory
-                    // mirror so tabs are not opened for these pseudo-files.
-                    if (/^\/dev\//i.test(n) || /^\/proc\//i.test(n) || /^\/tmp\//i.test(n) || /^\/temp\//i.test(n)) {
-                        if (window.__ssg_debug_logs) try { console.info('[VFS] Skipping persisted system file when populating mem:', n) } catch (_e) { }
-                        continue
-                    }
-                    mem[n] = await backend.read(n)
-                } catch (e) {
-                    mem[n] = null
-                }
-            }
-        } catch (e) { /* ignore if list/read fail */ }
+        // No internal mem snapshot is populated. Rely on backend/FileManager APIs.
 
-        // Expose mem for debugging/tests
-        try {
-            window.__ssg_mem = mem
-            window.mem = mem
-        } catch (_e) { }
+        // Do NOT expose the internal mem mirror as a global. Tests should
+        // interact with the FileManager or use createFileManager(host) to
+        // obtain a test-scoped in-memory view. Hiding mem prevents accidental
+        // reliance on the legacy global mirror.
 
-        // Replace FileManager with backend-integrated version
+        // Replace FileManager with backend-integrated version (pure IndexedDB, no mem cache)
         FileManager = {
-            list() { return Object.keys(mem).sort() },
-            read(path) {
+            async list() {
+                try {
+                    return await backend.list()
+                } catch (_e) { return [] }
+            },
+            async read(path) {
                 try {
                     const n = _normPath(path)
-                    const v = mem[n]
-                    return v == null ? null : v
+                    return await backend.read(n)
                 } catch (_e) { return null }
             },
             write(path, content) {
@@ -489,19 +467,7 @@ export async function initializeVFS(cfg) {
                         return Promise.resolve()
                     }
 
-                    const prev = mem[n]
-                    // If content didn't change, return early
-                    try { if (prev === content) return Promise.resolve() } catch (_e) { }
-
-                    // update in-memory copy first
-                    mem[n] = content
-
-                    // update localStorage mirror for tests and fallbacks
-                    try {
-                        scheduleMirrorSave(n, content)
-                    } catch (_e) { }
-
-                    // mark expected write so the notifier can ignore the echo
+                    // Mark expected write so the notifier can ignore the echo
                     try { markExpectedWrite(n, content) } catch (_e) { }
 
                     return backend.write(n, content).then(res => {
@@ -533,13 +499,7 @@ export async function initializeVFS(cfg) {
                         }
                     } catch (_e) { }
 
-                    delete mem[n]
-
-                    try {
-                        scheduleMirrorDelete(n)
-                    } catch (_e) { }
-
-                    // also attempt to remove from interpreter FS
+                    // Also attempt to remove from interpreter FS
                     try {
                         const fs = window.__ssg_runtime_fs
                         if (fs) {
@@ -575,7 +535,7 @@ export async function initializeVFS(cfg) {
     // Settle VFS ready promise
     try { settleVfsReady() } catch (_e) { }
 
-    return { FileManager, backend: backendRef, mem }
+    return { FileManager, backend: backendRef }
 }
 
 // Export FileManager getter
@@ -587,15 +547,16 @@ export function getBackendRef() {
     return backendRef
 }
 
-export function getMem() {
-    return mem
-}
+// getMem removed: internal mem mirror is intentionally not exposed anymore.
 
 export { settleVfsReady }
 
 // Create a FileManager bound to a host object (defaults to window). Useful for tests.
 export function createFileManager(host = window) {
-    const KEY = 'ssg_files_v1'
+    // Legacy localStorage key removed; createFileManager will instead
+    // prefer an in-memory or unified-storage backed approach. For tests
+    // that require a synchronous map, hosts may set `host.__ssg_unified_inmemory`.
+    const KEY = 'ssg_files_v1' // kept as identifier for test shims only
 
     function _load() {
         try {
@@ -604,7 +565,9 @@ export function createFileManager(host = window) {
                 const memVal = (host.__ssg_unified_inmemory && host.__ssg_unified_inmemory[KEY]) || null
                 if (memVal) return memVal
             } catch (_e) { }
-            return JSON.parse(host.localStorage.getItem(KEY) || '{}')
+            // Avoid reading from localStorage in modern environments.
+            // Prefer host-provided in-memory shim (`__ssg_unified_inmemory`) for sync reads.
+            try { return JSON.parse(host.localStorage.getItem(KEY) || '{}') } catch (_e) { return {} }
         } catch (e) { return {} }
     }
 
@@ -615,24 +578,19 @@ export function createFileManager(host = window) {
         // Only perform localStorage writes when IndexedDB is not present
         // (tests or very old browsers).
         try {
-            if (typeof window !== 'undefined' && window.indexedDB) {
-                // Keep an in-memory copy for any immediate synchronous reads
-                // within the same JS context (some tests may inspect this).
-                try { host.__ssg_unified_inmemory = host.__ssg_unified_inmemory || {}; host.__ssg_unified_inmemory[KEY] = m } catch (_e) { }
-                return
-            }
+            // Keep an in-memory copy for any immediate synchronous reads
+            try { host.__ssg_unified_inmemory = host.__ssg_unified_inmemory || {}; host.__ssg_unified_inmemory[KEY] = m } catch (_e) { }
+            // Do not persist to localStorage in modern flows; unified-storage will persist asynchronously.
+            return
         } catch (_e) { }
-
-        const result = safeSetItem(KEY, JSON.stringify(m))
-        if (!result.success) throw new Error(result.error || 'Storage quota exceeded')
     }
 
     function _norm(p) { if (!p) return p; return p.startsWith('/') ? p : ('/' + p) }
 
     return {
         key: KEY,
-        list() { try { return Object.keys(_load()).sort() } catch (e) { return [] } },
-        read(path) { try { const m = _load(); const v = m[_norm(path)]; return v == null ? null : v } catch (e) { return null } },
+        async list() { try { return Object.keys(_load()).sort() } catch (e) { return [] } },
+        async read(path) { try { const m = _load(); const v = m[_norm(path)]; return v == null ? null : v } catch (e) { return null } },
         write(path, content) {
             try {
                 const n = _norm(path)
@@ -687,7 +645,7 @@ export function createVfsClient(options = {}) {
         initializeVFS: (cfg) => initializeVFS(cfg),
         getFileManager: () => getFileManager(),
         getBackendRef: () => getBackendRef(),
-        getMem: () => getMem(),
+        // getMem intentionally removed; do not expose internal mem mirror.
         settleVfsReady: () => settleVfsReady()
     }
 }

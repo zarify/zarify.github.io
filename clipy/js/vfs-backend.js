@@ -196,7 +196,13 @@ async function createIndexedDBBackend() {
                         // Skip known system/runtime paths (devices, proc, temp)
                         // These are created by the runtime (e.g. /dev/null) and
                         // must not be persisted into the backend or snapshots.
-                        if (/^\/dev\//i.test(p) || /^\/proc\//i.test(p) || /^\/tmp\//i.test(p) || /^\/temp\//i.test(p)) {
+                        // Also skip the temporary main-file marker used during
+                        // sync operations; execution.js temporarily renames
+                        // /main.py -> /.__skip_main_sync__ to avoid syncing the
+                        // authoritative editor copy. We must NOT persist that
+                        // marker into the backend or it will appear as a real
+                        // file/tab in the UI after replay runs.
+                        if (p === '/.__skip_main_sync__' || /^\/dev\//i.test(p) || /^\/proc\//i.test(p) || /^\/tmp\//i.test(p) || /^\/temp\//i.test(p)) {
                             if (window.__ssg_debug_logs) try { console.info('[VFS] Skipping system file during syncFromEmscripten:', p) } catch (_e) { }
                             continue
                         }
@@ -213,7 +219,7 @@ async function createIndexedDBBackend() {
             } else {
                 // Quick sync: only sync known files that might have changed
                 // Focus on commonly modified files like /main.py
-                const priorityFiles = ['/main.py', '/output.txt', '/data.txt']
+                const priorityFiles = ['/main.py']
 
                 for (const p of priorityFiles) {
                     try {
@@ -236,24 +242,20 @@ async function createIndexedDBBackend() {
     }
 }
 
-// LocalStorage fallback (synchronous API wrapped in promises)
-const LS_KEY = 'ssg_files_v1'
-function createLocalStorageBackend() {
-    function load() { try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}') } catch (e) { return {} } }
-    function save(m) { localStorage.setItem(LS_KEY, JSON.stringify(m)) }
+// In-memory fallback backend (used when IndexedDB unavailable).
+function createInMemoryBackend() {
+    const store = new Map()
     return {
-        async list() { return Object.keys(load()).map(k => { try { return normalizePath(k) } catch (e) { return k } }).sort() },
-        async read(path) { try { const m = load(); return m[normalizePath(path)] || null } catch (e) { return null } },
-        async write(path, content) { try { const m = load(); m[normalizePath(path)] = content; save(m) } catch (e) { throw e } },
-        async delete(path) { try { const m = load(); delete m[normalizePath(path)]; save(m) } catch (e) { /* ignore */ } },
+        async list() { try { return Array.from(store.keys()).map(k => normalizePath(k)).sort() } catch (_) { return [] } },
+        async read(path) { try { return store.has(normalizePath(path)) ? store.get(normalizePath(path)) : null } catch (_) { return null } },
+        async write(path, content) { try { store.set(normalizePath(path), content) } catch (e) { throw e } },
+        async delete(path) { try { store.delete(normalizePath(path)) } catch (_e) { } },
         async mountToEmscripten(FS) { if (!FS || typeof FS.writeFile !== 'function') return; const keys = await this.list(); for (const p of keys) { try { const content = await this.read(p) || ''; const parts = p.split('/'); parts.pop(); let dir = ''; for (const seg of parts) { if (!seg) continue; dir += '/' + seg; try { FS.mkdir(dir) } catch (_) { } } FS.writeFile(p, content) } catch (e) { console.warn('VFS: mount skip', p, e) } } },
         async syncFromEmscripten(FS) {
             if (!FS) return
-
-            // PERFORMANCE: Apply same optimization as IndexedDB backend
             const now = Date.now()
             const lastFullSync = this._lastFullSync || 0
-            const FULL_SYNC_INTERVAL = 30000 // 30 seconds
+            const FULL_SYNC_INTERVAL = 30000
             const shouldDoFullSync = (now - lastFullSync) > FULL_SYNC_INTERVAL
 
             if (shouldDoFullSync) {
@@ -261,35 +263,23 @@ function createLocalStorageBackend() {
                 this._lastFullSync = now
                 for (const p of files) {
                     try {
-                        // Skip known system/runtime paths (devices, proc, temp)
                         if (/^\/dev\//i.test(p) || /^\/proc\//i.test(p) || /^\/tmp\//i.test(p) || /^\/temp\//i.test(p)) {
-                            if (window.__ssg_debug_logs) try { console.info('[VFS] Skipping system file during local syncFromEmscripten:', p) } catch (_e) { }
                             continue
                         }
-
-                        const content = typeof FS.readFile === 'function' ? FS.readFile(p, { encoding: 'utf8' }) : null
+                        const raw = typeof FS.readFile === 'function' ? FS.readFile(p, { encoding: 'utf8' }) : null
+                        const content = raw != null ? decodeToString(raw) : null
                         if (content != null) await this.write(p, content)
-                    } catch (e) {
-                        console.warn('VFS: sync skip', p, e)
-                    }
+                    } catch (e) { console.warn('VFS: sync skip', p, e) }
                 }
             } else {
-                // Quick sync of priority files only
-                const priorityFiles = ['/main.py', '/output.txt', '/data.txt']
+                const priorityFiles = ['/main.py']
                 for (const p of priorityFiles) {
-                    try {
-                        try { FS.lookupPath(p) } catch (_) { continue }
-                        const content = typeof FS.readFile === 'function' ? FS.readFile(p, { encoding: 'utf8' }) : null
-                        if (content != null) await this.write(p, content)
-                    } catch (e) { /* silently continue */ }
+                    try { try { FS.lookupPath(p) } catch (_) { continue } const raw = typeof FS.readFile === 'function' ? FS.readFile(p, { encoding: 'utf8' }) : null; const content = raw != null ? decodeToString(raw) : null; if (content != null) await this.write(p, content) } catch (_e) { }
                 }
             }
         }
     }
 }
-
-// Export local storage backend for testing
-export { createLocalStorageBackend }
 
 export async function init(options = {}) {
     // Try IndexedDB backend first
@@ -297,9 +287,9 @@ export async function init(options = {}) {
         const backend = await createIndexedDBBackend()
         return backend
     } catch (e) {
-        // fallback to localStorage backend
-        if (window.__ssg_debug_logs) console.warn('VFS: IndexedDB unavailable, falling back to localStorage:', e)
-        return createLocalStorageBackend()
+        // fallback to in-memory backend (no localStorage)
+        if (window.__ssg_debug_logs) console.warn('VFS: IndexedDB unavailable, falling back to in-memory backend:', e)
+        return createInMemoryBackend()
     }
 }
 

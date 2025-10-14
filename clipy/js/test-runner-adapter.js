@@ -20,7 +20,7 @@ export function createRunFn({ getFileManager, MAIN_FILE, runPythonCode, getConfi
                     if (typeof t.main === 'string' && t.main.trim()) {
                         code = t.main
                     } else {
-                        try { code = FileManager.read(MAIN_FILE) || '' } catch (_e) { code = '' }
+                        try { code = (await FileManager.read(MAIN_FILE)) || '' } catch (_e) { code = '' }
                     }
                     const { analyzeCode } = await import('./ast-analyzer.js')
                     const result = await analyzeCode(code, (t.astRule && t.astRule.expression) || '')
@@ -44,9 +44,9 @@ export function createRunFn({ getFileManager, MAIN_FILE, runPythonCode, getConfi
             // Snapshot current files
             const origFiles = {}
             try {
-                const names = FileManager.list() || []
+                const names = (await FileManager.list()) || []
                 for (const n of names) {
-                    try { origFiles[n] = await Promise.resolve(FileManager.read(n)) } catch (_e) { origFiles[n] = null }
+                    try { origFiles[n] = await FileManager.read(n) } catch (_e) { origFiles[n] = null }
                 }
                 try { logDebug('DEBUG origFiles snapshot keys:', Object.keys(origFiles)) } catch (_e) { }
             } catch (_e) { }
@@ -72,7 +72,7 @@ export function createRunFn({ getFileManager, MAIN_FILE, runPythonCode, getConfi
 
             // Read code and clear runtime globals
             let code = ''
-            try { code = FileManager.read(MAIN_FILE) || '' } catch (_e) { code = '' }
+            try { code = (await FileManager.read(MAIN_FILE)) || '' } catch (_e) { code = '' }
             try { if (typeof window.clearMicroPythonState === 'function') window.clearMicroPythonState() } catch (_e) { }
 
             // Setup stdin queue
@@ -144,7 +144,7 @@ export function createRunFn({ getFileManager, MAIN_FILE, runPythonCode, getConfi
 
             // Restore files
             try {
-                const postList = FileManager.list() || []
+                const postList = (await FileManager.list()) || []
                 try { logDebug('DEBUG postList before restore:', postList) } catch (_e) { }
                 for (const p of postList) {
                     if (!Object.prototype.hasOwnProperty.call(origFiles, p)) {
@@ -172,8 +172,8 @@ export function createRunFn({ getFileManager, MAIN_FILE, runPythonCode, getConfi
             try { window.__ssg_suppress_notifier = false } catch (_e) { }
             try { if (typeof window.clearMicroPythonState === 'function') window.clearMicroPythonState() } catch (_e) { }
 
-            if (runError) return { stdout: stdoutFull, stderr: String(runError || stderrFull), durationMs: 0, filename: (FileManager && typeof FileManager.list === 'function') ? (FileManager.list() || []) : [] }
-            return { stdout: stdoutFull, stderr: stderrFull, durationMs: 0, filename: (FileManager && typeof FileManager.list === 'function') ? (FileManager.list() || []) : [] }
+            if (runError) return { stdout: stdoutFull, stderr: String(runError || stderrFull), durationMs: 0, filename: (FileManager && typeof FileManager.list === 'function') ? ((await FileManager.list()) || []) : [] }
+            return { stdout: stdoutFull, stderr: stderrFull, durationMs: 0, filename: (FileManager && typeof FileManager.list === 'function') ? ((await FileManager.list()) || []) : [] }
         } catch (e) {
             try { window.__ssg_suppress_notifier = false } catch (_e) { }
             return { stdout: '', stderr: String(e || ''), durationMs: 0 }

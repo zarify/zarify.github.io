@@ -478,10 +478,23 @@ export function mapTracebackAndShow(rawText, headerLines, userCode, appendTermin
             // mirror first; otherwise treat it as raw source.
             let src = null
             if (userCode.indexOf('\n') === -1) {
+                // Prefer FileManager/unified in-memory shim for synchronous source lookup.
                 try {
-                    const map = JSON.parse(localStorage.getItem('ssg_files_v1') || '{}')
                     const norm = (userCode && userCode.startsWith('/')) ? userCode : ('/' + String(userCode || '').replace(/^\/+/, ''))
-                    src = map[norm] || map[String(userCode)] || null
+                    if (typeof window !== 'undefined' && window.FileManager && typeof window.FileManager.read === 'function') {
+                        try {
+                            const maybe = window.FileManager.read(norm)
+                            // If FileManager.read returns a Promise, we can't await here; treat as unavailable
+                            if (maybe != null && typeof maybe.then !== 'function') src = maybe
+                        } catch (_e) { /* ignore sync failures */ }
+                    }
+                    // Also consider in-memory unified shim used by tests
+                    try {
+                        if (!src && typeof window !== 'undefined' && window.__ssg_unified_inmemory) {
+                            const map = window.__ssg_unified_inmemory['ssg_files_v1'] || {}
+                            src = map[norm] || map[String(userCode)] || null
+                        }
+                    } catch (_e) { }
                 } catch (_e) { src = null }
             } else {
                 src = userCode
@@ -617,8 +630,13 @@ export function mapTracebackAndShow(rawText, headerLines, userCode, appendTermin
                 // Check localStorage mirror first
                 let exists = false
                 try {
-                    const map = JSON.parse(localStorage.getItem('ssg_files_v1') || '{}')
-                    if (map && Object.prototype.hasOwnProperty.call(map, norm)) exists = true
+                    // Prefer synchronous unified in-memory shim or FileManager checks
+                    try {
+                        if (typeof window !== 'undefined' && window.__ssg_unified_inmemory) {
+                            const map = window.__ssg_unified_inmemory['ssg_files_v1'] || {}
+                            if (map && Object.prototype.hasOwnProperty.call(map, norm)) exists = true
+                        }
+                    } catch (_e) { }
                 } catch (_e) { }
 
                 // Consider MAIN_FILE present

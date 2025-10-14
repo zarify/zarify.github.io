@@ -14,6 +14,14 @@ let currentConfig = null // current loaded config for read-only status
 let overflowManager = null // TabOverflowManager instance
 
 function _normalizePath(p) {
+    // Normalize incoming path values:
+    // - Map legacy '<stdin>' (from MicroPython tracebacks) to the canonical
+    //   '/main.py' so we never create a '/<stdin>' tab.
+    // - Ensure a leading slash for all file paths so internal maps are
+    //   consistent (other code expects leading-slash form).
+    try {
+        if (p === '<stdin>') return '/main.py'
+    } catch (_e) { }
     return String(p).startsWith('/') ? p : `/${p}`
 }
 
@@ -34,13 +42,6 @@ function isFileReadOnly(path) {
     } catch (_e) {
         return false
     }
-}
-
-// Update current config (called from main app when config changes)
-export function updateConfig(config) {
-    currentConfig = config
-    // Re-render tabs to update read-only indicators
-    render()
 }
 
 function render() {
@@ -97,14 +98,15 @@ function render() {
     })
 }
 
+// main file will be opened during initializeTabManager
+// Implement openTab (exported). This is a function declaration (hoisted)
+// so other functions earlier in the file (like createNew) can call it.
 export async function openTab(path, opts = { select: true }) {
     const n = _normalizePath(path)
-    // openTab called
 
     // Diagnostic instrumentation: record every openTab call so we can
     // later inspect which callers attempted to open pseudo-files like
-    // '<stdin>' during traceback mapping flows. This is intentionally
-    // lightweight and will be removed once root cause is identified.
+    // '<stdin>' during traceback mapping flows.
     try {
         if (typeof window !== 'undefined') {
             try { window.__ssg_tab_open_calls = window.__ssg_tab_open_calls || [] } catch (_e) { }
@@ -112,19 +114,34 @@ export async function openTab(path, opts = { select: true }) {
         }
     } catch (_e) { }
 
-    if (!openTabs.includes(n)) {
-        openTabs.push(n)
-    }
-    if (!opts || opts.select === undefined || opts.select) selectTab(n)
-    render()
-
-    // Signal an opened tab for external observers/tests
     try {
-        window.__ssg_last_tab_opened = { path: n, ts: Date.now() }
+        if (!openTabs.includes(n)) {
+            openTabs.push(n)
+        }
+        if (!opts || opts.select === undefined || opts.select) await selectTab(n)
+        render()
+
+        // Signal an opened tab for external observers/tests
+        try { window.__ssg_last_tab_opened = { path: n, ts: Date.now() } } catch (_e) { }
+        try { window.dispatchEvent(new CustomEvent('ssg:tab-opened', { detail: { path: n } })) } catch (_e) { }
     } catch (_e) { }
+}
+
+// Resilient wrapper: prefer calling the exported `openTab`, but fall back to
+// a minimal in-module implementation when `openTab` is not available due to
+// import/load-order or circular dependency issues.
+async function _safeOpenTab(path, opts = { select: true }) {
+    try {
+        if (typeof openTab === 'function') return await openTab(path, opts)
+    } catch (_e) { /* ignore and fallback */ }
 
     try {
-        window.dispatchEvent(new CustomEvent('ssg:tab-opened', { detail: { path: n } }))
+        const n = _normalizePath(path)
+        if (!openTabs.includes(n)) openTabs.push(n)
+        if (!opts || opts.select === undefined || opts.select) await selectTab(n)
+        try { window.__ssg_last_tab_opened = { path: n, ts: Date.now() } } catch (_e) { }
+        try { window.dispatchEvent(new CustomEvent('ssg:tab-opened', { detail: { path: n } })) } catch (_e) { }
+        render()
     } catch (_e) { }
 }
 
@@ -243,7 +260,7 @@ export async function syncWithFileManager() {
     const FileManager = getFileManager()
     if (!FileManager) return
 
-    const files = (typeof FileManager.list === 'function') ? FileManager.list() : []
+    const files = (typeof FileManager.list === 'function') ? (await FileManager.list()) : []
 
     // Clean up pending tabs queue - remove any files that don't exist
     if (typeof window !== 'undefined' && window.__ssg_pending_tabs) {
@@ -256,7 +273,7 @@ export async function syncWithFileManager() {
 
     // Ensure MAIN_FILE is always present in the tabs (do not select here)
     try {
-        if (!openTabs.includes(MAIN_FILE)) openTab(MAIN_FILE, { select: false })
+        if (!openTabs.includes(MAIN_FILE)) await openTab(MAIN_FILE, { select: false })
     } catch (_e) { }
 
     // Remove any open tabs for files that no longer exist
@@ -278,7 +295,7 @@ export async function syncWithFileManager() {
             try {
                 // Do not auto-open runtime/system paths (e.g. /dev/null)
                 if (_isSystemPath(p)) continue
-                if (!openTabs.includes(p)) openTab(p, { select: false })
+                if (!openTabs.includes(p)) await openTab(p, { select: false })
             } catch (_e) { }
         }
     } catch (_e) { }
@@ -298,12 +315,12 @@ export async function syncWithFileManager() {
     } catch (_e) { }
 }
 
-export function selectTab(path) {
+export async function selectTab(path) {
     const n = _normalizePath(path)
     const FileManager = getFileManager()
 
     active = n
-    const content = FileManager.read(n) || ''
+    const content = (await FileManager.read(n)) || ''
 
     if (cm) {
         // When switching tabs programmatically we call cm.setValue(), which
@@ -393,7 +410,7 @@ export async function createNew() {
     const FileManager = getFileManager()
 
     FileManager.write(n, '')
-    openTab(n)
+    await openTab(n)
 }
 
 export function list() {
@@ -416,13 +433,13 @@ export function refresh() {
 // Force-refresh visible editor content for the active tab. This is useful
 // after programmatic writes/deletes to ensure the editor displays the
 // latest FileManager contents without requiring the user to switch tabs.
-export function refreshOpenTabContents() {
+export async function refreshOpenTabContents() {
     try {
         const FileManager = getFileManager()
         if (!FileManager) return
         if (!active) return
 
-        const content = FileManager.read(active) || ''
+        const content = (await FileManager.read(active)) || ''
         if (cm) {
             try { window.__ssg_suppress_clear_highlights = true } catch (_e) { }
             cm.setValue(content)
@@ -435,7 +452,7 @@ export function refreshOpenTabContents() {
 }
 
 // Initialize tab manager
-export function initializeTabManager(codeMirror, textareaElement) {
+export async function initializeTabManager(codeMirror, textareaElement) {
     cm = codeMirror
     textarea = textareaElement
 
@@ -447,7 +464,6 @@ export function initializeTabManager(codeMirror, textareaElement) {
             onTabRename: renameFile,
             isFileReadOnly: isFileReadOnly
         })
-        // Prepare any modal handlers or DOM wiring
         try { overflowManager.init() } catch (_e) { }
     } catch (_e) { }
 
@@ -459,17 +475,15 @@ export function initializeTabManager(codeMirror, textareaElement) {
     function scheduleTabSave() {
         if (!active) return
         try {
-            // If autosave suppression is enabled (for programmatic workspace
-            // operations like reset/apply-config) skip scheduling a save.
             if (typeof window !== 'undefined' && window.__ssg_suppress_autosave) return
         } catch (_e) { }
         if (tabSaveTimer) clearTimeout(tabSaveTimer)
-        tabSaveTimer = setTimeout(() => {
+        tabSaveTimer = setTimeout(async () => {
             const content = cm ? cm.getValue() : (textarea ? textarea.value : '')
             const FileManager = getFileManager()
 
             try {
-                const stored = FileManager.read(active)
+                const stored = await FileManager.read(active)
                 if (stored === content) {
                     const ind = $('autosave-indicator')
                     if (ind) ind.textContent = 'Saved (' + active + ')'
@@ -486,7 +500,6 @@ export function initializeTabManager(codeMirror, textareaElement) {
     if (cm) {
         cm.on('change', () => {
             try {
-                // Respect suppression flag set during programmatic setValue()
                 if (!window.__ssg_suppress_clear_highlights) {
                     if (typeof clearAllErrorHighlights === 'function') clearAllErrorHighlights()
                     if (typeof clearAllFeedbackHighlights === 'function') clearAllFeedbackHighlights()
@@ -504,65 +517,61 @@ export function initializeTabManager(codeMirror, textareaElement) {
         })
     }
 
-    // Ensure main file is open in initial tab and selected
-    openTab(MAIN_FILE)
+    // Ensure main file is open in initial tab and selected (use safe wrapper)
+    try { await _safeOpenTab(MAIN_FILE) } catch (_e) { }
 
-    // Close any stale tabs for files that no longer exist in the FileManager
-    // This handles cases where snapshots or previous sessions left tabs open
-    // for files that were removed by config changes or resets.
-    try {
-        const FileManager = getFileManager()
-        if (FileManager && typeof FileManager.list === 'function') {
-            const availableFiles = FileManager.list() || []
-            // Create a copy of openTabs to avoid modification during iteration
-            const currentTabs = [...openTabs]
-            for (const p of currentTabs) {
-                try {
-                    // Don't close MAIN_FILE tab, but close tabs for missing files
-                    if (p !== MAIN_FILE && !availableFiles.includes(p)) {
-                        closeTabSilent(p)
-                    }
-                } catch (_e) { }
-            }
-        }
-    } catch (_e) { }
-
-    // Re-open any existing files from the FileManager so tabs persist across
-    // page reloads and snapshot restores. Exclude the protected MAIN_FILE
-    // because it's already opened above.
-    try {
-        const FileManager = getFileManager()
-        if (FileManager && typeof FileManager.list === 'function') {
-            const files = FileManager.list() || []
-            for (const p of files) {
-                try {
-                    if (p && p !== MAIN_FILE) openTab(p, { select: false })
-                } catch (_e) { }
-            }
-        }
-    } catch (_e) { }
-
-    // If any tabs were queued while TabManager wasn't available, open them now
-    // but only if they actually exist in the FileManager
-    try {
-        const pending = (window.__ssg_pending_tabs || [])
-        if (pending && pending.length) {
+    // Close stale tabs for files that no longer exist
+    ; (async () => {
+        try {
             const FileManager = getFileManager()
-            const availableFiles = (FileManager && typeof FileManager.list === 'function') ? (FileManager.list() || []) : []
-            for (const p of pending) {
-                try {
-                    // Only open pending tabs that actually exist and are not system paths
-                    if (_isSystemPath(p)) continue
-                    if (p === MAIN_FILE || availableFiles.includes(p)) {
-                        openTab(p, { select: false })
-                    }
-                } catch (_e) { }
+            if (FileManager && typeof FileManager.list === 'function') {
+                const availableFiles = (await FileManager.list()) || []
+                const currentTabs = [...openTabs]
+                for (const p of currentTabs) {
+                    try {
+                        if (p !== MAIN_FILE && !availableFiles.includes(p)) {
+                            closeTabSilent(p)
+                        }
+                    } catch (_e) { }
+                }
             }
+        } catch (_e) { }
+    })()
+
+        // Re-open files present in the FileManager (don't auto-select)
+        ; (async () => {
             try {
-                window.__ssg_pending_tabs = []
+                const FileManager = getFileManager()
+                if (FileManager && typeof FileManager.list === 'function') {
+                    const files = (await FileManager.list()) || []
+                    for (const p of files) {
+                        try {
+                            if (p && p !== MAIN_FILE) await _safeOpenTab(p, { select: false })
+                        } catch (_e) { }
+                    }
+                }
             } catch (_e) { }
-        }
-    } catch (_e) { }
+        })()
+
+        // Process any pending tabs queued before TabManager was ready
+        ; (async () => {
+            try {
+                const pending = (window.__ssg_pending_tabs || [])
+                if (pending && pending.length) {
+                    const FileManager = getFileManager()
+                    const availableFiles = (FileManager && typeof FileManager.list === 'function') ? ((await FileManager.list()) || []) : []
+                    for (const p of pending) {
+                        try {
+                            if (_isSystemPath(p)) continue
+                            if (p === MAIN_FILE || availableFiles.includes(p)) {
+                                await _safeOpenTab(p, { select: false })
+                            }
+                        } catch (_e) { }
+                    }
+                    try { window.__ssg_pending_tabs = [] } catch (_e) { }
+                }
+            } catch (_e) { }
+        })()
 
     // File rename functionality (top-level inside module)
     async function renameFile(oldPath, newPath) {
@@ -570,42 +579,25 @@ export function initializeTabManager(codeMirror, textareaElement) {
             const FileManager = getFileManager()
             if (!FileManager) return false
 
-            // Read content from old file
             const content = await FileManager.read(oldPath)
             if (content === null) return false
 
-            // Set the rename flag BEFORE any FileManager operations to prevent
-            // the notification system from interfering with tab selection
             window.__ssg_renaming_file = { oldPath, newPath, timestamp: Date.now() }
 
-            // Write to new path (this triggers notification system)
             await FileManager.write(newPath, content)
-
-            // Delete old file
             await FileManager.delete(oldPath)
 
-            // Update tabs
             const tabIndex = openTabs.indexOf(oldPath)
-            if (tabIndex !== -1) {
-                openTabs[tabIndex] = newPath
-            }
+            if (tabIndex !== -1) openTabs[tabIndex] = newPath
 
-            // Update active tab reference
-            // During rename, closeTabSilent may have set active to null, so check both conditions
             if (active === oldPath || (window.__ssg_renaming_file && window.__ssg_renaming_file.oldPath === oldPath)) {
                 active = newPath
-
-                // Update TabOverflowManager's lastEditedFile synchronously
-                if (overflowManager && overflowManager.lastEditedFile === oldPath) {
-                    overflowManager.lastEditedFile = newPath
-                }
-
+                if (overflowManager && overflowManager.lastEditedFile === oldPath) overflowManager.lastEditedFile = newPath
                 selectTab(newPath)
             }
 
             render()
 
-            // Clear the rename flag after render is complete
             setTimeout(() => {
                 if (window.__ssg_renaming_file &&
                     window.__ssg_renaming_file.oldPath === oldPath &&
@@ -621,6 +613,17 @@ export function initializeTabManager(codeMirror, textareaElement) {
         }
     }
 
+    // Provide a local updateConfig that updates module state and re-renders.
+    // This shadows the top-level exported `updateConfig` to avoid ReferenceError
+    // if module-level bindings are not fully initialized due to circular
+    // import/load-order in some embed environments.
+    function updateConfig(config) {
+        try {
+            currentConfig = config
+        } catch (_e) { }
+        try { render() } catch (_e) { }
+    }
+
     return {
         openTab,
         closeTab,
@@ -633,24 +636,21 @@ export function initializeTabManager(codeMirror, textareaElement) {
         syncWithFileManager,
         updateConfig,
         renameFile,
-        flushPendingTabs: () => {
+        flushPendingTabs: async () => {
             try {
                 const pending = (window.__ssg_pending_tabs || [])
                 if (pending && pending.length) {
                     const FileManager = getFileManager()
-                    const availableFiles = (FileManager && typeof FileManager.list === 'function') ? (FileManager.list() || []) : []
+                    const availableFiles = (FileManager && typeof FileManager.list === 'function') ? ((await FileManager.list()) || []) : []
                     for (const p of pending) {
                         try {
-                            // Only open pending tabs that actually exist and are not system paths
                             if (_isSystemPath(p)) continue
                             if (p === MAIN_FILE || availableFiles.includes(p)) {
                                 openTab(p, { select: false })
                             }
                         } catch (_e) { }
                     }
-                    try {
-                        window.__ssg_pending_tabs = []
-                    } catch (_e) { }
+                    try { window.__ssg_pending_tabs = [] } catch (_e) { }
                 }
             } catch (_e) { }
         }
