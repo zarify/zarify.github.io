@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>WASM Python - Cat Herding 08 | Headtilt</title>
+<meta name="keywords" content="ai, python, llm, agents, cat-herding, wasm-python">
+<meta name="description" content="Pre(r)amble
+This is part of a series of posts documenting some of the process of
+(building|cat herding an AI agent to build) Clipy, an easily hosted Python teaching tool built
+with just front-end JS and a WASM port of MicroPython.
+You can find the GitHub repo for the project here
+I keep a relatively up to date version here if you want to try it
+What we had before
+Last week was mostly about fixing up issues with implementation methods.">
+<meta name="author" content="Rob">
+<link rel="canonical" href="https://headtilt.me/cat-herding-wasm-python-08/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.1d79e034ed3fae3cce466e1b13b697315f9998d1ba8d908def178611b372b49f.css" integrity="sha256-HXngNO0/rjzORm4bE7aXMV&#43;ZmNG6jZCN7xeGEbNytJ8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://headtilt.me/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://headtilt.me/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://headtilt.me/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://headtilt.me/apple-touch-icon.png">
+<link rel="mask-icon" href="https://headtilt.me/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://headtilt.me/cat-herding-wasm-python-08/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/css/formatting.css">
+
+
+
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://headtilt.me/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="https://headtilt.me/images/headtilt.png" alt="" aria-label="logo"
+                    height="30">Adjust your angle</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://headtilt.me/post" title="posts">
+                    <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/page/about/" title="about">
+                    <span><i class="fa-solid fa-circle-info"></i> about</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/categories/" title="categories">
+                    <span><i class="fa-solid fa-layer-group"></i> categories</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/tags/" title="tags">
+                    <span><i class="fa-solid fa-tags"></i> tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      WASM Python - Cat Herding 08
+    </h1>
+    <div class="post-meta"><span title='2025-10-14 19:07:41 +0800 AWST'>Tue, Oct 14, 2025</span>&nbsp;·&nbsp;Rob
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#preramble" aria-label="Pre(r)amble">Pre(r)amble</a></li>
+                <li>
+                    <a href="#what-we-had-before" aria-label="What we had before">What we had before</a></li>
+                <li>
+                    <a href="#whats-happened-since" aria-label="What&rsquo;s happened since">What&rsquo;s happened since</a><ul>
+                        
+                <li>
+                    <a href="#pruning" aria-label="Pruning">Pruning</a></li>
+                <li>
+                    <a href="#playgrounds-and-problem-lists" aria-label="Playgrounds and Problem Lists">Playgrounds and Problem Lists</a></li>
+                <li>
+                    <a href="#testing" aria-label="Testing">Testing</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h2 id="preramble">Pre(r)amble<a hidden class="anchor" aria-hidden="true" href="#preramble">#</a></h2>
+<p>This is part of a series of posts documenting some of the process of
+(building|cat herding an AI agent to build) Clipy, an easily hosted Python teaching tool built
+with just front-end JS and a WASM port of MicroPython.</p>
+<p><a href="https://github.com/zarify/clipy">You can find the GitHub repo for the project here</a></p>
+<p><a href="https://headtilt.me/clipy?author">I keep a relatively up to date version here if you want to try it</a></p>
+<h2 id="what-we-had-before">What we had before<a hidden class="anchor" aria-hidden="true" href="#what-we-had-before">#</a></h2>
+<p>Last week was mostly about fixing up issues with implementation methods.</p>
+<p><a href="https://headtilt.me/cat-herding-wasm-python-07/">Read about it in the post from last time</a></p>
+<h2 id="whats-happened-since">What&rsquo;s happened since<a hidden class="anchor" aria-hidden="true" href="#whats-happened-since">#</a></h2>
+<p>This past week has been very similar in theme to the previous one: fixing a bunch of mistakes,
+chopping out dead code, and just generally tidying up the project. I&rsquo;ve thought a couple of times
+along the way that this was mostly &ldquo;done&rdquo; in terms of features, but I don&rsquo;t think anything really
+new has been added in the last fortnight, so maybe it&rsquo;s true this time?</p>
+<p>Record-Replay still doesn&rsquo;t feel <em>entirely</em> baked, but after poking at it from both ends (C and JS)
+without a lot of improvement, we might be starting to hit the wall.</p>
+<h3 id="pruning">Pruning<a hidden class="anchor" aria-hidden="true" href="#pruning">#</a></h3>
+<p>Here are a couple of the things that got taken out this week:</p>
+<ul>
+<li>The old Python instrumentation record-replay code</li>
+<li>The in-memory mirror of the workspace. Now we&rsquo;re just dealing with IDB and it seems fine, with far fewer bugs caused by sync issues (So. Many. Bugs.)</li>
+</ul>
+<h3 id="playgrounds-and-problem-lists">Playgrounds and Problem Lists<a hidden class="anchor" aria-hidden="true" href="#playgrounds-and-problem-lists">#</a></h3>
+<p>No matter what set of problems (or an individual problem) has been loaded, there is now a
+persistent &ldquo;Playground&rdquo; problem that is loaded as well. This lets students have a place to
+try out code that follows them around.</p>
+<p>This also required some changes to the way that problem lists were handled, since the playground
+is local to the app, whilst problem lists can be loaded from remote servers like a Github. Originally
+I was just treating all the problem in the list as being on the same remote server, but the mixed
+method meant that those lists needed to be handled a bit differently.</p>
+<p>One of the other features that I fixed this week was success indicators for lists, not just problems.
+Since the playground doesn&rsquo;t have tests, it can&rsquo;t be &ldquo;passed&rdquo;, and so the success indicator needed
+to take into account problems potentially not having tests. Problems in lists now have a completion
+indicator in the drop-down menu for choosing problems, and that indicator can show that it has been
+passed, not yet passed, or not passable because there are no tests. In the problem list context,
+the entire problem list can also show as passed.</p>
+<h3 id="testing">Testing<a hidden class="anchor" aria-hidden="true" href="#testing">#</a></h3>
+<p>I&rsquo;ve been starting to put together lists of problems that can be used to test features, which can
+also serve as a bit of a demo.</p>
+<p><a href="/clipy/?config=https://raw.githubusercontent.com/zarify/clipy-configs/refs/heads/main/tests-features/index.json">You can check out the beginnings of this problem list here</a></p>
+<p><a href="https://github.com/zarify/clipy-configs/tree/main/tests-features">You can also see the config files that this loads from here</a></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://headtilt.me/tags/ai/">Ai</a></li>
+      <li><a href="https://headtilt.me/tags/python/">Python</a></li>
+      <li><a href="https://headtilt.me/tags/llm/">Llm</a></li>
+      <li><a href="https://headtilt.me/tags/agents/">Agents</a></li>
+      <li><a href="https://headtilt.me/tags/cat-herding/">Cat-Herding</a></li>
+      <li><a href="https://headtilt.me/tags/wasm-python/">Wasm-Python</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>Rob Poulter</span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a><script type="text/javascript" src="/js/lightbox.js"></script>
+<link rel="stylesheet" href="/css/lightbox.css">
+<script data-goatcounter="https://headtilt_me.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

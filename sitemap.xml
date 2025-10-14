@@ -2,40 +2,43 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://headtilt.me/</loc>
-    <lastmod>2025-10-10T06:23:32+08:00</lastmod>
-  </url><url>
-    <loc>https://headtilt.me/post/</loc>
-    <lastmod>2025-10-10T06:23:32+08:00</lastmod>
-  </url><url>
     <loc>https://headtilt.me/tags/agents/</loc>
-    <lastmod>2025-10-06T06:10:35+08:00</lastmod>
+    <lastmod>2025-10-14T19:07:41+08:00</lastmod>
   </url><url>
     <loc>https://headtilt.me/tags/ai/</loc>
-    <lastmod>2025-10-06T06:10:35+08:00</lastmod>
+    <lastmod>2025-10-14T19:07:41+08:00</lastmod>
   </url><url>
     <loc>https://headtilt.me/tags/cat-herding/</loc>
-    <lastmod>2025-10-06T06:10:35+08:00</lastmod>
+    <lastmod>2025-10-14T19:07:41+08:00</lastmod>
   </url><url>
     <loc>https://headtilt.me/categories/</loc>
-    <lastmod>2025-10-06T06:10:35+08:00</lastmod>
+    <lastmod>2025-10-14T19:07:41+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/</loc>
+    <lastmod>2025-10-14T19:07:41+08:00</lastmod>
   </url><url>
     <loc>https://headtilt.me/tags/llm/</loc>
-    <lastmod>2025-10-06T06:10:35+08:00</lastmod>
+    <lastmod>2025-10-14T19:07:41+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/post/</loc>
+    <lastmod>2025-10-14T19:07:41+08:00</lastmod>
   </url><url>
     <loc>https://headtilt.me/tags/python/</loc>
-    <lastmod>2025-10-06T06:10:35+08:00</lastmod>
+    <lastmod>2025-10-14T19:07:41+08:00</lastmod>
   </url><url>
     <loc>https://headtilt.me/categories/ramble/</loc>
-    <lastmod>2025-10-06T06:10:35+08:00</lastmod>
+    <lastmod>2025-10-14T19:07:41+08:00</lastmod>
   </url><url>
     <loc>https://headtilt.me/tags/</loc>
-    <lastmod>2025-10-06T06:10:35+08:00</lastmod>
+    <lastmod>2025-10-14T19:07:41+08:00</lastmod>
   </url><url>
-    <loc>https://headtilt.me/cat-herding-wasm-python-07/</loc>
-    <lastmod>2025-10-06T06:10:35+08:00</lastmod>
+    <loc>https://headtilt.me/cat-herding-wasm-python-08/</loc>
+    <lastmod>2025-10-14T19:07:41+08:00</lastmod>
   </url><url>
     <loc>https://headtilt.me/tags/wasm-python/</loc>
+    <lastmod>2025-10-14T19:07:41+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/cat-herding-wasm-python-07/</loc>
     <lastmod>2025-10-06T06:10:35+08:00</lastmod>
   </url><url>
     <loc>https://headtilt.me/cat-herding-wasm-python-06/</loc>
