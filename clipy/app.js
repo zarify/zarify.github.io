@@ -10,7 +10,7 @@ import { getStudentIdentifier, setStudentIdentifier } from './js/zero-knowledge-
 import { openModal, closeModal } from './js/modals.js'
 
 // Terminal and UI
-import { initializeTerminal, setupSideTabs, setupClearTerminalButton } from './js/terminal.js'
+import { initializeTerminal, setupSideTabs, setupClearTerminalButton, activateSideTab } from './js/terminal.js'
 import { initializeEditor } from './js/editor.js'
 import { initializeAutosave } from './js/autosave.js'
 
@@ -376,6 +376,8 @@ async function main() {
         }
 
         initializeInstructions(cfg)
+        try { if (typeof activateSideTab === 'function') activateSideTab('instructions') } catch (_e) { }
+        try { if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') window.dispatchEvent(new CustomEvent('ssg:config-changed', { detail: { config: cfg } })) } catch (_e) { }
 
         // Update success indicators initially (may be updated later when snapshots load)
         try { updateSuccessIndicators() } catch (_e) { }
@@ -1303,6 +1305,8 @@ async function main() {
 
                 // Update UI components (setCurrentConfig was already called above)
                 try { initializeInstructions(newCfg) } catch (_e) { }
+                try { if (typeof activateSideTab === 'function') activateSideTab('instructions') } catch (_e) { }
+                try { if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') window.dispatchEvent(new CustomEvent('ssg:config-changed', { detail: { config: newCfg } })) } catch (_e) { }
                 // Update Feedback subsystem and UI so feedback/tests from the
                 // newly-applied config fully replace any previous state.
                 try {

@@ -776,6 +776,20 @@ export function createTerminal(host = (typeof window !== 'undefined' ? window : 
         } catch (_e) { }
     }
 
+    // React to global config changes by focusing the Instructions tab so
+    // UI stays consistent when configs are loaded programmatically.
+    try {
+        if (typeof host !== 'undefined' && host && host.addEventListener) {
+            host.addEventListener('ssg:config-changed', (ev) => {
+                try {
+                    const cfg = ev && ev.detail ? ev.detail.config : null
+                    if (!cfg) return
+                    activateSideTab('instructions')
+                } catch (_e) { }
+            })
+        }
+    } catch (_e) { }
+
     return {
         clearTerminal,
         setupClearTerminalButton,
