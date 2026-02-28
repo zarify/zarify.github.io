@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>AI Workflows - Visuals | Headtilt</title>
+<meta name="keywords" content="ai, llm, visual-analysis">
+<meta name="description" content="It&rsquo;s 2026 and I&rsquo;ve been trying to decide what AI and LLMs are useful for in my day to day teaching.
+One of the things that has been floating around has been the promise of reducing admin time for
+teachers using LLMs, but I honestly haven&rsquo;t found the argument to be that compelling. I don&rsquo;t trust
+it near the things that take up most of my admin time like communicating with students, parents, and
+partner schools. It&rsquo;s mostly been terrible for curriculum planning, mediocre at best for assessment
+design, and laughably bad at generating lesson slides, particularly anything involving diagrams.">
+<meta name="author" content="Rob">
+<link rel="canonical" href="https://headtilt.me/workflows-visuals/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d6fcd20a4fb86efa4dfac8ec95da60244cc8871042183da1ef28e3a762ad79c8.css" integrity="sha256-1vzSCk&#43;4bvpN&#43;sjsldpgJEzIhxBCGD2h7yjjp2Ktecg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://headtilt.me/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://headtilt.me/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://headtilt.me/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://headtilt.me/apple-touch-icon.png">
+<link rel="mask-icon" href="https://headtilt.me/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://headtilt.me/workflows-visuals/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/css/formatting.css">
+
+
+
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://headtilt.me/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="https://headtilt.me/images/headtilt.png" alt="" aria-label="logo"
+                    height="30">Adjust your angle</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://headtilt.me/post" title="posts">
+                    <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/page/about/" title="about">
+                    <span><i class="fa-solid fa-circle-info"></i> about</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/categories/" title="categories">
+                    <span><i class="fa-solid fa-layer-group"></i> categories</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/tags/" title="tags">
+                    <span><i class="fa-solid fa-tags"></i> tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      AI Workflows - Visuals
+    </h1>
+    <div class="post-meta"><span title='2026-02-28 07:52:36 +0800 AWST'>Sat, Feb 28, 2026</span>&nbsp;·&nbsp;Rob
+
+</div>
+  </header> 
+  <div class="post-content"><p>It&rsquo;s 2026 and I&rsquo;ve been trying to decide what AI and LLMs are useful for in my day to day teaching.
+One of the things that has been floating around has been the promise of reducing admin time for
+teachers using LLMs, but I honestly haven&rsquo;t found the argument to be that compelling. I don&rsquo;t trust
+it near the things that take up most of my admin time like communicating with students, parents, and
+partner schools. It&rsquo;s mostly been terrible for curriculum planning, mediocre at best for assessment
+design, and laughably bad at generating lesson slides, particularly anything involving diagrams.</p>
+<p>I&rsquo;ve had colleagues talk about using some teacher-specific (paid) services to generate slide decks, but
+the examples I&rsquo;ve seen have been either overly colourful and distracting or bland
+beyond belief. The fact they&rsquo;re frequently riddled with errors doesn&rsquo;t help.
+The attempts I&rsquo;ve made at hand-rolling tools for this have also tended to increase the
+time I work on something, rather than saving me time.</p>
+<p>So what is it good for?</p>
+<p>I&rsquo;ve found Google Gemini to be surprisingly good at image analysis. I&rsquo;ve fed it incredibly messy
+handwritten examples of student work (sans PII of course) it&rsquo;s done a very credible job of
+interpreting the problem solving process. I&rsquo;ve given it hand drawn wireframes and gotten it to
+generate a prototype web page based on the sketches which have been very accurate. I&rsquo;ve given it
+a framework for doing visual analysis of images, identifying design principles and elements that
+suit those covered in a course, supplied an image of a web page, and it does a pretty good job of
+spitting out a reasonable output.</p>
+<p>This brings me to the problem I was trying to solve - how can I take that analysis and create some
+nice visuals for students to use as part of our asynchronous learning time? Gemini and other models
+are just pain awful at generating images that have any sort of accuracy, especially for diagrams.
+Just look at the <a href="https://www.windowscentral.com/software-apps/microsoft-caught-plagiarizing-graphics-with-ai-slop-microsoft-continvoucly-morged-my-diagram-there-for-sure">great example that Microsoft butchered as part of its Github course</a>.</p>
+<p>When I asked Gemini to mark up a web page screenshot with design annotations, it just gave me an
+<a href="https://youtu.be/Wy4EfdnMZ5g">&ldquo;I&rsquo;m sorry Dave, I&rsquo;m afraid I can&rsquo;t do that&rdquo;</a>, which frankly was
+a bit of a relief. However, since
+it was pretty good at the visual analysis part, I wondered if there was another way: if it could
+identify where on the image an annotation should go, surely it could just create a web page that
+used the image as a background, and then create some clickable hotspot elements at the correct
+coordinates, right? Right?! Well actually, yes it could.</p>
+<p>A bit of refactoring later, and I have a template that I can give to Gemini along with a screenshot,
+instructions to generate a JSON blob of configuration data on hotspots, annotations, and an image
+path, and I can just paste the config blob into the template on my computer and voila! an
+interactive HTML file for my students that takes maybe 5-10 minutes to create.</p>
+<img alt="Gemini&rsquo;s analysis of the Apple home page" loading="lazy" src="/images/ait_design/apple_homepage_screenshot.png"><p>I finally saved myself some time using AI and it only took two years or so!</p>
+<p>Going a little bit further, I popped into the Copilot CLI and got it to package the same thing up
+as an H5P resource that I could more easily stick into our Moodle LMS, and create a SCORM package
+for some basic formative assessment.</p>
+<p>Most importantly for me is that because everything is configured to be reusable with
+minimal editing, the only thing I go back to the model for is to give it a different screenshot
+and get a JSON blob in return. I don&rsquo;t have to have it founder away on all the same problems again
+and again as it rediscovers issues with H5P plugin versions, incorrectly resource formats, etc.</p>
+<p>I could even [sotto voce] <em>just create the JSON config all by myself</em> 🫢</p>
+<p>I have a copy of some sample screenshots that went through the process in my <a href="https://github.com/zarify/ai-workflow-experiments">github repo</a>.
+These are unmodified from what Gemini generated in terms of analysis. Some of it might be a bit of
+a stretch, but I don&rsquo;t think it&rsquo;s terrible. My gut tells me that if you tried to push an image is that was just
+terrible design Gemini would cheerfully try and justify some nonsense, so obviously YMMV.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://headtilt.me/tags/ai/">Ai</a></li>
+      <li><a href="https://headtilt.me/tags/llm/">Llm</a></li>
+      <li><a href="https://headtilt.me/tags/visual-analysis/">Visual-Analysis</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>Rob Poulter</span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a><script type="text/javascript" src="/js/lightbox.js"></script>
+<link rel="stylesheet" href="/css/lightbox.css">
+<script data-goatcounter="https://headtilt_me.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

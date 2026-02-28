@@ -4,11 +4,32 @@
     <title>Tags on Headtilt</title>
     <link>https://headtilt.me/tags/</link>
     <description>Recent content in Tags on Headtilt</description>
-    <generator>Hugo -- 0.149.0</generator>
+    <generator>Hugo -- 0.155.1</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
-    <lastBuildDate>Tue, 14 Oct 2025 19:07:41 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 28 Feb 2026 07:52:36 +0800</lastBuildDate>
     <atom:link href="https://headtilt.me/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Ai</title>
+      <link>https://headtilt.me/tags/ai/</link>
+      <pubDate>Sat, 28 Feb 2026 07:52:36 +0800</pubDate>
+      <guid>https://headtilt.me/tags/ai/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Llm</title>
+      <link>https://headtilt.me/tags/llm/</link>
+      <pubDate>Sat, 28 Feb 2026 07:52:36 +0800</pubDate>
+      <guid>https://headtilt.me/tags/llm/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Visual-Analysis</title>
+      <link>https://headtilt.me/tags/visual-analysis/</link>
+      <pubDate>Sat, 28 Feb 2026 07:52:36 +0800</pubDate>
+      <guid>https://headtilt.me/tags/visual-analysis/</guid>
+      <description></description>
+    </item>
     <item>
       <title>Agents</title>
       <link>https://headtilt.me/tags/agents/</link>
@@ -17,24 +38,10 @@
       <description></description>
     </item>
     <item>
-      <title>Ai</title>
-      <link>https://headtilt.me/tags/ai/</link>
-      <pubDate>Tue, 14 Oct 2025 19:07:41 +0800</pubDate>
-      <guid>https://headtilt.me/tags/ai/</guid>
-      <description></description>
-    </item>
-    <item>
       <title>Cat-Herding</title>
       <link>https://headtilt.me/tags/cat-herding/</link>
       <pubDate>Tue, 14 Oct 2025 19:07:41 +0800</pubDate>
       <guid>https://headtilt.me/tags/cat-herding/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Llm</title>
-      <link>https://headtilt.me/tags/llm/</link>
-      <pubDate>Tue, 14 Oct 2025 19:07:41 +0800</pubDate>
-      <guid>https://headtilt.me/tags/llm/</guid>
       <description></description>
     </item>
     <item>

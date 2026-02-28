@@ -4,11 +4,23 @@
     <title>Llm on Headtilt</title>
     <link>https://headtilt.me/tags/llm/</link>
     <description>Recent content in Llm on Headtilt</description>
-    <generator>Hugo -- 0.149.0</generator>
+    <generator>Hugo -- 0.155.1</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
-    <lastBuildDate>Tue, 14 Oct 2025 19:07:41 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 28 Feb 2026 07:52:36 +0800</lastBuildDate>
     <atom:link href="https://headtilt.me/tags/llm/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>AI Workflows - Visuals</title>
+      <link>https://headtilt.me/workflows-visuals/</link>
+      <pubDate>Sat, 28 Feb 2026 07:52:36 +0800</pubDate>
+      <guid>https://headtilt.me/workflows-visuals/</guid>
+      <description>&lt;p&gt;It&amp;rsquo;s 2026 and I&amp;rsquo;ve been trying to decide what AI and LLMs are useful for in my day to day teaching.
+One of the things that has been floating around has been the promise of reducing admin time for
+teachers using LLMs, but I honestly haven&amp;rsquo;t found the argument to be that compelling. I don&amp;rsquo;t trust
+it near the things that take up most of my admin time like communicating with students, parents, and
+partner schools. It&amp;rsquo;s mostly been terrible for curriculum planning, mediocre at best for assessment
+design, and laughably bad at generating lesson slides, particularly anything involving diagrams.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>WASM Python - Cat Herding 08</title>
       <link>https://headtilt.me/cat-herding-wasm-python-08/</link>
