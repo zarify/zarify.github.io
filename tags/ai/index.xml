@@ -7,8 +7,16 @@
     <generator>Hugo -- 0.155.1</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
-    <lastBuildDate>Sat, 28 Feb 2026 07:52:36 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 11 Mar 2026 14:25:29 +0800</lastBuildDate>
     <atom:link href="https://headtilt.me/tags/ai/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>What Do We Want</title>
+      <link>https://headtilt.me/what-do-we-want/</link>
+      <pubDate>Wed, 11 Mar 2026 14:25:29 +0800</pubDate>
+      <guid>https://headtilt.me/what-do-we-want/</guid>
+      <description>&lt;p&gt;After being recommended it by a former colleague, I was listening to the &amp;ldquo;You can learn with AI&amp;rdquo; episode of the Change, Technically podcast (which was really good, &lt;a href=&#34;https://www.changetechnically.fyi/2396236/episodes/18692591-you-can-learn-with-ai&#34;&gt;check it out&lt;/a&gt;) and it got me thinking:&lt;/p&gt;
+&lt;p&gt;As educators, what do we really want to get out of generative AI (or even AI in general)? I tinker with things all the time because I like understanding where the edges are, but in an ideal world (setting aside the considerable ethical, technical, accuracy and fabrication issues) what would we want tools like this to do?&lt;/p&gt;</description>
+    </item>
     <item>
       <title>AI Workflows - Visuals</title>
       <link>https://headtilt.me/workflows-visuals/</link>
