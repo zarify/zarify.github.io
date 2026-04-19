@@ -80,6 +80,22 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">Publii to Microblog
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>When deciding to play around with Publii (after taking a dislike to Jekyll, and not finding anything else that tickled my fancy), the first problem seemed to be that despite supporting tags for posts, there was no way to create an RSS or JSON feed based on a tag. Publii creates a feed, but it contains all posts regardless of the category.
+Two alternatives presented themselves, neither particularly nice:
+‘hide’ all posts except Microblog tagged posts from the feed. This is both kludgy, and not pleasant looking, since only Microblog posts would then appear on the front page of the site. Write a script to create a new feed from the main one with everything except Microblog tagged posts filtered out. Not very hard, but requires running the feed filter after each post.
+This wouldn’t be a big deal if Publii followed most other static site generators in running with command-line scripts, since I could just add another script to the chain of posting, but since it all runs through a GUI program with a shiny “sync changes” button, it means then manually (or on a schedule to check for changes with a cron job maybe) pulling the JSON feed, filtering posts, and then pushing the new file to the site again. (not a real option) figure out how to modify Publii to do what I wanted. Anyhow, I guess option 2 seems like the way to go since it’s gross but simple to do. If it turns out I care (or post!) enough, I’ll automate it later.
+</p>
+  </div>
+  <footer class="entry-footer"><span title='2018-08-18 16:32:29.078 +0000 UTC'>Sat, Aug 18, 2018</span>&nbsp;·&nbsp;Rob</footer>
+  <a class="entry-link" aria-label="post link to Publii to Microblog" href="https://headtilt.me/publii-to-microblog/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">Year 7-8: Bad Crypto with Microbits
     </h2>
   </header>
@@ -199,20 +215,6 @@ I won’t go into the design of the digital technologies curriculum itself (you 
   </div>
   <footer class="entry-footer"><span title='2016-07-09 07:52:03 +0000 UTC'>Sat, Jul 9, 2016</span>&nbsp;·&nbsp;Rob</footer>
   <a class="entry-link" aria-label="post link to Institutional blocking as a service" href="https://headtilt.me/institutional-blocking-as-a-service/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">Machine Learning and Intellectual Laziness
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>So there’s a certain element of hyperbole coming up. Just saying.
-Google Allo (which of course makes me think of the classically cheesy ‘Allo ‘Allo) was outlined in the recent Google IO keynote. One of the features which bears some consideration is Smart Reply which suggests replies to messaging and learns from your responses over time (and I assume also does learning on the aggregate, playing to Google’s strengths in large scale data analysis.
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2016-05-25 13:18:13 +0000 UTC'>Wed, May 25, 2016</span>&nbsp;·&nbsp;Rob</footer>
-  <a class="entry-link" aria-label="post link to Machine Learning and Intellectual Laziness" href="https://headtilt.me/machine-learning-and-intellectual-laziness/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">

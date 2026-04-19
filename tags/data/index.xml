@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Data on Headtilt</title>
+    <link>https://headtilt.me/tags/data/</link>
+    <description>Recent content in Data on Headtilt</description>
+    <generator>Hugo -- 0.160.1</generator>
+    <language>en</language>
+    <copyright>Rob Poulter</copyright>
+    <lastBuildDate>Mon, 20 Apr 2026 06:44:52 +0800</lastBuildDate>
+    <atom:link href="https://headtilt.me/tags/data/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Baby Name Adventure</title>
+      <link>https://headtilt.me/baby-names/</link>
+      <pubDate>Mon, 20 Apr 2026 06:44:52 +0800</pubDate>
+      <guid>https://headtilt.me/baby-names/</guid>
+      <description>&lt;p&gt;Years ago I remember listening to the audio book version of Freakonomics and the in particular the story
+about baby names (&lt;a href=&#34;https://freakonomics.com/podcast/how-much-does-your-name-matter/&#34;&gt;I think a standalone podcast episode can be found here&lt;/a&gt;).
+Being a teacher this has sort of stuck with my over time, since every year I get another crop of student
+names, some with interesting new spellings of older names, some with identical pronunciations to familiar
+names that I have to double check, and some I have to embarras myself a few times to get right (even with
+help from students, because my brain is only sometimes connected to my mouth).&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
