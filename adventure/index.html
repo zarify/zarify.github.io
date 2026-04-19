@@ -224,6 +224,43 @@
     .log-culture { color: #f2cc60; }
     .log-end { color: #5ad673; font-weight: 700; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+
+    /* ── Mobile portrait: fix clipped start overlay and dead space below log ── */
+    @media screen and (max-width: 540px) and (orientation: portrait) {
+      body { padding: 12px 10px 16px; }
+
+      /* Bound the app to the viewport so the log can overflow-scroll within it */
+      .app {
+        display: flex;
+        flex-direction: column;
+        height: calc(100svh - 28px);
+        overflow: hidden;
+      }
+
+      /* Slightly taller canvas display so the river has room to breathe */
+      canvas { aspect-ratio: 900 / 520; }
+
+      /* Narrow the speed slider so controls fit on one line */
+      #header-speed { width: 80px; }
+
+      /* Break the overlay out of the clipped canvas box so all fields are reachable */
+      #start-overlay {
+        position: fixed;
+        inset: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        z-index: 50;
+      }
+
+      /* Log fills remaining height and scrolls internally — min-height: 0 is the
+         flex trick that lets the item respect its allocated size so overflow-y works */
+      #journey-log {
+        flex: 1;
+        min-height: 0;
+        max-height: none;
+        overflow-y: auto;
+      }
+    }
   </style>
 </head>
 <body>
