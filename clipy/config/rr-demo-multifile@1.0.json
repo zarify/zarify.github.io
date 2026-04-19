@@ -1,0 +1,15 @@
+{
+  "id": "rr-demo-multifile",
+  "title": "RR Multi File Demo",
+  "version": "1.0",
+  "description": "",
+  "instructions": "Run the code to and then use the replay to see the variable state.",
+  "feedback": "",
+  "tests": "",
+  "starter": "from dice import roll\n\nnum_dice = input(\"How many dice? \")\nnum_dice = int(num_dice)\nnum_rolls = input(\"How many rolls? \")\nnum_rolls = int(num_rolls)\n\nfor i in range(num_rolls):\n    rolls = roll(num_dice)\n    print(rolls)\nprint(\"Done\")",
+  "files": {
+    "/main.py": "from dice import roll\n\nnum_dice = input(\"How many dice? \")\nnum_dice = int(num_dice)\nnum_rolls = input(\"How many rolls? \")\nnum_rolls = int(num_rolls)\n\nfor i in range(num_rolls):\n    rolls = roll(num_dice)\n    print(rolls)\nprint(\"Done\")",
+    "dice.py": "import random\n\ndef roll(n):\n    \"\"\"Roll n 6 sided dice and return the rolls as a list\"\"\"\n    rolls = [random.randint(1, 6) for i in range(n)]\n    return rolls"
+  },
+  "fileReadOnlyStatus": {}
+}

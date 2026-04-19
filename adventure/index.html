@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🗺️ Name Lineage Adventure</title>
+  <meta name="description" content="A glowing, interactive journey through baby name lineages across time." />
+  <style>
+    :root {
+      --bg: #0d1117;
+      --panel: #161b22;
+      --panel-soft: rgba(22, 27, 34, 0.75);
+      --border: #30363d;
+      --text: #c9d1d9;
+      --muted: #8b949e;
+      --blue: #58a6ff;
+      --gold: #ffd700;
+      --green: #3fb950;
+      --amber: #f2cc60;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px 14px 28px;
+      background-image:
+        radial-gradient(circle at 1px 1px, rgba(201, 209, 217, 0.03) 1px, transparent 0);
+      background-size: 22px 22px;
+    }
+    .app {
+      width: min(1060px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 12px;
+    }
+    .header {
+      background: var(--panel-soft);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(1.1rem, 2.4vw, 1.6rem);
+      color: #f0f6fc;
+      letter-spacing: 0.2px;
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    button, select, input[type="range"] {
+      accent-color: var(--blue);
+    }
+    .btn {
+      border: 1px solid var(--border);
+      background: #21262d;
+      color: var(--text);
+      border-radius: 9px;
+      padding: 7px 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 140ms ease;
+    }
+    .btn:hover { border-color: var(--blue); box-shadow: 0 0 0 1px rgba(88, 166, 255, 0.35) inset; }
+    .btn.blue { border-color: #1f6feb99; background: #1f6feb22; color: #dbe9ff; }
+    .pill {
+      border-radius: 999px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: #11161d;
+      font-size: 0.86rem;
+    }
+    .speed-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 5px 10px;
+      background: #0f141b;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    #header-speed { width: 150px; }
+    .canvas-wrapper {
+      position: relative;
+      border: 1px solid #1f2a37;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #010409;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.35), inset 0 0 50px rgba(88, 166, 255, 0.04);
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 900 / 420;
+      background: #010409;
+    }
+    #fork-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    .fork-btn {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      pointer-events: auto;
+      min-width: 145px;
+      max-width: 210px;
+      border: 1px solid #3b4757;
+      border-radius: 11px;
+      padding: 8px 10px;
+      text-align: center;
+      background: linear-gradient(180deg, #161b22, #10151c);
+      color: #c9d1d9;
+      box-shadow: 0 2px 18px rgba(0, 0, 0, 0.35);
+      cursor: pointer;
+      transition: 130ms ease;
+    }
+    .fork-btn b { color: #e6edf3; }
+    .fork-btn:hover {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.3), 0 0 22px rgba(88, 166, 255, 0.32);
+    }
+    #culture-box {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: min(84%, 680px);
+      background: linear-gradient(180deg, #ffd66bcc, #f2cc60e3);
+      color: #1b1f24;
+      border-radius: 11px;
+      border: 1px solid #d9b24e;
+      padding: 9px 13px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 260ms ease;
+      text-align: center;
+    }
+    #culture-box.show { opacity: 1; }
+    #start-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(1, 4, 9, 0.72);
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+    .overlay-panel {
+      width: min(700px, 96%);
+      background: rgba(13, 17, 23, 0.94);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.42);
+      display: grid;
+      gap: 10px;
+    }
+    .overlay-title { margin: 0; color: #f0f6fc; font-size: 1.1rem; }
+    .overlay-copy { margin: 0; color: #a8b3be; line-height: 1.4; }
+    .overlay-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+    }
+    .field {
+      border: 1px solid var(--border);
+      background: #0f141b;
+      border-radius: 10px;
+      padding: 8px;
+      display: grid;
+      gap: 6px;
+      align-content: start;
+    }
+    .field label { font-size: 0.8rem; color: var(--muted); }
+    .seg {
+      display: flex;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      overflow: hidden;
+    }
+    .seg button {
+      flex: 1;
+      border: 0;
+      background: #161b22;
+      color: #a3aab3;
+      padding: 7px 9px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .seg button.active { background: #1f6feb33; color: #d8e9ff; }
+    #journey-log {
+      background: var(--panel-soft);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 10px;
+      max-height: 130px;
+      overflow-y: auto;
+      font-size: 0.92rem;
+      line-height: 1.42;
+    }
+    .log-item { color: #b9c1ca; margin: 3px 0; }
+    .log-fork { color: #7ec3ff; }
+    .log-culture { color: #f2cc60; }
+    .log-end { color: #5ad673; font-weight: 700; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="header">
+      <div class="title-row">
+        <h1>🗺️ Name Lineage Adventure</h1>
+        <div class="controls">
+          <button id="restart-btn" class="btn">New Adventure</button>
+          <button id="mode-btn" class="btn blue" aria-pressed="true">Mode: Interactive</button>
+          <div class="speed-wrap">
+            <span>Fast</span>
+            <input id="header-speed" type="range" min="100" max="1500" step="10" value="420" />
+            <span>Slow</span>
+          </div>
+          <span id="speed-pill" class="pill mono">420ms</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="canvas-wrapper" id="canvas-wrapper">
+      <canvas id="river-canvas" width="900" height="420" aria-label="Name lineage timeline"></canvas>
+      <div id="fork-overlay"></div>
+      <div id="culture-box"></div>
+      <div id="start-overlay">
+        <div class="overlay-panel">
+          <h2 class="overlay-title">Start a fresh lineage</h2>
+          <p id="overlay-copy" class="overlay-copy">Choose your mode and trace a glowing river of names through time.</p>
+          <div class="overlay-grid">
+            <div class="field">
+              <label>Mode</label>
+              <div class="seg">
+                <button id="start-mode-interactive" class="active" type="button">Interactive</button>
+                <button id="start-mode-auto" type="button">Auto</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="start-speed">Speed (<span id="start-speed-label" class="mono">420ms</span>)</label>
+              <input id="start-speed" type="range" min="100" max="1500" step="10" value="420" />
+            </div>
+            <div class="field">
+              <label for="threshold-select">Fork threshold (births/yr)</label>
+              <select id="threshold-select">
+                <option value="1">1</option>
+                <option value="5" selected>5</option>
+                <option value="15">15</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <button id="start-btn" class="btn blue">🎲 Start Adventure</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="journey-log" aria-live="polite"></section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+  <script>
+    // NOTE: fetch() for local files may be blocked under file:// in some browsers.
+    // For reliable loading of data.json.gz, use a tiny local static server during development.
+    (() => {
+      const CANVAS_W = 900;
+      const CANVAS_H = 420;
+      const PIXELS_PER_YEAR = 11;
+      const CURRENT_X = CANVAS_W * 0.58;
+      const WAVE_AMP = 55;
+      const LANE_AMP = 80;
+      const FORK_SPREAD_Y = 90;
+      const FORK_END_X = CURRENT_X + 170;
+      const WARM = [210, 140, 30];
+      const COOL = [80, 220, 210];
+
+      if (!CanvasRenderingContext2D.prototype.roundRect) {
+        CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+          const radius = Math.min(r, w / 2, h / 2);
+          this.beginPath();
+          this.moveTo(x + radius, y);
+          this.arcTo(x + w, y, x + w, y + h, radius);
+          this.arcTo(x + w, y + h, x, y + h, radius);
+          this.arcTo(x, y + h, x, y, radius);
+          this.arcTo(x, y, x + w, y, radius);
+          this.closePath();
+          return this;
+        };
+      }
+
+      const els = {
+        canvas: document.getElementById('river-canvas'),
+        wrapper: document.getElementById('canvas-wrapper'),
+        forkOverlay: document.getElementById('fork-overlay'),
+        cultureBox: document.getElementById('culture-box'),
+        startOverlay: document.getElementById('start-overlay'),
+        overlayCopy: document.getElementById('overlay-copy'),
+        startBtn: document.getElementById('start-btn'),
+        restartBtn: document.getElementById('restart-btn'),
+        modeBtn: document.getElementById('mode-btn'),
+        headerSpeed: document.getElementById('header-speed'),
+        speedPill: document.getElementById('speed-pill'),
+        startSpeed: document.getElementById('start-speed'),
+        startSpeedLabel: document.getElementById('start-speed-label'),
+        thresholdSelect: document.getElementById('threshold-select'),
+        startModeInteractive: document.getElementById('start-mode-interactive'),
+        startModeAuto: document.getElementById('start-mode-auto'),
+        log: document.getElementById('journey-log')
+      };
+      const ctx = els.canvas.getContext('2d');
+
+      let data = null;
+      let refs = {};
+      let candidates = [];
+      let gMode = 'auto';
+      let gSpeed = 420;
+      let gForkThreshold = 5;
+      let game = null;
+      let tickTimer = null;
+      let cultureTimer = null;
+      let interpYear = 0;
+      let lastTickWallTime = 0;
+
+      class GameState {
+        constructor(candidate, mode, forkThreshold) {
+          this.candidate = candidate;
+          this.mode = mode;
+          this.forkThreshold = forkThreshold;
+          this.startYear = candidate.s;
+          this.endYear = candidate.e;
+          this.variants = candidate.v?.length ? [...candidate.v] : [candidate.n];
+          this.annualData = candidate.a || {};
+          this.currentName = this.variants.includes(candidate.n) ? candidate.n : this.variants[0];
+          this.currentYear = this.startYear;
+          this.status = 'running';
+          this.path = [];
+          this.forkOptions = [];
+          this.shownRefs = new Set();
+          this.pendingCulture = [];
+          this.unlocked = new Set([this.currentName]);
+          this.maxCount = Math.max(1, this.getGlobalMaxCount());
+          this.milestonesCrossed = new Set();
+          this.path.push(this.makePathPoint(this.currentName, this.currentYear));
+          this.checkCulture(this.currentYear, this.currentName);
+        }
+        getGlobalMaxCount() {
+          let max = 0;
+          for (const v of this.variants) {
+            const map = this.annualData[v] || {};
+            for (const y in map) max = Math.max(max, map[y] || 0);
+          }
+          return max;
+        }
+        makePathPoint(name, year) {
+          return { name, year, count: this.getCount(name, year) };
+        }
+        getCount(name, year) {
+          return this.annualData[name]?.[String(year)] ?? 0;
+        }
+        checkCulture(year, name) {
+          const list = refs[name.toLowerCase()] || [];
+          for (const [refYear, emoji, text] of list) {
+            const id = `${name}|${refYear}|${text}`;
+            if (this.shownRefs.has(id)) continue;
+            const shouldFire = refYear < this.startYear ? year === this.startYear : Math.abs(refYear - year) <= 3;
+            if (!shouldFire) continue;
+            this.shownRefs.add(id);
+            this.pendingCulture.push({ emoji, text });
+          }
+        }
+        autoChoose() {
+          if (!this.forkOptions.length) return null;
+          const weighted = this.forkOptions.map(o => ({ ...o, w: Math.max(1, o.count) }));
+          const total = weighted.reduce((s, o) => s + o.w, 0);
+          let r = Math.random() * total;
+          for (const opt of weighted) {
+            r -= opt.w;
+            if (r <= 0) return opt;
+          }
+          return weighted[weighted.length - 1];
+        }
+        resolveFork(name) {
+          this.currentName = name;
+          this.forkOptions = [];
+          this.status = 'running';
+        }
+        advanceYear() {
+          if (this.status === 'finished') return true;
+          const prevYear = this.currentYear;
+          this.currentYear += 1;
+          if (this.currentYear > this.endYear) {
+            this.status = 'finished';
+            return true;
+          }
+
+          this.path.push(this.makePathPoint(this.currentName, this.currentYear));
+          this.checkCulture(this.currentYear, this.currentName);
+
+          const newlyCrossed = [];
+          for (const v of this.variants) {
+            if (v === this.currentName || this.unlocked.has(v)) continue;
+            const prev = this.getCount(v, prevYear);
+            const now = this.getCount(v, this.currentYear);
+            if (prev < this.forkThreshold && now >= this.forkThreshold) {
+              this.unlocked.add(v);
+              newlyCrossed.push(v);
+            }
+          }
+          if (newlyCrossed.length) {
+            const options = [this.currentName, ...newlyCrossed].map(name => ({
+              name,
+              count: this.getCount(name, this.currentYear)
+            }));
+            this.forkOptions = options.sort((a, b) => b.count - a.count);
+            this.status = 'fork';
+            return this.mode === 'interactive';
+          }
+
+          if (this.currentYear >= this.endYear) {
+            this.status = 'finished';
+            return true;
+          }
+          return false;
+        }
+      }
+
+      function lerp(a, b, t) { return a + (b - a) * t; }
+      function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+      function laneFrac(name) {
+        if (!game || game.variants.length <= 1) return 0;
+        const idx = Math.max(0, game.variants.indexOf(name));
+        return idx / (game.variants.length - 1) - 0.5;
+      }
+      function pointY(year, name) {
+        const baseY = CANVAS_H * 0.55;
+        return baseY + Math.sin((year - game.startYear) * 0.11) * WAVE_AMP + laneFrac(name) * LANE_AMP;
+      }
+      function yearToX(year) {
+        return CURRENT_X + (year - interpYear) * PIXELS_PER_YEAR;
+      }
+      function widthForCount(count) {
+        return 2 + Math.sqrt(count / game.maxCount) * 16;
+      }
+      function addLog(html, cls = 'log-item') {
+        const div = document.createElement('div');
+        div.className = cls;
+        div.innerHTML = html;
+        els.log.appendChild(div);
+        els.log.scrollTop = els.log.scrollHeight;
+      }
+      function clearLog() { els.log.innerHTML = ''; }
+
+      function showCulture(text) {
+        clearTimeout(cultureTimer);
+        els.cultureBox.textContent = text;
+        els.cultureBox.classList.add('show');
+        cultureTimer = setTimeout(() => els.cultureBox.classList.remove('show'), 5000);
+      }
+
+      function clearForkButtons() { els.forkOverlay.innerHTML = ''; }
+      function buildForkButtons(endpoints) {
+        clearForkButtons();
+        if (!game || game.status !== 'fork' || !game.forkOptions.length) return;
+        const sx = els.forkOverlay.offsetWidth / CANVAS_W;
+        const sy = els.forkOverlay.offsetHeight / CANVAS_H;
+        game.forkOptions.forEach((opt, i) => {
+          const [x, y] = endpoints[i];
+          const btn = document.createElement('button');
+          btn.className = 'fork-btn';
+          btn.style.left = `${x * sx}px`;
+          btn.style.top = `${y * sy}px`;
+          btn.innerHTML = `<b>${opt.name}</b><br><span class="mono">${opt.count} births/yr</span>`;
+          btn.addEventListener('click', () => {
+            game.resolveFork(opt.name);
+            addLog(`↳ You followed <b>${opt.name}</b> (${opt.count}/yr).`, 'log-item log-fork');
+            clearForkButtons();
+            startTicker();
+          });
+          els.forkOverlay.appendChild(btn);
+        });
+      }
+
+      function drawVariantGhosts() {
+        if (!game || game.variants.length <= 1) return;
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.shadowBlur = 0;
+        for (const variant of game.variants) {
+          if (variant === game.currentName) continue;
+          for (let yr = game.startYear + 1; yr <= game.currentYear; yr++) {
+            const x0 = yearToX(yr - 1), x1 = yearToX(yr);
+            if (x1 < -30 || x0 > CANVAS_W + 30) continue;
+            const py0 = pointY(yr - 1, variant), py1 = pointY(yr, variant);
+            const cnt0 = game.getCount(variant, yr - 1);
+            const cnt1 = game.getCount(variant, yr);
+            if (cnt0 + cnt1 === 0) continue;
+            ctx.strokeStyle = 'rgba(139, 148, 158, 0.28)';
+            ctx.lineWidth = Math.max(0.5, (widthForCount(cnt0) + widthForCount(cnt1)) * 0.5);
+            ctx.beginPath();
+            ctx.moveTo(x0, py0);
+            ctx.lineTo(x1, py1);
+            ctx.stroke();
+          }
+        }
+        ctx.restore();
+      }
+
+      function drawBackground() {
+        ctx.fillStyle = '#010409';
+        ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+        ctx.fillStyle = 'rgba(201, 209, 217, 0.05)';
+        for (let y = 10; y < CANVAS_H; y += 22) {
+          for (let x = 10; x < CANVAS_W; x += 22) ctx.fillRect(x, y, 1.15, 1.15);
+        }
+      }
+
+      function drawStats() {
+        if (!game) return;
+        const count = game.getCount(game.currentName, game.currentYear);
+        const total = game.path.reduce((s, p) => s + p.count, 0);
+        ctx.fillStyle = 'rgba(10, 16, 24, 0.72)';
+        ctx.beginPath();
+        ctx.roundRect(16, 16, 220, 104, 10);
+        ctx.fill();
+        ctx.fillStyle = '#ffd700';
+        ctx.font = '700 30px ui-monospace, SFMono-Regular, Menlo, monospace';
+        ctx.fillText(String(game.currentYear), 28, 50);
+        ctx.fillStyle = '#58a6ff';
+        ctx.font = '600 19px Inter, sans-serif';
+        ctx.fillText(game.currentName, 28, 71);
+        ctx.fillStyle = '#8b949e';
+        ctx.font = '500 13px Inter, sans-serif';
+        ctx.fillText(`${count.toLocaleString()} births / year`, 28, 91);
+        ctx.fillStyle = '#3fb950';
+        ctx.font = '600 13px Inter, sans-serif';
+        ctx.fillText(`${total.toLocaleString()} total`, 28, 110);
+      }
+
+      function drawPath() {
+        if (!game || game.path.length < 2) return [];
+        const forkEndpoints = [];
+        for (let i = 1; i < game.path.length; i++) {
+          const a = game.path[i - 1];
+          const b = game.path[i];
+          const x0 = yearToX(a.year), y0 = pointY(a.year, a.name);
+          const x1 = yearToX(b.year), y1 = pointY(b.year, b.name);
+          if ((x0 < -30 && x1 < -30) || (x0 > CANVAS_W + 30 && x1 > CANVAS_W + 30)) continue;
+          const eraT = clamp((b.year - game.startYear) / Math.max(1, game.endYear - game.startYear), 0, 1);
+          const age = game.currentYear - b.year;
+          const alpha = clamp(1 - age / 95, 0.1, 0.95);
+          const r = Math.round(lerp(WARM[0], COOL[0], eraT));
+          const g = Math.round(lerp(WARM[1], COOL[1], eraT));
+          const bb = Math.round(lerp(WARM[2], COOL[2], eraT));
+          ctx.strokeStyle = `rgba(${r},${g},${bb},${alpha})`;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.lineWidth = (widthForCount(a.count) + widthForCount(b.count)) * 0.5;
+          ctx.shadowColor = `rgba(${r},${g},${bb},0.55)`;
+          ctx.shadowBlur = 8;
+          ctx.beginPath();
+          ctx.moveTo(x0, y0);
+          ctx.lineTo(x1, y1);
+          ctx.stroke();
+        }
+        ctx.shadowBlur = 0;
+
+        if (game.status === 'fork' && game.forkOptions.length) {
+          const cx = yearToX(game.currentYear);
+          const cy = pointY(game.currentYear, game.currentName);
+          ctx.save();
+          ctx.strokeStyle = 'rgba(88, 166, 255, 0.85)';
+          ctx.setLineDash([8, 7]);
+          ctx.lineWidth = 2.2;
+          const cY = game.forkOptions.length > 1 ? (game.forkOptions.length - 1) / 2 : 0;
+          game.forkOptions.forEach((_, i) => {
+            const endY = cy + (i - cY) * FORK_SPREAD_Y;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.bezierCurveTo(cx + 64, cy + (endY - cy) * 0.2, cx + 125, endY, FORK_END_X, endY);
+            ctx.stroke();
+            forkEndpoints.push([FORK_END_X, endY]);
+          });
+          ctx.restore();
+        }
+        return forkEndpoints;
+      }
+
+      function drawYearLabels() {
+        if (!game) return;
+        ctx.fillStyle = 'rgba(240, 246, 252, 0.72)';
+        ctx.font = '11px ui-monospace, SFMono-Regular, Menlo, monospace';
+        const minYear = game.currentYear - Math.ceil((CURRENT_X + 25) / PIXELS_PER_YEAR);
+        const maxYear = game.currentYear + Math.ceil((CANVAS_W - CURRENT_X + 25) / PIXELS_PER_YEAR);
+        let y = Math.ceil(minYear / 10) * 10;
+        for (; y <= maxYear; y += 10) {
+          const x = yearToX(y);
+          if (x < -40 || x > CANVAS_W + 40) continue;
+          const yy = pointY(y, game.currentName) - 16;
+          ctx.fillText(String(y), x - 12, yy);
+        }
+      }
+
+      function drawCurrentOrb() {
+        if (!game) return;
+        const x = yearToX(game.currentYear);
+        const y = pointY(game.currentYear, game.currentName);
+        const grad = ctx.createRadialGradient(x, y, 2, x, y, 26);
+        grad.addColorStop(0, 'rgba(255,255,255,0.95)');
+        grad.addColorStop(0.2, 'rgba(255,215,0,0.9)');
+        grad.addColorStop(1, 'rgba(255,215,0,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(x, y, 26, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(x, y, 2.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function render() {
+        // Smoothly interpolate display position between game ticks
+        if (game && game.status === 'running' && lastTickWallTime > 0) {
+          interpYear = game.currentYear + Math.min((performance.now() - lastTickWallTime) / gSpeed, 0.99);
+        } else if (game) {
+          interpYear = game.currentYear;
+        }
+        drawBackground();
+        drawVariantGhosts();
+        const endpoints = drawPath();
+        drawYearLabels();
+        drawCurrentOrb();
+        drawStats();
+        if (game && game.status === 'fork' && game.mode === 'interactive') buildForkButtons(endpoints);
+        else clearForkButtons();
+        requestAnimationFrame(render);
+      }
+
+      function stopTicker() {
+        if (tickTimer) clearInterval(tickTimer);
+        tickTimer = null;
+      }
+      function startTicker() {
+        stopTicker();
+        if (!game || game.status === 'finished') return;
+        lastTickWallTime = performance.now();
+        tickTimer = setInterval(gameTick, gSpeed);
+      }
+
+      function showOverlay(summary = '') {
+        els.startOverlay.style.display = 'grid';
+        els.overlayCopy.innerHTML = summary || 'Choose your mode and trace a glowing river of names through time.';
+      }
+      function hideOverlay() { els.startOverlay.style.display = 'none'; }
+
+      function updateModeUI() {
+        const interactive = gMode === 'interactive';
+        els.modeBtn.textContent = `Mode: ${interactive ? 'Interactive' : 'Auto'}`;
+        els.modeBtn.setAttribute('aria-pressed', String(interactive));
+        els.modeBtn.classList.toggle('blue', interactive);
+        els.startModeInteractive.classList.toggle('active', interactive);
+        els.startModeAuto.classList.toggle('active', !interactive);
+      }
+      function updateSpeedUI() {
+        els.speedPill.textContent = `${gSpeed}ms`;
+        els.startSpeedLabel.textContent = `${gSpeed}ms`;
+        if (Number(els.headerSpeed.value) !== gSpeed) els.headerSpeed.value = String(gSpeed);
+        if (Number(els.startSpeed.value) !== gSpeed) els.startSpeed.value = String(gSpeed);
+      }
+
+      function summarizeJourney() {
+        const years = Math.max(0, game.currentYear - game.startYear);
+        return `✨ <b>Journey complete.</b> <span class="mono">${game.candidate.n}</span> across <b>${years}</b> years, ending as <b>${game.currentName}</b> in <span class="mono">${game.endYear}</span>.`;
+      }
+
+      function gameTick() {
+        if (!game || game.status === 'finished') return;
+        lastTickWallTime = performance.now();
+        const pause = game.advanceYear();
+
+        while (game.pendingCulture.length) {
+          const c = game.pendingCulture.shift();
+          showCulture(`${c.emoji} ${c.text}`);
+          addLog(`${c.emoji} ${c.text}`, 'log-item log-culture');
+        }
+
+        if (game.status === 'fork') {
+          if (game.mode === 'auto') {
+            const optionsText = game.forkOptions.map(o => `<b>${o.name}</b> (${o.count}/yr)`).join(', ');
+            addLog(`🌿 Fork at ${game.currentYear} — options: ${optionsText}`, 'log-item log-fork');
+            const choice = game.autoChoose();
+            if (choice) {
+              game.resolveFork(choice.name);
+              addLog(`🤖 Auto chose <b>${choice.name}</b> (${choice.count}/yr).`, 'log-item log-fork');
+            }
+          } else {
+            stopTicker();
+            addLog(`🌿 Fork at ${game.currentYear}: choose your branch.`, 'log-item log-fork');
+          }
+        }
+
+        if (game.status === 'finished' || pause) {
+          if (game.status === 'finished') {
+            stopTicker();
+            addLog(summarizeJourney(), 'log-item log-end');
+          }
+        }
+
+        // Milestone celebrations
+        const MILESTONES = [5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000];
+        const total = game.path.reduce((s, p) => s + p.count, 0);
+        for (const m of MILESTONES) {
+          if (total >= m && !game.milestonesCrossed.has(m)) {
+            game.milestonesCrossed.add(m);
+            const label = m >= 1000000 ? `${m / 1000000}M` : `${(m / 1000).toLocaleString()}k`;
+            showCulture(`🎉 ${label} total births along your lineage!`);
+            addLog(`🎉 <b>${label}</b> total births milestone!`, 'log-item log-culture');
+          }
+        }
+      }
+
+      function chooseWeightedCandidate() {
+        const pool = candidates.map(c => ({ c, w: Math.max(1, (c.v?.length || 1) ** 1.35) }));
+        const total = pool.reduce((s, p) => s + p.w, 0);
+        let r = Math.random() * total;
+        for (const p of pool) {
+          r -= p.w;
+          if (r <= 0) return p.c;
+        }
+        return pool[pool.length - 1].c;
+      }
+
+      function resetState() {
+        stopTicker();
+        game = null;
+        clearForkButtons();
+        els.cultureBox.classList.remove('show');
+      }
+
+      function startGame() {
+        if (!candidates.length) return;
+        gForkThreshold = Number(els.thresholdSelect.value) || 5;
+        const pick = chooseWeightedCandidate();
+        game = new GameState(pick, gMode, gForkThreshold);
+        interpYear = game.startYear;
+        lastTickWallTime = 0;
+        clearLog();
+        addLog(`🎲 Started with <b>${pick.n}</b> (${pick.s}–${pick.e}), mode: <b>${gMode}</b>.`);
+        hideOverlay();
+        startTicker();
+      }
+
+      async function loadData() {
+        try {
+          const res = await fetch('./data.json.gz');
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const buf = await res.arrayBuffer();
+          const inflated = window.pako.inflate(new Uint8Array(buf), { to: 'string' });
+          data = JSON.parse(inflated);
+          candidates = Array.isArray(data.c) ? data.c : [];
+          refs = data.r || {};
+          if (!candidates.length) throw new Error('No candidates found in data.');
+          addLog(`✅ Loaded <b>${candidates.length.toLocaleString()}</b> candidate names.`);
+          els.startBtn.disabled = false;
+          els.startBtn.textContent = '🎲 Start Adventure';
+        } catch (err) {
+          console.error('[NameLineage] data load failed', err);
+          els.overlayCopy.innerHTML = `⚠️ Could not load <span class="mono">data.json.gz</span>. ${String(err.message || err)}`;
+          els.startBtn.disabled = true;
+          addLog(`⚠️ Failed to load data: ${String(err.message || err)}`, 'log-item');
+        }
+      }
+
+      els.startBtn.addEventListener('click', startGame);
+      els.restartBtn.addEventListener('click', () => {
+        resetState();
+        showOverlay();
+        addLog('↺ Adventure reset. Pick new settings and roll again.');
+      });
+      els.modeBtn.addEventListener('click', () => {
+        gMode = gMode === 'interactive' ? 'auto' : 'interactive';
+        updateModeUI();
+      });
+      els.startModeInteractive.addEventListener('click', () => { gMode = 'interactive'; updateModeUI(); });
+      els.startModeAuto.addEventListener('click', () => { gMode = 'auto'; updateModeUI(); });
+
+      els.headerSpeed.addEventListener('input', e => {
+        gSpeed = Number(e.target.value);
+        updateSpeedUI();
+        if (game && game.status === 'running') startTicker();
+      });
+      els.startSpeed.addEventListener('input', e => {
+        gSpeed = Number(e.target.value);
+        updateSpeedUI();
+        if (game && game.status === 'running') startTicker();
+      });
+
+      updateModeUI();
+      updateSpeedUI();
+      showOverlay('Loading lineage data...');
+      els.startBtn.disabled = true;
+      loadData();
+      render();
+    })();
+  </script>
+</body>
+</html>

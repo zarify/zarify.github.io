@@ -1,0 +1,136 @@
+{
+  "id": "printing-press",
+  "title": "Printing press",
+  "version": "1.0",
+  "description": "Basic problem involving print statements only.",
+  "instructions": "The simplest thing we usually get our programs to do is to `print` some output.\n\nYou will need to print a message, any message!\n- Your message needs to be enclosed in quotes, either `'single'` or `\"double\"`, it doesn't matter as long as they match.\n- Your program needs to use the `print` function to print your message.\n- The `print` function needs to use round brackets `(\"around the message\")` you are sending.",
+  "feedback": [
+    {
+      "id": "fb-mfokbgz9-875ir",
+      "title": "Use the print function.",
+      "when": [
+        "edit"
+      ],
+      "pattern": {
+        "type": "regex",
+        "target": "code",
+        "fileTarget": "main.py",
+        "expression": "^print\\b",
+        "flags": ""
+      },
+      "message": "Nice work!",
+      "severity": "success",
+      "visibleByDefault": true
+    },
+    {
+      "id": "fb-mfokhgl8-z4vam",
+      "title": "Used parentheses (round brackets) with your print.",
+      "when": [
+        "edit"
+      ],
+      "pattern": {
+        "type": "regex",
+        "target": "code",
+        "fileTarget": "main.py",
+        "expression": "^print\\(.*\\)",
+        "flags": ""
+      },
+      "message": "Yes! Your brackets are in the right place.",
+      "severity": "success",
+      "visibleByDefault": true
+    },
+    {
+      "id": "fb-mfokik3x-5dbcd",
+      "title": "Add some quoted text inside the print brackets.",
+      "when": [
+        "edit"
+      ],
+      "pattern": {
+        "type": "regex",
+        "target": "code",
+        "fileTarget": "main.py",
+        "expression": "^print\\((['\"]).*\\1\\)",
+        "flags": ""
+      },
+      "message": "Right on! You have matching quotes inside the print!",
+      "severity": "success",
+      "visibleByDefault": true
+    },
+    {
+      "id": "fb-mfokknkj-tzmc3",
+      "title": "Put some text in between the quotes.",
+      "when": [
+        "edit"
+      ],
+      "pattern": {
+        "type": "regex",
+        "target": "code",
+        "fileTarget": "main.py",
+        "expression": "^print\\(([\"']).+\\1\\)",
+        "flags": ""
+      },
+      "message": "Alright! You've nailed it! Try running your code to see what it does.",
+      "severity": "success",
+      "visibleByDefault": true
+    },
+    {
+      "id": "fb-mfokmj3j-m1kpi",
+      "title": "Oh no! An error!",
+      "when": [
+        "run"
+      ],
+      "pattern": {
+        "type": "regex",
+        "target": "stderr",
+        "fileTarget": "main.py",
+        "expression": ".+",
+        "flags": ""
+      },
+      "message": "Make sure you read the error message. Try to figure out what it means.",
+      "severity": "error",
+      "visibleByDefault": false
+    },
+    {
+      "id": "fb-mfoks0jo-lkaid",
+      "title": "You ran it!",
+      "when": [
+        "run"
+      ],
+      "pattern": {
+        "type": "regex",
+        "target": "stdout",
+        "fileTarget": "main.py",
+        "expression": ".+",
+        "flags": ""
+      },
+      "message": "Did your program print out what you expected it to? I hope so!",
+      "severity": "info",
+      "visibleByDefault": false
+    }
+  ],
+  "tests": {
+    "groups": [],
+    "ungrouped": [
+      {
+        "id": "t-mfokuewz-sjdcm",
+        "description": "Checking that your program prints something out.",
+        "expected_stdout": {
+          "type": "regex",
+          "expression": ".+",
+          "flags": ""
+        },
+        "failureMessage": "Make sure you have a message in between your quotes to print out.\nIt can be anything!",
+        "conditional": {
+          "runIf": "always",
+          "alwaysRun": false
+        }
+      }
+    ],
+    "showGroupsToUsers": true
+  },
+  "starter": "# this is a comment, it won't affect your code\n# write your program below here\n",
+  "files": {
+    "/main.py": "# this is a comment, it won't affect your code\n# write your program below here\n"
+  },
+  "fileReadOnlyStatus": {}
+}

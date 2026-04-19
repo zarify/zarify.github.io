@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Ai on Headtilt</title>
+    <link>https://headtilt.me/tags/ai/</link>
+    <description>Recent content in Ai on Headtilt</description>
+    <generator>Hugo -- 0.160.1</generator>
+    <language>en</language>
+    <copyright>Rob Poulter</copyright>
+    <lastBuildDate>Wed, 11 Mar 2026 14:25:29 +0800</lastBuildDate>
+    <atom:link href="https://headtilt.me/tags/ai/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>What Do We Want</title>
+      <link>https://headtilt.me/what-do-we-want/</link>
+      <pubDate>Wed, 11 Mar 2026 14:25:29 +0800</pubDate>
+      <guid>https://headtilt.me/what-do-we-want/</guid>
+      <description>&lt;p&gt;After being recommended it by a former colleague, I was listening to the &amp;ldquo;You can learn with AI&amp;rdquo; episode of the Change, Technically podcast (which was really good, &lt;a href=&#34;https://www.changetechnically.fyi/2396236/episodes/18692591-you-can-learn-with-ai&#34;&gt;check it out&lt;/a&gt;) and it got me thinking:&lt;/p&gt;
+&lt;p&gt;As educators, what do we really want to get out of generative AI (or even AI in general)? I tinker with things all the time because I like understanding where the edges are, but in an ideal world (setting aside the considerable ethical, technical, accuracy and fabrication issues) what would we want tools like this to do?&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>AI Workflows - Visuals</title>
+      <link>https://headtilt.me/workflows-visuals/</link>
+      <pubDate>Sat, 28 Feb 2026 07:52:36 +0800</pubDate>
+      <guid>https://headtilt.me/workflows-visuals/</guid>
+      <description>&lt;p&gt;It&amp;rsquo;s 2026 and I&amp;rsquo;ve been trying to decide what AI and LLMs are useful for in my day to day teaching.
+One of the things that has been floating around has been the promise of reducing admin time for
+teachers using LLMs, but I honestly haven&amp;rsquo;t found the argument to be that compelling. I don&amp;rsquo;t trust
+it near the things that take up most of my admin time like communicating with students, parents, and
+partner schools. It&amp;rsquo;s mostly been terrible for curriculum planning, mediocre at best for assessment
+design, and laughably bad at generating lesson slides, particularly anything involving diagrams.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>WASM Python - Cat Herding 08</title>
+      <link>https://headtilt.me/cat-herding-wasm-python-08/</link>
+      <pubDate>Tue, 14 Oct 2025 19:07:41 +0800</pubDate>
+      <guid>https://headtilt.me/cat-herding-wasm-python-08/</guid>
+      <description>&lt;h2 id=&#34;preramble&#34;&gt;Pre(r)amble&lt;/h2&gt;
+&lt;p&gt;This is part of a series of posts documenting some of the process of
+(building|cat herding an AI agent to build) Clipy, an easily hosted Python teaching tool built
+with just front-end JS and a WASM port of MicroPython.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/zarify/clipy&#34;&gt;You can find the GitHub repo for the project here&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://headtilt.me/clipy?author&#34;&gt;I keep a relatively up to date version here if you want to try it&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;what-we-had-before&#34;&gt;What we had before&lt;/h2&gt;
+&lt;p&gt;Last week was mostly about fixing up issues with implementation methods.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>WASM Python - Cat Herding 07</title>
+      <link>https://headtilt.me/cat-herding-wasm-python-07/</link>
+      <pubDate>Mon, 06 Oct 2025 06:10:35 +0800</pubDate>
+      <guid>https://headtilt.me/cat-herding-wasm-python-07/</guid>
+      <description>&lt;h2 id=&#34;preramble&#34;&gt;Pre(r)amble&lt;/h2&gt;
+&lt;p&gt;This is part of a series of posts documenting some of the process of
+(building|cat herding an AI agent to build) Clipy, an easily hosted Python teaching tool built
+with just front-end JS and a WASM port of MicroPython.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/zarify/clipy&#34;&gt;You can find the GitHub repo for the project here&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://headtilt.me/clipy?author&#34;&gt;I keep a relatively up to date version here if you want to try it&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;what-we-had-before&#34;&gt;What we had before&lt;/h2&gt;
+&lt;p&gt;Last week was adding the record-replay feature (lots more about that this week, what a rabbit hole)
+and putting in nicer file management (which still needs some tweaks, but I&amp;rsquo;m pretty happy with it).&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>WASM Python - Cat Herding 06</title>
+      <link>https://headtilt.me/cat-herding-wasm-python-06/</link>
+      <pubDate>Tue, 30 Sep 2025 20:32:42 +0800</pubDate>
+      <guid>https://headtilt.me/cat-herding-wasm-python-06/</guid>
+      <description>&lt;h2 id=&#34;preramble&#34;&gt;Pre(r)amble&lt;/h2&gt;
+&lt;p&gt;This is part of a(n aspirationally) series of posts documenting some of the process of
+(building|cat herding an AI agent to build) an easily hosted Python teaching tool built
+with just front-end JS and a WASM port of MicroPython.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-01/&#34;&gt;You can find Part 1 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-02/&#34;&gt;You can find Part 2 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-03/&#34;&gt;You can find Part 3 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-04/&#34;&gt;You can find Part 4 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-05/&#34;&gt;You can find Part 5 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;This is Part 6!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;I have a (somewhat) up to date version of this tool running on the site. Things might
+occasionally be broken, things might not work the same way as they did before.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>WASM Python - Cat Herding 05</title>
+      <link>https://headtilt.me/cat-herding-wasm-python-05/</link>
+      <pubDate>Sat, 20 Sep 2025 15:08:11 +0800</pubDate>
+      <guid>https://headtilt.me/cat-herding-wasm-python-05/</guid>
+      <description>&lt;h2 id=&#34;preramble&#34;&gt;Pre(r)amble&lt;/h2&gt;
+&lt;p&gt;This is part of a(n aspirationally) series of posts documenting some of the process of
+(building|cat herding an AI agent to build) an easily hosted Python teaching tool built
+with just front-end JS and a WASM port of MicroPython.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-01/&#34;&gt;You can find Part 1 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-02/&#34;&gt;You can find Part 2 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-03/&#34;&gt;You can find Part 3 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-04/&#34;&gt;You can find Part 4 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;This is Part 5!&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-06/&#34;&gt;You can find Part 6 here&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;I have a (somewhat) up to date version of this tool running on the site. Things might
+occasionally be broken, things might not work the same way as they did before.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>WASM Python - Cat Herding 04</title>
+      <link>https://headtilt.me/cat-herding-wasm-python-04/</link>
+      <pubDate>Sat, 13 Sep 2025 05:58:07 +0800</pubDate>
+      <guid>https://headtilt.me/cat-herding-wasm-python-04/</guid>
+      <description>&lt;h2 id=&#34;preramble&#34;&gt;Pre(r)amble&lt;/h2&gt;
+&lt;p&gt;This is part of a(n aspirationally) series of posts documenting some of the process of
+(building|cat herding an AI agent to build)
+an easily hosted Python teaching tool built with just front-end JS and a WASM port of
+MicroPython.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-01/&#34;&gt;You can find Part 1 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-02/&#34;&gt;You can find Part 2 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-03/&#34;&gt;You can find Part 3 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;This is Part 4!&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-05/&#34;&gt;You can find Part 5 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-06/&#34;&gt;You can find Part 6 here&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;what-we-had-before&#34;&gt;What we had before&lt;/h2&gt;
+&lt;p&gt;See &lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-03/&#34;&gt;last week&amp;rsquo;s post&lt;/a&gt; for
+some of the details and screenshots.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>WASM Python - Cat Herding 03</title>
+      <link>https://headtilt.me/cat-herding-wasm-python-03/</link>
+      <pubDate>Sun, 07 Sep 2025 05:55:27 +0800</pubDate>
+      <guid>https://headtilt.me/cat-herding-wasm-python-03/</guid>
+      <description>&lt;h2 id=&#34;preramble&#34;&gt;Pre(r)amble&lt;/h2&gt;
+&lt;p&gt;This is part of a(n aspirationally) series of posts documenting some of the process of
+(building|cat herding an AI agent to build)
+an easily hosted Python teaching tool built with just front-end JS and a WASM port of
+MicroPython.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-01/&#34;&gt;You can find Part 1 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-02/&#34;&gt;You can find Part 2 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;This is Part 3!&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-04/&#34;&gt;You can find Part 4 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-05/&#34;&gt;You can find Part 5 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-06/&#34;&gt;You can find Part 6 here&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;This week I was really excited about getting the Abstract Syntax Tree feedback and
+testing working, as well as just tightening up the user experience a bit, hiding
+knobs and dials when they weren&amp;rsquo;t used, etc. I&amp;rsquo;m getting close to the end of my
+initial feature list!&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>WASM Python - Cat Herding 02</title>
+      <link>https://headtilt.me/cat-herding-wasm-python-02/</link>
+      <pubDate>Mon, 01 Sep 2025 06:03:47 +0800</pubDate>
+      <guid>https://headtilt.me/cat-herding-wasm-python-02/</guid>
+      <description>&lt;h2 id=&#34;preramble&#34;&gt;Pre(r)amble&lt;/h2&gt;
+&lt;p&gt;This is part of a(n aspirationally) series of posts documenting some of the process of
+(building|cat herding an AI agent to build)
+an easily hosted Python teaching tool built with just front-end JS and a WASM port of
+MicroPython.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-01/&#34;&gt;You can find Part 1 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;This is Part 2!&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-03/&#34;&gt;You can find Part 3 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-04/&#34;&gt;You can find Part 4 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-05/&#34;&gt;You can find Part 5 here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-06/&#34;&gt;You can find Part 6 here&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;what-we-had-before&#34;&gt;What we had before&lt;/h2&gt;
+&lt;p&gt;The outcome of the previous week&amp;rsquo;s achievements was pretty satisfying since I&amp;rsquo;d tried
+and failed to solve the problems of having a responsive WASM Python runtime for user
+code before. Being able to lean on the agent to do things like make changes to C code
+where I knew what the outcome needed to be, and knew &lt;em&gt;how&lt;/em&gt; it needed to work, but didn&amp;rsquo;t
+know &lt;em&gt;what&lt;/em&gt; to do to make it happen was so valuable.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>WASM Python - Cat Herding 01</title>
+      <link>https://headtilt.me/cat-herding-wasm-python-01/</link>
+      <pubDate>Thu, 28 Aug 2025 02:53:25 +0800</pubDate>
+      <guid>https://headtilt.me/cat-herding-wasm-python-01/</guid>
+      <description>&lt;h2 id=&#34;preramble&#34;&gt;Pre(r)amble&lt;/h2&gt;
+&lt;p&gt;I&amp;rsquo;m in a strange place in my head with respect to coding agents. On one hand I see all the really
+dumb stuff that &amp;ldquo;intelligent&amp;rdquo; chatbots produce, on the other hand,
+&lt;a href=&#34;https://headtilt.me/agent-experiment/&#34;&gt;I&amp;rsquo;ve used them myself&lt;/a&gt; to turn something from
+&amp;ldquo;I should do that sometime when I&amp;rsquo;m motivated&amp;rdquo; into something I can actually use. It&amp;rsquo;s a weird
+time to be a teacher, let alone one of Digital Technologies.&lt;/p&gt;
+&lt;p&gt;Anyhow, this post (and hopefully some future ones) is an attempt to use AI to help shift some
+projects out of my head and backlog, and try and get them made. I&amp;rsquo;m aware of some of the things
+I found with my first AI coding experiment, in that rather than necessarily turning me into a
+&amp;ldquo;10x Engineer&amp;rdquo;, in fact it can turn me into a &amp;ldquo;0.95x Engineer&amp;rdquo;, getting me 95% of the way
+there and then getting stuck. The wonderful Cory Doctorow had a turn of phrase &amp;ldquo;reverse centaur&amp;rdquo;
+in &lt;a href=&#34;https://pluralistic.net/2025/08/04/bad-vibe-coding/#maximally-codelike-bugs&#34;&gt;this post&lt;/a&gt;,
+referring to when humans are forced to use AI. I loved the term, but probably not for the reason
+it was intended. I feel that when you&amp;rsquo;re being a centaur using AI agents, sometimes you&amp;rsquo;re the
+human, and sometimes you&amp;rsquo;re the horse(&amp;rsquo;s arse).&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>ESP-CYD</title>
+      <link>https://headtilt.me/esp-cyd/</link>
+      <pubDate>Sat, 09 Aug 2025 07:35:10 +0800</pubDate>
+      <guid>https://headtilt.me/esp-cyd/</guid>
+      <description>&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; There&amp;rsquo;s a companion post to this about &lt;a href=&#34;https://headtilt.me/agent-experiment/&#34;&gt;using agentic AI here&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;preramble&#34;&gt;Pre(r)amble&lt;/h2&gt;
+&lt;p&gt;I have a problem. Well, I have several problems, but this post is specifically about my habit of seeing
+a neat looking microcontroller, not really thinking about whether I need another one, and then buying a
+couple (because, well, you need two just in case, right?).&lt;/p&gt;
+&lt;p&gt;In the office I have:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;A stack of v1 micro:bits&lt;/li&gt;
+&lt;li&gt;Some third party micro:bit clones&lt;/li&gt;
+&lt;li&gt;Several v2 micro:bits&lt;/li&gt;
+&lt;li&gt;Raspberry Pi Picos (2040)&lt;/li&gt;
+&lt;li&gt;DFRobot Beetles (ATmega)&lt;/li&gt;
+&lt;li&gt;DFRobot Firebeetles (ESP32)&lt;/li&gt;
+&lt;li&gt;Some ESP8266s&lt;/li&gt;
+&lt;li&gt;Various ESP32 variants (some camera versions, some plain boards)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;How many have I actually gotten around to writing code on? &lt;strong&gt;One&lt;/strong&gt; of the Firebeetles 😂 &amp;hellip;and all of
+the micro:bits. Why? Having nice accessible inputs and outputs makes programming so much more enjoyable.
+The micro:bit completely nails this - no faffing around with which pin to use for the buttons, no I2C
+or SPI nonsense needed to poke at the accelerometer, and nothing funky to do to access the display,
+sound, or mic. Just use the nice simple API, load the code via USB and off you go. Even when running
+peripheral sensors, servos, etc the micro:bit is just a joy to get going with.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Agent Experiment</title>
+      <link>https://headtilt.me/agent-experiment/</link>
+      <pubDate>Sat, 09 Aug 2025 07:31:10 +0800</pubDate>
+      <guid>https://headtilt.me/agent-experiment/</guid>
+      <description>&lt;h2 id=&#34;preramble&#34;&gt;Pre(r)amble&lt;/h2&gt;
+&lt;p&gt;It&amp;rsquo;s hard to avoid all the AI infesting everything these days, but apart from using
+completions a bit in VSCode Copilot with the occasional conversation about different
+libraries (which I find a pretty pleasant way to learn about new things, even if
+those new things are occasionally BS) I haven&amp;rsquo;t really used it for code a lot.&lt;/p&gt;
+&lt;p&gt;I read Github&amp;rsquo;s breathless &amp;ldquo;now, with AGENTS&amp;rdquo; release a while back, and never really
+gave it much thought until they also put out their
+&lt;a href=&#34;https://microsoft.github.io/CopilotAdventures/&#34;&gt;Copilot Adventures&lt;/a&gt; &amp;hellip; tutorials?
+The word &amp;ldquo;tutorial&amp;rdquo; feels a bit off, since the activities are couched in terms of
+&amp;ldquo;you&amp;rsquo;re going to make X!&amp;rdquo; but you&amp;rsquo;re not really making anything - you&amp;rsquo;re just being
+given examples of prompt structure to get the agent to build the thing for you.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>LLMs at the Arcade</title>
+      <link>https://headtilt.me/llms-at-the-arcade/</link>
+      <pubDate>Sun, 24 Nov 2024 05:51:51 +0800</pubDate>
+      <guid>https://headtilt.me/llms-at-the-arcade/</guid>
+      <description>&lt;p&gt;I was mentoring at our local fortnightly Coder Dojo session yesterday and heard a couple of students talking about getting help from ChatGPT. My ears pricked up because these are mostly younger kids (mid-late primary, a few in early secondary) and, as much as I try to encourage them to broaden their horizons, usually are firmly in Scratch-land, with a few who have been working in &lt;a href=&#34;https://arcade.makecode.com&#34;&gt;MakeCode Arcade&lt;/a&gt;; how were they using LLMs here?&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
