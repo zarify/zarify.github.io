@@ -193,13 +193,18 @@ really made me pay attention were:</p>
 <li>Locally running user-edited Python code that runs in a <a href="https://micropython.org/">Micropython</a> WASM</li>
 <li>A lightly configured CodeMirror editor that will highlight runtime errors</li>
 </ul>
-<blockquote>
-<p>[!QUESTION] Micropython?</p>
-<p>Why Micropython? Mostly because it&rsquo;s really small. The latest versions are pretty capable
+
+            <link rel="stylesheet" href="/css/vendors/admonitions.53cd9f8afa9d9a8ac09093f668df057bc6d0f4bbd0886f39991a7b99934a7432.css" integrity="sha256-U82fivqdmorAkJP2aN8Fe8bQ9LvQiG85mRp7mZNKdDI=" crossorigin="anonymous">
+    <div class="admonition question">
+      <div class="admonition-header"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM169.8 165.3c7.9-22.3 29.1-37.3 52.8-37.3l58.3 0c34.9 0 63.1 28.3 63.1 63.1c0 22.6-12.1 43.5-31.7 54.8L280 264.4c-.2 13-10.9 23.6-24 23.6c-13.3 0-24-10.7-24-24l0-13.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1c0-8.4-6.8-15.1-15.1-15.1l-58.3 0c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg>
+        <span>Micropython?</span>
+      </div>
+      <div class="admonition-content">
+        <p>Why Micropython? Mostly because it&rsquo;s really small. The latest versions are pretty capable
 for a lot of regular Python (you can even <code>:=</code> your way around). You don&rsquo;t get the library
 ecosystem, but it&rsquo;s a tradeoff in terms of making it pretty snappy.</p>
-</blockquote>
-<img loading="lazy" src="/images/clipy/clipy_20250828.png"><h3 id="the-weeds">The weeds<a hidden class="anchor" aria-hidden="true" href="#the-weeds">#</a></h3>
+      </div>
+    </div><img loading="lazy" src="/images/clipy/clipy_20250828.png"><h3 id="the-weeds">The weeds<a hidden class="anchor" aria-hidden="true" href="#the-weeds">#</a></h3>
 <p>Some technical stuff about what has had to be solved so far. It&rsquo;s been interesting doing this with
 an agent, because as I&rsquo;ve said before, they do some really dumb things. I&rsquo;ve got a background in
 Computer Science, but I have also spent my career teaching which has pretty much killed off any deeply
@@ -242,9 +247,13 @@ much is happening because you&rsquo;re locked out.</p>
 iterations and <code>time.sleep()</code> yield control back so we can send it an interrupt and SIGINT our way out
 of there. I&rsquo;m sure there are performance implications for doing this, but again, this is supposed to be
 a toy environment to learn in, not for production.</p>
-<blockquote>
-<p>[!SUCCESS] Where we&rsquo;re at
-I have a client-side environment where you can write and run Python code that
+
+    <div class="admonition success">
+      <div class="admonition-header"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></svg>
+        <span>Where we&rsquo;re at</span>
+      </div>
+      <div class="admonition-content">
+        <p>I have a client-side environment where you can write and run Python code that
 a student would typically write, and a virtual filesystem backed by browser storage and a basic snapshot
 system for version control.</p>
 <p>I&rsquo;ve got configuration implemented in a barebones way so that you can pass in instructions, starter code,
@@ -253,8 +262,8 @@ probably be the next thing to focus on.</p>
 <p>Because this is a pretty volatile project (see the &ldquo;with AI&rdquo; part) I&rsquo;ll put the code on GitHub when
 it&rsquo;s less likely to get rewrites as I discover some major architectural change is necessary
 (happened a couple of times so far 🤣).</p>
-</blockquote>
-
+      </div>
+    </div>
 
   </div>
 
