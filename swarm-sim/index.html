@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Simulating Micro:bit Swarms | Headtilt</title>
+<meta name="keywords" content="microbit">
+<meta name="description" content="
+    
+      
+        TLDR
+      
+      
+        If you just want to play and not read the words you can find swarm here.">
+<meta name="author" content="Rob">
+<link rel="canonical" href="https://headtilt.me/swarm-sim/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.2591f754360273071c305e762b6d31afa63027c5431b4a10004e570bd652e0bc.css" integrity="sha256-JZH3VDYCcwccMF52K20xr6YwJ8VDG0oQAE5XC9ZS4Lw=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://headtilt.me/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://headtilt.me/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://headtilt.me/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://headtilt.me/apple-touch-icon.png">
+<link rel="mask-icon" href="https://headtilt.me/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://headtilt.me/swarm-sim/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/css/formatting.css">
+
+
+
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://headtilt.me/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="https://headtilt.me/images/headtilt.png" alt="" aria-label="logo"
+                    height="30">Adjust your angle</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://headtilt.me/post" title="posts">
+                    <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/page/about/" title="about">
+                    <span><i class="fa-solid fa-circle-info"></i> about</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/categories/" title="categories">
+                    <span><i class="fa-solid fa-layer-group"></i> categories</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://headtilt.me/tags/" title="tags">
+                    <span><i class="fa-solid fa-tags"></i> tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Simulating Micro:bit Swarms
+    </h1>
+    <div class="post-meta"><span title='2026-05-24 04:17:33 +0800 AWST'>Sun, May 24, 2026</span>&nbsp;·&nbsp;Rob
+
+</div>
+  </header> 
+  <div class="post-content">
+            <link rel="stylesheet" href="/css/vendors/admonitions.53cd9f8afa9d9a8ac09093f668df057bc6d0f4bbd0886f39991a7b99934a7432.css" integrity="sha256-U82fivqdmorAkJP2aN8Fe8bQ9LvQiG85mRp7mZNKdDI=" crossorigin="anonymous">
+    <div class="admonition info">
+      <div class="admonition-header"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336l24 0 0-64-24 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/></svg>
+        <span>TLDR</span>
+      </div>
+      <div class="admonition-content">
+        <p>If you just want to play and not read the words <a href="/swarm">you can find swarm here</a>.</p>
+      </div>
+    </div><h2 id="preramble">Pre(r)amble<a hidden class="anchor" aria-hidden="true" href="#preramble">#</a></h2>
+<p>I&rsquo;m a huge fan of the micro:bit radio. The API is simple and really nicely designed, and you can
+get started with it if you&rsquo;re a complete novice to programming in a few minutes and make a simple
+beacon, progressing to building remote controls after a surprisingly short time. Our 8 year old
+created her own remote control for a robot I designed for her in an afternoon after doing two
+radio themed tutorials <a href="https://makecode.microbit.org/">in Makecode</a>.</p>
+<p>Whilst I do really like both the Makecode and Micropython simulators for the micro:bit, I don&rsquo;t
+really love how simulation works with the radio. Writing some radio code with Makecode will spawn
+a second micro:bit with identical code, which is great for being able to demonstrate the principle
+but not great for getting students to design independent programs that communicate with each other.</p>
+<p>In a <a href="https://grokacademy.org">previous job</a> I spent a lot of time thinking about &ldquo;but what if
+students don&rsquo;t have access to $RESOURCE?&rdquo; and scaffolding learning material through simulation to
+try and get to the point where a student could learn the concepts without access to devices or
+software, but had to work within the confines of an organisation where people who
+maintained the platform had (quite reasonable) opinions about complexity and technical debt.</p>
+<p>But now I have &ldquo;helpful coding agents&rdquo; and no product manager or devs to argue with me 🤪🥳</p>
+<h2 id="itty-bitty-swarm">Itty :Bitty Swarm<a hidden class="anchor" aria-hidden="true" href="#itty-bitty-swarm">#</a></h2>
+<p>From the <em>Department of This Sounds Like a Cool Idea</em> comes <a href="/swarm">Swarm Canvas</a>
+(<a href="https://github.com/zarify/swarm_sim/">github</a>), which is a way to drop in micro:bit code
+(either Makecode, Micropython, or a mix of both) <code>.hex</code> files for different programs and have
+them play together. They can send each other radio messages, print output to serial, and
+receive sensor data from things like configurable light and sound sources.</p>
+<p>You can interact with the micro:bit devices, pressing their buttons and dragging them around
+and see how they respond to different scenarios, save and load layouts, and generally have a
+good time. This all runs client-side in the user&rsquo;s web browser - no logins, no server code, just
+hosting.</p>
+
+    <div class="admonition info">
+      <div class="admonition-header"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336l24 0 0-64-24 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/></svg>
+        <span>Some batteries not included</span>
+      </div>
+      <div class="admonition-content">
+        <p>Just because I don&rsquo;t have a product manager anymore doesn&rsquo;t mean everything is in the box.
+You intentionally can&rsquo;t edit code in the sim, and classes of events that I think would
+make the UI too complex like the accelerometer and gestures are not included. Also sound -
+I know what a classroom full of students &ldquo;accidentally&rdquo; making cats meow in Scratch is like.</p>
+      </div>
+    </div><p>Here&rsquo;s a simple demo with two Makecode programs. One is a light sensor that transmits light
+levels over radio, the other takes the radio values and graphs them on its display.</p>
+<div style="text-align: center;">
+  <video width="560" height="315" controls>
+    <source src="/video/swarm-demo-lights.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</div>
+<p>If this also sounds like a good idea and you want to share any interesting uses, let me know
+(rob at here). If it <em>almost</em> scratches an itch, but doesn&rsquo;t quite get there, let me know too.</p>
+
+    <div class="admonition danger">
+      <div class="admonition-header"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480L40 480c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8 .2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24l0 112c0 13.3 10.7 24 24 24s24-10.7 24-24l0-112c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"/></svg>
+        <span>Blah blah blah</span>
+      </div>
+      <div class="admonition-content">
+        <p>I&rsquo;m one person testing ideas that fall out of my head. There will be edge cases I haven&rsquo;t
+considered, not production software etc etc. If there are ideas or broken things you care about,
+gather some detail and either drop in an <a href="https://github.com/zarify/swarm_sim/issues">issue</a>
+or an email and I&rsquo;ll see what I can do.</p>
+      </div>
+    </div><h2 id="sorta-technical-stuff">Sorta technical stuff<a hidden class="anchor" aria-hidden="true" href="#sorta-technical-stuff">#</a></h2>
+<p>This project runs both Makecode and Micropython simulators as needed, and there&rsquo;s occasionally
+some funky stuff going on behind the scenes to make them behave in a consistent manner. For
+example, Makecode exposes three different radio events <code>receive number</code>, <code>receive text</code>, and
+<code>receive name = value</code>, whereas Micropython doesn&rsquo;t care about any of that. There are some
+heuristics going on behind the scenes to try and make those play nicely together that might
+have some breaking scenarios.</p>
+<p>The sim normalises some values so that both Makecode and Micropython programs get consistent
+data. While I&rsquo;ve tried to make the sim act roughly the way it would if you loaded the code
+onto real devices, there are probably some compromises that got made that make the sim and
+real life a bit out of whack. Linear sound levels are one of them, but I&rsquo;ve also got magnets
+sitting behind a feature flag at the moment because I&rsquo;m not confident I understand magnetism
+well enough and haven&rsquo;t done enough testing to trust the implementation the agent built out.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://headtilt.me/tags/microbit/">Microbit</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>Rob Poulter</span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a><script type="text/javascript" src="/js/lightbox.js"></script>
+<link rel="stylesheet" href="/css/lightbox.css">
+<script data-goatcounter="https://headtilt_me.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

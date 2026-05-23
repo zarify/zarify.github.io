@@ -7,8 +7,15 @@
     <generator>Hugo -- 0.160.1</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
-    <lastBuildDate>Mon, 20 Apr 2026 06:44:52 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 24 May 2026 04:17:33 +0800</lastBuildDate>
     <atom:link href="https://headtilt.me/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Microbit</title>
+      <link>https://headtilt.me/tags/microbit/</link>
+      <pubDate>Sun, 24 May 2026 04:17:33 +0800</pubDate>
+      <guid>https://headtilt.me/tags/microbit/</guid>
+      <description></description>
+    </item>
     <item>
       <title>Data</title>
       <link>https://headtilt.me/tags/data/</link>
@@ -140,13 +147,6 @@
       <link>https://headtilt.me/tags/software/</link>
       <pubDate>Tue, 19 Nov 2024 13:39:27 +0800</pubDate>
       <guid>https://headtilt.me/tags/software/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Microbit</title>
-      <link>https://headtilt.me/tags/microbit/</link>
-      <pubDate>Wed, 30 Dec 2020 11:12:17 +0000</pubDate>
-      <guid>https://headtilt.me/tags/microbit/</guid>
       <description></description>
     </item>
     <item>

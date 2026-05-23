@@ -1,0 +1,930 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Swarm MakeCode Runner</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: transparent;
+      }
+
+      #simulators {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+    <script src="./makecode-local/embed.js"></script>
+  </head>
+  <body>
+    <div id="simulators"></div>
+    <script>
+      (() => {
+        const RUNNER_INIT_FLAG = '__swarmMakeCodePatchedRunnerInitialized__';
+        if (window[RUNNER_INIT_FLAG]) {
+          return;
+        }
+        window[RUNNER_INIT_FLAG] = true;
+
+        const HOST_ORIGIN = window.location.origin;
+        const TRACE_QUERY_PARAM = 'swarmTrace';
+        const TRACE_ENABLED = new URLSearchParams(window.location.search).get(TRACE_QUERY_PARAM) === '1';
+        const PATCHED_SIMULATOR_URL = (() => {
+          const simulatorUrl = new URL('makecode-patched-simulator.html', window.location.href);
+          if (TRACE_ENABLED) {
+            simulatorUrl.searchParams.set(TRACE_QUERY_PARAM, '1');
+          }
+          return simulatorUrl.toString();
+        })();
+        const RUNNER_BASE_PATH = resolveRunnerBasePath();
+        const simulators = document.getElementById('simulators');
+        const encoder = new TextEncoder();
+        const TRACE_RADIO = TRACE_ENABLED;
+        const TRACE_SOUND = TRACE_ENABLED;
+        const state = {
+          runnerReady: false,
+          activeSimulatorWindow: null,
+          lastSourceFiles: null,
+          simulatorReady: false,
+          runtimeRadioConfig: {},
+          outboundRadioSequence: 0,
+          recentOutboundRadioFingerprint: null,
+          recentSerialFingerprint: null,
+          dataLogHeadings: null,
+          programUsesDataLogger: false,
+          dataLogMirrorToSerial: false,
+          lastSoundActive: false,
+          lastSoundEventMs: 0,
+          resolveSimulatorReady: null,
+          rejectSimulatorReady: null,
+        };
+
+        installMakeCodeApiRewrites();
+
+        window.addEventListener('message', (event) => {
+          if (event.source === window.parent) {
+            handleHostMessage(event);
+            return;
+          }
+
+          if (state.activeSimulatorWindow && event.source === state.activeSimulatorWindow) {
+            handleSimulatorMessage(event.data);
+          }
+        });
+
+        if (typeof window.ksRunnerReady === 'function') {
+          window.ksRunnerReady(() => {
+            try {
+              if (window.pxt?.webConfig) {
+                window.pxt.webConfig.simUrl = PATCHED_SIMULATOR_URL;
+                rewriteRelativeWebConfigUrls(window.pxt.webConfig);
+              }
+              if (window.pxt?.appTarget?.simulator) {
+                window.pxt.appTarget.simulator.simUrl = PATCHED_SIMULATOR_URL;
+              }
+              if (window.pxt?.appTarget?.appTheme) {
+                window.pxt.appTarget.appTheme.simUrl = PATCHED_SIMULATOR_URL;
+              }
+            } catch (error) {
+              postRuntimeError(`Unable to patch MakeCode simulator URL: ${toErrorMessage(error)}`);
+            }
+            state.runnerReady = true;
+            postToHost({ type: 'swarm-runner-ready' });
+          });
+        } else {
+          postToHost({ type: 'swarm-runtime-event', eventType: 'internal-error', payload: { message: 'MakeCode runner failed to initialize' } });
+        }
+
+        async function handleHostMessage(event) {
+          if (event.origin !== HOST_ORIGIN || event.source !== window.parent) {
+            return;
+          }
+
+          const data = event.data;
+          if (!isRecord(data) || typeof data.type !== 'string') {
+            return;
+          }
+
+          switch (data.type) {
+            case 'swarm-load-program':
+              await handleLoadProgram(data);
+              break;
+            case 'swarm-reset-runtime':
+              await handleResetRuntime();
+              break;
+            case 'swarm-stop-runtime':
+              await handleStopRuntime();
+              break;
+            case 'swarm-set-button':
+            case 'swarm-pulse-button-ab':
+            case 'swarm-set-sensor':
+              postToSimulator(data);
+              break;
+            case 'swarm-radio-input':
+              postRadioToSimulator(data.packet);
+              break;
+            default:
+              break;
+          }
+        }
+
+        async function handleLoadProgram(message) {
+          const requestId = typeof message.requestId === 'string' ? message.requestId : '';
+          const sourceFiles = toSourceFiles(message.sourceFiles);
+          if (!requestId) {
+            return;
+          }
+
+          try {
+            if (!state.runnerReady) {
+              throw new Error('MakeCode runner is not ready yet');
+            }
+
+            const mainTs = sourceFiles['main.ts'];
+            if (typeof mainTs !== 'string') {
+              throw new Error('MakeCode source is missing main.ts');
+            }
+            const dataLogHints = parseDataLogProgramHints(sourceFiles);
+
+            state.lastSourceFiles = sourceFiles;
+            state.activeSimulatorWindow = null;
+            state.simulatorReady = false;
+            state.runtimeRadioConfig = {};
+            state.outboundRadioSequence = 0;
+            state.recentOutboundRadioFingerprint = null;
+            state.recentSerialFingerprint = null;
+            state.dataLogHeadings = null;
+            state.programUsesDataLogger = dataLogHints.usesDataLogger;
+            state.dataLogMirrorToSerial = dataLogHints.mirrorToSerial;
+            state.lastSoundActive = false;
+            state.lastSoundEventMs = 0;
+
+            if (window.pxt?.runner?.stop) {
+              window.pxt.runner.stop();
+            }
+            simulators.innerHTML = '';
+
+            const dependencies = parseDependencies(sourceFiles);
+            const options = {
+              code: mainTs,
+              assets: JSON.stringify(sourceFiles),
+              dependencies,
+              light: true,
+              fullScreen: true,
+              single: true,
+              hideSimButtons: true,
+              autofocus: false,
+            };
+
+            await window.pxt.runner.simulateAsync(simulators, options);
+
+            const simulatorFrame = simulators.querySelector('iframe');
+            if (!simulatorFrame || !simulatorFrame.contentWindow) {
+              throw new Error('MakeCode simulator iframe did not start');
+            }
+            state.activeSimulatorWindow = simulatorFrame.contentWindow;
+            await waitForSimulatorReady();
+
+            postToHost({
+              type: 'swarm-load-result',
+              requestId,
+              ok: true,
+            });
+          } catch (error) {
+            postToHost({
+              type: 'swarm-load-result',
+              requestId,
+              ok: false,
+              error: toErrorMessage(error),
+            });
+          }
+        }
+
+        async function handleResetRuntime() {
+          if (!state.lastSourceFiles) {
+            return;
+          }
+          await handleLoadProgram({
+            type: 'swarm-load-program',
+            requestId: `reset-${Date.now()}`,
+            sourceFiles: state.lastSourceFiles,
+          });
+        }
+
+        async function handleStopRuntime() {
+          if (window.pxt?.runner?.stop) {
+            window.pxt.runner.stop();
+          }
+          state.activeSimulatorWindow = null;
+          state.simulatorReady = false;
+          state.runtimeRadioConfig = {};
+          state.dataLogHeadings = null;
+          state.programUsesDataLogger = false;
+          state.dataLogMirrorToSerial = false;
+          state.lastSoundActive = false;
+          state.lastSoundEventMs = 0;
+          simulators.innerHTML = '';
+        }
+
+        function waitForSimulatorReady() {
+          if (state.simulatorReady) {
+            return Promise.resolve();
+          }
+          return new Promise((resolve, reject) => {
+            state.resolveSimulatorReady = resolve;
+            state.rejectSimulatorReady = reject;
+            window.setTimeout(() => {
+              if (!state.simulatorReady) {
+                reject(new Error('Patched simulator did not become ready in time'));
+              }
+            }, 5000);
+          });
+        }
+
+        function installMakeCodeApiRewrites() {
+          const originalFetch = typeof window.fetch === 'function' ? window.fetch.bind(window) : null;
+          if (originalFetch) {
+            window.fetch = (input, init) => {
+              if (typeof input === 'string') {
+                return originalFetch(rewriteMakeCodeApiUrl(input), init);
+              }
+              if (input instanceof Request) {
+                const rewrittenUrl = rewriteMakeCodeApiUrl(input.url);
+                if (rewrittenUrl !== input.url) {
+                  return originalFetch(new Request(rewrittenUrl, input), init);
+                }
+              }
+              return originalFetch(input, init);
+            };
+          }
+
+          const originalXhrOpen = XMLHttpRequest.prototype.open;
+          XMLHttpRequest.prototype.open = function open(method, url, ...rest) {
+            const rewrittenUrl =
+              typeof url === 'string' ? rewriteMakeCodeApiUrl(url) : url;
+            return originalXhrOpen.call(this, method, rewrittenUrl, ...rest);
+          };
+        }
+
+        function rewriteRelativeWebConfigUrls(webConfig) {
+          for (const [key, value] of Object.entries(webConfig)) {
+            if (typeof value !== 'string') {
+              continue;
+            }
+            webConfig[key] = rewriteMakeCodeApiUrl(value);
+          }
+        }
+
+        function rewriteMakeCodeApiUrl(rawUrl) {
+          if (typeof rawUrl !== 'string') {
+            return rawUrl;
+          }
+          if (rawUrl.startsWith('/api/')) {
+            return `${RUNNER_BASE_PATH}${rawUrl.slice(1)}`;
+          }
+          if (!rawUrl.includes('/api/')) {
+            return rawUrl;
+          }
+          try {
+            const parsed = new URL(rawUrl, window.location.href);
+            if (parsed.origin === HOST_ORIGIN && parsed.pathname.startsWith('/api/')) {
+              return `${RUNNER_BASE_PATH}${parsed.pathname.slice(1)}${parsed.search}${parsed.hash}`;
+            }
+          } catch (error) {
+            return rawUrl;
+          }
+          return rawUrl;
+        }
+
+        function resolveRunnerBasePath() {
+          const pathname = window.location.pathname || '/';
+          const slashIndex = pathname.lastIndexOf('/');
+          if (slashIndex < 0) {
+            return '/';
+          }
+          return pathname.slice(0, slashIndex + 1);
+        }
+
+        function handleSimulatorMessage(data) {
+          if (!isRecord(data) || typeof data.type !== 'string') {
+            return;
+          }
+
+          if (data.type === 'swarm-simulator-ready') {
+            state.simulatorReady = true;
+            state.resolveSimulatorReady?.();
+            state.resolveSimulatorReady = null;
+            state.rejectSimulatorReady = null;
+            return;
+          }
+
+          if (data.type === 'swarm-simulator-state') {
+            const runtimeRadioConfig = normalizeRuntimeRadioConfig(data.radio ?? data);
+            if (runtimeRadioConfig.group !== undefined || runtimeRadioConfig.channel !== undefined) {
+              if (!sameRadioConfig(state.runtimeRadioConfig, runtimeRadioConfig)) {
+                state.runtimeRadioConfig = runtimeRadioConfig;
+                postToHost({
+                  type: 'swarm-runtime-event',
+                  eventType: 'radio-config',
+                  payload: runtimeRadioConfig,
+                });
+              }
+            }
+            if (Array.isArray(data.displayPixels)) {
+              postToHost({
+                type: 'swarm-runtime-event',
+                eventType: 'display',
+                payload: { pixels: data.displayPixels.map((value) => Number(value)) },
+              });
+            }
+            if (data.soundLevel !== undefined) {
+              const soundLevel = Number(data.soundLevel);
+              const soundActive = Number.isFinite(soundLevel) && soundLevel > 0;
+              const now = Date.now();
+              const elapsedMs = now - state.lastSoundEventMs;
+              if (soundActive !== state.lastSoundActive) {
+                traceSound('simulator-sound-state', {
+                  soundLevel: Number.isFinite(soundLevel) ? soundLevel : 0,
+                  soundActive,
+                  lastSoundActive: state.lastSoundActive,
+                  elapsedMs,
+                });
+              }
+              if (
+                soundActive &&
+                (!state.lastSoundActive || elapsedMs >= 200)
+              ) {
+                postToHost({
+                  type: 'swarm-runtime-event',
+                  eventType: 'sound',
+                  payload: { level: soundLevel },
+                });
+                traceSound('emit-runtime-sound-event', {
+                  soundLevel,
+                  elapsedMs,
+                });
+                state.lastSoundEventMs = now;
+              }
+              state.lastSoundActive = soundActive;
+            }
+            return;
+          }
+
+          if (isSerialLikeType(data.type)) {
+            const dataLogKind = emitRuntimeDataLogPayload(data.data ?? data);
+            if (dataLogKind === 'delete') {
+              return;
+            }
+            if (dataLogKind === 'output' && !state.dataLogMirrorToSerial) {
+              return;
+            }
+            emitSerialPayload(data.data ?? data);
+            return;
+          }
+
+          if (data.type === 'radiopacket') {
+            const payload = normalizeRadioPayload(data, state.runtimeRadioConfig);
+            emitRuntimeRadioPayload(payload);
+            return;
+          }
+
+          if (data.type === 'messagepacket') {
+            if (data.channel === 'radiopacket' && isRecord(data.data)) {
+              const payload = normalizeRadioPayload(data.data, state.runtimeRadioConfig);
+              emitRuntimeRadioPayload(payload);
+              return;
+            }
+            if (isSerialChannel(data.channel)) {
+              const dataLogKind = emitRuntimeDataLogPayload(data.data ?? data);
+              if (dataLogKind === 'delete') {
+                return;
+              }
+              if (dataLogKind === 'output' && !state.dataLogMirrorToSerial) {
+                return;
+              }
+              emitSerialPayload(data.data ?? data);
+            }
+          }
+        }
+
+        function postToSimulator(message) {
+          if (!state.activeSimulatorWindow) {
+            return;
+          }
+          state.activeSimulatorWindow.postMessage(message, HOST_ORIGIN);
+        }
+
+        function postRadioToSimulator(packet) {
+          if (!state.activeSimulatorWindow || !isRecord(packet)) {
+            return;
+          }
+          const sequence = ++state.outboundRadioSequence;
+          const group = Number.isFinite(Number(packet.group)) ? Number(packet.group) : 0;
+          const rssi = toInboundRssi(packet.signalStrength);
+          const bytes = normalizeByteArray(packet.data);
+          traceRadio('tx-to-simulator', {
+            sequence,
+            group,
+            rssi,
+            bytes: bytes.length,
+            preview: bytes.slice(0, 8),
+          });
+          state.activeSimulatorWindow.postMessage(
+            {
+              type: 'swarm-radiopacket',
+              swarmSeq: sequence,
+              rssi,
+              serial: 0,
+              time: Date.now(),
+              payload: {
+                type: 0,
+                groupId: group,
+                bufferData: bytes,
+              },
+            },
+            HOST_ORIGIN,
+          );
+        }
+
+        function normalizeRadioPayload(message, runtimeRadioConfig) {
+          const payload = isRecord(message.payload) ? message.payload : {};
+          const group = toOptionalGroup(
+            message.group ?? payload.group ?? payload.groupId ?? runtimeRadioConfig.group,
+          );
+          const channel = toOptionalChannel(
+            message.channel ?? payload.channel ?? payload.band ?? runtimeRadioConfig.channel,
+          );
+          let data = normalizeByteArray(extractBufferPayload(message, payload));
+          if (data.length === 0 && typeof payload.key === 'string' && Number.isFinite(Number(payload.value))) {
+            data = [...encoder.encode(`${payload.key}:${Number(payload.value)}`)];
+          } else if (data.length === 0 && typeof payload.name === 'string' && Number.isFinite(Number(payload.value))) {
+            data = [...encoder.encode(`${payload.name}:${Number(payload.value)}`)];
+          } else if (data.length === 0 && typeof payload.stringData === 'string') {
+            data = [...encoder.encode(payload.stringData)];
+          } else if (data.length === 0 && Number.isFinite(Number(payload.numberData))) {
+            data = [...encoder.encode(String(payload.numberData))];
+          } else if (
+            data.length === 0 &&
+            isRecord(payload.data) &&
+            typeof payload.data.name === 'string' &&
+            Number.isFinite(Number(payload.data.value))
+          ) {
+            data = [...encoder.encode(`${payload.data.name}:${Number(payload.data.value)}`)];
+          } else if (
+            data.length === 0 &&
+            isRecord(payload.data) &&
+            typeof payload.data.key === 'string' &&
+            Number.isFinite(Number(payload.data.value))
+          ) {
+            data = [...encoder.encode(`${payload.data.key}:${Number(payload.data.value)}`)];
+          } else if (
+            data.length === 0 &&
+            isRecord(payload.data) &&
+            typeof payload.data.stringData === 'string'
+          ) {
+            data = [...encoder.encode(payload.data.stringData)];
+          } else if (
+            data.length === 0 &&
+            isRecord(payload.data) &&
+            Number.isFinite(Number(payload.data.numberData))
+          ) {
+            data = [...encoder.encode(String(payload.data.numberData))];
+          }
+          const signalStrength = toSignalStrength(
+            message.signalStrength ?? message.power ?? payload.signalStrength ?? payload.power,
+          );
+          return {
+            data,
+            ...(group === undefined ? {} : { group }),
+            ...(channel === undefined ? {} : { channel }),
+            ...(signalStrength === undefined ? {} : { signalStrength }),
+          };
+        }
+
+        function normalizeRuntimeRadioConfig(value) {
+          if (!isRecord(value)) {
+            return {};
+          }
+          const group = toOptionalGroup(value.group ?? value.groupId);
+          const channel = toOptionalChannel(value.channel ?? value.band);
+          return {
+            ...(group === undefined ? {} : { group }),
+            ...(channel === undefined ? {} : { channel }),
+          };
+        }
+
+        function sameRadioConfig(left, right) {
+          return left.group === right.group && left.channel === right.channel;
+        }
+
+        function extractBufferPayload(message, payload) {
+          const nestedData = isRecord(payload.data) ? payload.data : {};
+          const nestedPacket = isRecord(payload.packet) ? payload.packet : {};
+          const messageData = isRecord(message.data) ? message.data : {};
+          return (
+            payload.bufferData ??
+            nestedData.bufferData ??
+            nestedPacket.bufferData ??
+            message.bufferData ??
+            messageData.bufferData ??
+            payload.data ??
+            message.data
+          );
+        }
+
+        function parseDependencies(sourceFiles) {
+          const pxtJson = sourceFiles['pxt.json'];
+          if (typeof pxtJson !== 'string') {
+            return [];
+          }
+          try {
+            const parsed = JSON.parse(pxtJson);
+            const dependencies = isRecord(parsed.dependencies) ? parsed.dependencies : {};
+            return Object.entries(dependencies)
+              .filter((entry) => typeof entry[0] === 'string' && typeof entry[1] === 'string')
+              .map(([name, version]) => `${name}=${version}`);
+          } catch (error) {
+            postRuntimeError(`Unable to parse pxt.json dependencies: ${toErrorMessage(error)}`);
+            return [];
+          }
+        }
+
+        function parseDataLogProgramHints(sourceFiles) {
+          const sourceText = Object.entries(sourceFiles)
+            .filter(([filename, text]) =>
+              typeof text === 'string' && /\.(ts|js)$/i.test(filename),
+            )
+            .map(([, text]) => text)
+            .join('\n');
+          const usesDataLogger = /\bdatalogger\./.test(sourceText);
+          let mirrorToSerial = false;
+          const mirrorMatch = /\bdatalogger\.mirrorToSerial\s*\(\s*(true|false)\s*\)/g;
+          for (const match of sourceText.matchAll(mirrorMatch)) {
+            mirrorToSerial = match[1] === 'true';
+          }
+          return { usesDataLogger, mirrorToSerial };
+        }
+
+        function toSourceFiles(value) {
+          if (!isRecord(value)) {
+            return {};
+          }
+          const files = {};
+          for (const [filename, text] of Object.entries(value)) {
+            if (typeof text === 'string') {
+              files[filename] = text;
+            }
+          }
+          return files;
+        }
+
+        function normalizeByteArray(value) {
+          if (Array.isArray(value)) {
+            return value.map((entry) => Number(entry) & 0xff);
+          }
+          if (value instanceof Uint8Array) {
+            return [...value];
+          }
+          if (value instanceof ArrayBuffer) {
+            return [...new Uint8Array(value)];
+          }
+          if (ArrayBuffer.isView(value)) {
+            return [...new Uint8Array(value.buffer, value.byteOffset, value.byteLength)];
+          }
+          if (typeof value === 'string') {
+            return [...encoder.encode(value)];
+          }
+          return [];
+        }
+
+        function normalizeSerialData(value) {
+          const normalized = extractSerialText(value);
+          return typeof normalized === 'string' ? normalized : '';
+        }
+
+        function emitSerialPayload(rawValue) {
+          const data = normalizeSerialData(rawValue);
+          if (data.trim() === '') {
+            return;
+          }
+          if (state.recentSerialFingerprint === data) {
+            return;
+          }
+          state.recentSerialFingerprint = data;
+          queueMicrotask(() => {
+            if (state.recentSerialFingerprint === data) {
+              state.recentSerialFingerprint = null;
+            }
+          });
+          postToHost({
+            type: 'swarm-runtime-event',
+            eventType: 'serial',
+            payload: { data },
+          });
+        }
+
+        function emitRuntimeDataLogPayload(rawValue) {
+          const normalized = normalizeRuntimeDataLogPayload(
+            rawValue,
+            state.dataLogHeadings,
+            state.programUsesDataLogger,
+          );
+          if (!normalized) {
+            return null;
+          }
+          if (normalized.kind === 'delete') {
+            state.dataLogHeadings = null;
+            postToHost({
+              type: 'swarm-runtime-event',
+              eventType: 'data-log-delete',
+              payload: {},
+            });
+            return 'delete';
+          }
+          if (Array.isArray(normalized.entry.headings)) {
+            state.dataLogHeadings = [...normalized.entry.headings];
+          }
+          postToHost({
+            type: 'swarm-runtime-event',
+            eventType: 'data-log-output',
+            payload: normalized.entry,
+          });
+          return 'output';
+        }
+
+        function normalizeRuntimeDataLogPayload(rawValue, activeHeadings, allowCsvFallback) {
+          if (isRecord(rawValue)) {
+            const explicitEntry = normalizeDataLogEntryRecord(rawValue);
+            if (explicitEntry) {
+              return { kind: 'output', entry: explicitEntry };
+            }
+            const csvType = typeof rawValue.csvType === 'string' ? rawValue.csvType : '';
+            if (csvType !== '') {
+              if (csvType === 'clear') {
+                return { kind: 'delete' };
+              }
+              const text = normalizeSerialData(rawValue.data ?? rawValue.text ?? rawValue.value);
+              const parsed = parseCsvRecord(text);
+              if (csvType === 'headers') {
+                if (parsed.length === 0) {
+                  return null;
+                }
+                return {
+                  kind: 'output',
+                  entry: { headings: parsed },
+                };
+              }
+              if (csvType === 'row') {
+                if (parsed.length === 0) {
+                  return null;
+                }
+                return {
+                  kind: 'output',
+                  entry: {
+                    ...(Array.isArray(activeHeadings) ? { headings: [...activeHeadings] } : {}),
+                    data: parsed,
+                  },
+                };
+              }
+            }
+          }
+
+          if (!allowCsvFallback) {
+            return null;
+          }
+          const text = normalizeSerialData(
+            isRecord(rawValue) ? rawValue.data ?? rawValue.text ?? rawValue.value ?? rawValue : rawValue,
+          );
+          const parsed = parseCsvRecord(text);
+          if (parsed.length === 0) {
+            return null;
+          }
+          if (Array.isArray(activeHeadings) && activeHeadings.length > 0) {
+            return {
+              kind: 'output',
+              entry: {
+                headings: [...activeHeadings],
+                data: parsed,
+              },
+            };
+          }
+          if (!looksLikeDataLogHeadings(parsed)) {
+            return null;
+          }
+          return {
+            kind: 'output',
+            entry: { headings: parsed },
+          };
+        }
+
+        function normalizeDataLogEntryRecord(value) {
+          const headings = normalizeDataLogValues(value.headings);
+          const data = normalizeDataLogValues(value.data);
+          if (!headings && !data) {
+            return null;
+          }
+          return {
+            ...(headings ? { headings } : {}),
+            ...(data ? { data } : {}),
+          };
+        }
+
+        function normalizeDataLogValues(value) {
+          if (!Array.isArray(value)) {
+            return null;
+          }
+          return value.map((entry) => {
+            if (typeof entry === 'string') {
+              return entry;
+            }
+            if (typeof entry === 'number' || typeof entry === 'boolean') {
+              return String(entry);
+            }
+            if (entry === null || entry === undefined) {
+              return '';
+            }
+            return '';
+          });
+        }
+
+        function parseCsvRecord(value) {
+          const line = value.replace(/\r?\n$/, '');
+          if (line === '') {
+            return [];
+          }
+          const cells = [];
+          let current = '';
+          let inQuotes = false;
+          for (let index = 0; index < line.length; index += 1) {
+            const character = line[index];
+            if (character === '"') {
+              if (inQuotes && line[index + 1] === '"') {
+                current += '"';
+                index += 1;
+                continue;
+              }
+              inQuotes = !inQuotes;
+              continue;
+            }
+            if (character === ',' && !inQuotes) {
+              cells.push(current);
+              current = '';
+              continue;
+            }
+            current += character;
+          }
+          cells.push(current);
+          return cells;
+        }
+
+        function looksLikeDataLogHeadings(values) {
+          if (!Array.isArray(values) || values.length < 2 || values.length > 24) {
+            return false;
+          }
+          const headings = values.map((value) => String(value).trim());
+          if (headings.some((heading) => heading === '')) {
+            return false;
+          }
+          if (headings.some((heading) => /time/i.test(heading))) {
+            return true;
+          }
+          return headings.every(
+            (heading) => /[A-Za-z_]/.test(heading) && !/^[+-]?\d+(?:\.\d+)?$/.test(heading),
+          );
+        }
+
+        function emitRuntimeRadioPayload(payload) {
+          const fingerprint = `${payload.group ?? 'none'}:${payload.channel ?? 'none'}:${payload.signalStrength ?? 'none'}:${payload.data.join(',')}`;
+          if (state.recentOutboundRadioFingerprint === fingerprint) {
+            traceRadio('dedupe-outbound-radio', {
+              fingerprint,
+              bytes: payload.data.length,
+              preview: payload.data.slice(0, 8),
+            });
+            return;
+          }
+          state.recentOutboundRadioFingerprint = fingerprint;
+          queueMicrotask(() => {
+            if (state.recentOutboundRadioFingerprint === fingerprint) {
+              state.recentOutboundRadioFingerprint = null;
+            }
+          });
+          postToHost({
+            type: 'swarm-runtime-event',
+            eventType: 'radio',
+            payload,
+          });
+        }
+
+        function traceRadio(event, details) {
+          if (!TRACE_RADIO) {
+            return;
+          }
+          console.debug('[swarm-radio-trace]', `runner:${event}`, details);
+        }
+
+        function traceSound(event, details) {
+          if (!TRACE_SOUND) {
+            return;
+          }
+          console.debug('[swarm-sound-trace]', `runner:${event}`, details);
+        }
+
+        function isSerialLikeType(type) {
+          return type === 'serial' || type === 'bulkserial' || type === 'console';
+        }
+
+        function isSerialChannel(channel) {
+          return channel === 'serial' || channel === 'bulkserial' || channel === 'console';
+        }
+
+        function extractSerialText(value) {
+          if (typeof value === 'string') {
+            return value;
+          }
+          if (Array.isArray(value)) {
+            return value
+              .map((entry) => extractSerialText(entry))
+              .filter((entry) => typeof entry === 'string' && entry !== '')
+              .join('');
+          }
+          if (!isRecord(value)) {
+            return '';
+          }
+          const candidates = ['data', 'text', 'message', 'line', 'value'];
+          for (const key of candidates) {
+            if (!(key in value)) {
+              continue;
+            }
+            const candidate = extractSerialText(value[key]);
+            if (candidate !== '') {
+              return candidate;
+            }
+          }
+          return '';
+        }
+
+        function postRuntimeError(message) {
+          postToHost({
+            type: 'swarm-runtime-event',
+            eventType: 'internal-error',
+            payload: { message },
+          });
+        }
+
+        function postToHost(message) {
+          window.parent.postMessage(message, HOST_ORIGIN);
+        }
+
+        function isRecord(value) {
+          return typeof value === 'object' && value !== null;
+        }
+
+        function toErrorMessage(error) {
+          if (error instanceof Error) {
+            return error.message;
+          }
+          return typeof error === 'string' ? error : 'Unknown MakeCode runner error';
+        }
+
+        function toSignalStrength(value) {
+          const numeric = Number(value);
+          if (!Number.isInteger(numeric) || numeric < 0 || numeric > 7) {
+            return undefined;
+          }
+          return numeric;
+        }
+
+        function toInboundRssi(value) {
+          const numeric = Number(value);
+          if (!Number.isFinite(numeric)) {
+            return -75;
+          }
+          return Math.round(numeric);
+        }
+
+        function toOptionalGroup(value) {
+          const numeric = Number(value);
+          if (!Number.isInteger(numeric) || numeric < 0 || numeric > 255) {
+            return undefined;
+          }
+          return numeric;
+        }
+
+        function toOptionalChannel(value) {
+          const numeric = Number(value);
+          if (!Number.isInteger(numeric) || numeric < 0 || numeric > 83) {
+            return undefined;
+          }
+          return numeric;
+        }
+      })();
+    </script>
+  </body>
+</html>

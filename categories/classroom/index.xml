@@ -7,8 +7,21 @@
     <generator>Hugo -- 0.160.1</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
-    <lastBuildDate>Wed, 11 Mar 2026 14:25:29 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 24 May 2026 04:17:33 +0800</lastBuildDate>
     <atom:link href="https://headtilt.me/categories/classroom/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Simulating Micro:bit Swarms</title>
+      <link>https://headtilt.me/swarm-sim/</link>
+      <pubDate>Sun, 24 May 2026 04:17:33 +0800</pubDate>
+      <guid>https://headtilt.me/swarm-sim/</guid>
+      <description>&lt;link rel=&#34;stylesheet&#34; href=&#34;https://headtilt.me/css/vendors/admonitions.53cd9f8afa9d9a8ac09093f668df057bc6d0f4bbd0886f39991a7b99934a7432.css&#34; integrity=&#34;sha256-U82fivqdmorAkJP2aN8Fe8bQ9LvQiG85mRp7mZNKdDI=&#34; crossorigin=&#34;anonymous&#34;&gt;
+    &lt;div class=&#34;admonition info&#34;&gt;
+      &lt;div class=&#34;admonition-header&#34;&gt;&lt;svg xmlns=&#34;http://www.w3.org/2000/svg&#34; viewBox=&#34;0 0 512 512&#34;&gt;&lt;path d=&#34;M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336l24 0 0-64-24 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z&#34;/&gt;&lt;/svg&gt;
+        &lt;span&gt;TLDR&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&#34;admonition-content&#34;&gt;
+        &lt;p&gt;If you just want to play and not read the words &lt;a href=&#34;https://headtilt.me/swarm&#34;&gt;you can find swarm here&lt;/a&gt;.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>What Do We Want</title>
       <link>https://headtilt.me/what-do-we-want/</link>
