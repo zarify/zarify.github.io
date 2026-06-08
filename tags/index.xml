@@ -10,10 +10,24 @@
     <lastBuildDate>Sun, 24 May 2026 04:17:33 +0800</lastBuildDate>
     <atom:link href="https://headtilt.me/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Makecode</title>
+      <link>https://headtilt.me/tags/makecode/</link>
+      <pubDate>Sun, 24 May 2026 04:17:33 +0800</pubDate>
+      <guid>https://headtilt.me/tags/makecode/</guid>
+      <description></description>
+    </item>
+    <item>
       <title>Microbit</title>
       <link>https://headtilt.me/tags/microbit/</link>
       <pubDate>Sun, 24 May 2026 04:17:33 +0800</pubDate>
       <guid>https://headtilt.me/tags/microbit/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Micropython</title>
+      <link>https://headtilt.me/tags/micropython/</link>
+      <pubDate>Sun, 24 May 2026 04:17:33 +0800</pubDate>
+      <guid>https://headtilt.me/tags/micropython/</guid>
       <description></description>
     </item>
     <item>
@@ -126,13 +140,6 @@
       <link>https://headtilt.me/tags/coderdojo/</link>
       <pubDate>Sun, 24 Nov 2024 05:51:51 +0800</pubDate>
       <guid>https://headtilt.me/tags/coderdojo/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Makecode</title>
-      <link>https://headtilt.me/tags/makecode/</link>
-      <pubDate>Sun, 24 Nov 2024 05:51:51 +0800</pubDate>
-      <guid>https://headtilt.me/tags/makecode/</guid>
       <description></description>
     </item>
     <item>
