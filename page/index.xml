@@ -20,5 +20,156 @@ not also passionate about your own learning. As a result, most of what I share i
 I am interested in learning about myself, and sometimes their application to teaching.
 Educational theory is interesting too, but this site isn&amp;rsquo;t really about that.&lt;/p&gt;</description>
     </item>
+    <item>
+      <title></title>
+      <link>https://headtilt.me/page/projects/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://headtilt.me/page/projects/</guid>
+      <description>&lt;p&gt;This is a collection of different projects that have some usable state, either code, or resources here on the site.
+The list exists so there&amp;rsquo;s something separate from any posts, and so it&amp;rsquo;s easier to find. Also so anyone who is
+interested doesn&amp;rsquo;t have to wade through my wordiness to find a link to something 😂&lt;/p&gt;
+&lt;h2 id=&#34;serious-business&#34;&gt;Serious business&lt;/h2&gt;
+&lt;h3 id=&#34;microbit-swarm-simulator&#34;&gt;Micro:bit swarm simulator&lt;/h3&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;&lt;/th&gt;
+          &lt;th&gt;&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Description&lt;/td&gt;
+          &lt;td&gt;Drop in and simulate multiple micro:bit devices, with environmental nodes.&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Status&lt;/td&gt;
+          &lt;td&gt;usable&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Github&lt;/td&gt;
+          &lt;td&gt;&lt;a href=&#34;https://github.com/zarify/swarm_sim&#34;&gt;link&lt;/a&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Post(s)&lt;/td&gt;
+          &lt;td&gt;&lt;a href=&#34;https://headtilt.me/swarm-sim&#34;&gt;link&lt;/a&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Live&lt;/td&gt;
+          &lt;td&gt;&lt;a href=&#34;https://headtilt.me/swarm&#34;&gt;link&lt;/a&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;esp32-cheap-yellow-display-cyd-library&#34;&gt;ESP32 Cheap yellow display (CYD) library&lt;/h3&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;&lt;/th&gt;
+          &lt;th&gt;&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Description&lt;/td&gt;
+          &lt;td&gt;micro:bit-like libraries for programming esp32-cyd&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Status&lt;/td&gt;
+          &lt;td&gt;usable&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Github&lt;/td&gt;
+          &lt;td&gt;&lt;a href=&#34;https://github.com/zarify/esp32_cyd&#34;&gt;link&lt;/a&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Post(s)&lt;/td&gt;
+          &lt;td&gt;&lt;a href=&#34;https://headtilt.me/esp-cyd&#34;&gt;link&lt;/a&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;blockly-scorm-editor&#34;&gt;Blockly SCORM editor&lt;/h3&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;&lt;/th&gt;
+          &lt;th&gt;&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Description&lt;/td&gt;
+          &lt;td&gt;Tool for creating self-marking Blockly exercises in SCORM for Moodle&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Status&lt;/td&gt;
+          &lt;td&gt;needs testing&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Github&lt;/td&gt;
+          &lt;td&gt;&lt;a href=&#34;https://github.com/zarify/scorm-blockly&#34;&gt;link&lt;/a&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&#34;fun-things&#34;&gt;Fun things&lt;/h2&gt;
+&lt;h3 id=&#34;name-lineage-adventure&#34;&gt;Name lineage adventure&lt;/h3&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;&lt;/th&gt;
+          &lt;th&gt;&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Description&lt;/td&gt;
+          &lt;td&gt;Visualisation of changes to names over time based off similarity. Not based in science 🤪&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Status&lt;/td&gt;
+          &lt;td&gt;usable&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Post(s)&lt;/td&gt;
+          &lt;td&gt;&lt;a href=&#34;https://headtilt.me/baby-names&#34;&gt;link&lt;/a&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Live&lt;/td&gt;
+          &lt;td&gt;&lt;a href=&#34;https://headtilt.me/adventure&#34;&gt;link&lt;/a&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&#34;abandoned-things&#34;&gt;Abandoned things&lt;/h2&gt;
+&lt;h3 id=&#34;clipy&#34;&gt;Clipy&lt;/h3&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;&lt;/th&gt;
+          &lt;th&gt;&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Description&lt;/td&gt;
+          &lt;td&gt;Client-side Micropython based learning environment with hints and self-marking&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Status&lt;/td&gt;
+          &lt;td&gt;usable with bugs&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Github&lt;/td&gt;
+          &lt;td&gt;&lt;a href=&#34;https://github.com/zarify/clipy&#34;&gt;link&lt;/a&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Post(s)&lt;/td&gt;
+          &lt;td&gt;&lt;a href=&#34;https://headtilt.me/cat-herding-wasm-python-08&#34;&gt;link&lt;/a&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Live&lt;/td&gt;
+          &lt;td&gt;&lt;a href=&#34;https://headtilt.me/clipy&#34;&gt;link&lt;/a&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;</description>
+    </item>
   </channel>
 </rss>
