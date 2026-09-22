@@ -2,40 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://headtilt.me/tags/ai/</loc>
-    <lastmod>2026-08-28T19:47:05+08:00</lastmod>
-  </url><url>
     <loc>https://headtilt.me/categories/</loc>
-    <lastmod>2026-08-28T19:47:05+08:00</lastmod>
-  </url><url>
-    <loc>https://headtilt.me/tags/culture/</loc>
-    <lastmod>2026-08-28T19:47:05+08:00</lastmod>
-  </url><url>
-    <loc>https://headtilt.me/tags/filter-bubble/</loc>
-    <lastmod>2026-08-28T19:47:05+08:00</lastmod>
-  </url><url>
-    <loc>https://headtilt.me/</loc>
-    <lastmod>2026-08-28T19:47:05+08:00</lastmod>
-  </url><url>
-    <loc>https://headtilt.me/tags/learning/</loc>
-    <lastmod>2026-08-28T19:47:05+08:00</lastmod>
-  </url><url>
-    <loc>https://headtilt.me/tags/media/</loc>
-    <lastmod>2026-08-28T19:47:05+08:00</lastmod>
-  </url><url>
-    <loc>https://headtilt.me/osmosis/</loc>
-    <lastmod>2026-08-28T19:47:05+08:00</lastmod>
-  </url><url>
-    <loc>https://headtilt.me/post/</loc>
-    <lastmod>2026-08-28T19:47:05+08:00</lastmod>
-  </url><url>
-    <loc>https://headtilt.me/categories/ramble/</loc>
-    <lastmod>2026-08-28T19:47:05+08:00</lastmod>
-  </url><url>
-    <loc>https://headtilt.me/tags/</loc>
-    <lastmod>2026-08-28T19:47:05+08:00</lastmod>
+    <lastmod>2026-05-24T04:17:33+08:00</lastmod>
   </url><url>
     <loc>https://headtilt.me/categories/classroom/</loc>
+    <lastmod>2026-05-24T04:17:33+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/</loc>
     <lastmod>2026-05-24T04:17:33+08:00</lastmod>
   </url><url>
     <loc>https://headtilt.me/tags/makecode/</loc>
@@ -47,7 +20,13 @@
     <loc>https://headtilt.me/tags/micropython/</loc>
     <lastmod>2026-05-24T04:17:33+08:00</lastmod>
   </url><url>
+    <loc>https://headtilt.me/post/</loc>
+    <lastmod>2026-05-24T04:17:33+08:00</lastmod>
+  </url><url>
     <loc>https://headtilt.me/swarm-sim/</loc>
+    <lastmod>2026-05-24T04:17:33+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/tags/</loc>
     <lastmod>2026-05-24T04:17:33+08:00</lastmod>
   </url><url>
     <loc>https://headtilt.me/baby-names/</loc>
@@ -61,6 +40,12 @@
   </url><url>
     <loc>https://headtilt.me/tags/python/</loc>
     <lastmod>2026-04-20T06:44:52+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/categories/ramble/</loc>
+    <lastmod>2026-04-20T06:44:52+08:00</lastmod>
+  </url><url>
+    <loc>https://headtilt.me/tags/ai/</loc>
+    <lastmod>2026-03-11T14:25:29+08:00</lastmod>
   </url><url>
     <loc>https://headtilt.me/what-do-we-want/</loc>
     <lastmod>2026-03-11T14:25:29+08:00</lastmod>
