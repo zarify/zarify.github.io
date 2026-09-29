@@ -1,0 +1,9 @@
+[
+  "pillow-12.2.0-cp314-cp314-pyemscripten_2026_0_wasm32.whl",
+  "pyodide-lock.json",
+  "pyodide.asm.mjs",
+  "pyodide.asm.wasm",
+  "pyodide.js",
+  "pyodide.mjs",
+  "python_stdlib.zip"
+]
