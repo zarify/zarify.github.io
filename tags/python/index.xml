@@ -7,8 +7,15 @@
     <generator>Hugo -- 0.165.0</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
-    <lastBuildDate>Mon, 20 Apr 2026 06:44:52 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 30 Sep 2026 14:26:48 +0800</lastBuildDate>
     <atom:link href="https://headtilt.me/tags/python/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Scorm Editors</title>
+      <link>https://headtilt.me/scorm-editors/</link>
+      <pubDate>Wed, 30 Sep 2026 14:26:48 +0800</pubDate>
+      <guid>https://headtilt.me/scorm-editors/</guid>
+      <description>Making Blockly and Python SCORM learning objects for Moodle with hinting and marking.</description>
+    </item>
     <item>
       <title>Baby Name Adventure</title>
       <link>https://headtilt.me/baby-names/</link>

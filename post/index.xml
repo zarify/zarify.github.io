@@ -7,8 +7,15 @@
     <generator>Hugo -- 0.165.0</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
-    <lastBuildDate>Sun, 24 May 2026 04:17:33 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 30 Sep 2026 14:26:48 +0800</lastBuildDate>
     <atom:link href="https://headtilt.me/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Scorm Editors</title>
+      <link>https://headtilt.me/scorm-editors/</link>
+      <pubDate>Wed, 30 Sep 2026 14:26:48 +0800</pubDate>
+      <guid>https://headtilt.me/scorm-editors/</guid>
+      <description>Making Blockly and Python SCORM learning objects for Moodle with hinting and marking.</description>
+    </item>
     <item>
       <title>Simulating Micro:bit Swarms</title>
       <link>https://headtilt.me/swarm-sim/</link>
