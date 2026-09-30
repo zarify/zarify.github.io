@@ -100,6 +100,10 @@ whether they are successful.</p>
 <li>For Blockly (<a href="https://github.com/zarify/scorm-blockly">Github</a> and <a href="/blockly-scorm">Live</a>)</li>
 <li>For Python (<a href="https://github.com/zarify/scorm-python">Github</a> and <a href="/python-scorm">Live</a>)</li>
 </ul>
+<p>I&rsquo;ve been testing this as I go, and while I&rsquo;m fairly happy with it, there are probably edge
+cases I&rsquo;ve missed or dumb things I haven&rsquo;t checked for. I&rsquo;m in the process of writing up a
+bunch of Python problems to trial-by-fire it with my Year 9s next term. If you decide to use it
+and bugs fall out, please drop me a line.</p>
       </div>
     </div><h1 id="preramble">Pre(r)amble<a hidden class="anchor" aria-hidden="true" href="#preramble">#</a></h1>
 <p>For the last couple of years I&rsquo;ve been working in a remote teaching school teaching Digital Technologies,
@@ -110,10 +114,11 @@ generally be used in a physical classroom. This one is about making the combinat
 video lessons and asynchronous LMS (Moodle) content work together for students who might be anywhere
 in the world.</p>
 <p>As much as I like Moodle, and
-have since I brought it into my first school almost 20 years ago, it doesn&rsquo;t provide any good ways
+have since I brought it into my first school almost 20 years ago, it doesn&rsquo;t provide any good native tools
 for interactive programming exercises. DoE WA&rsquo;s Third Party Services policy makes it hard to use some
 external services, even those that aren&rsquo;t either busy rebranding themselves as primarily being about
 AI, or trying to shepherd their learners into working for their corporate <del>investors</del> donors.</p>
+<p>Somewhat obviously, this post is about making something to scratch my own itch.</p>
 <h1 id="scorm">SCORM<a hidden class="anchor" aria-hidden="true" href="#scorm">#</a></h1>
 <p>Let&rsquo;s be honest, SCORM is a bit crap. But it&rsquo;s the best tool for the job if I want to be able
 to get my students learning some of the practical content like programming inside the LMS, feeding
@@ -164,7 +169,7 @@ wanted something better.</p>
 but the implementation there turned out to be overcomplicated. For this editor I ended up
 using the ideas from the Blockly visual test editor - just write the Python code, and use the
 AST to validate that the pattern was present in the student&rsquo;s code. As a bonus, it has
-wildcards similar, but more powerful than the Blockly version.</p>
+wildcards similar, but more powerful to those in the Blockly version.</p>
 <img alt="The AST editor" loading="lazy" src="/images/scorm-editors/python-ast-editor.png"><ul>
 <li>Want to just check the basic structure? Use <code>_</code> or <code>...</code> wildcards with the bits you care about.</li>
 <li>Want to make sure they used a specific variable name? Specify it in your test code.</li>
@@ -192,7 +197,7 @@ had been constructed correctly with the right code in the right branches of the 
 clause to my student test code, and my previous test stopped working. Turns out it&rsquo;s a different
 type of node in the tree now. What&rsquo;s more an <code>if-elif</code> is actually an <code>if-else-if</code> as well. So
 much for keeping the tests simple.</p>
-<p>What&rsquo;s under presented in the test authoring now is an (off by default) option for strict clause
+<p>What&rsquo;s presented in the test authoring now is an (off by default) option for strict clause
 matching, for when you really need to be sure of the structure (covering a bunch of the other
 control structures like <code>try-except</code>, <code>match</code>, and options like <code>finally</code>). When the option
 isn&rsquo;t set, under the hood we check for different variants of the structure permissively, so the
