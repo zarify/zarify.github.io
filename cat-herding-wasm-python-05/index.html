@@ -172,69 +172,55 @@ some of the details and screenshots.</p>
 <p>Here are some screenshots of the latest version with some of the new things from this week.</p>
 <style>
     .image-gallery {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1%;
-        margin-left: -1% !important;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 12px;
+        margin-top: 1.5em;
+        padding: 0;
+        list-style: none;
     }
 
     .image-gallery li {
+        margin: 0;
         list-style: none;
-        width: 19%;
-        display: flex;
-        flex-direction: column;
     }
 
     .image-gallery li a {
-        text-align: center;
-        text-decoration: none !important;
-        color: #777;
         display: flex;
         flex-direction: column;
-        flex-grow: 1;
-        justify-content: space-between;
-        box-shadow: none !important;
+        height: 100%;
+        text-decoration: none;
+        text-align: center;
+        color: var(--secondary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        transition: box-shadow 0.15s ease;
     }
 
-    .image-gallery li a span {
-        display: block;
-        padding: 3px 0;
-        white-space: normal;
-        font-size: 0.8em;
+    .image-gallery li a:hover {
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
     }
 
     .image-gallery li a img {
         width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: contain;
+        object-position: center;
         display: block;
+        background: var(--border);  
     }
 
-     
-    @media (max-width: 1200px) {
-        .image-gallery li {
-            width: 24%;
-             
-        }
-    }
-
-    @media (max-width: 992px) {
-        .image-gallery li {
-            width: 32%;
-             
-        }
-    }
-
-    @media (max-width: 768px) {
-        .image-gallery li {
-            width: 49%;
-             
-        }
-    }
-
-    @media (max-width: 576px) {
-        .image-gallery li {
-            width: 100%;
-             
-        }
+    .image-gallery li a span {
+        display: block;
+        margin-top: auto;
+        padding: 6px 8px;
+        font-size: 0.8em;
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 </style>
 
@@ -242,66 +228,67 @@ some of the details and screenshots.</p>
 <ul class="image-gallery">
     <li>
         <a href="/gallery/clipy/week5/01_config_list_collapsed.png" title="01_config_list_collapsed" class="lightbox-image">
-            <img src="/gallery/clipy/week5/01_config_list_collapsed.png" alt="01_config_list_collapsed" title="01_config_list_collapsed">
+            <img src="/gallery/clipy/week5/01_config_list_collapsed.png" alt="01_config_list_collapsed" title="01_config_list_collapsed" loading="lazy">
             <span>01_config_list_collapsed</span>
         </a>
     </li>
     <li>
         <a href="/gallery/clipy/week5/02_config_list_expanded.png" title="02_config_list_expanded" class="lightbox-image">
-            <img src="/gallery/clipy/week5/02_config_list_expanded.png" alt="02_config_list_expanded" title="02_config_list_expanded">
+            <img src="/gallery/clipy/week5/02_config_list_expanded.png" alt="02_config_list_expanded" title="02_config_list_expanded" loading="lazy">
             <span>02_config_list_expanded</span>
         </a>
     </li>
     <li>
         <a href="/gallery/clipy/week5/03_feedback_msg_optional.png" title="03_feedback_msg_optional" class="lightbox-image">
-            <img src="/gallery/clipy/week5/03_feedback_msg_optional.png" alt="03_feedback_msg_optional" title="03_feedback_msg_optional">
+            <img src="/gallery/clipy/week5/03_feedback_msg_optional.png" alt="03_feedback_msg_optional" title="03_feedback_msg_optional" loading="lazy">
             <span>03_feedback_msg_optional</span>
         </a>
     </li>
     <li>
         <a href="/gallery/clipy/week5/04_success_indicator_title.png" title="04_success_indicator_title" class="lightbox-image">
-            <img src="/gallery/clipy/week5/04_success_indicator_title.png" alt="04_success_indicator_title" title="04_success_indicator_title">
+            <img src="/gallery/clipy/week5/04_success_indicator_title.png" alt="04_success_indicator_title" title="04_success_indicator_title" loading="lazy">
             <span>04_success_indicator_title</span>
         </a>
     </li>
     <li>
         <a href="/gallery/clipy/week5/05_success_indicator_configlist.png" title="05_success_indicator_configlist" class="lightbox-image">
-            <img src="/gallery/clipy/week5/05_success_indicator_configlist.png" alt="05_success_indicator_configlist" title="05_success_indicator_configlist">
+            <img src="/gallery/clipy/week5/05_success_indicator_configlist.png" alt="05_success_indicator_configlist" title="05_success_indicator_configlist" loading="lazy">
             <span>05_success_indicator_configlist</span>
         </a>
     </li>
     <li>
         <a href="/gallery/clipy/week5/06_success_indicator_snapshot.png" title="06_success_indicator_snapshot" class="lightbox-image">
-            <img src="/gallery/clipy/week5/06_success_indicator_snapshot.png" alt="06_success_indicator_snapshot" title="06_success_indicator_snapshot">
+            <img src="/gallery/clipy/week5/06_success_indicator_snapshot.png" alt="06_success_indicator_snapshot" title="06_success_indicator_snapshot" loading="lazy">
             <span>06_success_indicator_snapshot</span>
         </a>
     </li>
     <li>
         <a href="/gallery/clipy/week5/07_admonitions_markdown.png" title="07_admonitions_markdown" class="lightbox-image">
-            <img src="/gallery/clipy/week5/07_admonitions_markdown.png" alt="07_admonitions_markdown" title="07_admonitions_markdown">
+            <img src="/gallery/clipy/week5/07_admonitions_markdown.png" alt="07_admonitions_markdown" title="07_admonitions_markdown" loading="lazy">
             <span>07_admonitions_markdown</span>
         </a>
     </li>
     <li>
         <a href="/gallery/clipy/week5/08_disabled_run_key.png" title="08_disabled_run_key" class="lightbox-image">
-            <img src="/gallery/clipy/week5/08_disabled_run_key.png" alt="08_disabled_run_key" title="08_disabled_run_key">
+            <img src="/gallery/clipy/week5/08_disabled_run_key.png" alt="08_disabled_run_key" title="08_disabled_run_key" loading="lazy">
             <span>08_disabled_run_key</span>
         </a>
     </li>
     <li>
         <a href="/gallery/clipy/week5/09_dependent_feedback_neg.png" title="09_dependent_feedback_neg" class="lightbox-image">
-            <img src="/gallery/clipy/week5/09_dependent_feedback_neg.png" alt="09_dependent_feedback_neg" title="09_dependent_feedback_neg">
+            <img src="/gallery/clipy/week5/09_dependent_feedback_neg.png" alt="09_dependent_feedback_neg" title="09_dependent_feedback_neg" loading="lazy">
             <span>09_dependent_feedback_neg</span>
         </a>
     </li>
     <li>
         <a href="/gallery/clipy/week5/10_dependent_feedback_pos.png" title="10_dependent_feedback_pos" class="lightbox-image">
-            <img src="/gallery/clipy/week5/10_dependent_feedback_pos.png" alt="10_dependent_feedback_pos" title="10_dependent_feedback_pos">
+            <img src="/gallery/clipy/week5/10_dependent_feedback_pos.png" alt="10_dependent_feedback_pos" title="10_dependent_feedback_pos" loading="lazy">
             <span>10_dependent_feedback_pos</span>
         </a>
     </li>
     
 </ul>
+
 <h3 id="ui-enhancement">UI enhancement<a hidden class="anchor" aria-hidden="true" href="#ui-enhancement">#</a></h3>
 <p>I&rsquo;ve been trying to make things generally better looking and nicer to use, given that I typically
 rock a pretty utilitarian aesthetic by default. Some of the changes are (you can see some of them in

@@ -7,7 +7,12 @@
 <meta name="robots" content="index, follow">
 <title>Micro:bit Robotics Review 2019 | Headtilt</title>
 <meta name="keywords" content="microbit, robotics">
-<meta name="description" content="This is a bit of a retrospective of teaching Robotics as a subject to Year 8 students this year. A bit of a theme for my newish subjects tends to be a reduction in expectations as I filter out what I would have liked to have worked into what actually worked and variations on a theme.
+<meta name="description" content="
+  
+
+  
+  Cowterpillar robot
+This is a bit of a retrospective of teaching Robotics as a subject to Year 8 students this year. A bit of a theme for my newish subjects tends to be a reduction in expectations as I filter out what I would have liked to have worked into what actually worked and variations on a theme.
 The three themes I&rsquo;ve really thought about since I started teaching this subject are:">
 <meta name="author" content="Rob">
 <link rel="canonical" href="https://headtilt.me/microbit-robotics-review-2019/">
@@ -87,7 +92,12 @@ The three themes I&rsquo;ve really thought about since I started teaching this s
 
 </div>
   </header> 
-  <div class="post-content"><img loading="lazy" src="/images/pong_early.png"><img alt="Cowterpillar robot" loading="lazy" src="/images/cowterpillar_snap.png"><p>This is a bit of a retrospective of teaching Robotics as a subject to Year 8 students this year. A bit of a theme for my newish subjects tends to be a reduction in expectations as I filter out what I would have liked to have worked into what actually worked and variations on a theme.</p>
+  <div class="post-content"><figure class="post-image"><a class="post-image-link" href="/images/pong_early.png">
+  <img height="850" loading="lazy" src="/images/pong_early.png" width="638"></a>
+</figure><figure class="post-image"><a class="post-image-link" href="/images/cowterpillar_snap.png" title="Cowterpillar robot">
+  <img alt="Cowterpillar robot" height="491" loading="lazy" src="/images/cowterpillar_snap.png" width="485"></a>
+  <figcaption>Cowterpillar robot</figcaption>
+</figure><p>This is a bit of a retrospective of teaching Robotics as a subject to Year 8 students this year. A bit of a theme for my newish subjects tends to be a reduction in expectations as I filter out what I would have liked to have worked into what actually worked and variations on a theme.</p>
 <p>The three themes I&rsquo;ve really thought about since I started teaching this subject are:</p>
 <ol>
 <li>Programming environment</li>
@@ -138,7 +148,9 @@ The three themes I&rsquo;ve really thought about since I started teaching this s
 <h2 id="programming-environment">Programming Environment<a hidden class="anchor" aria-hidden="true" href="#programming-environment">#</a></h2>
 <p>There are two options which students have (with easy access anyway): <a href="https://microbit-micropython.readthedocs.io/en/latest/">MicroPython</a> and <a href="https://www.microsoft.com/en-us/makecode">Microsoft MakeCode</a>. Being a fan of Python on the desktop/server I have always leaned towards MicroPython as my language of choice when programming Micro:bits, since you&rsquo;re using the fundamentals of a general purpose programming language and complex programs are much easier to manage than block-based programming. However there are a couple of significant downsides: there is very little memory available for your program, and events and signals aren&rsquo;t a thing, meaning you need to poll for events, making interactive programs quite tricky in some cases, and any work with SPI or I2C modules mean you&rsquo;re trawling Github for libraries or learning about their arcane implementation rites.</p>
 <p>MakeCode on the other hand benefits from a decent library management system that&rsquo;s easy to search through for kids, a lack of syntax errors (although occasionally my students get burnt by trying to compare integers to strings), being able to fit quite complex programs onto the Micro:bit, and most importantly events, although these can be a double edged sword. One of the issues some of my students run into is multiple Forever loops or button inputs with pauses accessing and causing race conditions with variables.</p>
-<img loading="lazy" src="/images/microbit-screenshot-pong-server-small.png"><p>The downside is that complex programs end in you panning around the program canvas continuously at tiny zoom levels, and rearranging your code chunks all the time so they don&rsquo;t overlap (or taking your life into your own hands and asking the browser to format your code and then spending the next few minutes finding all your chunks again).</p>
+<figure class="post-image"><a class="post-image-link" href="/images/microbit-screenshot-pong-server-small.png">
+  <img height="462" loading="lazy" src="/images/microbit-screenshot-pong-server-small.png" width="1024"></a>
+</figure><p>The downside is that complex programs end in you panning around the program canvas continuously at tiny zoom levels, and rearranging your code chunks all the time so they don&rsquo;t overlap (or taking your life into your own hands and asking the browser to format your code and then spending the next few minutes finding all your chunks again).</p>
 <h2 id="electronics">Electronics<a hidden class="anchor" aria-hidden="true" href="#electronics">#</a></h2>
 <p>When I started out with the Robotics subject in 2018 there were a pretty large array of sensors and outputs that I wanted to use so that students could really build a range of diverse projects. Unfortunately, even though these all worked in very similar ways (analog, digital, or through a protocol like SPI/I2C) lots of students struggled because they either didn&rsquo;t have the time to practice and get comfortable, or had trouble deciding on a direction because of an All The Things problem.</p>
 <p>This year I cut down my set of explicit instruction and practice to a few different components:</p>
@@ -154,7 +166,9 @@ The three themes I&rsquo;ve really thought about since I started teaching this s
 </ul>
 <p>This gives students a few options for different methods of input in addition to the accelerometer, buttons, etc built into the Micro:bit, and a range of outputs that can exhibit different behaviours (stationary, moving, visual, audible).</p>
 <p>Most students this year created projects involving servos, RGB LEDs, and PIR sensors, and they ended up with some fairly diverse sets of features, so I&rsquo;m pretty happy to work with that set of tools going forward.</p>
-<img loading="lazy" src="/images/ws2812b.png"><p>I soldered up a whole bunch (~50) of RGB LEDs to 3 port plugs to make them easier to use and practice with. This worked really well, except next time I&rsquo;ll cross over the voltage and data pins so the plugs can go straight onto the pins on the Micro:mate boards in the standard Ground-Volage-Data order. Normally I just pull the male ends off some of my male-female dupont jumper leads and solder the ends which were crimped into the plug onto whatever I&rsquo;m working with. Saves me doing up dupont plugs myself and doesn&rsquo;t cost a lot.</p>
+<figure class="post-image"><a class="post-image-link" href="/images/ws2812b.png">
+  <img height="490" loading="lazy" src="/images/ws2812b.png" width="864"></a>
+</figure><p>I soldered up a whole bunch (~50) of RGB LEDs to 3 port plugs to make them easier to use and practice with. This worked really well, except next time I&rsquo;ll cross over the voltage and data pins so the plugs can go straight onto the pins on the Micro:mate boards in the standard Ground-Volage-Data order. Normally I just pull the male ends off some of my male-female dupont jumper leads and solder the ends which were crimped into the plug onto whatever I&rsquo;m working with. Saves me doing up dupont plugs myself and doesn&rsquo;t cost a lot.</p>
 <h2 id="projects">Projects<a hidden class="anchor" aria-hidden="true" href="#projects">#</a></h2>
 <p>My biggest lesson from eight groups of student projects, is that a reduction in the freedom to choose is a Good Thing. Extension kids will roam free without my encouragement (or in most cases event explicit permission), and the reduced scope tends to make it easier for the students who struggle.</p>
 <p>My first set of projects focused on the <a href="https://www.globalgoals.org/">UN Global Goals</a>, and although these gave some good real world focus areas, there is still an intimidating array of different paths which could be pursued. There&rsquo;s good scope for building interesting (yet fairly simple) environmental monitoring tools such as water quality, data logging of temperature, soil moisture monitoring and so on, but reading through each of the goals and their associated targets is quite time consuming.</p>

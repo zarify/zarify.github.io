@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Makecode Tutorial Tool | Headtilt</title>
+<meta name="keywords" content="">
+<meta name="description" content="I&rsquo;m a fan of Microsoft MakeCode going back to when its main use was for programming the micro:bit (which I&rsquo;m also a huge fan of, as you can see from
+some of my micro:bit posts). One of the things I really
+liked was Microsoft&rsquo;s publishing of the MakeCode Tutorial Tool which lets you create your own step-by-step tutorials, which you can then access
+via a share link, so you don&rsquo;t even need to host anything yourself.">
+<meta name="author" content="Rob">
+<link rel="canonical" href="http://localhost:1313/makecode-tutorial-tool/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.2591f754360273071c305e762b6d31afa63027c5431b4a10004e570bd652e0bc.css" integrity="sha256-JZH3VDYCcwccMF52K20xr6YwJ8VDG0oQAE5XC9ZS4Lw=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/makecode-tutorial-tool/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/css/formatting.css">
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Adjust your angle (Alt + H)">
+                <img src="http://localhost:1313/images/headtilt.png" alt="" aria-label="logo"
+                    height="30">Adjust your angle</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/post" title="posts">
+                    <span><i class="fa-solid fa-pen-to-square"></i> posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/page/projects" title="projects">
+                    <span><i class="fa-solid fa-bars-progress"></i> projects</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/page/about/" title="about">
+                    <span><i class="fa-solid fa-circle-info"></i> about</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/categories/" title="categories">
+                    <span><i class="fa-solid fa-layer-group"></i> categories</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/tags/" title="tags">
+                    <span><i class="fa-solid fa-tags"></i> tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Makecode Tutorial Tool
+      <span class="entry-hint" title="Draft">
+        <svg xmlns="http://www.w3.org/2000/svg" height="35" viewBox="0 -960 960 960" fill="currentColor">
+          <path
+            d="M160-410v-60h300v60H160Zm0-165v-60h470v60H160Zm0-165v-60h470v60H160Zm360 580v-123l221-220q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q9 9 13 20t4 22q0 11-4.5 22.5T862.09-380L643-160H520Zm300-263-37-37 37 37ZM580-220h38l121-122-18-19-19-18-122 121v38Zm141-141-19-18 37 37-18-19Z" />
+        </svg>
+      </span>
+    </h1>
+    <div class="post-meta"><span title='2024-11-28 07:37:29 +0800 AWST'>Thu, Nov 28, 2024</span>&nbsp;·&nbsp;Rob
+
+</div>
+  </header> 
+  <div class="post-content"><p>I&rsquo;m a fan of <a href="https://www.microsoft.com/en-au/makecode">Microsoft MakeCode</a> going back to when its main use was for programming the micro:bit (which I&rsquo;m also a huge fan of, as you can see from
+some of my <a href="https://headtilt.me/tags/microbit/">micro:bit posts</a>). One of the things I really
+liked was Microsoft&rsquo;s publishing of the <a href="https://makecode.com/tutorial-tool">MakeCode Tutorial Tool</a> which lets you create your own step-by-step tutorials, which you can then access
+via a share link, so you don&rsquo;t even need to host anything yourself.</p>
+<h1 id="tutorial-tool">Tutorial tool<a hidden class="anchor" aria-hidden="true" href="#tutorial-tool">#</a></h1>
+<p>I&rsquo;ve always thought the Tutorial Tool was pretty underrated, with little fanfare given how
+useful it is. I think I learned about it following <a href="https://github.com/pelikhan">Peli de Halleux</a>
+over on the dead bird site (which I won&rsquo;t link to but here&rsquo;s a <a href="https://www.linkedin.com/in/pelidehalleux">LinkedIn profile</a>).</p>
+<p>In a nutshell the tutorial tool lets you create a tutorial for students to follow with
+scaffolding code, hints, and images, using markdown. The tool is integrated with a live
+MakeCode environment (with a choice of platforms, like micro:bit and Minecraft: Education Edition) so you
+can build a step of the tutorial, use the created JS code to embed in your tutorial, and also
+preview the results. Once you&rsquo;re done, create a share link and stick it into your LMS of choice
+with your other teaching resources.</p>
+<p>Once students are done with a tutorial they can save it to their project list as a base for
+their own code or as a reference, or share it for collaboration or feedback.</p>
+<h1 id="platforms">Platforms<a hidden class="anchor" aria-hidden="true" href="#platforms">#</a></h1>
+<p>My own main uses of MakeCode have been for micro:bit and Arcade, both of which work really
+well with the tutorial tool as you get the simulator built into the interface, and so get a nice
+tight feedback loop for the student about what works as expected and what doesn&rsquo;t.</p>
+<p>The tutorial tool also supports other platforms like:</p>
+<ul>
+<li><a href="https://makecode.adafruit.com/">Circuit Playground Express</a></li>
+<li><a href="https://minecraft.makecode.com/">Minecraft Education Edition</a><br>
+The Minecraft: EE web editor isn&rsquo;t as useful as the others as it doesn&rsquo;t have a simulator. In my experience having immediate feedback is particularly important in Minecraft as it relies so much on spatial awareness, and my students (and myself) frequently had trouble with the coordinate system.</li>
+<li><a href="https://maker.makecode.com/">Maker</a><br>
+This appears to be a pretty big collection of microcontrollers from Adafruit&rsquo;s products, to Arduino, to Raspberry Pi Pico. The simulator is pretty barebones (which you would expect given the range of supported hardware), so it would be more useful just as a visual editor.</li>
+</ul>
+<p>MakeCode has been adopted for a number of other platforms, but these don&rsquo;t seem to be supported by the tutorial tool.</p>
+<h1 id="skill-maps">Skill maps<a hidden class="anchor" aria-hidden="true" href="#skill-maps">#</a></h1>
+<h2 id="saving-progress">Saving progress<a hidden class="anchor" aria-hidden="true" href="#saving-progress">#</a></h2>
+<p>One of the really nice things (that didn&rsquo;t exist back when I used the Tutorial Tool with my classes)
+is account progress saving (MS, Google, Clever identity providers). Even when progressing through third
+party skill maps or tutorials (i.e. yours) using an external GitHub repo, it will still save progress.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>Rob Poulter</span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a><script type="text/javascript" src="/js/lightbox.js"></script>
+<link rel="stylesheet" href="/css/lightbox.css">
+<script data-goatcounter="https://headtilt_me.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

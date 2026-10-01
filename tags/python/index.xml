@@ -238,7 +238,9 @@ given examples of prompt structure to get the agent to build the thing for you.&
       <link>https://headtilt.me/code-introspection-in-minecraft-and-python/</link>
       <pubDate>Tue, 17 Nov 2020 05:58:26 +0000</pubDate>
       <guid>https://headtilt.me/code-introspection-in-minecraft-and-python/</guid>
-      <description>&lt;img loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/minecraft_python/intro.png&#34;&gt;&lt;p&gt;I recently got around to trying out the new-ish Python mode for coding within Minecraft: Education Edition, and whilst it is refreshing to be able to &lt;strong&gt;write&lt;/strong&gt; code, the lack of a code library to be able to refer to made learning the Minecraft-specific commands somewhat difficult.&lt;/p&gt;
+      <description>&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/minecraft_python/intro.png&#34;&gt;
+  &lt;img height=&#34;289&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/minecraft_python/intro.png&#34; width=&#34;387&#34;&gt;&lt;/a&gt;
+&lt;/figure&gt;&lt;p&gt;I recently got around to trying out the new-ish Python mode for coding within Minecraft: Education Edition, and whilst it is refreshing to be able to &lt;strong&gt;write&lt;/strong&gt; code, the lack of a code library to be able to refer to made learning the Minecraft-specific commands somewhat difficult.&lt;/p&gt;
 &lt;p&gt;Enter code introspection, which is the ability to look inside classes and methods from within Python to list them and see what is available, or to show their docstring and discover their arguments.&lt;/p&gt;</description>
     </item>
   </channel>

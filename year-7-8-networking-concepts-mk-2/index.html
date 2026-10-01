@@ -7,7 +7,9 @@
 <meta name="robots" content="index, follow">
 <title>Year 7-8 Networking Concepts Mk 2 | Headtilt</title>
 <meta name="keywords" content="compsci, microbit, networking">
-<meta name="description" content="Back in 2017 when I was first thinking about how I could use physical computing like Micro:bits in my classroom, I wrote some quick and nasty programs to demonstrate networking concepts like attenuation and latency in wireless connections as well as adapting some ideas from the Networking With the micro:bit book, and using basic wired networks for Morse Code (the linked site is not the original project I used the idea from, but there are only so many permutations).">
+<meta name="description" content="
+  
+Back in 2017 when I was first thinking about how I could use physical computing like Micro:bits in my classroom, I wrote some quick and nasty programs to demonstrate networking concepts like attenuation and latency in wireless connections as well as adapting some ideas from the Networking With the micro:bit book, and using basic wired networks for Morse Code (the linked site is not the original project I used the idea from, but there are only so many permutations).">
 <meta name="author" content="Rob">
 <link rel="canonical" href="https://headtilt.me/year-7-8-networking-concepts-mk-2/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.2591f754360273071c305e762b6d31afa63027c5431b4a10004e570bd652e0bc.css" integrity="sha256-JZH3VDYCcwccMF52K20xr6YwJ8VDG0oQAE5XC9ZS4Lw=" rel="preload stylesheet" as="style">
@@ -86,7 +88,9 @@
 
 </div>
   </header> 
-  <div class="post-content"><img loading="lazy" src="/images/pairing/pair_microbit.png"><p><a href="https://headtilt.me/year-7-8-wireless-network-concepts-with-microbits/">Back in 2017</a> when I was first thinking about how I could use physical computing like Micro:bits in my classroom, I wrote some quick and nasty programs to demonstrate networking concepts like attenuation and latency in wireless connections as well as adapting some ideas from the <a href="https://microbit.nominetresearch.uk/networking-book-online-python/">Networking With the micro:bit book</a>, and <a href="https://learnlearn.uk/microbit/topics/networking-two-microbits/">using basic wired networks for Morse Code</a> (the linked site is not the original project I used the idea from, but there are only so many permutations).</p>
+  <div class="post-content"><figure class="post-image"><a class="post-image-link" href="/images/pairing/pair_microbit.png">
+  <img height="508" loading="lazy" src="/images/pairing/pair_microbit.png" width="852"></a>
+</figure><p><a href="https://headtilt.me/year-7-8-wireless-network-concepts-with-microbits/">Back in 2017</a> when I was first thinking about how I could use physical computing like Micro:bits in my classroom, I wrote some quick and nasty programs to demonstrate networking concepts like attenuation and latency in wireless connections as well as adapting some ideas from the <a href="https://microbit.nominetresearch.uk/networking-book-online-python/">Networking With the micro:bit book</a>, and <a href="https://learnlearn.uk/microbit/topics/networking-two-microbits/">using basic wired networks for Morse Code</a> (the linked site is not the original project I used the idea from, but there are only so many permutations).</p>
 <p>Through a series of short activities we crammed in:</p>
 <ul>
 <li>Calculating throughput</li>
@@ -110,69 +114,55 @@
 <p>Below is the MakeCode pairing code I&rsquo;m currently using (and feels super clumsy and no doubt I&rsquo;ll refine next year when it&rsquo;s too late to use the changes in class again 🤣).</p>
 <style>
     .image-gallery {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1%;
-        margin-left: -1% !important;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 12px;
+        margin-top: 1.5em;
+        padding: 0;
+        list-style: none;
     }
 
     .image-gallery li {
+        margin: 0;
         list-style: none;
-        width: 19%;
-        display: flex;
-        flex-direction: column;
     }
 
     .image-gallery li a {
-        text-align: center;
-        text-decoration: none !important;
-        color: #777;
         display: flex;
         flex-direction: column;
-        flex-grow: 1;
-        justify-content: space-between;
-        box-shadow: none !important;
+        height: 100%;
+        text-decoration: none;
+        text-align: center;
+        color: var(--secondary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        transition: box-shadow 0.15s ease;
     }
 
-    .image-gallery li a span {
-        display: block;
-        padding: 3px 0;
-        white-space: normal;
-        font-size: 0.8em;
+    .image-gallery li a:hover {
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
     }
 
     .image-gallery li a img {
         width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: contain;
+        object-position: center;
         display: block;
+        background: var(--border);  
     }
 
-     
-    @media (max-width: 1200px) {
-        .image-gallery li {
-            width: 24%;
-             
-        }
-    }
-
-    @media (max-width: 992px) {
-        .image-gallery li {
-            width: 32%;
-             
-        }
-    }
-
-    @media (max-width: 768px) {
-        .image-gallery li {
-            width: 49%;
-             
-        }
-    }
-
-    @media (max-width: 576px) {
-        .image-gallery li {
-            width: 100%;
-             
-        }
+    .image-gallery li a span {
+        display: block;
+        margin-top: auto;
+        padding: 6px 8px;
+        font-size: 0.8em;
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 </style>
 
@@ -180,24 +170,25 @@
 <ul class="image-gallery">
     <li>
         <a href="/gallery/pairing/pair_radio_1.png" title="pair_radio_1" class="lightbox-image">
-            <img src="/gallery/pairing/pair_radio_1.png" alt="pair_radio_1" title="pair_radio_1">
+            <img src="/gallery/pairing/pair_radio_1.png" alt="pair_radio_1" title="pair_radio_1" loading="lazy">
             <span>pair_radio_1</span>
         </a>
     </li>
     <li>
         <a href="/gallery/pairing/pair_radio_2.png" title="pair_radio_2" class="lightbox-image">
-            <img src="/gallery/pairing/pair_radio_2.png" alt="pair_radio_2" title="pair_radio_2">
+            <img src="/gallery/pairing/pair_radio_2.png" alt="pair_radio_2" title="pair_radio_2" loading="lazy">
             <span>pair_radio_2</span>
         </a>
     </li>
     <li>
         <a href="/gallery/pairing/pair_request.png" title="pair_request" class="lightbox-image">
-            <img src="/gallery/pairing/pair_request.png" alt="pair_request" title="pair_request">
+            <img src="/gallery/pairing/pair_request.png" alt="pair_request" title="pair_request" loading="lazy">
             <span>pair_request</span>
         </a>
     </li>
     
 </ul>
+
 <p>The basic process is:</p>
 <ul>
 <li>Send out a pair request with a 2 second timeout.</li>

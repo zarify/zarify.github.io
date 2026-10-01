@@ -321,7 +321,10 @@ work topics all the time, but it feels right to me.&lt;/p&gt;</description>
       <link>https://headtilt.me/robotics-inchworms-with-motivation/</link>
       <pubDate>Wed, 30 Dec 2020 11:12:17 +0000</pubDate>
       <guid>https://headtilt.me/robotics-inchworms-with-motivation/</guid>
-      <description>&lt;img alt=&#34;Inchworm robot&#34; class=&#34;floatright&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/inchworm/splash.png&#34;&gt;&lt;p&gt;As a teacher of relatively hands-on subjects, I regularly get roped into running sessions with groups of Year 6 students coming in for Orientation Days. Since getting my first batch of Micro:bits I have been running short sessions with physical computing since it&amp;rsquo;s short and accessible, and the kids can achieve something concrete by the end of a 45 minute session.&lt;/p&gt;
+      <description>&lt;figure class=&#34;post-image floatright&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/inchworm/splash.png&#34; title=&#34;Inchworm robot&#34;&gt;
+  &lt;img alt=&#34;Inchworm robot&#34; height=&#34;506&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/inchworm/splash.png&#34; width=&#34;497&#34;&gt;&lt;/a&gt;
+  &lt;figcaption&gt;Inchworm robot&lt;/figcaption&gt;
+&lt;/figure&gt;&lt;p&gt;As a teacher of relatively hands-on subjects, I regularly get roped into running sessions with groups of Year 6 students coming in for Orientation Days. Since getting my first batch of Micro:bits I have been running short sessions with physical computing since it&amp;rsquo;s short and accessible, and the kids can achieve something concrete by the end of a 45 minute session.&lt;/p&gt;
 &lt;p&gt;The last couple of years I have been running sessions using laser cut Inchworm robots, where students hook up a servo, battery, and infrared sensor (to demonstrate external sensing but also to remove the need to fiddle with buttons on moving objects) to the Micro:bit, and then write some basic code investigating ideal angles of movement for the servo, delay time in between moves, and utilising loops.&lt;/p&gt;</description>
     </item>
     <item>
@@ -329,7 +332,9 @@ work topics all the time, but it feels right to me.&lt;/p&gt;</description>
       <link>https://headtilt.me/code-introspection-in-minecraft-and-python/</link>
       <pubDate>Tue, 17 Nov 2020 05:58:26 +0000</pubDate>
       <guid>https://headtilt.me/code-introspection-in-minecraft-and-python/</guid>
-      <description>&lt;img loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/minecraft_python/intro.png&#34;&gt;&lt;p&gt;I recently got around to trying out the new-ish Python mode for coding within Minecraft: Education Edition, and whilst it is refreshing to be able to &lt;strong&gt;write&lt;/strong&gt; code, the lack of a code library to be able to refer to made learning the Minecraft-specific commands somewhat difficult.&lt;/p&gt;
+      <description>&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/minecraft_python/intro.png&#34;&gt;
+  &lt;img height=&#34;289&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/minecraft_python/intro.png&#34; width=&#34;387&#34;&gt;&lt;/a&gt;
+&lt;/figure&gt;&lt;p&gt;I recently got around to trying out the new-ish Python mode for coding within Minecraft: Education Edition, and whilst it is refreshing to be able to &lt;strong&gt;write&lt;/strong&gt; code, the lack of a code library to be able to refer to made learning the Minecraft-specific commands somewhat difficult.&lt;/p&gt;
 &lt;p&gt;Enter code introspection, which is the ability to look inside classes and methods from within Python to list them and see what is available, or to show their docstring and discover their arguments.&lt;/p&gt;</description>
     </item>
     <item>
@@ -337,7 +342,9 @@ work topics all the time, but it feels right to me.&lt;/p&gt;</description>
       <link>https://headtilt.me/year-7-8-networking-concepts-mk-2/</link>
       <pubDate>Sat, 27 Jun 2020 13:11:24 +0000</pubDate>
       <guid>https://headtilt.me/year-7-8-networking-concepts-mk-2/</guid>
-      <description>&lt;img loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/pairing/pair_microbit.png&#34;&gt;&lt;p&gt;&lt;a href=&#34;https://headtilt.me/year-7-8-wireless-network-concepts-with-microbits/&#34;&gt;Back in 2017&lt;/a&gt; when I was first thinking about how I could use physical computing like Micro:bits in my classroom, I wrote some quick and nasty programs to demonstrate networking concepts like attenuation and latency in wireless connections as well as adapting some ideas from the &lt;a href=&#34;https://microbit.nominetresearch.uk/networking-book-online-python/&#34;&gt;Networking With the micro:bit book&lt;/a&gt;, and &lt;a href=&#34;https://learnlearn.uk/microbit/topics/networking-two-microbits/&#34;&gt;using basic wired networks for Morse Code&lt;/a&gt; (the linked site is not the original project I used the idea from, but there are only so many permutations).&lt;/p&gt;</description>
+      <description>&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/pairing/pair_microbit.png&#34;&gt;
+  &lt;img height=&#34;508&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/pairing/pair_microbit.png&#34; width=&#34;852&#34;&gt;&lt;/a&gt;
+&lt;/figure&gt;&lt;p&gt;&lt;a href=&#34;https://headtilt.me/year-7-8-wireless-network-concepts-with-microbits/&#34;&gt;Back in 2017&lt;/a&gt; when I was first thinking about how I could use physical computing like Micro:bits in my classroom, I wrote some quick and nasty programs to demonstrate networking concepts like attenuation and latency in wireless connections as well as adapting some ideas from the &lt;a href=&#34;https://microbit.nominetresearch.uk/networking-book-online-python/&#34;&gt;Networking With the micro:bit book&lt;/a&gt;, and &lt;a href=&#34;https://learnlearn.uk/microbit/topics/networking-two-microbits/&#34;&gt;using basic wired networks for Morse Code&lt;/a&gt; (the linked site is not the original project I used the idea from, but there are only so many permutations).&lt;/p&gt;</description>
     </item>
     <item>
       <title>Micro:bit Epidemic</title>
@@ -359,7 +366,12 @@ work topics all the time, but it feels right to me.&lt;/p&gt;</description>
       <link>https://headtilt.me/microbit-robotics-review-2019/</link>
       <pubDate>Mon, 23 Dec 2019 16:07:13 +0000</pubDate>
       <guid>https://headtilt.me/microbit-robotics-review-2019/</guid>
-      <description>&lt;img loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/pong_early.png&#34;&gt;&lt;img alt=&#34;Cowterpillar robot&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/cowterpillar_snap.png&#34;&gt;&lt;p&gt;This is a bit of a retrospective of teaching Robotics as a subject to Year 8 students this year. A bit of a theme for my newish subjects tends to be a reduction in expectations as I filter out what I would have liked to have worked into what actually worked and variations on a theme.&lt;/p&gt;
+      <description>&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/pong_early.png&#34;&gt;
+  &lt;img height=&#34;850&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/pong_early.png&#34; width=&#34;638&#34;&gt;&lt;/a&gt;
+&lt;/figure&gt;&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/cowterpillar_snap.png&#34; title=&#34;Cowterpillar robot&#34;&gt;
+  &lt;img alt=&#34;Cowterpillar robot&#34; height=&#34;491&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/cowterpillar_snap.png&#34; width=&#34;485&#34;&gt;&lt;/a&gt;
+  &lt;figcaption&gt;Cowterpillar robot&lt;/figcaption&gt;
+&lt;/figure&gt;&lt;p&gt;This is a bit of a retrospective of teaching Robotics as a subject to Year 8 students this year. A bit of a theme for my newish subjects tends to be a reduction in expectations as I filter out what I would have liked to have worked into what actually worked and variations on a theme.&lt;/p&gt;
 &lt;p&gt;The three themes I&amp;rsquo;ve really thought about since I started teaching this subject are:&lt;/p&gt;</description>
     </item>
     <item>
@@ -367,7 +379,9 @@ work topics all the time, but it feels right to me.&lt;/p&gt;</description>
       <link>https://headtilt.me/dowsing-for-radio/</link>
       <pubDate>Fri, 19 Apr 2019 14:02:52 +0000</pubDate>
       <guid>https://headtilt.me/dowsing-for-radio/</guid>
-      <description>&lt;img loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/pke/IMG_2246.jpg&#34;&gt;&lt;h2 id=&#34;motivation&#34;&gt;Motivation&lt;/h2&gt;
+      <description>&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/pke/IMG_2246.jpg&#34;&gt;
+  &lt;img height=&#34;3024&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/pke/IMG_2246.jpg&#34; width=&#34;4032&#34;&gt;&lt;/a&gt;
+&lt;/figure&gt;&lt;h2 id=&#34;motivation&#34;&gt;Motivation&lt;/h2&gt;
 &lt;p&gt;This term I&amp;rsquo;ve been working through Data Representation and some Networks concepts with my Year 8 students. I used Micro:bits extensively for both aspects of this for the hands-on approach and ready access to simple networking code. To finish off the term, after looking at things like network latency, I thought it&amp;rsquo;d be fun to do an activity built around attenuation of wireless signals.&lt;/p&gt;
 &lt;p&gt;Previously I&amp;rsquo;ve had students group up in pairs and have the Micro:bits send an image back and forth pixel by pixel. This allows for students to see when messages have not arrived as they will have missing pixels from their displays.&lt;/p&gt;</description>
     </item>
@@ -376,7 +390,9 @@ work topics all the time, but it feels right to me.&lt;/p&gt;</description>
       <link>https://headtilt.me/designing-a-microbit-robot/</link>
       <pubDate>Thu, 11 Apr 2019 06:17:18 +0000</pubDate>
       <guid>https://headtilt.me/designing-a-microbit-robot/</guid>
-      <description>&lt;img loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/knuckle/front_view.jpg&#34;&gt;&lt;h2 id=&#34;motivation&#34;&gt;Motivation&lt;/h2&gt;
+      <description>&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/knuckle/front_view.jpg&#34;&gt;
+  &lt;img height=&#34;858&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/knuckle/front_view.jpg&#34; width=&#34;800&#34;&gt;&lt;/a&gt;
+&lt;/figure&gt;&lt;h2 id=&#34;motivation&#34;&gt;Motivation&lt;/h2&gt;
 &lt;p&gt;Ever since I bought some of &lt;a href=&#34;https://www.kitronik.co.uk/5624-move-mini-buggy-kit-excl-microbit.html&#34;&gt;Kitronik&amp;rsquo;s :move buggies&lt;/a&gt; I&amp;rsquo;ve been interested in making robots with the Micro:bit. They&amp;rsquo;re simple to program, have a decent set of features, and the kids enjoy using them. However they&amp;rsquo;re also a royal pain to assemble due to fiddly screw locations, quite expensive for what they are (we pay around $60AUD for what amounts to about $15-20AUD in components), and difficult to add on to due to cutting you off from all the additional pins the Micro:bit has to offer.&lt;/p&gt;</description>
     </item>
     <item>
@@ -384,7 +400,9 @@ work topics all the time, but it feels right to me.&lt;/p&gt;</description>
       <link>https://headtilt.me/year-8-microbit-robotics/</link>
       <pubDate>Sat, 06 Apr 2019 08:01:00 +0000</pubDate>
       <guid>https://headtilt.me/year-8-microbit-robotics/</guid>
-      <description>&lt;img class=&#34;floatright&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/top_view.jpg&#34;&gt;&lt;p&gt;This post is intended to be a bit of a primer for teachers interested in getting into more varied use of the BBC Micro:bit beyond the inbuilt basics. My intention is to put together two posts: this one on the hardware and the ecosystem, and another on approaches in the classroom (which will mostly be a list of mistakes I&amp;rsquo;ve made and thoughts on doing things beter).&lt;/p&gt;
+      <description>&lt;figure class=&#34;post-image floatright&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/top_view.jpg&#34;&gt;
+  &lt;img height=&#34;1176&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/top_view.jpg&#34; width=&#34;800&#34;&gt;&lt;/a&gt;
+&lt;/figure&gt;&lt;p&gt;This post is intended to be a bit of a primer for teachers interested in getting into more varied use of the BBC Micro:bit beyond the inbuilt basics. My intention is to put together two posts: this one on the hardware and the ecosystem, and another on approaches in the classroom (which will mostly be a list of mistakes I&amp;rsquo;ve made and thoughts on doing things beter).&lt;/p&gt;
 &lt;p&gt;This is by no means an exhaustive list of things you can do or components available. I&amp;rsquo;ve generally experimented with cheap and cheerful parts that I can source myself for a few dollars to see if it&amp;rsquo;s worth implementing in the classroom. I still have a long list of things I want to try! The components listed here I&amp;rsquo;ve generally had good success with.&lt;/p&gt;</description>
     </item>
     <item>
@@ -392,7 +410,10 @@ work topics all the time, but it feels right to me.&lt;/p&gt;</description>
       <link>https://headtilt.me/microbit-haunted-house/</link>
       <pubDate>Mon, 05 Nov 2018 20:56:46 +0000</pubDate>
       <guid>https://headtilt.me/microbit-haunted-house/</guid>
-      <description>&lt;img alt=&#34;Haunted House internals&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/File-5-11-18-8-05-24-pm.jpeg&#34;&gt;&lt;p&gt;Testing out LDR sensors&lt;/p&gt;
+      <description>&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/File-5-11-18-8-05-24-pm.jpeg&#34; title=&#34;Haunted House internals&#34;&gt;
+  &lt;img alt=&#34;Haunted House internals&#34; height=&#34;1536&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/File-5-11-18-8-05-24-pm.jpeg&#34; width=&#34;2048&#34;&gt;&lt;/a&gt;
+  &lt;figcaption&gt;Haunted House internals&lt;/figcaption&gt;
+&lt;/figure&gt;&lt;p&gt;Testing out LDR sensors&lt;/p&gt;
 &lt;p&gt;This year I have been teaching robotics to Year 8s for the first time. I&amp;rsquo;ve mainly been using BBC Micro:bits, since they are quite affordable, robust, are easy to hook up to a range of widely available components, and are easy to program in a few different environments (MicroPython being my weapon of choice).&lt;/p&gt;
 &lt;p&gt;To keep myself entertained, and to provide my students with a sample project (although more complex code-wise than they&amp;rsquo;re likely to accomplish) I decided to make something myself this term while my class worked on their own group projects (theirs are themed after the UN Global Goals). I had ideas for either building a carousel or a light gun game, and settled on the latter so I didn&amp;rsquo;t have to &lt;em&gt;also&lt;/em&gt; tackle 3D printing out cams and gears and the like.&lt;/p&gt;</description>
     </item>
@@ -401,7 +422,10 @@ work topics all the time, but it feels right to me.&lt;/p&gt;</description>
       <link>https://headtilt.me/year-7-minecraft-ee-and-programming/</link>
       <pubDate>Mon, 24 Sep 2018 14:13:43 +0000</pubDate>
       <guid>https://headtilt.me/year-7-minecraft-ee-and-programming/</guid>
-      <description>&lt;img alt=&#34;Chess Landscape&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/chess_landscape.png&#34;&gt;&lt;p&gt;This is the first year that Digital Technologies has been a mandatory part of the Australian curriculum through to Year 8. Whilst the subject area contains a &lt;a href=&#34;https://k10outline.scsa.wa.edu.au/home/teaching/curriculum-browser/technologies/digital-technologies2#year-7-syllabus&#34;&gt;number of different topics&lt;/a&gt;, the one that generally comes to mind (helped in no small part by our politicians and media 🙄 banging on about &amp;lsquo;coding&amp;rsquo; this, and &amp;lsquo;coding&amp;rsquo; that) is programming and algorithmic thinking.&lt;/p&gt;
+      <description>&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/chess_landscape.png&#34; title=&#34;Chess Landscape&#34;&gt;
+  &lt;img alt=&#34;Chess Landscape&#34; height=&#34;600&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/chess_landscape.png&#34; width=&#34;1200&#34;&gt;&lt;/a&gt;
+  &lt;figcaption&gt;Chess Landscape&lt;/figcaption&gt;
+&lt;/figure&gt;&lt;p&gt;This is the first year that Digital Technologies has been a mandatory part of the Australian curriculum through to Year 8. Whilst the subject area contains a &lt;a href=&#34;https://k10outline.scsa.wa.edu.au/home/teaching/curriculum-browser/technologies/digital-technologies2#year-7-syllabus&#34;&gt;number of different topics&lt;/a&gt;, the one that generally comes to mind (helped in no small part by our politicians and media 🙄 banging on about &amp;lsquo;coding&amp;rsquo; this, and &amp;lsquo;coding&amp;rsquo; that) is programming and algorithmic thinking.&lt;/p&gt;
 &lt;p&gt;Since our education sector has a fairly comprehensive set of licenses to all things Microsoft, we have Minecraft: Education Edition licenses for all of our students and staff. While I am not that big of a fan of Minecraft&amp;rsquo;s system of switches and redstone wiring (I prefer my programming higher level and less clunky), I do quite like plugging in external programming through Code Connection, as I&amp;rsquo;ve written about before in toying with &lt;a href=&#34;https://headtilt.me/minecraft-edu-edition-geological-surveys/&#34; title=&#34;Minecraft Edu Edition: Geological Surveys&#34;&gt;core sampling&lt;/a&gt;.&lt;/p&gt;</description>
     </item>
     <item>
@@ -409,9 +433,14 @@ work topics all the time, but it feels right to me.&lt;/p&gt;</description>
       <link>https://headtilt.me/minecraft-edu-edition-geological-surveys/</link>
       <pubDate>Thu, 23 Aug 2018 20:14:34 +0000</pubDate>
       <guid>https://headtilt.me/minecraft-edu-edition-geological-surveys/</guid>
-      <description>&lt;img alt=&#34;Minecraft Geological Survey&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/geology/geology_cover.PNG&#34;&gt;&lt;h2 id=&#34;background&#34;&gt;Background&lt;/h2&gt;
+      <description>&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/geology/geology_cover.PNG&#34; title=&#34;Minecraft Geological Survey&#34;&gt;
+  &lt;img alt=&#34;Minecraft Geological Survey&#34; height=&#34;526&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/geology/geology_cover.PNG&#34; width=&#34;571&#34;&gt;&lt;/a&gt;
+  &lt;figcaption&gt;Minecraft Geological Survey&lt;/figcaption&gt;
+&lt;/figure&gt;&lt;h2 id=&#34;background&#34;&gt;Background&lt;/h2&gt;
 &lt;p&gt;I&amp;rsquo;ve been using &lt;a href=&#34;https://education.minecraft.net/&#34;&gt;Minecraft Education Edition with Code Connection&lt;/a&gt; in my Year 7 classes this term to teach programming principles, which has been a blast* (i.e. I spend a lot of time trying to encourage students to write programs rather than run around building stuff themselves).&lt;/p&gt;
-&lt;img loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/geology/agent.PNG&#34;&gt;&lt;p&gt;The Agent&lt;/p&gt;
+&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/geology/agent.PNG&#34;&gt;
+  &lt;img height=&#34;241&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/geology/agent.PNG&#34; width=&#34;191&#34;&gt;&lt;/a&gt;
+&lt;/figure&gt;&lt;p&gt;The Agent&lt;/p&gt;
 &lt;p&gt;Code Connection comes with a &lt;a href=&#34;https://minecraft.makecode.com/courses/csintro&#34;&gt;ton of interesting tutorials&lt;/a&gt; to get started with, but I&amp;rsquo;ve been writing a few things for myself to try out different features, two of which are the Agent and the Builder. The Agent is a code-controlled character that can build from its inventory, attack and destroy surrounding blocks, and do basic sensing of its environment. The builder is an invisible constructor which is used for raising structures fairly quickly; it doesn&amp;rsquo;t have an inventory and can&amp;rsquo;t interact with its environment beyond placing blocks.&lt;/p&gt;</description>
     </item>
     <item>
@@ -476,8 +505,10 @@ This wouldn&amp;rsquo;t be a big deal if Publii followed most other static site 
       <pubDate>Wed, 14 Dec 2016 10:58:19 +0000</pubDate>
       <guid>https://headtilt.me/real-heroes-of-the-touch-bar/</guid>
       <description>&lt;p&gt;After using the new MBP for a week, I&amp;rsquo;m coming to appreciate the apps that do a good job with their Touch Bar behaviour. I wrote about Affinity Designer before. Pixelmator uses a similar approach, although it seems to be a bit inconsistent, since it allows you to choose tools, but not all of them.&lt;/p&gt;
-&lt;img alt=&#34; Pixelmator: Touch Bar tool options &#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/Pixelmator+Touch+Bar+tool+choice.png&#34;&gt;&lt;p&gt; Pixelmator: Touch Bar tool options&lt;/p&gt;
-&lt;p&gt;The real heroes that I&amp;rsquo;ve found so far are Terminal, Preview, and whatever the app is that takes screenshots behind the scenes based on ⌘-Shift-3/4/6 keyboard shortcuts. The default (and optional) buttons for these mostly seem to have been provided to give actual value to a software button, rather than just be there to show that there&amp;rsquo;s support.&lt;/p&gt;</description>
+&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/Pixelmator&amp;#43;Touch&amp;#43;Bar&amp;#43;tool&amp;#43;choice.png&#34; title=&#34;Pixelmator: Touch Bar tool options&#34;&gt;
+  &lt;img alt=&#34;Pixelmator: Touch Bar tool options&#34; height=&#34;21&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/Pixelmator+Touch+Bar+tool+choice.png&#34; width=&#34;750&#34;&gt;&lt;/a&gt;
+  &lt;figcaption&gt;Pixelmator: Touch Bar tool options&lt;/figcaption&gt;
+&lt;/figure&gt;&lt;p&gt;The real heroes that I&amp;rsquo;ve found so far are Terminal, Preview, and whatever the app is that takes screenshots behind the scenes based on ⌘-Shift-3/4/6 keyboard shortcuts. The default (and optional) buttons for these mostly seem to have been provided to give actual value to a software button, rather than just be there to show that there&amp;rsquo;s support.&lt;/p&gt;</description>
     </item>
     <item>
       <title>So a horse walks into a Touch Bar...</title>
@@ -561,7 +592,9 @@ This wouldn&amp;rsquo;t be a big deal if Publii followed most other static site 
       <link>https://headtilt.me/release-notes-slack-vs-box/</link>
       <pubDate>Mon, 11 Apr 2016 07:37:47 +0000</pubDate>
       <guid>https://headtilt.me/release-notes-slack-vs-box/</guid>
-      <description>&lt;img loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/slack_box_download.png&#34;&gt;&lt;p&gt;I remember someone else talking up Slack&amp;rsquo;s release notes before, but looking at them side by side with Box&amp;rsquo;s lately&amp;hellip;&lt;/p&gt;
+      <description>&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/slack_box_download.png&#34;&gt;
+  &lt;img height=&#34;1076&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/slack_box_download.png&#34; width=&#34;500&#34;&gt;&lt;/a&gt;
+&lt;/figure&gt;&lt;p&gt;I remember someone else talking up Slack&amp;rsquo;s release notes before, but looking at them side by side with Box&amp;rsquo;s lately&amp;hellip;&lt;/p&gt;
 &lt;p&gt;I honestly don&amp;rsquo;t know why Box bothered with more than the first line since the other three dot points mean exactly the same as the single first dot point, providing no additional information at all.&lt;/p&gt;
 &lt;p&gt;Slack does a great job of what is arguably the job of release notes: information about features, and which bugs have been fixed. More importantly, they do it in such a way that you might actually read the release notes because they are entertaining, not just because you might be frustrated with a problem in an earlier version and you want to know if it&amp;rsquo;s fixed yet.&lt;/p&gt;</description>
     </item>
@@ -618,16 +651,20 @@ This wouldn&amp;rsquo;t be a big deal if Publii followed most other static site 
       <link>https://headtilt.me/delivery-or-garbage-truck/</link>
       <pubDate>Fri, 18 Mar 2016 11:30:15 +0000</pubDate>
       <guid>https://headtilt.me/delivery-or-garbage-truck/</guid>
-      <description>&lt;img alt=&#34; Some of the quality Role Playing Games in the Explore section of the iOS App Store. &#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/rankings_download.png&#34;&gt;&lt;p&gt;Some of the quality Role Playing Games in the Explore section of the iOS App Store.&lt;/p&gt;
-&lt;p&gt;So today whilst having a coffee and waiting to pick my wife up I casually opened the iOS App Store and had a look at the Explore tab to check out the Role Playing Games section. It usually takes a few times a year to reinforce the fact that Explore is completely useless for both the &amp;ldquo;New&amp;rdquo; apps as well as the top lists, particularly in any of the games categories.&lt;/p&gt;</description>
+      <description>&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/rankings_download.png&#34; title=&#34;Some of the quality Role Playing Games in the Explore section of the iOS App Store.&#34;&gt;
+  &lt;img alt=&#34;Some of the quality Role Playing Games in the Explore section of the iOS App Store.&#34; height=&#34;197&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/rankings_download.png&#34; width=&#34;1500&#34;&gt;&lt;/a&gt;
+  &lt;figcaption&gt;Some of the quality Role Playing Games in the Explore section of the iOS App Store.&lt;/figcaption&gt;
+&lt;/figure&gt;&lt;p&gt;So today whilst having a coffee and waiting to pick my wife up I casually opened the iOS App Store and had a look at the Explore tab to check out the Role Playing Games section. It usually takes a few times a year to reinforce the fact that Explore is completely useless for both the &amp;ldquo;New&amp;rdquo; apps as well as the top lists, particularly in any of the games categories.&lt;/p&gt;</description>
     </item>
     <item>
       <title>App Discovery and Ratings</title>
       <link>https://headtilt.me/app-discovery-and-ratings/</link>
       <pubDate>Tue, 15 Mar 2016 13:16:10 +0000</pubDate>
       <guid>https://headtilt.me/app-discovery-and-ratings/</guid>
-      <description>&lt;img alt=&#34;  Pond Scum  Texture X (CC-BY 2.0) &#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/8267591031_bd43b71992_z.jpg&#34;&gt;&lt;p&gt;Pond Scum Texture X (CC-BY 2.0)&lt;/p&gt;
-&lt;p&gt;&lt;em&gt;(Note that this is from the perspective of a consumer. It&amp;rsquo;s probably also far more rambly than it needs to be.)&lt;/em&gt;&lt;/p&gt;
+      <description>&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/8267591031_bd43b71992_z.jpg&#34; title=&#34;Pond Scum Texture X (CC-BY 2.0)&#34;&gt;
+  &lt;img alt=&#34;Pond Scum Texture X (CC-BY 2.0)&#34; height=&#34;100&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/8267591031_bd43b71992_z.jpg&#34; width=&#34;640&#34;&gt;&lt;/a&gt;
+  &lt;figcaption&gt;Pond Scum Texture X (CC-BY 2.0)&lt;/figcaption&gt;
+&lt;/figure&gt;&lt;p&gt;&lt;em&gt;(Note that this is from the perspective of a consumer. It&amp;rsquo;s probably also far more rambly than it needs to be.)&lt;/em&gt;&lt;/p&gt;
 &lt;h1 id=&#34;discovery&#34;&gt;Discovery&lt;/h1&gt;
 &lt;p&gt;One of the common problems of app delivery stores is discovery. Particularly in today&amp;rsquo;s mobile app stores, the sheer volume means that discovery tends toward to drift towards the &amp;ldquo;scumbag&amp;rdquo; end of the scale very quickly in much the same manner as SEO does with web page ranking algorithms.&lt;/p&gt;</description>
     </item>
@@ -792,7 +829,9 @@ And beats high mountain down.&amp;rdquo;&lt;/em&gt;&lt;/p&gt;
       <guid>https://headtilt.me/more-changelog-more-fun/</guid>
       <description>&lt;p&gt;Just a continuation of my admiration of useful changelogs in the iOS App Store. Etsy&amp;rsquo;s latest release promises to maximise my happiness.&lt;/p&gt;
 &lt;p&gt;I wonder if I have to be using their app to be happy, or if it&amp;rsquo;ll increase it with a background update.&lt;/p&gt;
-&lt;img loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/etsy_download.jpg&#34;&gt;</description>
+&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/etsy_download.jpg&#34;&gt;
+  &lt;img height=&#34;341&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/etsy_download.jpg&#34; width=&#34;640&#34;&gt;&lt;/a&gt;
+&lt;/figure&gt;</description>
     </item>
     <item>
       <title>Windows 10 and the sad state of touch</title>

@@ -263,7 +263,10 @@ work topics all the time, but it feels right to me.&lt;/p&gt;</description>
       <link>https://headtilt.me/microbit-haunted-house/</link>
       <pubDate>Mon, 05 Nov 2018 20:56:46 +0000</pubDate>
       <guid>https://headtilt.me/microbit-haunted-house/</guid>
-      <description>&lt;img alt=&#34;Haunted House internals&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/File-5-11-18-8-05-24-pm.jpeg&#34;&gt;&lt;p&gt;Testing out LDR sensors&lt;/p&gt;
+      <description>&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/File-5-11-18-8-05-24-pm.jpeg&#34; title=&#34;Haunted House internals&#34;&gt;
+  &lt;img alt=&#34;Haunted House internals&#34; height=&#34;1536&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/File-5-11-18-8-05-24-pm.jpeg&#34; width=&#34;2048&#34;&gt;&lt;/a&gt;
+  &lt;figcaption&gt;Haunted House internals&lt;/figcaption&gt;
+&lt;/figure&gt;&lt;p&gt;Testing out LDR sensors&lt;/p&gt;
 &lt;p&gt;This year I have been teaching robotics to Year 8s for the first time. I&amp;rsquo;ve mainly been using BBC Micro:bits, since they are quite affordable, robust, are easy to hook up to a range of widely available components, and are easy to program in a few different environments (MicroPython being my weapon of choice).&lt;/p&gt;
 &lt;p&gt;To keep myself entertained, and to provide my students with a sample project (although more complex code-wise than they&amp;rsquo;re likely to accomplish) I decided to make something myself this term while my class worked on their own group projects (theirs are themed after the UN Global Goals). I had ideas for either building a carousel or a light gun game, and settled on the latter so I didn&amp;rsquo;t have to &lt;em&gt;also&lt;/em&gt; tackle 3D printing out cams and gears and the like.&lt;/p&gt;</description>
     </item>
@@ -305,8 +308,10 @@ This wouldn&amp;rsquo;t be a big deal if Publii followed most other static site 
       <pubDate>Wed, 14 Dec 2016 10:58:19 +0000</pubDate>
       <guid>https://headtilt.me/real-heroes-of-the-touch-bar/</guid>
       <description>&lt;p&gt;After using the new MBP for a week, I&amp;rsquo;m coming to appreciate the apps that do a good job with their Touch Bar behaviour. I wrote about Affinity Designer before. Pixelmator uses a similar approach, although it seems to be a bit inconsistent, since it allows you to choose tools, but not all of them.&lt;/p&gt;
-&lt;img alt=&#34; Pixelmator: Touch Bar tool options &#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/Pixelmator+Touch+Bar+tool+choice.png&#34;&gt;&lt;p&gt; Pixelmator: Touch Bar tool options&lt;/p&gt;
-&lt;p&gt;The real heroes that I&amp;rsquo;ve found so far are Terminal, Preview, and whatever the app is that takes screenshots behind the scenes based on ⌘-Shift-3/4/6 keyboard shortcuts. The default (and optional) buttons for these mostly seem to have been provided to give actual value to a software button, rather than just be there to show that there&amp;rsquo;s support.&lt;/p&gt;</description>
+&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/Pixelmator&amp;#43;Touch&amp;#43;Bar&amp;#43;tool&amp;#43;choice.png&#34; title=&#34;Pixelmator: Touch Bar tool options&#34;&gt;
+  &lt;img alt=&#34;Pixelmator: Touch Bar tool options&#34; height=&#34;21&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/Pixelmator+Touch+Bar+tool+choice.png&#34; width=&#34;750&#34;&gt;&lt;/a&gt;
+  &lt;figcaption&gt;Pixelmator: Touch Bar tool options&lt;/figcaption&gt;
+&lt;/figure&gt;&lt;p&gt;The real heroes that I&amp;rsquo;ve found so far are Terminal, Preview, and whatever the app is that takes screenshots behind the scenes based on ⌘-Shift-3/4/6 keyboard shortcuts. The default (and optional) buttons for these mostly seem to have been provided to give actual value to a software button, rather than just be there to show that there&amp;rsquo;s support.&lt;/p&gt;</description>
     </item>
     <item>
       <title>So a horse walks into a Touch Bar...</title>
@@ -382,7 +387,9 @@ This wouldn&amp;rsquo;t be a big deal if Publii followed most other static site 
       <link>https://headtilt.me/release-notes-slack-vs-box/</link>
       <pubDate>Mon, 11 Apr 2016 07:37:47 +0000</pubDate>
       <guid>https://headtilt.me/release-notes-slack-vs-box/</guid>
-      <description>&lt;img loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/slack_box_download.png&#34;&gt;&lt;p&gt;I remember someone else talking up Slack&amp;rsquo;s release notes before, but looking at them side by side with Box&amp;rsquo;s lately&amp;hellip;&lt;/p&gt;
+      <description>&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/slack_box_download.png&#34;&gt;
+  &lt;img height=&#34;1076&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/slack_box_download.png&#34; width=&#34;500&#34;&gt;&lt;/a&gt;
+&lt;/figure&gt;&lt;p&gt;I remember someone else talking up Slack&amp;rsquo;s release notes before, but looking at them side by side with Box&amp;rsquo;s lately&amp;hellip;&lt;/p&gt;
 &lt;p&gt;I honestly don&amp;rsquo;t know why Box bothered with more than the first line since the other three dot points mean exactly the same as the single first dot point, providing no additional information at all.&lt;/p&gt;
 &lt;p&gt;Slack does a great job of what is arguably the job of release notes: information about features, and which bugs have been fixed. More importantly, they do it in such a way that you might actually read the release notes because they are entertaining, not just because you might be frustrated with a problem in an earlier version and you want to know if it&amp;rsquo;s fixed yet.&lt;/p&gt;</description>
     </item>
@@ -439,16 +446,20 @@ This wouldn&amp;rsquo;t be a big deal if Publii followed most other static site 
       <link>https://headtilt.me/delivery-or-garbage-truck/</link>
       <pubDate>Fri, 18 Mar 2016 11:30:15 +0000</pubDate>
       <guid>https://headtilt.me/delivery-or-garbage-truck/</guid>
-      <description>&lt;img alt=&#34; Some of the quality Role Playing Games in the Explore section of the iOS App Store. &#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/rankings_download.png&#34;&gt;&lt;p&gt;Some of the quality Role Playing Games in the Explore section of the iOS App Store.&lt;/p&gt;
-&lt;p&gt;So today whilst having a coffee and waiting to pick my wife up I casually opened the iOS App Store and had a look at the Explore tab to check out the Role Playing Games section. It usually takes a few times a year to reinforce the fact that Explore is completely useless for both the &amp;ldquo;New&amp;rdquo; apps as well as the top lists, particularly in any of the games categories.&lt;/p&gt;</description>
+      <description>&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/rankings_download.png&#34; title=&#34;Some of the quality Role Playing Games in the Explore section of the iOS App Store.&#34;&gt;
+  &lt;img alt=&#34;Some of the quality Role Playing Games in the Explore section of the iOS App Store.&#34; height=&#34;197&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/rankings_download.png&#34; width=&#34;1500&#34;&gt;&lt;/a&gt;
+  &lt;figcaption&gt;Some of the quality Role Playing Games in the Explore section of the iOS App Store.&lt;/figcaption&gt;
+&lt;/figure&gt;&lt;p&gt;So today whilst having a coffee and waiting to pick my wife up I casually opened the iOS App Store and had a look at the Explore tab to check out the Role Playing Games section. It usually takes a few times a year to reinforce the fact that Explore is completely useless for both the &amp;ldquo;New&amp;rdquo; apps as well as the top lists, particularly in any of the games categories.&lt;/p&gt;</description>
     </item>
     <item>
       <title>App Discovery and Ratings</title>
       <link>https://headtilt.me/app-discovery-and-ratings/</link>
       <pubDate>Tue, 15 Mar 2016 13:16:10 +0000</pubDate>
       <guid>https://headtilt.me/app-discovery-and-ratings/</guid>
-      <description>&lt;img alt=&#34;  Pond Scum  Texture X (CC-BY 2.0) &#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/8267591031_bd43b71992_z.jpg&#34;&gt;&lt;p&gt;Pond Scum Texture X (CC-BY 2.0)&lt;/p&gt;
-&lt;p&gt;&lt;em&gt;(Note that this is from the perspective of a consumer. It&amp;rsquo;s probably also far more rambly than it needs to be.)&lt;/em&gt;&lt;/p&gt;
+      <description>&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/8267591031_bd43b71992_z.jpg&#34; title=&#34;Pond Scum Texture X (CC-BY 2.0)&#34;&gt;
+  &lt;img alt=&#34;Pond Scum Texture X (CC-BY 2.0)&#34; height=&#34;100&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/8267591031_bd43b71992_z.jpg&#34; width=&#34;640&#34;&gt;&lt;/a&gt;
+  &lt;figcaption&gt;Pond Scum Texture X (CC-BY 2.0)&lt;/figcaption&gt;
+&lt;/figure&gt;&lt;p&gt;&lt;em&gt;(Note that this is from the perspective of a consumer. It&amp;rsquo;s probably also far more rambly than it needs to be.)&lt;/em&gt;&lt;/p&gt;
 &lt;h1 id=&#34;discovery&#34;&gt;Discovery&lt;/h1&gt;
 &lt;p&gt;One of the common problems of app delivery stores is discovery. Particularly in today&amp;rsquo;s mobile app stores, the sheer volume means that discovery tends toward to drift towards the &amp;ldquo;scumbag&amp;rdquo; end of the scale very quickly in much the same manner as SEO does with web page ranking algorithms.&lt;/p&gt;</description>
     </item>
@@ -613,7 +624,9 @@ And beats high mountain down.&amp;rdquo;&lt;/em&gt;&lt;/p&gt;
       <guid>https://headtilt.me/more-changelog-more-fun/</guid>
       <description>&lt;p&gt;Just a continuation of my admiration of useful changelogs in the iOS App Store. Etsy&amp;rsquo;s latest release promises to maximise my happiness.&lt;/p&gt;
 &lt;p&gt;I wonder if I have to be using their app to be happy, or if it&amp;rsquo;ll increase it with a background update.&lt;/p&gt;
-&lt;img loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/etsy_download.jpg&#34;&gt;</description>
+&lt;figure class=&#34;post-image&#34;&gt;&lt;a class=&#34;post-image-link&#34; href=&#34;https://headtilt.me/images/etsy_download.jpg&#34;&gt;
+  &lt;img height=&#34;341&#34; loading=&#34;lazy&#34; src=&#34;https://headtilt.me/images/etsy_download.jpg&#34; width=&#34;640&#34;&gt;&lt;/a&gt;
+&lt;/figure&gt;</description>
     </item>
     <item>
       <title>Windows 10 and the sad state of touch</title>

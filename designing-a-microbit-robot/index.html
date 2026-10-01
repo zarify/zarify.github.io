@@ -7,7 +7,9 @@
 <meta name="robots" content="index, follow">
 <title>Designing a Micro:bit Robot | Headtilt</title>
 <meta name="keywords" content="microbit, robotics">
-<meta name="description" content="Motivation
+<meta name="description" content="
+  
+Motivation
 Ever since I bought some of Kitronik&rsquo;s :move buggies I&rsquo;ve been interested in making robots with the Micro:bit. They&rsquo;re simple to program, have a decent set of features, and the kids enjoy using them. However they&rsquo;re also a royal pain to assemble due to fiddly screw locations, quite expensive for what they are (we pay around $60AUD for what amounts to about $15-20AUD in components), and difficult to add on to due to cutting you off from all the additional pins the Micro:bit has to offer.">
 <meta name="author" content="Rob">
 <link rel="canonical" href="https://headtilt.me/designing-a-microbit-robot/">
@@ -87,7 +89,9 @@ Ever since I bought some of Kitronik&rsquo;s :move buggies I&rsquo;ve been inter
 
 </div>
   </header> 
-  <div class="post-content"><img loading="lazy" src="/images/knuckle/front_view.jpg"><h2 id="motivation">Motivation<a hidden class="anchor" aria-hidden="true" href="#motivation">#</a></h2>
+  <div class="post-content"><figure class="post-image"><a class="post-image-link" href="/images/knuckle/front_view.jpg">
+  <img height="858" loading="lazy" src="/images/knuckle/front_view.jpg" width="800"></a>
+</figure><h2 id="motivation">Motivation<a hidden class="anchor" aria-hidden="true" href="#motivation">#</a></h2>
 <p>Ever since I bought some of <a href="https://www.kitronik.co.uk/5624-move-mini-buggy-kit-excl-microbit.html">Kitronik&rsquo;s :move buggies</a> I&rsquo;ve been interested in making robots with the Micro:bit. They&rsquo;re simple to program, have a decent set of features, and the kids enjoy using them. However they&rsquo;re also a royal pain to assemble due to fiddly screw locations, quite expensive for what they are (we pay around $60AUD for what amounts to about $15-20AUD in components), and difficult to add on to due to cutting you off from all the additional pins the Micro:bit has to offer.</p>
 <p>This year I looked into alternatives. There some 3D printed designs on Thingiverse which also use the same <a href="https://www.kitronik.co.uk/5623-servolite-board-for-move-mini.html">servo:lite board</a>, but are much easier to assemble (<a href="https://www.thingiverse.com/thing:2534232">design 1</a>, <a href="https://www.thingiverse.com/thing:2485069">design 2</a>), but my main issue with 3D printing is how long it takes.</p>
 <p>I found an interesting <a href="https://www.thingiverse.com/thing:2746171">stick insect design</a> which looked like it would lend itself to laser cutting instead and as a bonus didn&rsquo;t use continuous rotation servos, and so my Year 9 class put together a few and had a go at writing some code to get them to move. Although they looked promising for simple linear movement, the added weight of using MDF instead of ABS/PLA meant they were not very successful, and traction was an issue, so we chalked it up to a learning experience, fiddled with LED code on the servo:lite boards, and practiced writing remote control code with the Micro:bit radios instead.</p>
@@ -96,69 +100,55 @@ Ever since I bought some of Kitronik&rsquo;s :move buggies I&rsquo;ve been inter
 <p>Although I did technical drawing aeons ago at school, drafting is not really my strong suit (if I indeed have a strong suit). I drew up some rough plans, mostly while waiting for meetings to start.</p>
 <style>
     .image-gallery {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1%;
-        margin-left: -1% !important;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 12px;
+        margin-top: 1.5em;
+        padding: 0;
+        list-style: none;
     }
 
     .image-gallery li {
+        margin: 0;
         list-style: none;
-        width: 19%;
-        display: flex;
-        flex-direction: column;
     }
 
     .image-gallery li a {
-        text-align: center;
-        text-decoration: none !important;
-        color: #777;
         display: flex;
         flex-direction: column;
-        flex-grow: 1;
-        justify-content: space-between;
-        box-shadow: none !important;
+        height: 100%;
+        text-decoration: none;
+        text-align: center;
+        color: var(--secondary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        transition: box-shadow 0.15s ease;
     }
 
-    .image-gallery li a span {
-        display: block;
-        padding: 3px 0;
-        white-space: normal;
-        font-size: 0.8em;
+    .image-gallery li a:hover {
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
     }
 
     .image-gallery li a img {
         width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: contain;
+        object-position: center;
         display: block;
+        background: var(--border);  
     }
 
-     
-    @media (max-width: 1200px) {
-        .image-gallery li {
-            width: 24%;
-             
-        }
-    }
-
-    @media (max-width: 992px) {
-        .image-gallery li {
-            width: 32%;
-             
-        }
-    }
-
-    @media (max-width: 768px) {
-        .image-gallery li {
-            width: 49%;
-             
-        }
-    }
-
-    @media (max-width: 576px) {
-        .image-gallery li {
-            width: 100%;
-             
-        }
+    .image-gallery li a span {
+        display: block;
+        margin-top: auto;
+        padding: 6px 8px;
+        font-size: 0.8em;
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 </style>
 
@@ -166,30 +156,31 @@ Ever since I bought some of Kitronik&rsquo;s :move buggies I&rsquo;ve been inter
 <ul class="image-gallery">
     <li>
         <a href="/gallery/knuckle1/1%20Linear%20actuator%20design.jpg" title="1 Linear actuator design" class="lightbox-image">
-            <img src="/gallery/knuckle1/1%20Linear%20actuator%20design.jpg" alt="1 Linear actuator design" title="1 Linear actuator design">
+            <img src="/gallery/knuckle1/1%20Linear%20actuator%20design.jpg" alt="1 Linear actuator design" title="1 Linear actuator design" loading="lazy">
             <span>1 Linear actuator design</span>
         </a>
     </li>
     <li>
         <a href="/gallery/knuckle1/2%20Motion%20ideas%20for%20linear%20movement.jpg" title="2 Motion ideas for linear movement" class="lightbox-image">
-            <img src="/gallery/knuckle1/2%20Motion%20ideas%20for%20linear%20movement.jpg" alt="2 Motion ideas for linear movement" title="2 Motion ideas for linear movement">
+            <img src="/gallery/knuckle1/2%20Motion%20ideas%20for%20linear%20movement.jpg" alt="2 Motion ideas for linear movement" title="2 Motion ideas for linear movement" loading="lazy">
             <span>2 Motion ideas for linear movement</span>
         </a>
     </li>
     <li>
         <a href="/gallery/knuckle1/3%20Ideas%20for%20elevation%20and%20steering.jpg" title="3 Ideas for elevation and steering" class="lightbox-image">
-            <img src="/gallery/knuckle1/3%20Ideas%20for%20elevation%20and%20steering.jpg" alt="3 Ideas for elevation and steering" title="3 Ideas for elevation and steering">
+            <img src="/gallery/knuckle1/3%20Ideas%20for%20elevation%20and%20steering.jpg" alt="3 Ideas for elevation and steering" title="3 Ideas for elevation and steering" loading="lazy">
             <span>3 Ideas for elevation and steering</span>
         </a>
     </li>
     <li>
         <a href="/gallery/knuckle1/4%20Closing%20in%20on%20the%20final%20design.jpg" title="4 Closing in on the final design" class="lightbox-image">
-            <img src="/gallery/knuckle1/4%20Closing%20in%20on%20the%20final%20design.jpg" alt="4 Closing in on the final design" title="4 Closing in on the final design">
+            <img src="/gallery/knuckle1/4%20Closing%20in%20on%20the%20final%20design.jpg" alt="4 Closing in on the final design" title="4 Closing in on the final design" loading="lazy">
             <span>4 Closing in on the final design</span>
         </a>
     </li>
     
 </ul>
+
 <p>I started from my <a href="https://github.com/zarify/microbit/tree/master/Linear_Actuator">linear actuator designs</a>, since there would need to be some linear movement - I initially imagined it as a pair of geared pontoons with a lifter underneath the robot, and played around with some ideas of having the lifter rotate so that the robot could steer. Although I still like this idea, keeping the cabling free and the interior robot layout nixed that idea and I went for a more traditional &lsquo;wheel&rsquo; approach, each driven by a servo, and having a third servo to elevate the body so that the wheels could reset.</p>
 <p>The final design went through about six iterations due to issues with weight distribution of the mobile phone power bank I wanted to use for a battery and also the fiddliness of aligning the actuator rod and installing guides so that it moved in a straight line and didn&rsquo;t catch on the edges of the slot.</p>
 <p>Keeping the actuator rod running smoothly up and down without catching on any other part of the chassis was the hardest part of the design, and the trickiest to assemble once it was cut out. I originally had three pieces surrounding the rod which each had to fit into holes in the top and bottom plates, and it was incredibly difficult to align while also keeping the servos and rod in place. I ended up scrapping that design and going for a simple two support design instead. Utilising a cross shaped support for the actuator rod instead of an L shape also made building supports a lot easier.</p>
@@ -203,69 +194,55 @@ Ever since I bought some of Kitronik&rsquo;s :move buggies I&rsquo;ve been inter
 </ul>
 <style>
     .image-gallery {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1%;
-        margin-left: -1% !important;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 12px;
+        margin-top: 1.5em;
+        padding: 0;
+        list-style: none;
     }
 
     .image-gallery li {
+        margin: 0;
         list-style: none;
-        width: 19%;
-        display: flex;
-        flex-direction: column;
     }
 
     .image-gallery li a {
-        text-align: center;
-        text-decoration: none !important;
-        color: #777;
         display: flex;
         flex-direction: column;
-        flex-grow: 1;
-        justify-content: space-between;
-        box-shadow: none !important;
+        height: 100%;
+        text-decoration: none;
+        text-align: center;
+        color: var(--secondary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        transition: box-shadow 0.15s ease;
     }
 
-    .image-gallery li a span {
-        display: block;
-        padding: 3px 0;
-        white-space: normal;
-        font-size: 0.8em;
+    .image-gallery li a:hover {
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
     }
 
     .image-gallery li a img {
         width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: contain;
+        object-position: center;
         display: block;
+        background: var(--border);  
     }
 
-     
-    @media (max-width: 1200px) {
-        .image-gallery li {
-            width: 24%;
-             
-        }
-    }
-
-    @media (max-width: 992px) {
-        .image-gallery li {
-            width: 32%;
-             
-        }
-    }
-
-    @media (max-width: 768px) {
-        .image-gallery li {
-            width: 49%;
-             
-        }
-    }
-
-    @media (max-width: 576px) {
-        .image-gallery li {
-            width: 100%;
-             
-        }
+    .image-gallery li a span {
+        display: block;
+        margin-top: auto;
+        padding: 6px 8px;
+        font-size: 0.8em;
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 </style>
 
@@ -273,108 +250,109 @@ Ever since I bought some of Kitronik&rsquo;s :move buggies I&rsquo;ve been inter
 <ul class="image-gallery">
     <li>
         <a href="/gallery/knuckle2/01%20Cutting%20six%20robots.jpg" title="01 Cutting six robots" class="lightbox-image">
-            <img src="/gallery/knuckle2/01%20Cutting%20six%20robots.jpg" alt="01 Cutting six robots" title="01 Cutting six robots">
+            <img src="/gallery/knuckle2/01%20Cutting%20six%20robots.jpg" alt="01 Cutting six robots" title="01 Cutting six robots" loading="lazy">
             <span>01 Cutting six robots</span>
         </a>
     </li>
     <li>
         <a href="/gallery/knuckle2/02%20One%20robot%20ready%20to%20assemble.jpg" title="02 One robot ready to assemble" class="lightbox-image">
-            <img src="/gallery/knuckle2/02%20One%20robot%20ready%20to%20assemble.jpg" alt="02 One robot ready to assemble" title="02 One robot ready to assemble">
+            <img src="/gallery/knuckle2/02%20One%20robot%20ready%20to%20assemble.jpg" alt="02 One robot ready to assemble" title="02 One robot ready to assemble" loading="lazy">
             <span>02 One robot ready to assemble</span>
         </a>
     </li>
     <li>
         <a href="/gallery/knuckle2/03%20Actuator%20rod%20and%20attachment%20to%20base.jpg" title="03 Actuator rod and attachment to base" class="lightbox-image">
-            <img src="/gallery/knuckle2/03%20Actuator%20rod%20and%20attachment%20to%20base.jpg" alt="03 Actuator rod and attachment to base" title="03 Actuator rod and attachment to base">
+            <img src="/gallery/knuckle2/03%20Actuator%20rod%20and%20attachment%20to%20base.jpg" alt="03 Actuator rod and attachment to base" title="03 Actuator rod and attachment to base" loading="lazy">
             <span>03 Actuator rod and attachment to base</span>
         </a>
     </li>
     <li>
         <a href="/gallery/knuckle2/04%20Rod%20attached%20to%20lifter%20base.jpg" title="04 Rod attached to lifter base" class="lightbox-image">
-            <img src="/gallery/knuckle2/04%20Rod%20attached%20to%20lifter%20base.jpg" alt="04 Rod attached to lifter base" title="04 Rod attached to lifter base">
+            <img src="/gallery/knuckle2/04%20Rod%20attached%20to%20lifter%20base.jpg" alt="04 Rod attached to lifter base" title="04 Rod attached to lifter base" loading="lazy">
             <span>04 Rod attached to lifter base</span>
         </a>
     </li>
     <li>
         <a href="/gallery/knuckle2/05%20Gear%20fitted%20snugly%20to%20the%20servo.jpg" title="05 Gear fitted snugly to the servo" class="lightbox-image">
-            <img src="/gallery/knuckle2/05%20Gear%20fitted%20snugly%20to%20the%20servo.jpg" alt="05 Gear fitted snugly to the servo" title="05 Gear fitted snugly to the servo">
+            <img src="/gallery/knuckle2/05%20Gear%20fitted%20snugly%20to%20the%20servo.jpg" alt="05 Gear fitted snugly to the servo" title="05 Gear fitted snugly to the servo" loading="lazy">
             <span>05 Gear fitted snugly to the servo</span>
         </a>
     </li>
     <li>
         <a href="/gallery/knuckle2/06%20Servos%20held%20in%20place%20by%20slots%20and%20cabling.jpg" title="06 Servos held in place by slots and cabling" class="lightbox-image">
-            <img src="/gallery/knuckle2/06%20Servos%20held%20in%20place%20by%20slots%20and%20cabling.jpg" alt="06 Servos held in place by slots and cabling" title="06 Servos held in place by slots and cabling">
+            <img src="/gallery/knuckle2/06%20Servos%20held%20in%20place%20by%20slots%20and%20cabling.jpg" alt="06 Servos held in place by slots and cabling" title="06 Servos held in place by slots and cabling" loading="lazy">
             <span>06 Servos held in place by slots and cabling</span>
         </a>
     </li>
     <li>
         <a href="/gallery/knuckle2/07%20Bottom%20view%20of%20cabling.jpg" title="07 Bottom view of cabling" class="lightbox-image">
-            <img src="/gallery/knuckle2/07%20Bottom%20view%20of%20cabling.jpg" alt="07 Bottom view of cabling" title="07 Bottom view of cabling">
+            <img src="/gallery/knuckle2/07%20Bottom%20view%20of%20cabling.jpg" alt="07 Bottom view of cabling" title="07 Bottom view of cabling" loading="lazy">
             <span>07 Bottom view of cabling</span>
         </a>
     </li>
     <li>
         <a href="/gallery/knuckle2/08%20Rod%20supports%20in%20place.jpg" title="08 Rod supports in place" class="lightbox-image">
-            <img src="/gallery/knuckle2/08%20Rod%20supports%20in%20place.jpg" alt="08 Rod supports in place" title="08 Rod supports in place">
+            <img src="/gallery/knuckle2/08%20Rod%20supports%20in%20place.jpg" alt="08 Rod supports in place" title="08 Rod supports in place" loading="lazy">
             <span>08 Rod supports in place</span>
         </a>
     </li>
     <li>
         <a href="/gallery/knuckle2/09%20Rod%20inserted%20to%20just%20below%20top%20plate%20height.jpg" title="09 Rod inserted to just below top plate height" class="lightbox-image">
-            <img src="/gallery/knuckle2/09%20Rod%20inserted%20to%20just%20below%20top%20plate%20height.jpg" alt="09 Rod inserted to just below top plate height" title="09 Rod inserted to just below top plate height">
+            <img src="/gallery/knuckle2/09%20Rod%20inserted%20to%20just%20below%20top%20plate%20height.jpg" alt="09 Rod inserted to just below top plate height" title="09 Rod inserted to just below top plate height" loading="lazy">
             <span>09 Rod inserted to just below top plate height</span>
         </a>
     </li>
     <li>
         <a href="/gallery/knuckle2/10%20Top%20plate%20attached.jpg" title="10 Top plate attached" class="lightbox-image">
-            <img src="/gallery/knuckle2/10%20Top%20plate%20attached.jpg" alt="10 Top plate attached" title="10 Top plate attached">
+            <img src="/gallery/knuckle2/10%20Top%20plate%20attached.jpg" alt="10 Top plate attached" title="10 Top plate attached" loading="lazy">
             <span>10 Top plate attached</span>
         </a>
     </li>
     <li>
         <a href="/gallery/knuckle2/11%20Side%20supports%20hold%20frame%20together.jpg" title="11 Side supports hold frame together" class="lightbox-image">
-            <img src="/gallery/knuckle2/11%20Side%20supports%20hold%20frame%20together.jpg" alt="11 Side supports hold frame together" title="11 Side supports hold frame together">
+            <img src="/gallery/knuckle2/11%20Side%20supports%20hold%20frame%20together.jpg" alt="11 Side supports hold frame together" title="11 Side supports hold frame together" loading="lazy">
             <span>11 Side supports hold frame together</span>
         </a>
     </li>
     <li>
         <a href="/gallery/knuckle2/12%20Top%20view%20of%20partial%20assembly.jpg" title="12 Top view of partial assembly" class="lightbox-image">
-            <img src="/gallery/knuckle2/12%20Top%20view%20of%20partial%20assembly.jpg" alt="12 Top view of partial assembly" title="12 Top view of partial assembly">
+            <img src="/gallery/knuckle2/12%20Top%20view%20of%20partial%20assembly.jpg" alt="12 Top view of partial assembly" title="12 Top view of partial assembly" loading="lazy">
             <span>12 Top view of partial assembly</span>
         </a>
     </li>
     <li>
         <a href="/gallery/knuckle2/13%20Attach%20one%20front%20support.jpg" title="13 Attach one front support" class="lightbox-image">
-            <img src="/gallery/knuckle2/13%20Attach%20one%20front%20support.jpg" alt="13 Attach one front support" title="13 Attach one front support">
+            <img src="/gallery/knuckle2/13%20Attach%20one%20front%20support.jpg" alt="13 Attach one front support" title="13 Attach one front support" loading="lazy">
             <span>13 Attach one front support</span>
         </a>
     </li>
     <li>
         <a href="/gallery/knuckle2/14%20Attach%20microbit%20platform.jpg" title="14 Attach microbit platform" class="lightbox-image">
-            <img src="/gallery/knuckle2/14%20Attach%20microbit%20platform.jpg" alt="14 Attach microbit platform" title="14 Attach microbit platform">
+            <img src="/gallery/knuckle2/14%20Attach%20microbit%20platform.jpg" alt="14 Attach microbit platform" title="14 Attach microbit platform" loading="lazy">
             <span>14 Attach microbit platform</span>
         </a>
     </li>
     <li>
         <a href="/gallery/knuckle2/15%20Slide%20support%20into%20platform.jpg" title="15 Slide support into platform" class="lightbox-image">
-            <img src="/gallery/knuckle2/15%20Slide%20support%20into%20platform.jpg" alt="15 Slide support into platform" title="15 Slide support into platform">
+            <img src="/gallery/knuckle2/15%20Slide%20support%20into%20platform.jpg" alt="15 Slide support into platform" title="15 Slide support into platform" loading="lazy">
             <span>15 Slide support into platform</span>
         </a>
     </li>
     <li>
         <a href="/gallery/knuckle2/16%20Push%20wheels%20on%20after%20servo%20alignment.jpg" title="16 Push wheels on after servo alignment" class="lightbox-image">
-            <img src="/gallery/knuckle2/16%20Push%20wheels%20on%20after%20servo%20alignment.jpg" alt="16 Push wheels on after servo alignment" title="16 Push wheels on after servo alignment">
+            <img src="/gallery/knuckle2/16%20Push%20wheels%20on%20after%20servo%20alignment.jpg" alt="16 Push wheels on after servo alignment" title="16 Push wheels on after servo alignment" loading="lazy">
             <span>16 Push wheels on after servo alignment</span>
         </a>
     </li>
     <li>
         <a href="/gallery/knuckle2/17%20Work%20complete.jpg" title="17 Work complete" class="lightbox-image">
-            <img src="/gallery/knuckle2/17%20Work%20complete.jpg" alt="17 Work complete" title="17 Work complete">
+            <img src="/gallery/knuckle2/17%20Work%20complete.jpg" alt="17 Work complete" title="17 Work complete" loading="lazy">
             <span>17 Work complete</span>
         </a>
     </li>
     
 </ul>
+
 <h2 id="code">Code<a hidden class="anchor" aria-hidden="true" href="#code">#</a></h2>
 <p>I have some sample code for movement and a more fully functional remote control scheme sitting into <a href="https://github.com/zarify/microbit/tree/master/Knuckle_Dragger">Github repo for this project</a>.</p>
 <p>The movement itself is quite simple though, and just involves a series of these steps:</p>
@@ -409,9 +387,15 @@ Ever since I bought some of Kitronik&rsquo;s :move buggies I&rsquo;ve been inter
 </span></span><span class="line"><span class="cl"><span class="n">left</span><span class="o">.</span><span class="n">write_analog</span><span class="p">(</span><span class="n">bck</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 </span></span><span class="line"><span class="cl"><span class="n">sleep</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
 </span></span></code></pre></div><h2 id="outcome"> Outcome<a hidden class="anchor" aria-hidden="true" href="#outcome">#</a></h2>
-<img loading="lazy" src="/images/knuckle/front_view.jpg"><p>Front view through to actuator</p>
-<img loading="lazy" src="/images/knuckle/side_view.jpg"><p>Side view</p>
-<img loading="lazy" src="/images/knuckle/top_view.jpg"><p>Top view</p>
+<figure class="post-image"><a class="post-image-link" href="/images/knuckle/front_view.jpg">
+  <img height="858" loading="lazy" src="/images/knuckle/front_view.jpg" width="800"></a>
+</figure><p>Front view through to actuator</p>
+<figure class="post-image"><a class="post-image-link" href="/images/knuckle/side_view.jpg">
+  <img height="1028" loading="lazy" src="/images/knuckle/side_view.jpg" width="800"></a>
+</figure><p>Side view</p>
+<figure class="post-image"><a class="post-image-link" href="/images/knuckle/top_view.jpg">
+  <img height="1176" loading="lazy" src="/images/knuckle/top_view.jpg" width="800"></a>
+</figure><p>Top view</p>
 <p>I ended up putting some mounting points for additional sensors and outputs like LEDs at the front. The whole thing snaps together and generally doesn&rsquo;t require glue to hold anything together (although occasionally due to slight warping of the MDF sheets some of the pegs end up looser than others).</p>
 <iframe width="640" height="1138" src="https://player.vimeo.com/video/328771926" frameborder="0" webkitallowfullscreen="webkitallowfullscreen" mozallowfullscreen="mozallowfullscreen" allowfullscreen="allowfullscreen"></iframe>
 

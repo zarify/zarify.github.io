@@ -111,10 +111,18 @@
 <h3 id="virus-master">Virus Master<a hidden class="anchor" aria-hidden="true" href="#virus-master">#</a></h3>
 <p>The virus master device is responsible for monitoring of the client devices, and also initial infection of a client device so that I have a known infection time and get an opportunity to prime students for the activity (which I&rsquo;m planning on running twice - once unaware, and once with intentional physical distancing).</p>
 <p>The code is pretty straightforward - it just monitors radio traffic and collects device IDs and infection messages to keep track of total and infected devices.</p>
-<img loading="lazy" src="/images/pandemic/master_setup.png"><p>Set the radio group and create arrays for keeping device IDs of nearby Micro:bits and infected devices.</p>
-<img loading="lazy" src="/images/pandemic/master_discovery.png"><p>Incoming messages will either be discovery messages or infection messages. Capture device IDs and put into relevant arrays if not already present.</p>
-<img loading="lazy" src="/images/pandemic/master_client_monitoring.png"><p>Use the captured device IDs to report on number of devices seen and infected using A or B.</p>
-<img loading="lazy" src="/images/pandemic/master_infection.png"><p>Pick a random device ID to send an infection message to as Patient Zero.</p>
+<figure class="post-image"><a class="post-image-link" href="/images/pandemic/master_setup.png">
+  <img height="151" loading="lazy" src="/images/pandemic/master_setup.png" width="306"></a>
+</figure><p>Set the radio group and create arrays for keeping device IDs of nearby Micro:bits and infected devices.</p>
+<figure class="post-image"><a class="post-image-link" href="/images/pandemic/master_discovery.png">
+  <img height="298" loading="lazy" src="/images/pandemic/master_discovery.png" width="781"></a>
+</figure><p>Incoming messages will either be discovery messages or infection messages. Capture device IDs and put into relevant arrays if not already present.</p>
+<figure class="post-image"><a class="post-image-link" href="/images/pandemic/master_client_monitoring.png">
+  <img height="342" loading="lazy" src="/images/pandemic/master_client_monitoring.png" width="812"></a>
+</figure><p>Use the captured device IDs to report on number of devices seen and infected using A or B.</p>
+<figure class="post-image"><a class="post-image-link" href="/images/pandemic/master_infection.png">
+  <img height="204" loading="lazy" src="/images/pandemic/master_infection.png" width="839"></a>
+</figure><p>Pick a random device ID to send an infection message to as Patient Zero.</p>
 <h3 id="virus-client">Virus Client<a hidden class="anchor" aria-hidden="true" href="#virus-client">#</a></h3>
 <p>The virus client maintains arrays of infected devices around itself based on the RSSI (signal strength) values of incoming messages. Each incoming message also contains the device ID of the sender, which can be used for determining whether enough infection messages have been received to merit being infected itself.</p>
 <p>If sufficient time (40s in this case) passes without enough infection messages from a seen device, that device&rsquo;s info is purged from the lists. This has a couple of purposes:</p>
@@ -123,10 +131,18 @@
 <li>If it isn&rsquo;t there, we&rsquo;re preserving that device&rsquo;s privacy by not keeping its info on our device</li>
 </ol>
 <p>When devices are infected, they remain asymptomatic for 60 seconds, so only show the sad face on the screen after they&rsquo;ve been merrily infecting other close devices for some time. </p>
-<img loading="lazy" src="/images/pandemic/client_setup.png"><p>The client needs to maintain arrays of other devices it has seen which are broadcasting infected messages, when it first saw an infected device, and how many messages it has seen. It also needs to know if it is infectious and displaying symptoms.</p>
-<img loading="lazy" src="/images/pandemic/client_forever.png"><p>The clients broadcast discovery messages intended for the master device. If they are infected, they broadcast infect messages, and use the screen to displays whether or not they are symptomatic. Contacts are also pruned when they fall out of range for the infection window.</p>
-<img loading="lazy" src="/images/pandemic/client_contact_monitoring.png"><p>When radio packets are received, the client needs to determine if the device has been seen before, if the signal is strong enough to merit contributing to infection, and whether enough contact has occured to infect this device. This also listens for the master device to see if an infection message refers to this device ID.</p>
-<img loading="lazy" src="/images/pandemic/client_pruning.png"><p>I could probably get away without pruning and just maintain data for every device seen, but this keeps the list of infected devices easy to understand. If it&rsquo;s in the array, it&rsquo;s something to worry about. This also stays true to the idea of not keeping identifying data for devices which are not relevant.</p>
+<figure class="post-image"><a class="post-image-link" href="/images/pandemic/client_setup.png">
+  <img height="440" loading="lazy" src="/images/pandemic/client_setup.png" width="355"></a>
+</figure><p>The client needs to maintain arrays of other devices it has seen which are broadcasting infected messages, when it first saw an infected device, and how many messages it has seen. It also needs to know if it is infectious and displaying symptoms.</p>
+<figure class="post-image"><a class="post-image-link" href="/images/pandemic/client_forever.png">
+  <img height="473" loading="lazy" src="/images/pandemic/client_forever.png" width="814"></a>
+</figure><p>The clients broadcast discovery messages intended for the master device. If they are infected, they broadcast infect messages, and use the screen to displays whether or not they are symptomatic. Contacts are also pruned when they fall out of range for the infection window.</p>
+<figure class="post-image"><a class="post-image-link" href="/images/pandemic/client_contact_monitoring.png">
+  <img height="832" loading="lazy" src="/images/pandemic/client_contact_monitoring.png" width="889"></a>
+</figure><p>When radio packets are received, the client needs to determine if the device has been seen before, if the signal is strong enough to merit contributing to infection, and whether enough contact has occured to infect this device. This also listens for the master device to see if an infection message refers to this device ID.</p>
+<figure class="post-image"><a class="post-image-link" href="/images/pandemic/client_pruning.png">
+  <img height="415" loading="lazy" src="/images/pandemic/client_pruning.png" width="885"></a>
+</figure><p>I could probably get away without pruning and just maintain data for every device seen, but this keeps the list of infected devices easy to understand. If it&rsquo;s in the array, it&rsquo;s something to worry about. This also stays true to the idea of not keeping identifying data for devices which are not relevant.</p>
 
 
   </div>

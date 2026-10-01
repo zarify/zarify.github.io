@@ -167,69 +167,55 @@ starter code, and live pattern-based feedback for code as well as IO.</p>
 </ul>
 <style>
     .image-gallery {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1%;
-        margin-left: -1% !important;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 12px;
+        margin-top: 1.5em;
+        padding: 0;
+        list-style: none;
     }
 
     .image-gallery li {
+        margin: 0;
         list-style: none;
-        width: 19%;
-        display: flex;
-        flex-direction: column;
     }
 
     .image-gallery li a {
-        text-align: center;
-        text-decoration: none !important;
-        color: #777;
         display: flex;
         flex-direction: column;
-        flex-grow: 1;
-        justify-content: space-between;
-        box-shadow: none !important;
+        height: 100%;
+        text-decoration: none;
+        text-align: center;
+        color: var(--secondary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        transition: box-shadow 0.15s ease;
     }
 
-    .image-gallery li a span {
-        display: block;
-        padding: 3px 0;
-        white-space: normal;
-        font-size: 0.8em;
+    .image-gallery li a:hover {
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
     }
 
     .image-gallery li a img {
         width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: contain;
+        object-position: center;
         display: block;
+        background: var(--border);  
     }
 
-     
-    @media (max-width: 1200px) {
-        .image-gallery li {
-            width: 24%;
-             
-        }
-    }
-
-    @media (max-width: 992px) {
-        .image-gallery li {
-            width: 32%;
-             
-        }
-    }
-
-    @media (max-width: 768px) {
-        .image-gallery li {
-            width: 49%;
-             
-        }
-    }
-
-    @media (max-width: 576px) {
-        .image-gallery li {
-            width: 100%;
-             
-        }
+    .image-gallery li a span {
+        display: block;
+        margin-top: auto;
+        padding: 6px 8px;
+        font-size: 0.8em;
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 </style>
 
@@ -237,60 +223,61 @@ starter code, and live pattern-based feedback for code as well as IO.</p>
 <ul class="image-gallery">
     <li>
         <a href="/gallery/clipy/week2/01_editor_instructions.png" title="01_editor_instructions" class="lightbox-image">
-            <img src="/gallery/clipy/week2/01_editor_instructions.png" alt="01_editor_instructions" title="01_editor_instructions">
+            <img src="/gallery/clipy/week2/01_editor_instructions.png" alt="01_editor_instructions" title="01_editor_instructions" loading="lazy">
             <span>01_editor_instructions</span>
         </a>
     </li>
     <li>
         <a href="/gallery/clipy/week2/02_editor_terminal.png" title="02_editor_terminal" class="lightbox-image">
-            <img src="/gallery/clipy/week2/02_editor_terminal.png" alt="02_editor_terminal" title="02_editor_terminal">
+            <img src="/gallery/clipy/week2/02_editor_terminal.png" alt="02_editor_terminal" title="02_editor_terminal" loading="lazy">
             <span>02_editor_terminal</span>
         </a>
     </li>
     <li>
         <a href="/gallery/clipy/week2/03_editor_feedback_no.png" title="03_editor_feedback_no" class="lightbox-image">
-            <img src="/gallery/clipy/week2/03_editor_feedback_no.png" alt="03_editor_feedback_no" title="03_editor_feedback_no">
+            <img src="/gallery/clipy/week2/03_editor_feedback_no.png" alt="03_editor_feedback_no" title="03_editor_feedback_no" loading="lazy">
             <span>03_editor_feedback_no</span>
         </a>
     </li>
     <li>
         <a href="/gallery/clipy/week2/04_editor_feedback_yes.png" title="04_editor_feedback_yes" class="lightbox-image">
-            <img src="/gallery/clipy/week2/04_editor_feedback_yes.png" alt="04_editor_feedback_yes" title="04_editor_feedback_yes">
+            <img src="/gallery/clipy/week2/04_editor_feedback_yes.png" alt="04_editor_feedback_yes" title="04_editor_feedback_yes" loading="lazy">
             <span>04_editor_feedback_yes</span>
         </a>
     </li>
     <li>
         <a href="/gallery/clipy/week2/05_authoring_meta.png" title="05_authoring_meta" class="lightbox-image">
-            <img src="/gallery/clipy/week2/05_authoring_meta.png" alt="05_authoring_meta" title="05_authoring_meta">
+            <img src="/gallery/clipy/week2/05_authoring_meta.png" alt="05_authoring_meta" title="05_authoring_meta" loading="lazy">
             <span>05_authoring_meta</span>
         </a>
     </li>
     <li>
         <a href="/gallery/clipy/week2/06_authoring_tests.png" title="06_authoring_tests" class="lightbox-image">
-            <img src="/gallery/clipy/week2/06_authoring_tests.png" alt="06_authoring_tests" title="06_authoring_tests">
+            <img src="/gallery/clipy/week2/06_authoring_tests.png" alt="06_authoring_tests" title="06_authoring_tests" loading="lazy">
             <span>06_authoring_tests</span>
         </a>
     </li>
     <li>
         <a href="/gallery/clipy/week2/07_authoring_tests_single.png" title="07_authoring_tests_single" class="lightbox-image">
-            <img src="/gallery/clipy/week2/07_authoring_tests_single.png" alt="07_authoring_tests_single" title="07_authoring_tests_single">
+            <img src="/gallery/clipy/week2/07_authoring_tests_single.png" alt="07_authoring_tests_single" title="07_authoring_tests_single" loading="lazy">
             <span>07_authoring_tests_single</span>
         </a>
     </li>
     <li>
         <a href="/gallery/clipy/week2/08_feedback_authoring.png" title="08_feedback_authoring" class="lightbox-image">
-            <img src="/gallery/clipy/week2/08_feedback_authoring.png" alt="08_feedback_authoring" title="08_feedback_authoring">
+            <img src="/gallery/clipy/week2/08_feedback_authoring.png" alt="08_feedback_authoring" title="08_feedback_authoring" loading="lazy">
             <span>08_feedback_authoring</span>
         </a>
     </li>
     <li>
         <a href="/gallery/clipy/week2/09_feedback_list.png" title="09_feedback_list" class="lightbox-image">
-            <img src="/gallery/clipy/week2/09_feedback_list.png" alt="09_feedback_list" title="09_feedback_list">
+            <img src="/gallery/clipy/week2/09_feedback_list.png" alt="09_feedback_list" title="09_feedback_list" loading="lazy">
             <span>09_feedback_list</span>
         </a>
     </li>
     
 </ul>
+
 <h3 id="is-this-going-to-be-in-the-test">Is this going to be in the test?<a hidden class="anchor" aria-hidden="true" href="#is-this-going-to-be-in-the-test">#</a></h3>
 <p>Testing has been a bit of a ride. To start with I wanted to re-use the same Python runtime
 as the user code to run the tests, but I ran into way too many issues with state, rewiring

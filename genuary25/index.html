@@ -116,69 +116,55 @@ outputs unless there didn&rsquo;t feel like any other way to achieve my ideas (a
 to share nicely).</p>
 <style>
     .image-gallery {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1%;
-        margin-left: -1% !important;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 12px;
+        margin-top: 1.5em;
+        padding: 0;
+        list-style: none;
     }
 
     .image-gallery li {
+        margin: 0;
         list-style: none;
-        width: 19%;
-        display: flex;
-        flex-direction: column;
     }
 
     .image-gallery li a {
-        text-align: center;
-        text-decoration: none !important;
-        color: #777;
         display: flex;
         flex-direction: column;
-        flex-grow: 1;
-        justify-content: space-between;
-        box-shadow: none !important;
+        height: 100%;
+        text-decoration: none;
+        text-align: center;
+        color: var(--secondary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        transition: box-shadow 0.15s ease;
     }
 
-    .image-gallery li a span {
-        display: block;
-        padding: 3px 0;
-        white-space: normal;
-        font-size: 0.8em;
+    .image-gallery li a:hover {
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
     }
 
     .image-gallery li a img {
         width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: contain;
+        object-position: center;
         display: block;
+        background: var(--border);  
     }
 
-     
-    @media (max-width: 1200px) {
-        .image-gallery li {
-            width: 24%;
-             
-        }
-    }
-
-    @media (max-width: 992px) {
-        .image-gallery li {
-            width: 32%;
-             
-        }
-    }
-
-    @media (max-width: 768px) {
-        .image-gallery li {
-            width: 49%;
-             
-        }
-    }
-
-    @media (max-width: 576px) {
-        .image-gallery li {
-            width: 100%;
-             
-        }
+    .image-gallery li a span {
+        display: block;
+        margin-top: auto;
+        padding: 6px 8px;
+        font-size: 0.8em;
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 </style>
 
@@ -186,144 +172,145 @@ to share nicely).</p>
 <ul class="image-gallery">
     <li>
         <a href="/gallery/genuary25/42%20lines%20of%20code.gif" title="42 lines of code" class="lightbox-image">
-            <img src="/gallery/genuary25/42%20lines%20of%20code.gif" alt="42 lines of code" title="42 lines of code">
+            <img src="/gallery/genuary25/42%20lines%20of%20code.gif" alt="42 lines of code" title="42 lines of code" loading="lazy">
             <span>42 lines of code</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Black%20on%20black.png" title="Black on black" class="lightbox-image">
-            <img src="/gallery/genuary25/Black%20on%20black.png" alt="Black on black" title="Black on black">
+            <img src="/gallery/genuary25/Black%20on%20black.png" alt="Black on black" title="Black on black" loading="lazy">
             <span>Black on black</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Collision%20detection%20stalks.png" title="Collision detection stalks" class="lightbox-image">
-            <img src="/gallery/genuary25/Collision%20detection%20stalks.png" alt="Collision detection stalks" title="Collision detection stalks">
+            <img src="/gallery/genuary25/Collision%20detection%20stalks.png" alt="Collision detection stalks" title="Collision detection stalks" loading="lazy">
             <span>Collision detection stalks</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Collision%20detection.png" title="Collision detection" class="lightbox-image">
-            <img src="/gallery/genuary25/Collision%20detection.png" alt="Collision detection" title="Collision detection">
+            <img src="/gallery/genuary25/Collision%20detection.png" alt="Collision detection" title="Collision detection" loading="lazy">
             <span>Collision detection</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Design%20a%20rug.png" title="Design a rug" class="lightbox-image">
-            <img src="/gallery/genuary25/Design%20a%20rug.png" alt="Design a rug" title="Design a rug">
+            <img src="/gallery/genuary25/Design%20a%20rug.png" alt="Design a rug" title="Design a rug" loading="lazy">
             <span>Design a rug</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Generative%20architecture.png" title="Generative architecture" class="lightbox-image">
-            <img src="/gallery/genuary25/Generative%20architecture.png" alt="Generative architecture" title="Generative architecture">
+            <img src="/gallery/genuary25/Generative%20architecture.png" alt="Generative architecture" title="Generative architecture" loading="lazy">
             <span>Generative architecture</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Generative%20palette.png" title="Generative palette" class="lightbox-image">
-            <img src="/gallery/genuary25/Generative%20palette.png" alt="Generative palette" title="Generative palette">
+            <img src="/gallery/genuary25/Generative%20palette.png" alt="Generative palette" title="Generative palette" loading="lazy">
             <span>Generative palette</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Geometric%20art.png" title="Geometric art" class="lightbox-image">
-            <img src="/gallery/genuary25/Geometric%20art.png" alt="Geometric art" title="Geometric art">
+            <img src="/gallery/genuary25/Geometric%20art.png" alt="Geometric art" title="Geometric art" loading="lazy">
             <span>Geometric art</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Gradients%20only.png" title="Gradients only" class="lightbox-image">
-            <img src="/gallery/genuary25/Gradients%20only.png" alt="Gradients only" title="Gradients only">
+            <img src="/gallery/genuary25/Gradients%20only.png" alt="Gradients only" title="Gradients only" loading="lazy">
             <span>Gradients only</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Grid%20based%20graphic%20design.png" title="Grid based graphic design" class="lightbox-image">
-            <img src="/gallery/genuary25/Grid%20based%20graphic%20design.png" alt="Grid based graphic design" title="Grid based graphic design">
+            <img src="/gallery/genuary25/Grid%20based%20graphic%20design.png" alt="Grid based graphic design" title="Grid based graphic design" loading="lazy">
             <span>Grid based graphic design</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Inspired%20by%20Brutalism.png" title="Inspired by Brutalism" class="lightbox-image">
-            <img src="/gallery/genuary25/Inspired%20by%20Brutalism.png" alt="Inspired by Brutalism" title="Inspired by Brutalism">
+            <img src="/gallery/genuary25/Inspired%20by%20Brutalism.png" alt="Inspired by Brutalism" title="Inspired by Brutalism" loading="lazy">
             <span>Inspired by Brutalism</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Isometric.png" title="Isometric" class="lightbox-image">
-            <img src="/gallery/genuary25/Isometric.png" alt="Isometric" title="Isometric">
+            <img src="/gallery/genuary25/Isometric.png" alt="Isometric" title="Isometric" loading="lazy">
             <span>Isometric</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Layers%20on%20Layers.png" title="Layers on Layers" class="lightbox-image">
-            <img src="/gallery/genuary25/Layers%20on%20Layers.png" alt="Layers on Layers" title="Layers on Layers">
+            <img src="/gallery/genuary25/Layers%20on%20Layers.png" alt="Layers on Layers" title="Layers on Layers" loading="lazy">
             <span>Layers on Layers</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Not%20meant%20for%20art.png" title="Not meant for art" class="lightbox-image">
-            <img src="/gallery/genuary25/Not%20meant%20for%20art.png" alt="Not meant for art" title="Not meant for art">
+            <img src="/gallery/genuary25/Not%20meant%20for%20art.png" alt="Not meant for art" title="Not meant for art" loading="lazy">
             <span>Not meant for art</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Only%20tau.png" title="Only tau" class="lightbox-image">
-            <img src="/gallery/genuary25/Only%20tau.png" alt="Only tau" title="Only tau">
+            <img src="/gallery/genuary25/Only%20tau.png" alt="Only tau" title="Only tau" loading="lazy">
             <span>Only tau</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Op%20art.png" title="Op art" class="lightbox-image">
-            <img src="/gallery/genuary25/Op%20art.png" alt="Op art" title="Op art">
+            <img src="/gallery/genuary25/Op%20art.png" alt="Op art" title="Op art" loading="lazy">
             <span>Op art</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Public%20transport%20seating.png" title="Public transport seating" class="lightbox-image">
-            <img src="/gallery/genuary25/Public%20transport%20seating.png" alt="Public transport seating" title="Public transport seating">
+            <img src="/gallery/genuary25/Public%20transport%20seating.png" alt="Public transport seating" title="Public transport seating" loading="lazy">
             <span>Public transport seating</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Pure%20black%20and%20white.png" title="Pure black and white" class="lightbox-image">
-            <img src="/gallery/genuary25/Pure%20black%20and%20white.png" alt="Pure black and white" title="Pure black and white">
+            <img src="/gallery/genuary25/Pure%20black%20and%20white.png" alt="Pure black and white" title="Pure black and white" loading="lazy">
             <span>Pure black and white</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Subdivision.png" title="Subdivision" class="lightbox-image">
-            <img src="/gallery/genuary25/Subdivision.png" alt="Subdivision" title="Subdivision">
+            <img src="/gallery/genuary25/Subdivision.png" alt="Subdivision" title="Subdivision" loading="lazy">
             <span>Subdivision</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Symmetry.png" title="Symmetry" class="lightbox-image">
-            <img src="/gallery/genuary25/Symmetry.png" alt="Symmetry" title="Symmetry">
+            <img src="/gallery/genuary25/Symmetry.png" alt="Symmetry" title="Symmetry" loading="lazy">
             <span>Symmetry</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Triangles%20only.png" title="Triangles only" class="lightbox-image">
-            <img src="/gallery/genuary25/Triangles%20only.png" alt="Triangles only" title="Triangles only">
+            <img src="/gallery/genuary25/Triangles%20only.png" alt="Triangles only" title="Triangles only" loading="lazy">
             <span>Triangles only</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/Vertical%20or%20horizontal%20lines.png" title="Vertical or horizontal lines" class="lightbox-image">
-            <img src="/gallery/genuary25/Vertical%20or%20horizontal%20lines.png" alt="Vertical or horizontal lines" title="Vertical or horizontal lines">
+            <img src="/gallery/genuary25/Vertical%20or%20horizontal%20lines.png" alt="Vertical or horizontal lines" title="Vertical or horizontal lines" loading="lazy">
             <span>Vertical or horizontal lines</span>
         </a>
     </li>
     <li>
         <a href="/gallery/genuary25/What%20if%20pi%20was%204.png" title="What if pi was 4" class="lightbox-image">
-            <img src="/gallery/genuary25/What%20if%20pi%20was%204.png" alt="What if pi was 4" title="What if pi was 4">
+            <img src="/gallery/genuary25/What%20if%20pi%20was%204.png" alt="What if pi was 4" title="What if pi was 4" loading="lazy">
             <span>What if pi was 4</span>
         </a>
     </li>
     
 </ul>
+
 <video controls>
     <source src="/video/Genuary25_Primitive_landscape.mp4">
     Your browser does not support the video tag.
