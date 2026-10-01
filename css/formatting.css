@@ -100,3 +100,17 @@ figure.floatleft {
         margin-right: auto !important;
     }
 }
+
+/* --- Projects page: status icons & legend --- */
+.legend {
+    font-size: 0.9em;
+    color: var(--secondary);
+}
+
+.st-usable {
+    color: #3fb950;
+}
+
+.st-caution {
+    color: #e3b341;
+}
