@@ -2,18 +2,18 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Media on Headtilt</title>
-    <link>http://localhost:1441/tags/media/</link>
+    <link>http://10.1.1.246:1313/tags/media/</link>
     <description>Recent content in Media on Headtilt</description>
     <generator>Hugo -- 0.165.0</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
     <lastBuildDate>Fri, 28 Aug 2026 19:47:05 +0800</lastBuildDate>
-    <atom:link href="http://localhost:1441/tags/media/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://10.1.1.246:1313/tags/media/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Osmosis</title>
-      <link>http://localhost:1441/osmosis/</link>
+      <link>http://10.1.1.246:1313/osmosis/</link>
       <pubDate>Fri, 28 Aug 2026 19:47:05 +0800</pubDate>
-      <guid>http://localhost:1441/osmosis/</guid>
+      <guid>http://10.1.1.246:1313/osmosis/</guid>
       <description>&lt;p&gt;When I was growing up I have lots of memories of listening to the news, radio shows, and more on the family
 stereo in the afternoons. When we drove across the countryside it would be the AM radio since that&amp;rsquo;s all
 there was (apart from throwing rocks out the window at distance marker signs and re-reading the same book
