@@ -15,7 +15,11 @@ Public API
     syntaxError, seed}``
 
     where ``status ∈ {done, need-input, syntax_error, forbidden_import,
-    loop_budget, timeout, output_limit, error}``.
+    loop_budget, timeout, output_limit, error}``. An ordinary exception that
+    escaped student code is ``status: "error"`` with ``error.unhandled: true``
+    and ``error.type`` naming the class; every other ``error`` (invalid spec,
+    harness failure, engine limit, forbidden import) omits the marker, so
+    exception grading can never mistake infrastructure for a student bug.
 
     Run-mode results snapshot every regular file in the workdir after
     execution into ``workspaceFiles`` (records like ``files``, plus
@@ -30,9 +34,10 @@ Public API
     ``{patterns: [{key, pattern}]}`` → ``{errors: {key: message | null}}``.
 
 Execution sequence: reset the filesystem and seed files (per attempt, so
-replays never accumulate files) → forbidden-import check → syntax check →
-limits (recursion cap, seeded RNG, trace watchdog) → stdio wrappers →
-``input()`` override → ``exec`` → captures.
+replays never accumulate files) → parse + forbidden-import check → compile
+(the only place a ``SyntaxError`` is a syntax failure) → limits (recursion cap,
+seeded RNG, trace watchdog) → stdio wrappers → ``input()`` override →
+``exec`` → captures.
 
 Watchdog: ``sys.settrace`` counts events only in ``<student.py>`` frames and
 raises past ``limits.max_trace_events`` or ``limits.soft_wall_ms`` (wall clock
@@ -229,10 +234,27 @@ def _run_spec(spec):
             },
         )
 
-    return _execute(source, tree, mode, prompt_inputs, capture, limits, attempt, seed)
+    # 4. Compile once, here: malformed source is a syntax failure, while an
+    # ordinary SyntaxError raised later by student code is a runtime exception.
+    try:
+        compiled = compile(tree, STUDENT_FILENAME, "exec")
+    except SyntaxError as exc:
+        return _empty_result(
+            status="syntax_error",
+            attempt=attempt,
+            seed=seed,
+            prompt_inputs=prompt_inputs,
+            syntax_error={
+                "message": exc.msg,
+                "line": exc.lineno,
+                "offset": exc.offset,
+            },
+        )
+
+    return _execute(source, compiled, mode, prompt_inputs, capture, limits, attempt, seed)
 
 
-def _execute(source, tree, mode, prompt_inputs, capture, limits, attempt, seed):
+def _execute(source, compiled, mode, prompt_inputs, capture, limits, attempt, seed):
     soft_wall_ms = _spec_int(limits, "soft_wall_ms", SOFT_WALL_MS_CHECK if mode == "check" else SOFT_WALL_MS_RUN)
     max_events = _spec_int(limits, "max_trace_events", DEFAULT_MAX_TRACE_EVENTS)
 
@@ -240,7 +262,6 @@ def _execute(source, tree, mode, prompt_inputs, capture, limits, attempt, seed):
     globals_dict = {"__name__": "__main__"}
     status = "done"
     error = None
-    syntax_error = None
 
     _cache_student_source(source)
     prev_cwd = os.getcwd()
@@ -264,7 +285,7 @@ def _execute(source, tree, mode, prompt_inputs, capture, limits, attempt, seed):
         sys.settrace(_make_tracer(state))
         state.started = time.monotonic()
         try:
-            exec(compile(source, STUDENT_FILENAME, "exec"), globals_dict)
+            exec(compiled, globals_dict)
         except NeedInput:
             # The unanswered call was logged by next_response; the replay
             # re-runs the whole program with the answer appended.
@@ -287,9 +308,6 @@ def _execute(source, tree, mode, prompt_inputs, capture, limits, attempt, seed):
             }
         except SystemExit:
             status = "done"
-        except SyntaxError as exc:
-            status = "syntax_error"
-            syntax_error = {"message": exc.msg, "line": exc.lineno, "offset": exc.offset}
         except Exception as exc:
             status = "error"
             error = _runtime_error(exc, state)
@@ -325,7 +343,7 @@ def _execute(source, tree, mode, prompt_inputs, capture, limits, attempt, seed):
         "workspaceFiles": workspace_files,
         "scopedFunction": captures["scopedFunction"],
         "error": error,
-        "syntaxError": syntax_error,
+        "syntaxError": None,
         "seed": seed,
     }
 
@@ -530,6 +548,16 @@ def _cache_student_source(source):
     )
 
 
+def _is_student_exception(exc):
+    """Whether `exc` is an ordinary exception escaping student code.
+
+    The harness' own control flow (`input()` replay, the trace/wall watchdog,
+    the output cap, spec errors) travels through the same except-clauses, so it
+    must never look like a matchable student exception.
+    """
+    return not isinstance(exc, (NeedInput, BudgetExceeded, OutputLimit, SpecError))
+
+
 def _runtime_error(exc, state):
     frames = [
         frame for frame in traceback.extract_tb(exc.__traceback__)
@@ -546,6 +574,10 @@ def _runtime_error(exc, state):
         "message": str(exc),
         "traceback": "\n".join(lines),
         "line": frames[-1].lineno if frames else None,
+        # An ordinary exception escaped the student boundary. Only this marker
+        # makes an exception matchable; every other `status: "error"` result
+        # (invalid spec, harness failure, engine limit) omits it.
+        "unhandled": True,
     }
 
 
@@ -785,6 +817,7 @@ def _invoke_call(globals_dict, call):
                 "type": type(exc).__name__,
                 "message": str(exc),
                 "line": _student_line(exc) or _definition_line(fn),
+                "unhandled": _is_student_exception(exc),
             },
         }
     return {"key": key, "ok": True, "value": _tag(value)}
@@ -796,6 +829,7 @@ def _callable_target_error(globals_dict, name):
             "type": "NameError",
             "message": f"name {name!r} is not defined",
             "line": None,
+            "unhandled": False,
         }
     value = globals_dict[name]
     if inspect.iscoroutinefunction(value):
@@ -803,12 +837,14 @@ def _callable_target_error(globals_dict, name):
             "type": "TypeError",
             "message": "function must be a regular function, not async",
             "line": _definition_line(value),
+            "unhandled": False,
         }
     if not callable(value):
         return {
             "type": "TypeError",
             "message": f"'{type(value).__name__}' object is not callable",
             "line": None,
+            "unhandled": False,
         }
     return None
 
@@ -821,9 +857,17 @@ def _invoke_scoped(globals_dict, spec, state):
 
     failure = _callable_target_error(globals_dict, name)
     error = None
+    error_info = None
     if failure is not None:
         ok = False
         error = f"{failure['type']}: {failure['message']}"
+        error_info = {
+            "type": failure["type"],
+            "message": failure["message"],
+            "line": failure["line"],
+            # The call never reached student code — no matchable exception.
+            "unhandled": False,
+        }
     else:
         ok = True
         try:
@@ -831,10 +875,17 @@ def _invoke_scoped(globals_dict, spec, state):
         except Exception as exc:
             ok = False
             error = f"{type(exc).__name__}: {exc}"
+            error_info = {
+                "type": type(exc).__name__,
+                "message": str(exc),
+                "line": _student_line(exc) or _definition_line(globals_dict[name]),
+                "unhandled": _is_student_exception(exc),
+            }
 
     return {
         "ok": ok,
         "error": error,
+        "errorInfo": error_info,
         "stdout": "".join(state.transcript[before_output:]),
         "prompts": [dict(entry) for entry in state.prompts[before_prompts:]],
     }

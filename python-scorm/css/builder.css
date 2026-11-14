@@ -41,6 +41,14 @@ body {
   gap: 8px;
 }
 
+/* Authoring-tool version badge (injected from package.json at build time) */
+#builder-header h1 .builder-version {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.65);
+}
+
 /* Tabs */
 #tab-nav {
   display: flex;
