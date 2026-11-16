@@ -31,7 +31,9 @@ Enter code introspection, which is the ability to look inside classes and method
 
     </style>
 </noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/pagefind/pagefind-component-ui.css">
 <link rel="stylesheet" href="/css/formatting.css">
+<script type="module" src="/pagefind/pagefind-component-ui.js"></script>
 
 
 
@@ -46,6 +48,7 @@ Enter code introspection, which is the ability to look inside classes and method
                 <img src="https://headtilt.me/images/headtilt.png" alt="" aria-label="logo"
                     height="30">Adjust your angle</a>
             <div class="logo-switches">
+                <pagefind-modal-trigger compact hide-shortcut placeholder="Search" shortcut="mod+k"></pagefind-modal-trigger>
             </div>
         </div>
         <ul id="menu">
@@ -77,7 +80,7 @@ Enter code introspection, which is the ability to look inside classes and method
         </ul>
     </nav>
 </header>
-<main class="main">
+<main class="main" data-pagefind-body>
 
 <article class="post-single">
   <header class="post-header">
@@ -217,6 +220,7 @@ This is a <strong>newline</strong> character, which creates a line break, so ev
 </a><script type="text/javascript" src="/js/lightbox.js"></script>
 <link rel="stylesheet" href="/css/lightbox.css">
 <script data-goatcounter="https://headtilt_me.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<pagefind-modal reset-on-close></pagefind-modal>
 
 <script>
     let menu = document.getElementById('menu')

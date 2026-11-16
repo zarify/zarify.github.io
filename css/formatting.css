@@ -136,3 +136,32 @@ figure.floatleft {
     color: var(--secondary);
     text-align: right;
 }
+
+/* --- Pagefind search (component UI) --- */
+/* Only the documented --pf-* variables reach inside the components; they
+   isolate their internals, so theme through these and the host element.
+   Declared for .dark as well so the modal follows PaperMod's body class. */
+:root,
+.dark {
+    --pf-text: var(--primary);
+    --pf-mark: var(--primary);
+    --pf-outline-focus: var(--primary);
+    --pf-text-secondary: var(--secondary);
+    --pf-text-muted: var(--secondary);
+    --pf-border-focus: var(--secondary);
+    --pf-background: var(--theme);
+    --pf-border: var(--tertiary);
+    --pf-hover: var(--code-bg);
+    --pf-modal-max-width: min(720px, calc(100vw - 32px));
+}
+
+pagefind-modal-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    min-width: 44px;
+    min-height: 44px;
+    margin-inline: 4px;
+    color: var(--primary);
+}

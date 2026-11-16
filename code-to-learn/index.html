@@ -33,7 +33,9 @@ of our work, apart from some rare cases with motivated students, feels like from
 
     </style>
 </noscript><script src="https://kit.fontawesome.com/3ec5c52433.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/pagefind/pagefind-component-ui.css">
 <link rel="stylesheet" href="/css/formatting.css">
+<script type="module" src="/pagefind/pagefind-component-ui.js"></script>
 </head>
 
 <body class="" id="top">
@@ -45,6 +47,7 @@ of our work, apart from some rare cases with motivated students, feels like from
                 <img src="http://10.1.1.246:1313/images/headtilt.png" alt="" aria-label="logo"
                     height="30">Adjust your angle</a>
             <div class="logo-switches">
+                <pagefind-modal-trigger compact hide-shortcut placeholder="Search" shortcut="mod+k"></pagefind-modal-trigger>
             </div>
         </div>
         <ul id="menu">
@@ -76,7 +79,7 @@ of our work, apart from some rare cases with motivated students, feels like from
         </ul>
     </nav>
 </header>
-<main class="main">
+<main class="main" data-pagefind-body>
 
 <article class="post-single">
   <header class="post-header">
@@ -155,6 +158,7 @@ the idea of &ldquo;learn to draw&rdquo; vs &ldquo;draw to learn&rdquo; is also p
 </a><script type="text/javascript" src="/js/lightbox.js"></script>
 <link rel="stylesheet" href="/css/lightbox.css">
 <script data-goatcounter="https://headtilt_me.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<pagefind-modal reset-on-close></pagefind-modal>
 
 <script>
     let menu = document.getElementById('menu')
