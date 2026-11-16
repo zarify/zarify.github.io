@@ -611,6 +611,49 @@ body {
 
 .step-remove:hover { color: #c62828; }
 
+/* Collapsible test-assertion categories: native <details>, no JS config writes */
+.test-category {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 14px;
+  background: #fff;
+}
+
+.test-category > summary {
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+}
+
+.test-category > summary:focus-visible {
+  outline: 2px solid #1976d2;
+  outline-offset: -2px;
+}
+
+.test-category[open] > summary {
+  background: #f6f8fa;
+  border-bottom: 1px solid #eaeef2;
+}
+
+.test-category-body {
+  padding: 12px;
+}
+
+/* The category summary replaces its fieldset's own border and legend. */
+.test-category-body > fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.test-category-body > .form-group:last-child,
+.test-category-body > fieldset > .form-group:last-child {
+  margin-bottom: 0;
+}
+
 /* Category editor modal (inline) */
 .category-editor {
   background: #f9f9f9;
