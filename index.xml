@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>Home index file on Headtilt</title>
+    <title>Headtilt</title>
     <link>https://headtilt.me/index.xml</link>
-    <description>Recent content in Home index file on Headtilt</description>
+    <description>Recent content on Headtilt</description>
     <generator>Hugo -- 0.169.0</generator>
     <language>en</language>
     <copyright>Rob Poulter</copyright>
