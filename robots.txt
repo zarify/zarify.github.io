@@ -1,0 +1,20 @@
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: CCBot
+User-agent: Google-Extended
+User-agent: PerplexityBot
+User-agent: Bytespider
+User-agent: Amazonbot
+User-agent: meta-externalagent
+Disallow: /
+
+User-agent: *
+Disallow: /pagefind/
+Disallow: /clipy/
+Disallow: /swarm/
+Disallow: /blockly-scorm/
+Disallow: /python-scorm/
+Disallow: /bg-batcher/
+Disallow: /adventure/
+
+Sitemap: https://headtilt.me/sitemap.xml
