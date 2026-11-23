@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Swarm Scenario Studio</title>
+  <link rel="stylesheet" href="css/builder.css">
+</head>
+<body>
+  <div id="builder-app">
+    <header id="builder-header">
+      <h1>🐝 Swarm Activity Builder <span id="builder-version" class="builder-version"></span></h1>
+      <div id="header-actions">
+        <button id="btn-import" class="btn btn-secondary" type="button" title="Import existing config">📂 Import</button>
+        <button id="btn-export-json" class="btn btn-primary" type="button" title="Download activity_config.json">💾 Export JSON</button>
+        <button id="btn-export-scorm" class="btn btn-accent" type="button" title="Download SCORM .zip package">📦 Export SCORM</button>
+        <input id="file-import" type="file" accept=".json,application/json" hidden>
+      </div>
+    </header>
+    <nav id="tab-nav" role="tablist" aria-label="Activity authoring sections">
+      <button class="tab-btn active" id="tab-button-config" type="button" role="tab" aria-selected="true" aria-controls="tab-config" data-tab="config">⚙️ Config</button>
+      <button class="tab-btn" id="tab-button-scenario" type="button" role="tab" aria-selected="false" aria-controls="tab-scenario" data-tab="scenario">🎬 Scenario</button>
+      <button class="tab-btn" id="tab-button-hints" type="button" role="tab" aria-selected="false" aria-controls="tab-hints" data-tab="hints">💡 Hints</button>
+      <button class="tab-btn" id="tab-button-tests" type="button" role="tab" aria-selected="false" aria-controls="tab-tests" data-tab="tests">✅ Tests</button>
+      <button class="tab-btn" id="tab-button-preview" type="button" role="tab" aria-selected="false" aria-controls="tab-preview" data-tab="preview">👁️ Preview</button>
+    </nav>
+
+    <main id="tab-content">
+      <section id="tab-config" class="tab-panel active" role="tabpanel" aria-labelledby="tab-button-config">
+        <div class="config-grid">
+          <section class="form-section config-copy-card">
+            <h2>Activity identity</h2>
+            <div class="form-group">
+              <label for="cfg-title">Activity title</label>
+              <input id="cfg-title" type="text" autocomplete="off" placeholder="e.g. The quiet radio relay">
+            </div>
+            <div class="form-group">
+              <label for="cfg-activity-id">Activity ID</label>
+              <input id="cfg-activity-id" type="text" autocomplete="off" spellcheck="false" placeholder="radio-relay">
+              <small>Lowercase letters, numbers, underscores, and hyphens.</small>
+            </div>
+            <div class="form-group">
+              <label for="cfg-instructions">Instructions</label>
+              <textarea id="cfg-instructions" rows="5" placeholder="Explain the task and what evidence learners should observe."></textarea>
+              <small class="field-help">For a micro:bit display, put five rows of five digits between standalone ```led and ``` lines. 0 is off; # is 9.</small>
+            </div>
+            <div class="form-group">
+              <label for="cfg-objectives">Learning objectives <span class="optional-label">optional</span></label>
+              <textarea id="cfg-objectives" rows="3" placeholder="What should learners understand by the end?"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="cfg-teacher-notes">Teacher notes <span class="optional-label">optional</span></label>
+              <textarea id="cfg-teacher-notes" rows="3" placeholder="Private setup notes for the instructor."></textarea>
+            </div>
+          </section>
+
+          <div class="config-side-column">
+            <section class="form-section capability-card">
+              <h2>Allowed actions</h2>
+              <p class="section-note">Disable an action to lock the matching simulator affordance during the activity.</p>
+              <label class="capability-row"><span><strong>Move devices</strong><small>Drag micro:bits across the canvas.</small></span><input type="checkbox" id="cap-move-devices"><span class="toggle-track" aria-hidden="true"></span></label>
+              <label class="capability-row"><span><strong>Move environment nodes</strong><small>Reposition lights, sound, temperature, and magnets.</small></span><input type="checkbox" id="cap-move-nodes"><span class="toggle-track" aria-hidden="true"></span></label>
+              <label class="capability-row"><span><strong>Press buttons</strong><small>Use A, B, and A+B inputs.</small></span><input type="checkbox" id="cap-use-buttons"><span class="toggle-track" aria-hidden="true"></span></label>
+            </section>
+            <section class="form-section panel-visibility-card">
+              <h2>Student canvas panels</h2>
+              <label class="capability-row"><span><strong>Debug panel</strong><small>Simulator debug tools for the student.</small></span><input type="checkbox" id="panel-debug"><span class="toggle-track" aria-hidden="true"></span></label>
+              <label class="capability-row"><span><strong>Radio inspector</strong><small>Live radio message inspector.</small></span><input type="checkbox" id="panel-radio-inspector" checked><span class="toggle-track" aria-hidden="true"></span></label>
+              <label class="capability-row"><span><strong>Runtime log</strong><small>Per-device runtime event log.</small></span><input type="checkbox" id="panel-runtime-log"><span class="toggle-track" aria-hidden="true"></span></label>
+              <label class="capability-row"><span><strong>Environment values</strong><small>Device sensor readings (light, sound, temperature).</small></span><input type="checkbox" id="panel-env-values" checked><span class="toggle-track" aria-hidden="true"></span></label>
+              <label class="capability-row"><span><strong>Node coordinates</strong><small>Show the selected device or environment node’s X and Y position.</small></span><input type="checkbox" id="panel-node-coordinates"><span class="toggle-track" aria-hidden="true"></span></label>
+              <label class="capability-row"><span><strong>Canvas header</strong><small>Swarm canvas header bar.</small></span><input type="checkbox" id="panel-header"><span class="toggle-track" aria-hidden="true"></span></label>
+            </section>
+        </div>
+      </section>
+
+      <section id="tab-scenario" class="tab-panel" role="tabpanel" aria-labelledby="tab-button-scenario">
+        <div class="scenario-toolbar">
+          <div class="connection-status"><span id="scenario-status-dot" class="status-dot"></span><span id="scenario-status">Connecting to simulator…</span></div>
+          <div class="toolbar-actions">
+            <button id="btn-capture-scene" class="btn btn-primary" type="button" disabled>Capture scene</button>
+            <button id="btn-load-scene" class="btn btn-secondary" type="button">Load .swarm file</button>
+            <input id="file-scene" type="file" accept=".swarm,application/octet-stream" hidden>
+            <button id="btn-reload-scene" class="btn btn-secondary" type="button" title="Revert simulator edits to the captured scene" aria-label="Revert simulator edits to the captured scene" disabled>Restore scene</button>
+          </div>
+        </div>
+        <div class="scenario-layout">
+          <section class="simulator-card">
+            <h2>Micro:bit swarm canvas</h2>
+            <iframe id="scenario-iframe" title="Authoring simulator canvas" src="about:blank"></iframe>
+          </section>
+          <section class="scene-card">
+            <h2>Devices &amp; nodes</h2>
+            <section class="scene-permissions" aria-labelledby="scene-permissions-title">
+              <h3 id="scene-permissions-title">Learner code permissions</h3>
+              <p class="section-note">These switches apply to the whole activity in Preview and the packaged learner package.</p>
+              <label class="capability-row"><span><strong>Edit code</strong><small>Allow changes to editable device source. Off allows viewing editable source without saving changes.</small></span><input type="checkbox" id="cap-edit-code"><span class="toggle-track" aria-hidden="true"></span></label>
+              <label class="capability-row"><span><strong>Load or remove code</strong><small>Allow uploading, replacing, or unloading device programs where the scene permits it.</small></span><input type="checkbox" id="cap-load-code"><span class="toggle-track" aria-hidden="true"></span></label>
+            </section>
+            <div id="scene-empty" class="empty-state"><strong>No scene captured yet</strong><p>Add devices or environment nodes in the simulator, then select Capture scene.</p></div>
+            <div id="scene-table-wrap" class="scene-table-wrap" hidden>
+              <p class="scene-table-note">Imported settings are starting points. Changes here replace them for Preview and export. Unlocking a device does not unpin it.</p>
+              <div id="scene-table"></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section id="tab-hints" class="tab-panel" role="tabpanel" aria-labelledby="tab-button-hints">
+        <div id="hints-layout" class="editor-layout">
+          <aside id="hint-list-panel" class="list-panel"><div class="panel-title-row"><div><h3>Hints</h3></div><span id="hint-count" class="count-badge">0</span></div><div id="hint-list"></div><p class="list-help">Drag a row to reorder. Alt+Arrow moves the selected row.</p><button id="btn-add-hint" class="btn btn-secondary btn-add" type="button">+ Add hint</button></aside>
+          <section id="hint-editor-panel" class="detail-panel"><div id="hint-editor-content" class="empty-state"><strong>Select a hint to edit</strong><p>Add a hint to define its trigger, message, and display style.</p></div></section>
+        </div>
+      </section>
+
+      <section id="tab-tests" class="tab-panel" role="tabpanel" aria-labelledby="tab-button-tests">
+        <div id="tests-layout" class="editor-layout">
+          <aside id="test-list-panel" class="list-panel"><div class="panel-title-row"><div><h3>Graded tests</h3></div><span id="test-count" class="count-badge">0</span></div><div id="test-list"></div><p class="list-help">Drag a row to reorder. Alt+Arrow moves the selected row.</p><button id="btn-add-test" class="btn btn-secondary btn-add" type="button">+ Add test</button><div id="points-indicator" class="points-indicator"></div></aside>
+          <section id="test-editor-panel" class="detail-panel"><div id="test-editor-content" class="empty-state"><strong>Select a test to edit</strong><p>Add a test and choose the observable behavior that earns its points.</p></div></section>
+        </div>
+      </section>
+
+      <section id="tab-preview" class="tab-panel" role="tabpanel" aria-labelledby="tab-button-preview">
+        <div class="preview-toolbar"><span id="preview-status" class="connection-status" role="status"><span id="preview-status-dot" class="status-dot"></span><span id="preview-status-text">Waiting for learner simulator…</span></span><div class="toolbar-actions"><button id="btn-reset-session" class="btn btn-secondary" type="button">Reset session</button><button id="btn-check-session" class="btn btn-accent" type="button">Check</button></div></div>
+        <div class="preview-layout">
+          <section class="preview-sim-card"><iframe id="preview-iframe" title="Learner activity preview" src="about:blank"></iframe></section>
+          <aside class="preview-side-column">
+            <section class="preview-panel"><div class="panel-title-row"><div><h3>Grading &amp; hints</h3></div><span id="preview-score" class="score-readout">—</span></div><div id="preview-grades" class="grade-list"><p class="empty-note">Run the scene, then select Check.</p></div><div id="preview-hints" class="preview-hints"></div></section>
+          </aside>
+        </div>
+      </section>
+    </main>
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  </div>
+  <script defer src="js/app.bundle.js"></script>
+
+<script data-goatcounter="https://headtilt_me.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<!-- pagefind-summary:start -->
+<div id="pagefind-summary" hidden data-pagefind-body>
+  <p data-pagefind-meta="title">Swarm Activity Builder</p>
+  <p>Create self-marking micro:bit swarm exercises in SCORM format for Moodle.</p>
+</div>
+<!-- pagefind-summary:end -->
+</body>
+</html>
